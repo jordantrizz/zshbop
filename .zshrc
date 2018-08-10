@@ -10,8 +10,11 @@ if [[ -a $GIT_ROOT/antigen.zsh ]]; then
         echo "Loading antigen from $GIT_ROOT/antigen.zsh";
         source $GIT_ROOT/antigen.zsh
 
-	# User oh-my-zsh
+	# Use oh-my-zsh
+	# ZSH plugins
+	plugins=(git osx bgnotify mysql-colorize extract history z cloudapp)
 	antigen use oh-my-zsh
+	
         # oh-my-zsh Custom directory
         export ZSH_CUSTOM="$GIT_ROOT"
         # Set oh-my-zsh theme to load default is ZSH_THEME="robbyrussell"
@@ -33,25 +36,18 @@ if [[ -a $GIT_ROOT/antigen.zsh ]]; then
         antigen bundle zpm-zsh/mysql-colorize
         #antigen bundle so-fancy/diff-so-fancy
 	#git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
+	antigen bundle zsh-users/zsh-autosuggestions
         antigen apply
 else
         echo "Couldn't load antigen..";
 fi
 
+# -- External Plugins
+source ~/.antigen/bundles/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh
+#. $ZSH/plugins/z/z.sh - broken
+
 # Default ZSH aliases and other functions
 source $GIT_ROOT/defaults.zshrc
-
-# ZSH plugins
-plugins=( 
-  git 
-  osx 
-  bgnotify 
-  mysql-colorize 
-  extract 
-  history
-  z
-  cloudapp
-)
 
 # Personal Config outside of git repo
 if [[ -a ~/.personal.zshrc ]]; then
