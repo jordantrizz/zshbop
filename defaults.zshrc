@@ -17,7 +17,7 @@ elif [[ $MACHINE = "Linux" ]] then
 fi
 
 # -- Paths
-
+export PATH=$PATH:~/.antigen/bundles/so-fancy/diff-so-fancy
 # -- Source
 # - fzf keybindings
 [ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
@@ -47,3 +47,4 @@ alias cpu="lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('"
 alias which="which -a"
 alias randpass="randpass -n 15 -f"
 alias zcc="rm ~/.zcompdump*"
+alias diff-so-fancy="~/.antigen/bundles/so-fancy/diff-so-fancy/diff-so-fancy"
