@@ -1,7 +1,8 @@
 # If you come from bash you might have to change your $PATH.
 # Mac Ports in /opt/local/bin
 export GIT_ROOT="$HOME/zsh"
-export PATH=$HOME/bin:/usr/local/bin:/opt/local/bin:$GIT_ROOT:$PATH
+export PATH=$HOME/bin:/usr/local/bin:/opt/local/bin:$GIT_ROOT:$PATH:/opt/local/sbin/:~/git/linux-web-tools-lmt
+export PATH=~/vendor/bin:$PATH
 export TERM="xterm-256color"
 # Localtion of git repository
 
@@ -13,10 +14,11 @@ if [[ -a $GIT_ROOT/antigen.zsh ]]; then
 	# Use oh-my-zsh
 	# ZSH plugins
 	plugins=(git osx bgnotify mysql-colorize extract history z cloudapp)
+        # oh-my-zsh Custom directory
+        export ZSH_CUSTOM="$GIT_ROOT/custom"
+	# Load oh-my-zsh
 	antigen use oh-my-zsh
 	
-        # oh-my-zsh Custom directory
-        export ZSH_CUSTOM="$GIT_ROOT"
         # Set oh-my-zsh theme to load default is ZSH_THEME="robbyrussell"
 	antigen theme bhilburn/powerlevel9k powerlevel9k
         # Load Powerlevel 9k Customizations

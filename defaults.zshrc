@@ -40,8 +40,8 @@ auto-ls-color () {
 # -- General Aliases
 alias joe="joe --wordwrap -nobackups"
 alias rld="source ~/.zshrc"
-alias jp="joe -wordwrap -nobackups ~/.personal.zshrc"
-alias jz="joe -wordwrap -nobackups ~/.zshrc"
+alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
+alias jz="joe --wordwrap -nobackups ~/.zshrc"
 alias sbin="cd /usr/local/sbin"
 alias cpu="lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('"
 alias which="which -a"
