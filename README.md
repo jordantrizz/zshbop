@@ -1,6 +1,21 @@
+<!--ts-->
+   * [jordantrizz/ZSH](#jordantrizzzsh)
+   * [Install](#install)
+   * [ToDo](#todo)
+
+<!-- Added by: jtrask, at: Fri 19 Apr 2019 12:45:52 PDT -->
+
+<!--te-->
+# jordantrizz/ZSH
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
-ToDo
+# Install
+1. git clone repository to your home directory
+2. copy .zshrc_install to ~/.zshrc or $HOME/.zshrc
+3. edit $HOME/.zshrc to set $GIT_ROOT to where you git cloned this repository
+4. Restart your terminal/shell
+
+# ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
 - Look into diff so fancy wget https://raw.githubusercontent.com/so-fancy/diff-so-fancy/master/third_party/build_fatpack/diff-so-fancy
 - git submodule add https://github.com/skx/sysadmin-util.git

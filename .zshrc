@@ -1,7 +1,6 @@
 # If you come from bash you might have to change your $PATH.
 # Mac Ports in /opt/local/bin
-export GIT_ROOT="$HOME/zsh"
-export PATH=$HOME/bin:/usr/local/bin:/opt/local/bin:$GIT_ROOT:$PATH:/opt/local/sbin/:~/git/linux-web-tools-lmt
+export PATH=$HOME/bin:/usr/local/bin:/opt/local/bin:$GIT_ROOT:$PATH:/opt/local/sbin/
 export PATH=~/vendor/bin:$PATH
 export TERM="xterm-256color"
 # Localtion of git repository
@@ -13,7 +12,7 @@ if [[ -a $GIT_ROOT/antigen.zsh ]]; then
 
 	# Use oh-my-zsh
 	# ZSH plugins
-	plugins=(git osx bgnotify mysql-colorize extract history z cloudapp)
+	plugins=( git osx bgnotify mysql-colorize extract history z cloudapp )
         # oh-my-zsh Custom directory
         export ZSH_CUSTOM="$GIT_ROOT/custom"
 	# Load oh-my-zsh
@@ -59,3 +58,9 @@ else
         echo "No personal ZSH config loaded";
 fi
 
+function options() {
+    PLUGIN_PATH="$HOME/.oh-my-zsh/plugins/"
+    for plugin in $plugins; do
+        echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
+    done
+}
