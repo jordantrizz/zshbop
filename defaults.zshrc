@@ -13,7 +13,7 @@ echo "Running in ${MACHINE}"
 if [[ $MACHINE == "Mac" ]] then
 	source $GIT_ROOT/mac.zshrc
 elif [[ $MACHINE = "Linux" ]] then
-	soruce $GIT_ROOT/linux.zshrc
+	source $GIT_ROOT/linux.zshrc
 fi
 
 # -- Paths
