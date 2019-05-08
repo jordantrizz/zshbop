@@ -52,8 +52,8 @@ source $GIT_ROOT/defaults.zshrc
 
 # Personal Config outside of git repo
 if [[ -a ~/.personal.zshrc || -L ~/.personal.zshrc ]]; then 
+	echo "Loading personal ZSH config...";
         source ~/.personal.zshrc
-        echo "Loading personal ZSH config...";
 else
         echo "No personal ZSH config loaded";
 fi
