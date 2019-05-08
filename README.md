@@ -10,10 +10,17 @@
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
 # Install
-1. git clone repository to your home directory
-2. copy .zshrc_install to ~/.zshrc or $HOME/.zshrc
-3. edit $HOME/.zshrc to set $GIT_ROOT to where you git cloned this repository
-4. Restart your terminal/shell
+1. Ensure you have zsh shell
+```apt-get install zsh```
+2. Clone repository to your home directory
+```git clone https://github.com/jordantrizz/zsh```
+3. Copy .zshrc_install to ~/.zshrc or $HOME/.zshrc
+```cp zsh/.zshrc_install ~/.zshrc```
+4. Edit $GIT_ROOT variable in your new ~/.zshrc to the path to the git cloned repository
+***WARNING: don't use ~ use $HOME instead, as tilde doesn't work with zsh***
+```sed -i 's/CHANGEME/zsh/g' .zshrc```
+
+5. Restart your terminal/shell
 
 # ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
