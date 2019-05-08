@@ -1,6 +1,6 @@
 # If you come from bash you might have to change your $PATH.
 # Mac Ports in /opt/local/bin
-export PATH=$HOME/bin:/usr/local/bin:/opt/local/bin:$GIT_ROOT:$PATH:/opt/local/sbin/
+export PATH=$HOME/bin:/usr/local/bin:$GIT_ROOT:$PATH:/opt/local/sbin/
 export PATH=~/vendor/bin:$PATH
 export TERM="xterm-256color"
 # Localtion of git repository
