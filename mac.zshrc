@@ -9,3 +9,6 @@ alias ls="ls -alG"
 # Mac specific commands
 alias flush-dns="sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
 alias eject-all="osascript -e 'tell application "Finder" to eject (every disk whose ejectable is true)'"
+
+# Brew Install
+# wget mtr

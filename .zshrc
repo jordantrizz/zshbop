@@ -1,8 +1,6 @@
 # If you come from bash you might have to change your $PATH.
 # Mac Ports in /opt/local/bin
 export PATH=$HOME/bin:/usr/local/bin:$GIT_ROOT:$PATH
-export PATH=$GIT_ROOT/ultimate-linux-tool-box/$PATH
-export PATH=~/vendor/bin:$PATH
 export TERM="xterm-256color"
 # Localtion of git repository
 

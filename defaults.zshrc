@@ -1,4 +1,4 @@
-# Variables
+# - Variables
 export UNAME=$(uname -s)
 case "${UNAME}" in
     Linux*)     MACHINE=Linux;;
@@ -7,22 +7,7 @@ case "${UNAME}" in
     MINGW*)     MACHINE=MinGw;;
     *)          MACHINE="UNKNOWN:${unameOut}"
 esac
-echo "Running in ${MACHINE}"
-
-# Include OS Specific configuration
-if [[ $MACHINE == "Mac" ]] then
-	source $GIT_ROOT/mac.zshrc
-elif [[ $MACHINE = "Linux" ]] then
-	source $GIT_ROOT/linux.zshrc
-fi
-
-# -- Paths
-export PATH=$PATH:~/.antigen/bundles/so-fancy/diff-so-fancy
-# -- Source
-# - fzf keybindings
-[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
-
-# -- General Settings
+echo "- Running in ${MACHINE}"
 zmodload zsh/mapfile
 export HISTSIZE=5000
 export PAGER='less -Q -j16'
@@ -30,14 +15,41 @@ export EDITOR='joe'
 export BLOCKSIZE='K'
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
 
-# -- Plugin Configuration
+# - Functions
+ultb_path () {
+        if [[ -a $GIT_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
+                echo "- Including Ultimate Linux Tool Box Paths"
+                source $GIT_ROOT/ultimate-linux-tool-box/path.zshrc
+        fi
+}
+
+# Include OS Specific configuration
+if [[ $MACHINE == "Mac" ]] then
+	echo "- Loading mac.zshrc"
+	source $GIT_ROOT/mac.zshrc
+elif [[ $MACHINE = "Linux" ]] then
+	source $GIT_ROOT/linux.zshrc
+fi
+
+# - Paths
+# -- Diff so Fancy
+export PATH=$PATH:~/.antigen/bundles/so-fancy/diff-so-fancy
+# -- Ultimate Linux Tool Box via git submodule add
+export PATH=$GIT_ROOT/ultimate-linux-tool-box/:$PATH
+ultb_path
+
+# - Source
+# -- fzf keybindings
+[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
+
+# - Plugin Configuration
 # AUTO_LS
 AUTO_LS_COMMANDS=('color' git-status)
 auto-ls-color () {
 	ls;echo "\n";
 }
 
-# -- General Aliases
+# - General Aliases
 alias joe="joe --wordwrap -nobackups"
 alias rld="source ~/.zshrc"
 alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
@@ -51,3 +63,5 @@ alias randpass="randpass -n 15 -f"
 alias zcc="rm ~/.zcompdump*"
 alias diff-so-fancy="~/.antigen/bundles/so-fancy/diff-so-fancy/diff-so-fancy"
 alias error_log="find . | grep error_log | xargs tail | less"
+alias gp="git pull --recurse-submodules"
+alias cg="clustergit"
