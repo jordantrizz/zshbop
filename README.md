@@ -31,6 +31,8 @@ If you don't want to have zsh within your home directory, then use the following
 5. Restart your terminal/shell
 
 # Commands
+## ttfb
+Time To First Byte, uses curl.
 ## error_log & rm_error_log
 - error_log - Recursively look for error_log files and tail.
 - rm_error_log - Recursively look for error_log and prompt to delete.
