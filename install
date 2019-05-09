@@ -16,9 +16,10 @@ fi
 
 echo "Setting up .zshrc"
 if ! [ -f "$HOME/.zshrc" ]; then
-       ln -s $HOME/zsh/.zshrc ~/.
-       echo "- ZSH in-place, type zsh to start your shell"
+       	ln -s $HOME/zsh/.zshrc ~/.
+       	git -C $HOME/zsh submodule update --init --recursive
+       	echo "- ZSH in-place, type zsh to start your shell"
 else
-       echo "- There's already a .zshrc in-place, remove it and re-run"
-       exit 1
+       	echo "- There's already a .zshrc in-place, remove it and re-run"
+       	exit 1
 fi
