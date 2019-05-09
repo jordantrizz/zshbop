@@ -63,6 +63,8 @@ alias randpass="randpass -n 15 -f"
 alias zcc="rm ~/.zcompdump*"
 alias diff-so-fancy="~/.antigen/bundles/so-fancy/diff-so-fancy/diff-so-fancy"
 alias error_log="find . | grep error_log | xargs tail | less"
+# -- git
 alias gp="git pull --recurse-submodules"
+alias gs="git submodule update --init --recursive"
 alias cg="clustergit"
 alias ab_quick="ab -c 5 -n 100 $1"
