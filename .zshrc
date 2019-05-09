@@ -1,5 +1,9 @@
+# We use $GIT_ROOT to know our working directory.
+if [ -z "$GIT_ROOT" ]; then
+      echo "\$GIT_ROOT empty so using \$HOME/zsh"
+      export GIT_ROOT=$HOME/zsh
+fi
 # If you come from bash you might have to change your $PATH.
-# Mac Ports in /opt/local/bin
 export PATH=$HOME/bin:/usr/local/bin:$GIT_ROOT:$PATH
 export TERM="xterm-256color"
 # Localtion of git repository

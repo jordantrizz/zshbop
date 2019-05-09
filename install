@@ -15,4 +15,10 @@ if ! [ $SHELL == *"zsh" ]; then
 fi
 
 echo "Setting up .zshrc"
-ln -s $PWD/.zshrc ~/.
+if ! [ -f "$HOME/.zshrc" ]; then
+       ln -s $HOME/zsh/.zshrc ~/.
+       echo "- ZSH in-place, type zsh to start your shell"
+else
+       echo "- There's already a .zshrc in-place, remove it and re-run"
+       exit 1
+fi
