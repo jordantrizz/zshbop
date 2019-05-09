@@ -2,9 +2,12 @@
    * [jordantrizz/ZSH](#jordantrizzzsh)
    * [Quick Install](#quick-install)
    * [Advanced Install](#advanced-install)
+   * [Commands](#commands)
+      * [error_log &amp; rm_error_log](#error_log--rm_error_log)
+      * [update](#update)
    * [ToDo](#todo)
 
-<!-- Added by: jtrask, at: Wed  8 May 2019 18:44:35 PDT -->
+<!-- Added by: jtrask, at: Wed  8 May 2019 18:57:22 PDT -->
 
 <!--te-->
 # jordantrizz/ZSH
@@ -28,6 +31,9 @@ If you don't want to have zsh within your home directory, then use the following
 5. Restart your terminal/shell
 
 # Commands
+## error_log & rm_error_log
+- error_log - Recursively look for error_log files and tail.
+- rm_error_log - Recursively look for error_log and prompt to delete.
 ## update
 Update this repository an pull down any updates from sub-modules.
 
