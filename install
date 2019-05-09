@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "Checking if zsh is installed...."
+if ! [ -x "$(command -v zsh)" ]; then
+        echo ' - Error: zsh is not installed.' >&2
+        exit 1
+else
+        ZSH_SHELL=`which zsh`
+        echo "- ZSH is installed in $ZSH_SHELL"
+fi
+
+echo "Checking if zsh is the default shell"
+if ! [ $SHELL == *"zsh" ]; then
+        echo "- Your default shell isn't zsh, use chsh to change it to zsh."
+fi
+
+echo "Setting up .zshrc"
+ln -s $PWD/.zshrc ~/.
