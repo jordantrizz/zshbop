@@ -16,6 +16,12 @@ export BLOCKSIZE='K'
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
 
 # - Functions
+# -- Evnrionment
+setup_environment () {
+       apt install python-pip
+       pip install apt-select
+}
+# -- Ultimate Linux Tool Box
 ultb_path () {
         if [[ -a $GIT_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
                 echo "- Including Ultimate Linux Tool Box Paths"
@@ -23,7 +29,7 @@ ultb_path () {
         fi
 }
 
-# - Update
+# -- Update
 update () {
 	git -C $GIT_ROOT pull --recurse-submodules
 	git -C $GIT_ROOT submodule update --init --recursive
