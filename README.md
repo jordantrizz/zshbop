@@ -41,6 +41,7 @@ Command | Description|
 ttfb | Time To First Byte, uses curl.
 error_log | Recursively look for error_log files and tail.
 rm_error_log | Recursively look for error_log and prompt to delete.
+phpinfo | Generate a phpinfo.php file with phpinfo();
 
 # ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
