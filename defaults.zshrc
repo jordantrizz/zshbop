@@ -23,6 +23,12 @@ ultb_path () {
         fi
 }
 
+# - Update
+update () {
+	git -C $GIT_ROOT pull --recurse-submodules
+	git submodule update --init --recursive
+}
+
 # Include OS Specific configuration
 if [[ $MACHINE == "Mac" ]] then
 	echo "- Loading mac.zshrc"
@@ -63,10 +69,11 @@ alias randpass="randpass -n 15 -f"
 alias zcc="rm ~/.zcompdump*"
 alias diff-so-fancy="~/.antigen/bundles/so-fancy/diff-so-fancy/diff-so-fancy"
 alias error_log="find . | grep error_log | xargs tail | less"
-# -- git
-alias gp="git pull --recurse-submodules"
-alias gs="git submodule update --init --recursive"
 alias cg="clustergit"
 alias ab_quick="ab -c 5 -n 100 $1"
 alias toc="gh-md-toc --nobackup-insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
+
+# -- git
+alias gp="git pull --recurse-submodules"
+alias gs="git submodule update --init --recursive"

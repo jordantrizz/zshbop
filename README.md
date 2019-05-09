@@ -25,8 +25,11 @@ If you don't want to have zsh within your home directory, then use the following
 4. Edit $GIT_ROOT variable in your new ~/.zshrc to the path to the git cloned repository
 ***WARNING: don't use ~ use $HOME instead, as tilde doesn't work with zsh***
 ```sed -i 's/CHANGEME/zsh/g' .zshrc```
-
 5. Restart your terminal/shell
+
+# Commands
+## update
+Update this repository an pull down any updates from sub-modules.
 
 # ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
