@@ -1,6 +1,6 @@
 [submodule "ultimate-linux-tool-box"]
 	path = ultimate-linux-tool-box
-	url = git@github.com:jordantrizz/ultimate-linux-tool-box.git
+	url = https://github.com/jordantrizz/ultimate-linux-tool-box.git
 [submodule "clustergit"]
 	path = clustergit
 	url = https://github.com/mnagel/clustergit
