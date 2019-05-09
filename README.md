@@ -5,9 +5,10 @@
    * [Commands](#commands)
       * [General](#general)
       * [Web](#web)
+      * [Ubuntu/Debian](#ubuntudebian)
    * [ToDo](#todo)
 
-<!-- Added by: jtrask, at: Thu  9 May 2019 00:47:51 PDT -->
+<!-- Added by: jtrask, at: Thu  9 May 2019 09:05:23 PDT -->
 
 <!--te-->
 # jordantrizz/ZSH
@@ -30,11 +31,16 @@ If you don't want to have zsh within your home directory, then use the following
 ```sed -i 's/CHANGEME/zsh/g' .zshrc```
 5. Restart your terminal/shell
 
-# Commands
+# Commands/Aliases
 ## General
 Command | Description|
  --- | --- |
 update | Update this repository an pull down any updates from sub-modules.
+setup_environment | Installed the necessary packages.
+## Coding
+Command | Description|
+ --- | --- |
+toc | Runs patched gh-md-toc with --nobackup-insert on current directories README.md
 ## Web
 Command | Description|
  --- | --- |
@@ -42,6 +48,10 @@ ttfb | Time To First Byte, uses curl.
 error_log | Recursively look for error_log files and tail.
 rm_error_log | Recursively look for error_log and prompt to delete.
 phpinfo | Generate a phpinfo.php file with phpinfo();
+## Ubuntu/Debian
+Command | Description|
+ --- | --- |
+apt-select | Get fastest Ubuntu/Debian mirror.
 
 # ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
