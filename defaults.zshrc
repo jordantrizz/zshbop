@@ -26,7 +26,7 @@ ultb_path () {
 # - Update
 update () {
 	git -C $GIT_ROOT pull --recurse-submodules
-	git submodule update --init --recursive
+	git -C $GIT_ROOT submodule update --init --recursive
 }
 
 # Include OS Specific configuration
@@ -80,4 +80,4 @@ alias ab_quick="ab -c 5 -n 100 $1"
 
 # -- git
 alias gp="git pull --recurse-submodules"
-alias gs="git submodule update --init --recursive"
+alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
