@@ -1,18 +1,24 @@
 <!--ts-->
    * [jordantrizz/ZSH](#jordantrizzzsh)
-   * [Install](#install)
+   * [Quick Install](#quick-install)
+   * [Advanced Install](#advanced-install)
    * [ToDo](#todo)
 
-<!-- Added by: jtrask, at: Fri 19 Apr 2019 12:45:52 PDT -->
+<!-- Added by: jtrask, at: Wed  8 May 2019 18:44:35 PDT -->
 
 <!--te-->
 # jordantrizz/ZSH
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
-# Install
+# Quick Install
+Simply run the following in your home directory
+```git clone https://github.com/jordantrizz/zsh.git;zsh/install```
+# Advanced Install
+If you don't want to have zsh within your home directory, then use the following.
+
 1. Ensure you have zsh shell
 ```apt-get install zsh```
-2. Clone repository to your home directory
+2. Clone repository to the directory of your choise
 ```git clone https://github.com/jordantrizz/zsh```
 3. Copy .zshrc_install to ~/.zshrc or $HOME/.zshrc
 ```cp zsh/.zshrc_install ~/.zshrc```
