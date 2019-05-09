@@ -77,6 +77,7 @@ alias joe4="joe --wordwrap -nobackups -tab 4"
 # -- web stuff
 alias ttfb='curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
 alias ab_quick="ab -c 5 -n 100 $1"
+alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
 
 # -- git
 alias gp="git pull --recurse-submodules"

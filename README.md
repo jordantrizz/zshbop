@@ -3,11 +3,11 @@
    * [Quick Install](#quick-install)
    * [Advanced Install](#advanced-install)
    * [Commands](#commands)
-      * [error_log &amp; rm_error_log](#error_log--rm_error_log)
-      * [update](#update)
+      * [General](#general)
+      * [Web](#web)
    * [ToDo](#todo)
 
-<!-- Added by: jtrask, at: Wed  8 May 2019 18:57:22 PDT -->
+<!-- Added by: jtrask, at: Thu  9 May 2019 00:47:51 PDT -->
 
 <!--te-->
 # jordantrizz/ZSH
@@ -31,13 +31,16 @@ If you don't want to have zsh within your home directory, then use the following
 5. Restart your terminal/shell
 
 # Commands
-## ttfb
-Time To First Byte, uses curl.
-## error_log & rm_error_log
-- error_log - Recursively look for error_log files and tail.
-- rm_error_log - Recursively look for error_log and prompt to delete.
-## update
-Update this repository an pull down any updates from sub-modules.
+## General
+Command | Description|
+ --- | --- |
+update | Update this repository an pull down any updates from sub-modules.
+## Web
+Command | Description|
+ --- | --- |
+ttfb | Time To First Byte, uses curl.
+error_log | Recursively look for error_log files and tail.
+rm_error_log | Recursively look for error_log and prompt to delete.
 
 # ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
