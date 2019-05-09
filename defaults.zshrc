@@ -27,6 +27,7 @@ ultb_path () {
 update () {
 	git -C $GIT_ROOT pull --recurse-submodules
 	git -C $GIT_ROOT submodule update --init --recursive
+	git -C $GIT_ROOT submodule update --recursive --remote
 }
 
 # Include OS Specific configuration
