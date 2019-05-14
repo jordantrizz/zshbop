@@ -4,7 +4,7 @@ if [ -z "$GIT_ROOT" ]; then
       export GIT_ROOT=$HOME/zsh
 fi
 # If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:/usr/local/bin:$GIT_ROOT:$PATH
+export PATH=$PATH:$HOME/bin:/usr/local/bin:$GIT_ROOT
 export TERM="xterm-256color"
 # Localtion of git repository
 

@@ -18,8 +18,9 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 # - Functions
 # -- Evnrionment
 setup_environment () {
-       apt install python-pip
+       apt install python-pip npm aptitude mtr dnstracer
        pip install apt-select
+       npm install -g gnomon
 }
 # -- Ultimate Linux Tool Box
 ultb_path () {
