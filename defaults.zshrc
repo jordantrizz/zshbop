@@ -89,6 +89,6 @@ alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
 alias dhparam="openssl dhparam -out dhparam.pem 2048"
 
 # -- git
-alias gp="git pull --recurse-submodules"
+alias gp="git submodule foreach git pull origin master"
 alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gr="cd ~/git;"
