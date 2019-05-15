@@ -18,7 +18,7 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 # - Functions
 # -- Evnrionment
 setup_environment () {
-       apt install python-pip npm aptitude mtr dnstracer
+       apt install python-pip npm aptitude mtr dnstracer wamerican
        pip install apt-select
        npm install -g gnomon
 }
@@ -81,6 +81,7 @@ alias rm_error_log="find . | grep error_log | xargs -pl rm"
 alias cg="clustergit"
 alias toc="gh-md-toc --nobackup-insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
+alias pk="cat ~/.ssh/id_rsa.pub"
 
 # -- web stuff
 alias ttfb='curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
