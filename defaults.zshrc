@@ -35,6 +35,7 @@ update () {
 	git -C $GIT_ROOT pull --recurse-submodules
 	git -C $GIT_ROOT submodule update --init --recursive
 	git -C $GIT_ROOT submodule update --recursive --remote
+	rld
 }
 
 # Include OS Specific configuration
