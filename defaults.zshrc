@@ -86,7 +86,9 @@ alias joe4="joe --wordwrap -nobackups -tab 4"
 alias ttfb='curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
 alias ab_quick="ab -c 5 -n 100 $1"
 alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
+alias dhparam="openssl dhparam -out dhparam.pem 2048"
 
 # -- git
 alias gp="git pull --recurse-submodules"
 alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
+alias gr="cd ~/git;"

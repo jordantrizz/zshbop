@@ -48,6 +48,7 @@ ttfb | Time To First Byte, uses curl.
 error_log | Recursively look for error_log files and tail.
 rm_error_log | Recursively look for error_log and prompt to delete.
 phpinfo | Generate a phpinfo.php file with phpinfo();
+dhparam | Generate Diffie-Hellman key exchange.
 ## Ubuntu/Debian
 Command | Description|
  --- | --- |
