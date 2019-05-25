@@ -32,7 +32,11 @@ If you don't want to have zsh within your home directory, then use the following
 5. Restart your terminal/shell
 
 # Commands/Aliases
-## General
+## General Aliases
+Alias | Description|
+ --- | --- |
+fdcount | Count of files and directories in current directory.
+## General Coomands
 Command | Description|
  --- | --- |
 update | Update this repository an pull down any updates from sub-modules.

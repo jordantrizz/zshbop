@@ -83,9 +83,10 @@ alias cg="clustergit"
 alias toc="gh-md-toc --nobackup-insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
 alias pk="cat ~/.ssh/id_rsa.pub"
+alias fdcount="tree | grep directories"
 
 # -- web stuff
-alias ttfb='curl -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
+alias ttfb='curl -s -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
 alias ab_quick="ab -c 5 -n 100 $1"
 alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
 alias dhparam="openssl dhparam -out dhparam.pem 2048"
