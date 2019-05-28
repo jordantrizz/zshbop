@@ -1,3 +1,4 @@
 [submodule "ultimate-linux-tool-box"]
 	path = ultimate-linux-tool-box
 	url = https://github.com/jordantrizz/ultimate-linux-tool-box.git
+	branch = master
