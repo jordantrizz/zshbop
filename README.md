@@ -16,7 +16,10 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
 # Quick Install
 Simply run the following in your home directory
-```git clone --recursive https://github.com/jordantrizz/zsh.git;zsh/install```
+
+```
+git clone --recursive https://github.com/jordantrizz/zsh.git;zsh/install
+```
 # Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
 <p>
