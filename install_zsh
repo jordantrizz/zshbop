@@ -34,6 +34,11 @@ setup_system() {
 		echo -e " - $SYSTEM/zsh already exists\n"
 		exit 1
 	fi
+	echo -e " - Detecting OS and installing for all system users"
+	if [ -f /etc/debian_version ]; then
+		echo -e " -- Detected Debian/Ubuntu OS"		
+	fi
+	echo "This is broken and needs to be fixed! and should probably be in /usr/share/zsh?"
 }		
 
 # Main
