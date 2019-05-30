@@ -1,0 +1,54 @@
+#!/bin/bash
+echo "Checking if zsh is installed...."
+if ! [ -x "$(command -v zsh)" ]; then
+        echo ' - Error: zsh is not installed.' >&2
+        exit 1
+else
+        ZSH_SHELL=`which zsh`
+        echo "- ZSH is installed in $ZSH_SHELL"
+fi
+
+echo "Checking if zsh is the default shell"
+if ! [ $SHELL == *"zsh" ]; then
+        echo "- Your default shell isn't zsh, use chsh to change it to zsh."
+fi
+
+echo "Checking if git is installed...."
+if ! [ -x "$(command -v git)" ]; then
+        echo ' - You need to install git!'
+        exit 1
+else
+        echo " - GIT is installed!"
+fi
+
+echo "\n---\n---\n\n"
+exit 1
+
+clone_repository() { 
+	echo "- Start Cloning repository into $1..."
+	# wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install
+	git clone --recursive https://github.com/jordantrizz/zsh.git $1
+}
+
+
+setup_home() {
+	echo "Setting up home based .zshrc..."
+	if ! [ -f "$HOME/.zshrc" ]; then
+	       	ln -s $HOME/zsh/.zshrc ~/.
+	       	echo "- ZSH in-place, type zsh to start your shell"
+	else
+	       	echo "- There's already a .zshrc in-place, remove it and re-run"
+	       	exit 1
+	fi
+}
+
+setup_system() {
+	echo "Setting up system based .zshrc..."
+	if ! [ -d "$SYSTEM/zsh" ]; then
+		echo " - Cloning into $SYSTEM/zsh"
+		clone_repository("$SYSTEM/zsh")
+	else
+		echo " - $SYSTEM/zsh already exists"
+		exit 1
+	fi
+}		
