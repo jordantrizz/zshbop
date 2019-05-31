@@ -65,7 +65,7 @@ update () {
 
 # - One Line Functions
 # Needs to include help and checking if $1 and $2 exist
-msds () { grep "INSERT INTO \`$2\`" $1 |  sed "s/),/\'$'\n/g" }
+msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/\'$'\n/g" }
 
 # - General Aliases
 alias joe="joe --wordwrap -nobackups"
