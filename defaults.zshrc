@@ -15,6 +15,31 @@ export EDITOR='joe'
 export BLOCKSIZE='K'
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
 
+# - Include OS Specific configuration
+if [[ $MACHINE == "Mac" ]] then
+        echo "- Loading mac.zshrc"
+        source $GIT_ROOT/mac.zshrc
+elif [[ $MACHINE = "Linux" ]] then
+        source $GIT_ROOT/linux.zshrc
+fi
+# - Paths
+# -- Diff so Fancy
+export PATH=$PATH:~/.antigen/bundles/so-fancy/diff-so-fancy
+
+# -- Ultimate Linux Tool Box via git submodule add
+export PATH=$GIT_ROOT/ultimate-linux-tool-box/:$PATH
+ultb_path
+
+# -- fzf keybindings
+[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
+
+# - Plugin Configuration
+# AUTO_LS
+AUTO_LS_COMMANDS=('color' git-status)
+auto-ls-color () {
+        ls;echo "\n";
+}
+
 # - Functions
 # -- Evnrionment
 setup_environment () {
@@ -38,31 +63,9 @@ update () {
 	rld
 }
 
-# Include OS Specific configuration
-if [[ $MACHINE == "Mac" ]] then
-	echo "- Loading mac.zshrc"
-	source $GIT_ROOT/mac.zshrc
-elif [[ $MACHINE = "Linux" ]] then
-	source $GIT_ROOT/linux.zshrc
-fi
-
-# - Paths
-# -- Diff so Fancy
-export PATH=$PATH:~/.antigen/bundles/so-fancy/diff-so-fancy
-# -- Ultimate Linux Tool Box via git submodule add
-export PATH=$GIT_ROOT/ultimate-linux-tool-box/:$PATH
-ultb_path
-
-# - Source
-# -- fzf keybindings
-[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
-
-# - Plugin Configuration
-# AUTO_LS
-AUTO_LS_COMMANDS=('color' git-status)
-auto-ls-color () {
-	ls;echo "\n";
-}
+# - One Line Functions
+# Needs to include help and checking if $1 and $2 exist
+msds () { grep "INSERT INTO \`$2\`" $1 |  sed "s/),/\'$'\n/g" }
 
 # - General Aliases
 alias joe="joe --wordwrap -nobackups"
@@ -85,13 +88,13 @@ alias joe4="joe --wordwrap -nobackups -tab 4"
 alias pk="cat ~/.ssh/id_rsa.pub"
 alias fdcount="tree | grep directories"
 
-# -- web stuff
+# -- Web Aliases
 alias ttfb='curl -s -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
 alias ab_quick="ab -c 5 -n 100 $1"
 alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
 alias dhparam="openssl dhparam -out dhparam.pem 2048"
 
-# -- git
+# -- GIT Aliases
 alias gp="git submodule foreach git pull origin master"
 alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gr="cd ~/git;"

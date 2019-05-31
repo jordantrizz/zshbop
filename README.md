@@ -5,13 +5,16 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
    * [jordantrizz/ZSH](#jordantrizzzsh)
    * [Quick Install](#quick-install)
    * [Advanced Install](#advanced-install)
-   * [Commands](#commands)
+   * [Commands/Aliases](#commandsaliases)
+      * [Core](#core)
       * [General](#general)
+      * [Coding](#coding)
       * [Web](#web)
-      * [Ubuntu/Debian](#ubuntudebian)
+      * [Ubuntu/Debian Specific](#ubuntudebian-specific)
    * [ToDo](#todo)
 
-<!-- Added by: jtrask, at: Thu  9 May 2019 09:05:23 PDT -->
+<!-- Added by: jtrask, at: Thu 30 May 2019 21:21:39 PDT -->
+
 <!--te-->
 
 # Quick Install
@@ -40,19 +43,24 @@ If you don't want to have zsh within your home directory, then use the following
 
 # Commands/Aliases
 Type `commands` or `aliases` to get a list of commands and aliases. Doesn't work yet.
-## General Aliases
+## Core
 Alias | Description|
- --- | --- |
-fdcount | Count of files and directories in current directory.
-## General Coomands
-Command | Description|
  --- | --- |
 update | Update this repository an pull down any updates from sub-modules.
 setup_environment | Installed the necessary packages.
+
+## General 
+Alias | Description|
+ --- | --- |
+fdcount | Count of files and directories in current directory.
+update | Update this repository an pull down any updates from sub-modules.
+setup_environment | Installed the necessary packages.
+
 ## Coding
 Command | Description|
  --- | --- |
 toc | Runs patched gh-md-toc with --nobackup-insert on current directories README.md
+
 ## Web
 Command | Description|
  --- | --- |
@@ -61,7 +69,9 @@ error_log | Recursively look for error_log files and tail. |
 rm_error_log | Recursively look for error_log and prompt to delete. |
 phpinfo | Generate a phpinfo.php file with phpinfo(); |
 dhparam | Generate Diffie-Hellman key exchange. |
-## Ubuntu/Debian
+msds | MySQL Dump Search
+
+## Ubuntu/Debian Specific
 Command | Description|
  --- | --- |
 apt-select | Get fastest Ubuntu/Debian mirror.
