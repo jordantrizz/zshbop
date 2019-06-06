@@ -93,6 +93,7 @@ alias ttfb='curl -s -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_start
 alias ab_quick="ab -c 5 -n 100 $1"
 alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
 alias dhparam="openssl dhparam -out dhparam.pem 2048"
+alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 
 # -- GIT Aliases
 alias gp="git submodule foreach git pull origin master"
