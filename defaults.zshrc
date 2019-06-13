@@ -15,6 +15,33 @@ export EDITOR='joe'
 export BLOCKSIZE='K'
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
 
+# - Functions
+# -- Evnrionment
+setup_environment () {
+       apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree
+       pip install apt-select
+       npm install -g gnomon
+}
+# -- Ultimate Linux Tool Box
+ultb_path () {
+        if [[ -a $GIT_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
+                echo "- Including Ultimate Linux Tool Box Paths"
+                source $GIT_ROOT/ultimate-linux-tool-box/path.zshrc
+        fi
+}
+
+# -- Update
+update () {
+        git -C $GIT_ROOT pull --recurse-submodules
+        git -C $GIT_ROOT submodule update --init --recursive
+        git -C $GIT_ROOT submodule update --recursive --remote
+        rld
+}
+
+# - One Line Functions
+# Needs to include help and checking if $1 and $2 exist
+msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/\'$'\n/g" }
+
 # - Include OS Specific configuration
 if [[ $MACHINE == "Mac" ]] then
         echo "- Loading mac.zshrc"
@@ -39,33 +66,6 @@ AUTO_LS_COMMANDS=('color' git-status)
 auto-ls-color () {
         ls;echo "\n";
 }
-
-# - Functions
-# -- Evnrionment
-setup_environment () {
-       apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree
-       pip install apt-select
-       npm install -g gnomon
-}
-# -- Ultimate Linux Tool Box
-ultb_path () {
-        if [[ -a $GIT_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
-                echo "- Including Ultimate Linux Tool Box Paths"
-                source $GIT_ROOT/ultimate-linux-tool-box/path.zshrc
-        fi
-}
-
-# -- Update
-update () {
-	git -C $GIT_ROOT pull --recurse-submodules
-	git -C $GIT_ROOT submodule update --init --recursive
-	git -C $GIT_ROOT submodule update --recursive --remote
-	rld
-}
-
-# - One Line Functions
-# Needs to include help and checking if $1 and $2 exist
-msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/\'$'\n/g" }
 
 # - General Aliases
 alias joe="joe --wordwrap -nobackups"
