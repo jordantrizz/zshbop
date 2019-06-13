@@ -21,7 +21,7 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 Simply run the following in your home directory
 
 ```
-wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install
+wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install_zsh;bash install_zsh
 ```
 # Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
