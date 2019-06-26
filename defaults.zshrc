@@ -40,7 +40,7 @@ update () {
 
 # - One Line Functions
 # Needs to include help and checking if $1 and $2 exist
-msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/\'$'\n/g" }
+msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" }
 
 # - Include OS Specific configuration
 if [[ $MACHINE == "Mac" ]] then
