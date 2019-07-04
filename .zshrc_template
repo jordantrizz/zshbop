@@ -4,4 +4,4 @@
 # SSH_KEY - is the location of your SSH_KEY for keychain
 #SSH_KEY=
 # Include zsh
-include ~/zsh/.zshrc
+source "$HOME/zsh/.zshrc"
