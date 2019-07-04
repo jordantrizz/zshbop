@@ -54,9 +54,9 @@ source ~/.antigen/bundles/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $GIT_ROOT/defaults.zshrc
 
 # Personal Config outside of git repo
-if [[ -a $GIT_ROOT/zsh-personal/.personal.zshrc || -L $GIT_ROOT/zsh-personal/.personal.zshrc ]]; then 
+if [[ -a $GIT_ROOT/zsh-personal/.zshrc || -L $GIT_ROOT/zsh-personal/.zshrc ]]; then 
 	echo "Loading personal ZSH config...";
-        source $GIT_ROOT/zsh-personal/.personal.zshrc
+        source $GIT_ROOT/zsh-personal/.zshrc
 else
         echo "No personal ZSH config loaded";
 fi
