@@ -43,7 +43,7 @@ if [[ -a $GIT_ROOT/antigen.zsh ]]; then
 	antigen bundle zsh-users/zsh-autosuggestions
         antigen apply
 else
-        echo "Couldn't load antigen..";
+        echo " - Couldn't load antigen..";
 fi
 
 # -- External Plugins
@@ -53,12 +53,19 @@ source ~/.antigen/bundles/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh
 # Default ZSH aliases and other functions
 source $GIT_ROOT/defaults.zshrc
 
+# Check for SSH_KEY and run keychain
+echo "Checking for \$SSH_KEY and loading keychain"
+if [[ -v SSH_KEY ]]; then
+	echo " - FOUND: $SSH_KEY"
+	eval `keychain --eval --agents ssh $SSH_KEY`
+fi
+
 # Personal Config outside of git repo
 if [[ -a $GIT_ROOT/zsh-personal/.zshrc || -L $GIT_ROOT/zsh-personal/.zshrc ]]; then 
-	echo "Loading personal ZSH config...";
+	echo " Loading personal ZSH config...";
         source $GIT_ROOT/zsh-personal/.zshrc
 else
-        echo "No personal ZSH config loaded";
+        echo " - No personal ZSH config loaded";
 fi
 
 function options() {
