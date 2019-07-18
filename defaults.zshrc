@@ -24,17 +24,17 @@ setup_environment () {
 }
 # -- Ultimate Linux Tool Box
 ultb_path () {
-        if [[ -a $GIT_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
+        if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
                 echo "- Including Ultimate Linux Tool Box Paths"
-                source $GIT_ROOT/ultimate-linux-tool-box/path.zshrc
+                source $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc
         fi
 }
 
 # -- Update
 update () {
-        git -C $GIT_ROOT pull --recurse-submodules
-        git -C $GIT_ROOT submodule update --init --recursive
-        git -C $GIT_ROOT submodule update --recursive --remote
+        git -C $ZSH_ROOT pull --recurse-submodules
+        git -C $ZSH_ROOT submodule update --init --recursive
+        git -C $ZSH_ROOT submodule update --recursive --remote
         rld
 }
 
@@ -45,16 +45,16 @@ msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" }
 # - Include OS Specific configuration
 if [[ $MACHINE == "Mac" ]] then
         echo "- Loading mac.zshrc"
-        source $GIT_ROOT/mac.zshrc
+        source $ZSH_ROOT/mac.zshrc
 elif [[ $MACHINE = "Linux" ]] then
-        source $GIT_ROOT/linux.zshrc
+        source $ZSH_ROOT/linux.zshrc
 fi
 # - Paths
 # -- Diff so Fancy
 export PATH=$PATH:~/.antigen/bundles/so-fancy/diff-so-fancy
 
 # -- Ultimate Linux Tool Box via git submodule add
-export PATH=$GIT_ROOT/ultimate-linux-tool-box/:$PATH
+export PATH=$ZSH_ROOT/ultimate-linux-tool-box/:$PATH
 ultb_path
 
 # -- fzf keybindings
@@ -71,9 +71,9 @@ auto-ls-color () {
 alias joe="joe --wordwrap -nobackups"
 alias rld="source ~/.zshrc"
 alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
-alias jz="joe --wordwrap -nobackups $GIT_ROOT/.zshrc"
-alias jd="joe --wordwrap -nobackups $GIT_ROOT/defaults.zshrc"
-alias jm="joe --wordwrap -nobackups $GIT_ROOT/mac.zshrc"
+alias jz="joe --wordwrap -nobackups $ZSH_ROOT/.zshrc"
+alias jd="joe --wordwrap -nobackups $ZSH_ROOT/defaults.zshrc"
+alias jm="joe --wordwrap -nobackups $ZSH_ROOT/mac.zshrc"
 alias sbin="cd /usr/local/sbin"
 alias cpu="lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('"
 alias which="which -a"

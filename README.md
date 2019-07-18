@@ -34,7 +34,7 @@ If you don't want to have zsh within your home directory, then use the following
 ```git clone https://github.com/jordantrizz/zsh```
 3. Copy .zshrc_install to ~/.zshrc or $HOME/.zshrc
 ```cp zsh/.zshrc_install ~/.zshrc```
-4. Edit $GIT_ROOT variable in your new ~/.zshrc to the path to the git cloned repository
+4. Edit $ZSH_ROOT variable in your new ~/.zshrc to the path to the git cloned repository
 ***WARNING: don't use ~ use $HOME instead, as tilde doesn't work with zsh***
 ```sed -i 's/CHANGEME/zsh/g' .zshrc```
 5. Restart your terminal/shell

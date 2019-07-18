@@ -1,7 +1,0 @@
-# If you want to customize your setup, then copy this to your $HOME and edit
-# GIT_ROOT - is the location of the pulled down code
-#GIT_ROOT= 
-# SSH_KEY - is the location of your SSH_KEY for keychain
-#SSH_KEY=
-# Include zsh
-source "$HOME/zsh/.zshrc"

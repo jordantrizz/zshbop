@@ -1,30 +1,30 @@
-# We use $GIT_ROOT to know our working directory.
-if [ -z "$GIT_ROOT" ]; then
-      echo "\$GIT_ROOT empty so using \$HOME/zsh"
-      export GIT_ROOT=$HOME/zsh
+# We use $ZSH_ROOT to know our working directory.
+if [ -z "$ZSH_ROOT" ]; then
+      echo "\$ZSH_ROOT empty so using \$HOME/zsh"
+      export ZSH_ROOT=$HOME/zsh
 fi
 # If you come from bash you might have to change your $PATH.
-export PATH=$PATH:$HOME/bin:/usr/local/bin:$GIT_ROOT
+export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
 export TERM="xterm-256color"
 # Localtion of git repository
 
 # Initialize antigen
-if [[ -a $GIT_ROOT/antigen.zsh ]]; then
-        echo "Loading antigen from $GIT_ROOT/antigen.zsh";
-        source $GIT_ROOT/antigen.zsh
+if [[ -a $ZSH_ROOT/antigen.zsh ]]; then
+        echo "Loading antigen from $ZSH_ROOT/antigen.zsh";
+        source $ZSH_ROOT/antigen.zsh
 
 	# Use oh-my-zsh
 	# ZSH plugins
 	plugins=( git osx bgnotify mysql-colorize extract history z cloudapp )
         # oh-my-zsh Custom directory
-        export ZSH_CUSTOM="$GIT_ROOT/custom"
+        export ZSH_CUSTOM="$ZSH_ROOT/custom"
 	# Load oh-my-zsh
 	antigen use oh-my-zsh
 	
         # Set oh-my-zsh theme to load default is ZSH_THEME="robbyrussell"
 	antigen theme bhilburn/powerlevel9k powerlevel9k
         # Load Powerlevel 9k Customizations
-        source $GIT_ROOT/powerlevel9k.zshrc
+        source $ZSH_ROOT/powerlevel9k.zshrc
 
 	# Continue with loading antigen bundles
         antigen bundle zsh-users/zsh-syntax-highlighting
@@ -51,7 +51,7 @@ source ~/.antigen/bundles/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh
 #. $ZSH/plugins/z/z.sh - broken
 
 # Default ZSH aliases and other functions
-source $GIT_ROOT/defaults.zshrc
+source $ZSH_ROOT/defaults.zshrc
 
 # Check for SSH_KEY and run keychain
 echo "Checking for \$SSH_KEY and loading keychain"
@@ -61,9 +61,10 @@ if [[ -v SSH_KEY ]]; then
 fi
 
 # Personal Config outside of git repo
-if [[ -a $GIT_ROOT/zsh-personal/.zshrc || -L $GIT_ROOT/zsh-personal/.zshrc ]]; then 
-	echo " Loading personal ZSH config...";
-        source $GIT_ROOT/zsh-personal/.zshrc
+echo "Loading personal ZSH config...";
+if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then 
+	echo "- Loaded \$ZSH_ROOT/zsh-personal/.zshrc";
+        source $ZSH_ROOT/zsh-personal/.zshrc
 else
         echo " - No personal ZSH config loaded";
 fi
