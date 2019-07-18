@@ -53,25 +53,29 @@ source ~/.antigen/bundles/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh
 # Default ZSH aliases and other functions
 source $ZSH_ROOT/defaults.zshrc
 
-# Check for SSH_KEY and run keychain
-echo "Checking for \$SSH_KEY and loading keychain"
-if [[ -v SSH_KEY ]]; then
-	echo " - FOUND: $SSH_KEY"
-	eval `keychain --eval --agents ssh $SSH_KEY`
+# Load default SSH key
+printf "Check for default SSH key %s/.ssh/id_rsa and load keychain\n" $HOME
+if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
+	printf " - FOUND: %s\n" $HOME/.ssh/id_rsa
+	eval `keychain --eval --agents ssh $HOME/.ssh/id_rsa`
+else
+	printf " - NOTFOUND: %s\n" $HOME/.ssh/id_rsa
 fi
 
-# Personal Config outside of git repo
-echo "Loading personal ZSH config...";
+# Check and load custom SSH key
+printf "Check for custom SSH key via \$SSH_KEY and load keychain\n"
+if [ ! -z "${SSH_KEY+1}" ]; then
+        printf " - FOUND: %s\n" $SSH_KEY
+        eval `keychain --eval --agents ssh $SSH_KEY`
+else
+	printf " - NOTFOUND: %s not set.\n" $SSH_KEY
+fi
+
+# Include Personal Configuration if present.
+printf "Loading personal ZSH config...\n"
 if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then 
-	echo "- Loaded \$ZSH_ROOT/zsh-personal/.zshrc";
+	printf "- Loaded %s/zsh-personal/.zshrc\n" $ZSH_ROOT
         source $ZSH_ROOT/zsh-personal/.zshrc
 else
-        echo " - No personal ZSH config loaded";
+        printf " - No personal ZSH config loaded\n"
 fi
-
-function options() {
-    PLUGIN_PATH="$HOME/.oh-my-zsh/plugins/"
-    for plugin in $plugins; do
-        echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
-    done
-}

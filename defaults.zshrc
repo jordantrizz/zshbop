@@ -38,6 +38,14 @@ update () {
         rld
 }
 
+# -- List current functions available to zsh
+function options() {
+    PLUGIN_PATH="$HOME/.oh-my-zsh/plugins/"
+    for plugin in $plugins; do
+        echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
+    done
+}
+
 # - One Line Functions
 # Needs to include help and checking if $1 and $2 exist
 msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" }
