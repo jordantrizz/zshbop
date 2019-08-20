@@ -1,7 +1,7 @@
 # Edit your custom power level 9k
 alias jpl="joe $ZSH_CUSTOM/powerlevel9k.zshrc"
 # Power Level 9K Customizations
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=( status root_indicator context dir vcs )
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=( status root_indicator context dir )
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=( load disk_usage command_execution_time background_jobs history time )
 POWERLEVEL9K_DIR_PATH_HIGHLIGHT_FOREGROUND="grey"
 POWERLEVEL9K_DIR_HOME_FOREGROUND="white"
