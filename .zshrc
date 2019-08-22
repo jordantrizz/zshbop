@@ -6,6 +6,7 @@ fi
 # If you come from bash you might have to change your $PATH.
 export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
 export TERM="xterm-256color"
+export LANG="C.UTF-8"
 # Localtion of git repository
 
 # Initialize antigen
