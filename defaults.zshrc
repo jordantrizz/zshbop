@@ -18,7 +18,7 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 # - Functions
 # -- Evnrionment
 setup_environment () {
-       sudo apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree keychain
+       sudo apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree keychain mosh
        sudo pip install apt-select
        sudo npm install -g gnomon
 }
