@@ -18,9 +18,9 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 # - Functions
 # -- Evnrionment
 setup_environment () {
-       apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree
-       pip install apt-select
-       npm install -g gnomon
+       sudo apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree keychain
+       sudo pip install apt-select
+       sudo npm install -g gnomon
 }
 # -- Ultimate Linux Tool Box
 ultb_path () {
@@ -66,7 +66,8 @@ export PATH=$ZSH_ROOT/ultimate-linux-tool-box/:$PATH
 ultb_path
 
 # -- fzf keybindings
-[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
+# Need to enable if fzf is available
+#[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
 
 # - Plugin Configuration
 # AUTO_LS
@@ -95,6 +96,7 @@ alias toc="gh-md-toc --nobackup-insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
 alias pk="cat ~/.ssh/id_rsa.pub"
 alias fdcount="tree | grep directories"
+alias whatsmyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 
 # -- Web Aliases
 alias ttfb='curl -s -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'

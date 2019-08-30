@@ -1,24 +1,23 @@
 # We use $ZSH_ROOT to know our working directory.
 if [ -z "$ZSH_ROOT" ]; then
-      echo "\$ZSH_ROOT empty so using \$HOME/zsh"
+      echo "-- \$ZSH_ROOT empty so using \$HOME/zsh"
       export ZSH_ROOT=$HOME/zsh
 fi
 # If you come from bash you might have to change your $PATH.
 export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
 export TERM="xterm-256color"
 export LANG="C.UTF-8"
-# Localtion of git repository
+export ZSH_CUSTOM="$ZSH_ROOT/custom"
 
 # Initialize antigen
 if [[ -a $ZSH_ROOT/antigen.zsh ]]; then
-        echo "Loading antigen from $ZSH_ROOT/antigen.zsh";
+        echo "-- Loading antigen from $ZSH_ROOT/antigen.zsh";
         source $ZSH_ROOT/antigen.zsh
 
-	# Use oh-my-zsh
 	# ZSH plugins
 	plugins=( git osx bgnotify mysql-colorize extract history z cloudapp )
-        # oh-my-zsh Custom directory
-        export ZSH_CUSTOM="$ZSH_ROOT/custom"
+
+	
 	# Load oh-my-zsh
 	antigen use oh-my-zsh
 	
