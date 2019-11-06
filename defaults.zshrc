@@ -55,7 +55,11 @@ if [[ $MACHINE == "Mac" ]] then
         echo "- Loading mac.zshrc"
         source $ZSH_ROOT/mac.zshrc
 elif [[ $MACHINE = "Linux" ]] then
-        source $ZSH_ROOT/linux.zshrc
+	if [[ $(uname -r) == "Microsoft" ]]
+		echo "Microsoft"
+	else
+        	source $ZSH_ROOT/linux.zshrc
+        fi
 fi
 # - Paths
 # -- Diff so Fancy
