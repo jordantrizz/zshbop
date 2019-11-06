@@ -55,8 +55,8 @@ if [[ $MACHINE == "Mac" ]] then
         echo "- Loading mac.zshrc"
         source $ZSH_ROOT/mac.zshrc
 elif [[ $MACHINE = "Linux" ]] then
-	if [[ $(uname -r) == "Microsoft" ]]
-		echo "Microsoft"
+	if [[ $(uname -r) == "Microsoft" ]] then
+		echo "Microsoft WSL"
 	else
         	source $ZSH_ROOT/linux.zshrc
         fi
