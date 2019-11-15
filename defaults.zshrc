@@ -17,6 +17,11 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 
 # - Functions
 # -- Evnrionment
+rld () {
+	source $ZSH_ROOT/zshrc
+	source $ZSH_ROOT/zsh-personal/.zshrc
+}
+
 setup_environment () {
        sudo apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree keychain mosh
        sudo pip install apt-select
