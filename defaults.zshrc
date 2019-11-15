@@ -17,11 +17,6 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 
 # - Functions
 # -- Evnrionment
-rld () {
-	source $ZSH_ROOT/zshrc
-	source $ZSH_ROOT/zsh-personal/.zshrc
-}
-
 setup_environment () {
        sudo apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree keychain mosh
        sudo pip install apt-select
@@ -86,8 +81,8 @@ auto-ls-color () {
 }
 
 # - General Aliases
+alias rld="init_defaults"
 alias joe="joe --wordwrap -nobackups"
-alias rld="source ~/.zshrc"
 alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
 alias jz="joe --wordwrap -nobackups $ZSH_ROOT/.zshrc"
 alias jd="joe --wordwrap -nobackups $ZSH_ROOT/defaults.zshrc"
