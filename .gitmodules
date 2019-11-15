@@ -2,3 +2,6 @@
 	path = ultimate-linux-tool-box
 	url = https://github.com/jordantrizz/ultimate-linux-tool-box.git
 	branch = master
+[submodule "antigen"]
+	path = antigen
+	url = https://github.com/zsh-users/antigen.git

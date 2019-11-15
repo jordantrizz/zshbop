@@ -4,43 +4,48 @@
 ####
 
 ####
+#-- Initialize oh-my-zsh plugins
+####
+init_omz_plugins () {
+	echo "-- Loading OMZ plugins"
+	plugins=( git osx bgnotify mysql-colorize extract history z cloudapp )
+	echo " - $plugins"
+}
+
+####
 #-- Initialize Antigen
 ####
 init_antigen () {
         # Initialize antigen
-        if [[ -a $ZSH_ROOT/antigen.zsh ]]; then
-                echo "-- Loading antigen from $ZSH_ROOT/antigen.zsh";
-                source $ZSH_ROOT/antigen.zsh
+        if [[ -a $ZSH_ROOT/antigen/bin/antigen.zsh ]]; then
+                echo "-- Loading antigen from $ZSH_ROOT/antigen/bin/antigen.zsh";
+		source $ZSH_ROOT/antigen/bin/antigen.zsh
+		antigen init $ZSH_ROOT/.antigenrc
 
-                # ZSH plugins
-                plugins=( git osx bgnotify mysql-colorize extract history z cloudapp )
+		#- External Plugins
+		#source ~/.antigen/bundles/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh # broken
+		# $ZSH/plugins/z/z.sh # broken
 
-                # Load oh-my-zsh
-                antigen use oh-my-zsh
-
-                # Set oh-my-zsh theme to load default is ZSH_THEME="robbyrussell"
-                antigen theme bhilburn/powerlevel9k powerlevel9k
-                # Load Powerlevel 9k Customizations
-                source $ZSH_ROOT/powerlevel9k.zshrc
-
-                # Continue with loading antigen bundles
-                antigen bundle zsh-users/zsh-syntax-highlighting
-                antigen bundle command-not-found
-                antigen bundle wfxr/forgit
-                antigen bundle andrewferrier/fzf-z
-                source $ZSH_CUSTOM/.fzf-key-bindings.zsh
-                antigen bundle djui/alias-tips
-                #antigen bundle desyncr/auto-ls
-                #antigen bundle MikeDacre/careful_rm
-                antigen bundle viasite-ansible/zsh-ansible-server
-                antigen bundle micha/resty
-                antigen bundle zpm-zsh/mysql-colorize
-                #antigen bundle so-fancy/diff-so-fancy
-                #git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
-                antigen bundle zsh-users/zsh-autosuggestions
-                antigen apply
         else
                 echo " - Couldn't load antigen..";
+        fi
+}
+
+####
+#-- Load default zsh scripts
+####
+
+init_defaults () {
+        # Default ZSH aliases and other functions
+        source $ZSH_ROOT/defaults.zshrc
+
+        # Include Personal Configuration if present.
+        printf "Loading personal ZSH config...\n"
+        if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then
+                printf "- Loaded %s/zsh-personal/.zshrc\n" $ZSH_ROOT
+                source $ZSH_ROOT/zsh-personal/.zshrc
+        else
+                printf " - No personal ZSH config loaded\n"
         fi
 }
 
@@ -69,19 +74,9 @@ sshkeys () {
 }
 
 ####
-#-- Load default zsh scripts
+#-- Clear Cache
 ####
 
-init_defaults () {
-        # Default ZSH aliases and other functions
-        source $ZSH_ROOT/defaults.zshrc
-
-        # Include Personal Configuration if present.
-        printf "Loading personal ZSH config...\n"
-        if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then
-                printf "- Loaded %s/zsh-personal/.zshrc\n" $ZSH_ROOT
-                source $ZSH_ROOT/zsh-personal/.zshrc
-        else
-                printf " - No personal ZSH config loaded\n"
-        fi
+clear_cache () {
+	antigen reset
 }
