@@ -35,7 +35,7 @@ update () {
         git -C $ZSH_ROOT pull --recurse-submodules
         git -C $ZSH_ROOT submodule update --init --recursive
         git -C $ZSH_ROOT submodule update --recursive --remote
-        rld
+        init_defaults
 }
 
 # -- List current functions available to zsh
