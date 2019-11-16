@@ -15,37 +15,6 @@ export EDITOR='joe'
 export BLOCKSIZE='K'
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
 
-# - Functions
-# -- Evnrionment
-setup_environment () {
-       sudo apt install python-pip npm aptitude mtr dnstracer wamerican fpart tree keychain mosh
-       sudo pip install apt-select
-       sudo npm install -g gnomon
-}
-# -- Ultimate Linux Tool Box
-ultb_path () {
-        if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
-                echo "- Including Ultimate Linux Tool Box Paths"
-                source $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc
-        fi
-}
-
-# -- Update
-update () {
-        git -C $ZSH_ROOT pull --recurse-submodules
-        git -C $ZSH_ROOT submodule update --init --recursive
-        git -C $ZSH_ROOT submodule update --recursive --remote
-        init_defaults
-}
-
-# -- List current functions available to zsh
-function options() {
-    PLUGIN_PATH="$HOME/.oh-my-zsh/plugins/"
-    for plugin in $plugins; do
-        echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
-    done
-}
-
 # - One Line Functions
 # Needs to include help and checking if $1 and $2 exist
 msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" }
