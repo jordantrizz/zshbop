@@ -17,6 +17,8 @@ export ZSH_CUSTOM="$ZSH_ROOT/custom"
 
 #- Include functions file
 source $ZSH_ROOT/functions.zsh
+init_omz_plugins
 init_antigen
 init_defaults
 sshkeys
+ultb_path

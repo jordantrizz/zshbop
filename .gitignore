@@ -2,3 +2,4 @@
 # If you have personal zsh settings, create a zsh-personal directory and add a .zshrc within here for it to be loaded automatically.
 # Suggest using a privet github repository or keybase.
 zsh-personal
+*.zwc
