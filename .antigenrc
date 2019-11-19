@@ -27,11 +27,16 @@ antigen bundle command-not-found
 antigen bundle wfxr/forgit
 #antigen bundle djui/alias-tips # Disabled for now, requires python
 antigen bundle desyncr/auto-ls
-antigen bundle MikeDacre/careful_rm
-antigen bundle viasite-ansible/zsh-ansible-server
-antigen bundle micha/resty
-antigen bundle zpm-zsh/mysql-colorize
-antigen bundle so-fancy/diff-so-fancy
+
+# AUTO_LS
+AUTO_LS_COMMANDS=('color' git-status)
+auto-ls-color () { ls -al;echo "\n"; }
+antigen bundle desyncr/auto-ls
+
+#antigen bundle viasite-ansible/zsh-ansible-server
+#antigen bundle micha/resty
+#antigen bundle zpm-zsh/mysql-colorize
+#antigen bundle so-fancy/diff-so-fancy
 git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
 antigen bundle zsh-users/zsh-autosuggestions
 antigen apply

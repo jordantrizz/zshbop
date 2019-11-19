@@ -42,13 +42,6 @@ ultb_path
 # Need to enable if fzf is available
 #[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
 
-# - Plugin Configuration
-# AUTO_LS
-AUTO_LS_COMMANDS=('color' git-status)
-auto-ls-color () {
-        ls;echo "\n";
-}
-
 # - General Aliases
 alias rld="init_defaults"
 alias joe="joe --wordwrap -nobackups"
