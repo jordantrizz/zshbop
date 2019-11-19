@@ -36,7 +36,7 @@ antigen bundle desyncr/auto-ls
 #antigen bundle viasite-ansible/zsh-ansible-server
 #antigen bundle micha/resty
 #antigen bundle zpm-zsh/mysql-colorize
-#antigen bundle so-fancy/diff-so-fancy
+antigen bundle so-fancy/diff-so-fancy
 git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
 antigen bundle zsh-users/zsh-autosuggestions
 antigen apply
