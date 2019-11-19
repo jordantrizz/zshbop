@@ -1,3 +1,4 @@
+
 // To view the default settings, hold "alt" while clicking on the "Settings" button.
 // For documentation on these settings, see: https://aka.ms/terminal-documentation
 
@@ -27,8 +28,8 @@
             "name": "Ubuntu",
             "source": "Windows.Terminal.Wsl",
             "startingDirectory": "//wsl$/Ubuntu/home/jtrask",
-            "fontFace" : "Meslo LG L DZ for Powerline",         
-            "fontSize" : 13
+            "fontFace" : "Meslo LG L DZ for Powerline",
+            "fontSize" : 11
             
         },
         {
@@ -50,7 +51,14 @@
             "keys" : 
             [
                 "shift+insert"
+            ],
+            "command" : "unbind",
+            "keys" :
+            [
+                "ctrl+-",
+                "ctrl+="
             ]
+      
         }
     ]
 }
