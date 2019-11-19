@@ -1,20 +1,14 @@
-####
-#- Functions
+#### - Functions
 # This file contains all the required functions for the main .zshrc script.
-####
 
-####
-#-- Initialize oh-my-zsh plugins
-####
+#### -- Initialize oh-my-zsh plugins
 init_omz_plugins () {
 	echo "-- Loading OMZ plugins"
-	plugins=( git osx bgnotify mysql-colorize extract history z cloudapp )
+	plugins=( git )
 	echo " - $plugins"
 }
 
-####
-#-- Initialize Antigen
-####
+#### -- Initialize Antigen
 init_antigen () {
         # Initialize antigen
         if [[ -a $ZSH_ROOT/antigen/bin/antigen.zsh ]]; then
@@ -31,10 +25,7 @@ init_antigen () {
         fi
 }
 
-####
-#-- Load default zsh scripts
-####
-
+####-- Load default zsh scripts
 init_defaults () {
         # Default ZSH aliases and other functions
         source $ZSH_ROOT/defaults.zshrc
@@ -48,29 +39,34 @@ init_defaults () {
                 printf " - No personal ZSH config loaded\n"
         fi
 }
+####-- Check for program existing
+exists() { 
+	type -t "$1" > /dev/null 2>&1; 
+}
 
-####
-#-- Load default SSH keys into keychain
-####
-
+####-- Load default SSH keys into keychain
 sshkeys () {
-        # Load default SSH key
-        printf "Check for default SSH key %s/.ssh/id_rsa and load keychain\n" $HOME
-        if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
-                printf " - FOUND: %s\n" $HOME/.ssh/id_rsa
-                eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
-        else
-                printf " - NOTFOUND: %s\n" $HOME/.ssh/id_rsa
-        fi
+	if exists keychain; then
+	        # Load default SSH key
+	        printf "Check for default SSH key %s/.ssh/id_rsa and load keychain\n" $HOME
+        	if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
+	                printf " - FOUND: %s\n" $HOME/.ssh/id_rsa
+	                eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
+	        else
+	                printf " - NOTFOUND: %s\n" $HOME/.ssh/id_rsa
+        	fi
 
-        # Check and load custom SSH key
-        printf "Check for custom SSH key via \$SSH_KEY and load keychain\n"
-        if [ ! -z "${SSH_KEY+1}" ]; then
-                printf " - FOUND: %s\n" $SSH_KEY
-                eval `keychain -q --eval --agents ssh $SSH_KEY`
-        else
-                printf " - NOTFOUND: %s not set.\n" $SSH_KEY
-        fi
+	        # Check and load custom SSH key
+        	printf "Check for custom SSH key via \$SSH_KEY and load keychain\n"
+	        if [ ! -z "${SSH_KEY+1}" ]; then
+        	        printf " - FOUND: %s\n" $SSH_KEY
+                	eval `keychain -q --eval --agents ssh $SSH_KEY`
+	        else
+        	        printf " - NOTFOUND: %s not set.\n" $SSH_KEY
+	        fi
+	else
+		echo " - Command keychain doesn't exist, please install for SSH keys to work"
+	fi
 }
 
 ####
@@ -131,4 +127,9 @@ function options() {
     for plugin in $plugins; do
         echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
     done
+}
+
+#### -- Copy Windows Terminal Config
+wt_config () {
+	cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/profiles.json  $ZSH_ROOT/windows_terminal.json
 }
