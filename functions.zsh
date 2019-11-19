@@ -39,14 +39,9 @@ init_defaults () {
                 printf " - No personal ZSH config loaded\n"
         fi
 }
-####-- Check for program existing
-exists() { 
-	type -t "$1" > /dev/null 2>&1; 
-}
-
 ####-- Load default SSH keys into keychain
 sshkeys () {
-	if exists keychain; then
+	if (( $+commands[keychain] )); then
 	        # Load default SSH key
 	        printf "Check for default SSH key %s/.ssh/id_rsa and load keychain\n" $HOME
         	if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
@@ -93,9 +88,7 @@ setup_environment () {
        	#sudo npm install -g gnomon # Skipping node dependencies
 }
 
-####
-#-- Ultimate Linux Tool Box
-####
+####-- Ultimate Linux Tool Box
 ultb_path () {
         if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
                 echo "- Including Ultimate Linux Tool Box Paths"
@@ -103,9 +96,7 @@ ultb_path () {
         fi
 }
 
-####
-#-- Update
-####
+####-- Update
 update () {
 	cd $ZSH_ROOT
 	git pull
@@ -115,9 +106,7 @@ update () {
         init_defaults
 }
 
-####
-#-- List current functions available to zsh
-####
+####-- List current functions available to zsh
 function options() {
     PLUGIN_PATH="$HOME/.oh-my-zsh/plugins/"
     for plugin in $plugins; do
