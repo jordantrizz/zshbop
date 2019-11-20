@@ -18,9 +18,7 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 <!--te-->
 
 # Quick Install
-Simply run the following in your home directory.
-
-NOTE: You will need wget, git and zsh.
+Simply run the following in your home directory. NOTE: You will need wget, git and zsh.
 
 ```
 wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install_zsh;bash install_zsh
@@ -42,6 +40,17 @@ If you don't want to have zsh within your home directory, then use the following
 5. Restart your terminal/shell
 </p>
 </details>
+
+# Notes
+
+## Windows Terminal
+There is an issue with some of the Powerline fonts I downloaded and installed in windows. So I opted for this set of fonts using a script in a GIST https://gist.github.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b
+
+You can simply runn this command within WSL
+
+```
+bash -c "$(curl -fsSL https://gist.githubusercontent.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b/raw/install_meslo_wsl.sh)"
+```
 
 # Commands/Aliases
 Type `commands` or `aliases` to get a list of commands and aliases. Doesn't work yet.

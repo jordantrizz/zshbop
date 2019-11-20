@@ -13,6 +13,7 @@
             "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
             "name": "Windows PowerShell",
             "commandline": "powershell.exe",
+            "fontFace": "Meslo LG M for Powerline",
             "hidden": false
         },
         {
@@ -28,8 +29,9 @@
             "name": "Ubuntu",
             "source": "Windows.Terminal.Wsl",
             "startingDirectory": "//wsl$/Ubuntu/home/jtrask",
-            "fontFace" : "Meslo LG L DZ for Powerline",
-            "fontSize" : 11
+            //"fontFace" : "Meslo LG L DZ for Powerline",
+            "fontFace" : "MesloLGS NF",
+            "fontSize" : 14
             
         },
         {
