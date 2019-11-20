@@ -51,14 +51,21 @@
             "keys" : 
             [
                 "shift+insert"
-            ],
+            ]
+        },
+        {
             "command" : "unbind",
             "keys" :
             [
-                "ctrl+-",
+                "ctrl+-"
+            ]        
+        },
+        {
+            "command" : "unbind",
+            "keys" :
+            [
                 "ctrl+="
-            ]
-      
+            ]        
         }
     ]
 }

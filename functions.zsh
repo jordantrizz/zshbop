@@ -91,7 +91,7 @@ setup_environment () {
 ####-- Ultimate Linux Tool Box
 ultb_path () {
         if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
-                echo "- Including Ultimate Linux Tool Box Paths"
+                echo "-- Including Ultimate Linux Tool Box Paths"
                 source $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc
         fi
 }
@@ -115,6 +115,6 @@ function options() {
 }
 
 #### -- Copy Windows Terminal Config
-wt_config () {
+cp_wtconfig () {
 	cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/profiles.json  $ZSH_ROOT/windows_terminal.json
 }
