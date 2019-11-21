@@ -3,3 +3,4 @@
 # Suggest using a privet github repository or keybase.
 zsh-personal
 *.zwc
+.debug

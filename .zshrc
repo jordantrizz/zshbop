@@ -2,6 +2,11 @@
 #- Command Type - type (command) eg type rm
 #- List functions - print -l ${(ok)functions}
 
+#- Are we debugging?
+if [ -f $ZSH_ROOT/.debug ]; then
+	export ZSH_DEBUG=1
+fi
+
 #- We use $ZSH_ROOT to know our working directory.
 if [ -z "$ZSH_ROOT" ]; then
       echo "-- \$ZSH_ROOT empty so using \$HOME/zsh"
@@ -15,10 +20,9 @@ export TERM="xterm-256color"
 export LANG="C.UTF-8"
 export ZSH_CUSTOM="$ZSH_ROOT/custom"
 
+#- Set umask
+umask 022
+
 #- Include functions file
 source $ZSH_ROOT/functions.zsh
-init_omz_plugins
-init_antigen
-init_defaults
-sshkeys
-ultb_path
+init 

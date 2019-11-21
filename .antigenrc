@@ -1,11 +1,17 @@
-# Load oh-my-zsh
+#-- Load oh-my-zsh
 antigen use oh-my-zsh
 
-# Set oh-my-zsh theme to load default is ZSH_THEME="robbyrussell"
-antigen theme bhilburn/powerlevel9k powerlevel9k
+#-- Upgraded to powerlevel10k - https://github.com/romkatv/powerlevel10k#antigen
+antigen theme romkatv/powerlevel10k
+
+#-- Powerlevel 10k options.
+typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=always
+typeset -g POWERLEVEL9K_DISABLE_HOT_RELOAD=true # can slow down prompt by 1-2 milliseconds, so it's better to keep it turned off
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=verbose
+typeset -g POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS=0 # Don't wait for Git status even for a millisecond, so that prompt always updates
 
 # Load Powerlevel 9k Customizations
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=( status root_indicator context dir )
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=( status root_indicator context dir vcs )
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=( load disk_usage command_execution_time background_jobs history time )
 POWERLEVEL9K_DIR_PATH_HIGHLIGHT_FOREGROUND="grey"
 POWERLEVEL9K_DIR_HOME_FOREGROUND="white"
@@ -17,26 +23,31 @@ POWERLEVEL9K_DISK_USAGE_WARNING_LEVEL="90"
 POWERLEVEL9K_PROMPT_ADD_NEWLINE=false
 POWERLEVEL9K_PROMPT_ON_NEWLINE=true
 
-# Load FZF
-antigen bundle andrewferrier/fzf-z
-source $ZSH_CUSTOM/.fzf-key-bindings.zsh
-
-# Continue with loading antigen bundles
+####- Load antigen bundles
+antigen bundle zsh-users/zsh-autosuggestions
 antigen bundle zsh-users/zsh-syntax-highlighting
 antigen bundle command-not-found
-antigen bundle wfxr/forgit
-#antigen bundle djui/alias-tips # Disabled for now, requires python
 antigen bundle desyncr/auto-ls
+antigen bundle zsh-users/zsh-autosuggestions
 
-# AUTO_LS
+
+#antigen bundle djui/alias-tips # Disabled for now, requires python
+#antigen bundle viasite-ansible/zsh-ansible-server
+#antigen bundle zpm-zsh/mysql-colorize
+
+####-- Load FZF
+if _cexists fzf; then
+	_debug "fzf is installed"
+	antigen bundle andrewferrier/fzf-z
+	antigen bundle wfxr/forgit
+	source $ZSH_CUSTOM/.fzf-key-bindings.zsh
+else 
+	_debug "fzf is not installed, consider it"
+fi
+
+####-- AUTO_LS
 AUTO_LS_COMMANDS=('color' git-status)
 auto-ls-color () { ls -al;echo "\n"; }
 antigen bundle desyncr/auto-ls
 
-#antigen bundle viasite-ansible/zsh-ansible-server
-#antigen bundle micha/resty
-#antigen bundle zpm-zsh/mysql-colorize
-antigen bundle so-fancy/diff-so-fancy
-git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
-antigen bundle zsh-users/zsh-autosuggestions
 antigen apply

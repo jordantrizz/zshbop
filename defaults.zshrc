@@ -31,12 +31,6 @@ elif [[ $MACHINE = "Linux" ]] then
         fi
 fi
 # - Paths
-# -- Diff so Fancy
-export PATH=$PATH:~/.antigen/bundles/so-fancy/diff-so-fancy
-
-# -- Ultimate Linux Tool Box via git submodule add
-export PATH=$ZSH_ROOT/ultimate-linux-tool-box/:$PATH
-ultb_path
 
 # -- fzf keybindings
 # Need to enable if fzf is available
@@ -54,7 +48,6 @@ alias cpu="lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('"
 alias which="which -a"
 alias randpass="pwgen -s 5 1;pwgen -s 15 1;pwgen 20 1"
 alias zcc="rm ~/.zcompdump*"
-alias diff-so-fancy="~/.antigen/bundles/so-fancy/diff-so-fancy/diff-so-fancy"
 alias error_log="find . | grep error_log | xargs tail | less"
 alias rm_error_log="find . | grep error_log | xargs -pl rm"
 alias cg="clustergit"
@@ -71,7 +64,9 @@ alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
 alias dhparam="openssl dhparam -out dhparam.pem 2048"
 alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 
-# -- GIT Aliases
+# -- GIT configuration and aliases
 alias gp="git submodule foreach git pull origin master"
 alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gr="cd ~/git;"
+####-- diff-so-fancy
+git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
