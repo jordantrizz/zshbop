@@ -47,7 +47,7 @@ fi
 
 ####-- AUTO_LS
 AUTO_LS_COMMANDS=('color' git-status)
-auto-ls-color () { ls -al;echo "\n"; }
+auto-ls-color () { ls -al --color=tty;echo "\n"; }
 antigen bundle desyncr/auto-ls
 
 antigen apply
