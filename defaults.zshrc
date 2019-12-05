@@ -14,6 +14,10 @@ export PAGER='less -Q -j16'
 export EDITOR='joe'
 export BLOCKSIZE='K'
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+
 
 # - One Line Functions
 # Needs to include help and checking if $1 and $2 exist
