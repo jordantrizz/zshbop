@@ -68,5 +68,6 @@ alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 alias gp="git submodule foreach git pull origin master"
 alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gr="cd ~/git;"
+
 ####-- diff-so-fancy
 git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
