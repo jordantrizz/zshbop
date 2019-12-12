@@ -1,6 +1,11 @@
 #!/bin/bash
+#
+# This script will install zsh within your home directory or within /usr/local/sbin
+#
 
+#--------------------
 # Functions
+#--------------------
 install_method() {
 	echo "Do you want to install system wide or home only? (s/h)"
 	read INSTALL
@@ -25,23 +30,32 @@ setup_home() {
 }
 
 setup_system() {
+	# Confirm that /usr/local/sbin exists
 	echo -e "Setting up system based .zshrc..."
 	SYSTEM=/usr/local/sbin
 	if ! [ -d "$SYSTEM/zsh" ]; then
 		echo -e " - Cloning into $SYSTEM/zsh\n"
 		clone_repository "$SYSTEM/zsh"
+		echo "ZSH_ROOT=/usr/local/sbin/zsh" >> /etc/zsh/zshrc
+		echo "source /usr/local/sbin/zsh/.zshrc" >> /etc/zsh/zshrc
 	else
 		echo -e " - $SYSTEM/zsh already exists\n"
 		exit 1
 	fi
-	echo -e " - Detecting OS and installing for all system users"
-	if [ -f /etc/debian_version ]; then
-		echo -e " -- Detected Debian/Ubuntu OS"		
-	fi
-	echo "This is broken and needs to be fixed! and should probably be in /usr/share/zsh?"
+	# Uncommented for now, need to review
+	#echo -e " - Detecting OS and installing for all system users"
+	#if [ -f /etc/debian_version ]; then
+	#	echo -e " -- Detected Debian/Ubuntu OS"		
+	#fi
+	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zsh?"
+
 }		
 
-# Main
+#--------------------
+# Main Code
+#--------------------
+
+# Checking if zsh is installed
 echo "Checking if zsh is installed...."
 if ! [ -x "$(command -v zsh)" ]; then
         echo -e " - Error: zsh is not installed.\n"
@@ -51,6 +65,7 @@ else
         echo -e " - ZSH is installed in $ZSH_SHELL\n"
 fi
 
+# Check if zsh is the default shell
 echo -e "Checking if zsh is the default shell"
 if ! [[ $SHELL == *"zsh" ]]; then
         echo -e " - Your default shell isn't zsh, use chsh to change it to zsh.\n"
@@ -58,6 +73,7 @@ else
         echo -e " - ZSH is your default shell!\n"
 fi
 
+# Checking if git is installed
 echo "Checking if git is installed...."
 if ! [ -x "$(command -v git)" ]; then
         echo -e " - You need to install git!\n"
@@ -66,10 +82,9 @@ else
         echo -e " - GIT is installed!\n"
 fi
 
+# Start installtion
 echo -e "---\n\nBegin Install\n"
-
 install_method
-
 if [ $INSTALL = "s" ]; then
         setup_system
 elif [ $INSTALL = "h" ]; then
