@@ -15,7 +15,9 @@ clone_repository() {
 	echo -e "- Start Cloning repository into $1..."
 	# wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install
 	git clone --recursive https://github.com/jordantrizz/zsh.git $1
-	git submodule update --init --recursive
+	git submodule update --init --recursive $1
+	# Use nightly antigen, otherwise this issue occurs https://github.com/zsh-users/antigen/issues/665
+	curl -L git.io/antigen-nightly > $1/antigen/bin/antigen.zsh
 }
 
 
@@ -37,8 +39,6 @@ setup_system() {
 	if ! [ -d "$SYSTEM/zsh" ]; then
 		echo -e " - Cloning into $SYSTEM/zsh\n"
 		clone_repository "$SYSTEM/zsh"
-		echo "ZSH_ROOT=/usr/local/sbin/zsh" >> /etc/zsh/zshrc
-		echo "source /usr/local/sbin/zsh/.zshrc" >> /etc/zsh/zshrc
 	else
 		echo -e " - $SYSTEM/zsh already exists\n"
 		exit 1
