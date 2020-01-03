@@ -4,6 +4,9 @@ antigen use oh-my-zsh
 #-- Upgraded to powerlevel10k - https://github.com/romkatv/powerlevel10k#antigen
 antigen theme romkatv/powerlevel10k
 
+#-- Custom powerlevel10k config
+source .p10k.zsh
+
 #-- Powerlevel 10k options.
 #typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=always
 #typeset -g POWERLEVEL9K_DISABLE_HOT_RELOAD=true # can slow down prompt by 1-2 milliseconds, so it's better to keep it turned off
