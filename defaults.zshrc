@@ -41,7 +41,7 @@ fi
 #[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
 
 # - General Aliases
-alias rld="init_defaults"
+alias rld="init"
 alias joe="joe --wordwrap -nobackups"
 alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
 alias jz="joe --wordwrap -nobackups $ZSH_ROOT/.zshrc"

@@ -9,7 +9,7 @@ fi
 
 #- We use $ZSH_ROOT to know our working directory.
 if [ -z "$ZSH_ROOT" ]; then
-      echo "-- \$ZSH_ROOT empty so using \$HOME/zsh"
+      _debug "-- \$ZSH_ROOT empty so using \$HOME/zsh"
       export ZSH_ROOT=$HOME/zsh
 fi
 
