@@ -15,6 +15,7 @@ clone_repository() {
 	echo -e "- Start Cloning repository into $1..."
 	# wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install
 	git clone --recursive https://github.com/jordantrizz/zsh.git $1
+	git submodule update --init --recursive
 }
 
 
