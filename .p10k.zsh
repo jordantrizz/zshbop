@@ -40,6 +40,7 @@
       os_icon                 # os identifier
       dir                     # current directory
       vcs                     # git status
+      root_indicator	      # An indicator if the user has superuser status.
       # =========================[ Line #2 ]=========================
       newline
       prompt_char             # prompt symbol
@@ -88,14 +89,15 @@
       vi_mode                 # vi mode (you don't need this if you've enabled prompt_char)
       # vpn_ip                # virtual private network indicator
       # ram                   # free RAM
-      # load                  # CPU load
+      load                    # CPU load
+      disk_usage	      # disk_usage
       todo                    # todo items (https://github.com/todotxt/todo.txt-cli)
       time                    # current time
       # =========================[ Line #2 ]=========================
       newline
-      # public_ip             # public IP address
+      public_ip             # public IP address
       # proxy                 # system-wide http/https/ftp proxy
-      # battery               # internal battery
+      battery               # internal battery
       # example               # example user-defined segment (see prompt_example function below)
   )
 
@@ -470,7 +472,7 @@
 
   # Status when it's just an error code (e.g., '1'). No need to show it if prompt_char is enabled as
   # it will signify error by turning red.
-  typeset -g POWERLEVEL9K_STATUS_ERROR=false
+  typeset -g POWERLEVEL9K_STATUS_ERROR=true
   typeset -g POWERLEVEL9K_STATUS_ERROR_VISUAL_IDENTIFIER_EXPANSION='✘'
   # typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=3
   # typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND=1
@@ -478,7 +480,7 @@
   # Status when the last command was terminated by a signal.
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL=true
   # Use terse signal names: "INT" instead of "SIGINT(2)".
-  typeset -g POWERLEVEL9K_STATUS_VERBOSE_SIGNAME=false
+  typeset -g POWERLEVEL9K_STATUS_VERBOSE_SIGNAME=true
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_VISUAL_IDENTIFIER_EXPANSION='✘'
   # typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=3
   # typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND=1
