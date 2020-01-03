@@ -2,6 +2,9 @@
 #- Command Type - type (command) eg type rm
 #- List functions - print -l ${(ok)functions}
 
+#- Include functions file
+source $ZSH_ROOT/functions.zsh
+
 #- Are we debugging?
 if [ -f $ZSH_ROOT/.debug ]; then
 	export ZSH_DEBUG=1
@@ -25,6 +28,5 @@ export ZSH_CUSTOM="$ZSH_ROOT/custom"
 #- Set umask
 umask 022
 
-#- Include functions file
-source $ZSH_ROOT/functions.zsh
+#- Let's start init
 init 
