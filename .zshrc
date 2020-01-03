@@ -9,8 +9,10 @@ fi
 
 #- We use $ZSH_ROOT to know our working directory.
 if [ -z "$ZSH_ROOT" ]; then
-      _debug "-- \$ZSH_ROOT empty so using \$HOME/zsh"
-      export ZSH_ROOT=$HOME/zsh
+	_debug "-- \$ZSH_ROOT empty so using \$HOME/zsh"
+	export ZSH_ROOT=$HOME/zsh
+else
+	_debug "-- \$ZSH_ROOT not empty so using $ZSH_ROOT"
 fi
 
 #- If you come from bash you might have to change your $PATH.
