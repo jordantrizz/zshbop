@@ -47,9 +47,9 @@ init_omz_plugins () {
 #### -- Initialize Antigen
 init_antigen () {
 	_echo "-- Loading Antigen"
-        if [[ -a $ZSH_ROOT/antigen/bin/antigen.zsh ]]; then
-                _debug "- Loading antigen from $ZSH_ROOT/antigen/bin/antigen.zsh";
-		source $ZSH_ROOT/antigen/bin/antigen.zsh
+        if [[ -a $ZSH_ROOT/antigen.zsh ]]; then
+                _debug "- Loading antigen from $ZSH_ROOT/antigen.zsh";
+		source $ZSH_ROOT/antigen.zsh
 		antigen init $ZSH_ROOT/.antigenrc
         else
                 _echo "	- Couldn't load antigen..";
