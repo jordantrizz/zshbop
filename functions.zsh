@@ -66,7 +66,10 @@ init_defaults () {
         if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then
                 _debug " - Loaded $ZSH_ROOT/zsh-personal/.zshrc"
                 source $ZSH_ROOT/zsh-personal/.zshrc
-        else
+        elif [[ -a $HOME/.personal.zshrc || -L $HOME/.personal.zshrc ]]; then
+               _debug " - Loaded $HOME/.personal.zshrc"
+               source $HOME/.personal.zshrc
+	else
                 printf " - No personal ZSH config loaded\n"
         fi
 }
