@@ -61,7 +61,7 @@ clone_repository() {
 
 setup_home() {
 	if ! [ -f $HOME/.zshrc ]; then
-	       	ln -s $HOME/zsh/.zshrc ~/.
+	       	cp $HOME/zsh/.zshrc_install $HOME/.zshrc
 	       	clone_repository "$HOME/zsh"
 	       	echo -e "- ZSH in-place, type zsh to start your shell\n"
 	else
