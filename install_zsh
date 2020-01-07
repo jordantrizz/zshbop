@@ -49,14 +49,18 @@ clone_repository() {
         if ! [ -d $1 ];then
                 echo -e "- Start Cloning repository into $1..."
                 if [ $BRANCH = "d" ]; then
-                        git clone --branch develop --recursive https://github.com/jordantrizz/zsh.git $1
+                        git clone --branch develop https://github.com/jordantrizz/zsh.git $1
 			if [ $ULTB = "y" ]; then
-                        	git submodule update --init --recursive $1
+				echo -e "- Installing ULTB $1"
+				cd $1
+                        	git submodule update --init --recursive
                         fi
-                elif [ $BRACH = "m" ]; then
-                        git clone --recursive https://github.com/jordantrizz/zsh.git $1
+                elif [ $BRANCH = "m" ]; then
+                        git clone https://github.com/jordantrizz/zsh.git $1
 			if [ $ULTB = "y" ]; then
-                                git submodule update --init --recursive $1
+				echo -e "- Installing ULTB $1"
+				cd $1
+                                git submodule update --init --recursive
                         fi
                 fi
         else
@@ -67,8 +71,8 @@ clone_repository() {
 
 setup_home() {
 	if ! [ -f $HOME/.zshrc ]; then
+		clone_repository "$HOME/zsh"
 	       	cp $HOME/zsh/.zshrc_install $HOME/.zshrc
-	       	clone_repository "$HOME/zsh"
 	       	echo -e "- ZSH in-place, type zsh to start your shell\n"
 	else
 	       	echo -e "- There's already a .zshrc in-place, remove it and re-run\n"
