@@ -101,9 +101,9 @@ init_sshkeys () {
 
 ####-- Ultimate Linux Tool Box
 init_ultb () {
-        if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
+        if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/.zshrc ]]; then
                 _echo "-- Including Ultimate Linux Tool Box Paths"
-                source $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc
+                source $ZSH_ROOT/ultimate-linux-tool-box/.zshrc
         fi
 }
 
