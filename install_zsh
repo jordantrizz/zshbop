@@ -41,6 +41,8 @@ install_method() {
         read INSTALL
         echo "(d)evelop or (m)aster Branch? (d/m)"
         read BRANCH
+        echo "Include Ultimate Linux Toolbox? (y/n)"
+        read ULTB
 }
 
 clone_repository() {
@@ -48,10 +50,14 @@ clone_repository() {
                 echo -e "- Start Cloning repository into $1..."
                 if [ $BRANCH = "d" ]; then
                         git clone --branch develop --recursive https://github.com/jordantrizz/zsh.git $1
-                        git submodule update --init --recursive $1
+			if [ $ULTB = "y" ]; then
+                        	git submodule update --init --recursive $1
+                        fi
                 elif [ $BRACH = "m" ]; then
                         git clone --recursive https://github.com/jordantrizz/zsh.git $1
-                        git submodule update --init --recursive $1
+			if [ $ULTB = "y" ]; then
+                                git submodule update --init --recursive $1
+                        fi
                 fi
         else
                 echo -e "- Directory $1 exists...exiting."
