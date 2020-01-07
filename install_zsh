@@ -6,20 +6,58 @@
 #--------------------
 # Functions
 #--------------------
+
+flight_check() {
+        # Checking if zsh is installed
+        echo -n "Checking if zsh is installed...."
+        if ! [ -x "$(command -v zsh)" ]; then
+                echo -e "- Error: zsh is not installed."
+                exit 1
+        else
+                ZSH_SHELL=`which zsh`
+                echo -e "- ZSH is installed in $ZSH_SHELL"
+        fi
+
+        # Check if zsh is the default shell
+        echo -n "Checking if zsh is the default shell...."
+        if ! [[ $SHELL == *"zsh" ]]; then
+                echo -e "- Your default shell isn't zsh, use chsh to change it to zsh."
+        else
+                echo -e "- ZSH is your default shell!"
+        fi
+
+        # Checking if git is installed
+        echo -n "Checking if git is installed...."
+        if ! [ -x "$(command -v git)" ]; then
+                echo -e "- You need to install git!"
+                exit 1
+        else
+                echo -e "- GIT is installed!"
+        fi
+}
+
 install_method() {
-	echo "Do you want to install system wide or home only? (s/h)"
-	read INSTALL
+        echo "Do you want to install system wide or home only? (s/h)"
+        read INSTALL
+        echo "(d)evelop or (m)aster Branch? (d/m)"
+        read BRANCH
 }
 
-clone_repository() { 
-	echo -e "- Start Cloning repository into $1..."
-	# wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install
-	git clone --recursive https://github.com/jordantrizz/zsh.git $1
-	git submodule update --init --recursive $1
-	# Use nightly antigen, otherwise this issue occurs https://github.com/zsh-users/antigen/issues/665
-	curl -L git.io/antigen-nightly > $1/antigen/bin/antigen.zsh
+clone_repository() {
+        if ! [ -d $1 ];then
+                echo -e " - Start Cloning repository into $1..."
+                if [ $BRANCH = "d" ]; then
+                        git clone --branch develop --recursive https://github.com/jordantrizz/zsh.git $1
+                        git submodule update --init --recursive $1
+                elif [ $BRACH = "m" ]; then
+                        git clone --recursive https://github.com/jordantrizz/zsh.git $1
+                        git submodule update --init --recursive $1
+                fi
+        else
+                echo -e " - Directory $1 exists...exiting."
+                exit 1
+        fi
 }
-
 
 setup_home() {
 	if ! [ -f $HOME."/.zshrc" ]; then
