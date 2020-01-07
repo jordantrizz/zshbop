@@ -145,6 +145,7 @@ cp_wtconfig () {
 	cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/profiles.json  $ZSH_ROOT/windows_terminal.json
 }
 
+#### -- Configure git
 git_config () {
 	vared -p "Name? " -c GIT_NAME
 	vared -p "Email? " -c GIT_EMAIL
@@ -152,4 +153,9 @@ git_config () {
 	git config --global user.name $GIT_NAME
 	git config --global --get user.email
 	git config --global --get user.name
+}
+
+#### -- Install required software
+install_pkgs () {
+    apt-get install pwgen
 }
