@@ -45,7 +45,7 @@ install_method() {
 
 clone_repository() {
         if ! [ -d $1 ];then
-                echo -e " - Start Cloning repository into $1..."
+                echo -e "- Start Cloning repository into $1..."
                 if [ $BRANCH = "d" ]; then
                         git clone --branch develop --recursive https://github.com/jordantrizz/zsh.git $1
                         git submodule update --init --recursive $1
@@ -54,18 +54,18 @@ clone_repository() {
                         git submodule update --init --recursive $1
                 fi
         else
-                echo -e " - Directory $1 exists...exiting."
+                echo -e "- Directory $1 exists...exiting."
                 exit 1
         fi
 }
 
 setup_home() {
-	if ! [ -f $HOME."/.zshrc" ]; then
+	if ! [ -f $HOME/.zshrc ]; then
 	       	ln -s $HOME/zsh/.zshrc ~/.
 	       	clone_repository "$HOME/zsh"
-	       	echo -e " - ZSH in-place, type zsh to start your shell\n"
+	       	echo -e "- ZSH in-place, type zsh to start your shell\n"
 	else
-	       	echo -e " - There's already a .zshrc in-place, remove it and re-run\n"
+	       	echo -e "- There's already a .zshrc in-place, remove it and re-run\n"
 	       	exit 1
 	fi
 }
@@ -94,36 +94,11 @@ setup_system() {
 # Main Code
 #--------------------
 
-# Checking if zsh is installed
-echo "Checking if zsh is installed...."
-if ! [ -x "$(command -v zsh)" ]; then
-        echo -e " - Error: zsh is not installed.\n"
-        exit 1
-else
-        ZSH_SHELL=`which zsh`
-        echo -e " - ZSH is installed in $ZSH_SHELL\n"
-fi
-
-# Check if zsh is the default shell
-echo -e "Checking if zsh is the default shell"
-if ! [[ $SHELL == *"zsh" ]]; then
-        echo -e " - Your default shell isn't zsh, use chsh to change it to zsh.\n"
-else
-        echo -e " - ZSH is your default shell!\n"
-fi
-
-# Checking if git is installed
-echo "Checking if git is installed...."
-if ! [ -x "$(command -v git)" ]; then
-        echo -e " - You need to install git!\n"
-        exit 1
-else
-        echo -e " - GIT is installed!\n"
-fi
-
-# Start installtion
-echo -e "---\n\nBegin Install\n"
+echo -e "---Flight Check"
+flight_check
+echo -e "---Begin Install"
 install_method
+
 if [ $INSTALL = "s" ]; then
         setup_system
 elif [ $INSTALL = "h" ]; then
