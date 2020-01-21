@@ -19,7 +19,7 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
 # Quick Install
 ```
-wget https://raw.githubusercontent.com/jordantrizz/zsh/master/install_zsh;bash install_zsh
+bash <(wget -qO- https://raw.githubusercontent.com/jordantrizz/zsh/master/install_zsh)
 ```
 # Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
