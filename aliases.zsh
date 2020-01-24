@@ -20,7 +20,7 @@ alias fdcount="tree | grep directories"
 alias whatsmyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 
 # - Shell Aliases
-alias mtime="find . -type f -printf "\n%AD %AT %p" | head -n 40"
+alias mtime="find . -type f -printf "\n%TD %AT %p" | sort -k1.8n -k1.1nr -k1 | less"
 
 # -- Web Aliases
 alias ttfb='curl -s -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
