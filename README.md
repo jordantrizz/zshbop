@@ -44,7 +44,7 @@ If you don't want to have zsh within your home directory, then use the following
 ## Windows Terminal
 There is an issue with some of the Powerline fonts I downloaded and installed in windows. So I opted for this set of fonts using a script in a GIST https://gist.github.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b
 
-You can simply runn this command within WSL
+You can simply run this command within WSL
 
 ```
 bash -c "$(curl -fsSL https://gist.githubusercontent.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b/raw/install_meslo_wsl.sh)"
