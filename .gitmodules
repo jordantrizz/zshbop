@@ -5,6 +5,3 @@
 [submodule "antigen"]
 	path = antigen
 	url = https://github.com/zsh-users/antigen.git
-[submodule "ultimate-wordpress-tools"]
-	path = ultimate-wordpress-tools
-	url = git@github.com:jordantrizz/ultimate-wordpress-tools.git
