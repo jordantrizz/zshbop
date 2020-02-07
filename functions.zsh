@@ -1,11 +1,6 @@
 #### - Functions
 # This file contains all the required functions for the main .zshrc script.
 
-_path () {
-	export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
-	export PATH=$PATH:.local/bin
-}
-
 ####-- Echo wrapper
 _echo () {
 	echo "$@"
@@ -119,7 +114,7 @@ init_ultb () {
                 _echo "-- Including Ultimate Linux Tool Box Paths"
                 source $ZSH_ROOT/ultimate-linux-tool-box/.zshrc
         else
-        	PATH=$PATH:$ZSH_ROOT/ultimate-linux-tool-box
+        	export PATH=$PATH:$ZSH_ROOT/ultimate-linux-tool-box
         fi
 }
 
@@ -129,7 +124,7 @@ init_uwt () {
                 _echo "-- Including Ultimate WordPress Tools"
                 source $ZSH_ROOT/ultimate-wordpress-tools/.zshrc
         else
-		PATH=$PATH:$ZSH_ROOT/ultimate-wordpress-tools
+		export PATH=$PATH:$ZSH_ROOT/ultimate-wordpress-tools
 	fi
 }
 
