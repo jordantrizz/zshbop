@@ -16,11 +16,13 @@ echo "-- Setting path to $ZSH_ROOT"
 # Need to refactor this at somepoint
 JTZSH_ROOT=$ZSH_ROOT
 
-# Let's get rolling
-source "${ZSH_ROOT}/.zshrc"
-
 # Enable Ultimate Linux Toolbox
 ENABLE_ULTB=1
 
 # Enable Ultimate Wordpress Toolbox
 ENABLE_UWT=1
+
+#------------------------------------
+# DO NOT ADD ANYTHING BELOW THIS LINE
+#------------------------------------
+source "${ZSH_ROOT}/.zshrc"
