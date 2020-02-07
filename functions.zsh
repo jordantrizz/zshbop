@@ -125,7 +125,7 @@ init_ultb () {
 init_uwt () {
         if [[ -a $ZSH_ROOT/ultimate-wordpress-tools/.zshrc ]]; then
                 _echo "-- Including Ultimate WordPress Tools"
-                source $ZSH_ROOT/ultimat-wordpress-tools/.zshrc
+                source $ZSH_ROOT/ultimate-wordpress-tools/.zshrc
         fi
 }
 
