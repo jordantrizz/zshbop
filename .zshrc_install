@@ -3,7 +3,16 @@
 
 # Set the path to your installation, the install script should do this automatically
 # But you can do it manually too
-ZSH_ROOT="$HOME/zsh"
+#ZSH_ROOT="$HOME/zsh"
+
+# Detecting where JTZSH might be installed
+if [ -d /usr/local/sbin/zsh ]; then
+        if [ -f /usr/local/sbin/zsh/.zshrc ]; then ZSH_ROOT=/usr/local/sbin/zsh;fi
+elif [ -f $HOME/zsh ]; then ZSH_ROOT=$HOME/zsh;
+elif [ -f $HOME/git/zsh]; then ZSH_ROOT=$HOME/git/zsh; fi
+
+echo "-- Setting path to $ZSH_ROOT"
+
 # Need to refactor this at somepoint
 JTZSH_ROOT=$ZSH_ROOT
 
@@ -11,8 +20,7 @@ JTZSH_ROOT=$ZSH_ROOT
 source "${ZSH_ROOT}/.zshrc"
 
 # Enable Ultimate Linux Toolbox
-ENABLE_ULTB=0
+ENABLE_ULTB=1
 
 # Enable Ultimate Wordpress Toolbox
-ENABLE_UWT=0
-
+ENABLE_UWT=1
