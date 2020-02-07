@@ -113,9 +113,8 @@ init_ultb () {
         if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/.zshrc ]]; then
                 _echo "-- Including Ultimate Linux Tool Box Paths"
                 source $ZSH_ROOT/ultimate-linux-tool-box/.zshrc
-        else
-        	export PATH=$PATH:$ZSH_ROOT/ultimate-linux-tool-box
-        fi
+	fi
+       	export PATH=$PATH:$ZSH_ROOT/ultimate-linux-tool-box
 }
 
 ####-- Ultimate WordPress Tools
@@ -123,9 +122,8 @@ init_uwt () {
         if [[ -a $ZSH_ROOT/ultimate-wordpress-tools/.zshrc ]]; then
                 _echo "-- Including Ultimate WordPress Tools"
                 source $ZSH_ROOT/ultimate-wordpress-tools/.zshrc
-        else
-		export PATH=$PATH:$ZSH_ROOT/ultimate-wordpress-tools
 	fi
+	export PATH=$PATH:$ZSH_ROOT/ultimate-wordpress-tools
 }
 
 ####-- Clear Cache
