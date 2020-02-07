@@ -19,8 +19,6 @@ else
 fi
 
 #- If you come from bash you might have to change your $PATH.
-export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
-export PATH=$PATH:.local/bin
 export TERM="xterm-256color"
 export LANG="C.UTF-8"
 export ZSH_CUSTOM="$ZSH_ROOT/custom"

@@ -1,5 +1,18 @@
 # Loading jordantrizz/zsh
 # You can't use ~ within ZSH, you need to use $HOME as per https://superuser.com/questions/142611/user-directory-in-path-in-zsh-does-not-work
-export ZSH_ROOT="$HOME/zsh"
+
+# Set the path to your installation, the install script should do this automatically
+# But you can do it manually too
+ZSH_ROOT="$HOME/zsh"
+# Need to refactor this at somepoint
+JTZSH_ROOT=$ZSH_ROOT
+
+# Let's get rolling
 source "${ZSH_ROOT}/.zshrc"
+
+# Enable Ultimate Linux Toolbox
+ENABLE_ULTB=0
+
+# Enable Ultimate Wordpress Toolbox
+ENABLE_UWT=0
 

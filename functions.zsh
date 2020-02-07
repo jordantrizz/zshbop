@@ -1,6 +1,11 @@
 #### - Functions
 # This file contains all the required functions for the main .zshrc script.
 
+_path () {
+	export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
+	export PATH=$PATH:.local/bin
+}
+
 ####-- Echo wrapper
 _echo () {
 	echo "$@"
@@ -31,11 +36,19 @@ init () {
 	_echo "-- Starting init"
 	source $ZSH_ROOT/functions.zsh
 	source $ZSH_ROOT/aliases.zsh
+	init_path
         init_omz_plugins
         init_antigen
         init_defaults
         init_sshkeys
-        init_ultb
+	if [[ $ULTB_ENABLE == 1 ]]; then init_ultb; fi
+	if [[ $ULTB_ENABLE == 1 ]]; then init_uwt; fi
+}
+
+### -- PATHS!
+init_path () {
+        export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
+        export PATH=$PATH:.local/bin
 }
 
 #### -- Initialize oh-my-zsh plugins
@@ -105,6 +118,14 @@ init_ultb () {
         if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/.zshrc ]]; then
                 _echo "-- Including Ultimate Linux Tool Box Paths"
                 source $ZSH_ROOT/ultimate-linux-tool-box/.zshrc
+        fi
+}
+
+####-- Ultimate WordPress Tools
+init_uwt () {
+        if [[ -a $ZSH_ROOT/ultimate-wordpress-tools/.zshrc ]]; then
+                _echo "-- Including Ultimate WordPress Tools"
+                source $ZSH_ROOT/ultimat-wordpress-tools/.zshrc
         fi
 }
 
