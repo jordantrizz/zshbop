@@ -41,8 +41,8 @@ init () {
         init_antigen
         init_defaults
         init_sshkeys
-	if [[ $ULTB_ENABLE == 1 ]]; then init_ultb; fi
-	if [[ $ULTB_ENABLE == 1 ]]; then init_uwt; fi
+	if [[ $ENABLE_ULTB == 1 ]]; then init_ultb; fi
+	if [[ $ENABLE_UWT == 1 ]]; then init_uwt; fi
 }
 
 ### -- PATHS!
