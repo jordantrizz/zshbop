@@ -35,3 +35,6 @@ alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 alias gp="git submodule foreach git pull origin master"
 alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gr="cd ~/git;"
+
+# -- NGiNX
+nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
