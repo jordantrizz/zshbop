@@ -30,11 +30,20 @@ init () {
         #- Include functions file
 	_echo "-- Starting init"
 	source $ZSH_ROOT/functions.zsh
+	source $ZSH_ROOT/aliases.zsh
+	init_path
         init_omz_plugins
         init_antigen
         init_defaults
         init_sshkeys
-        init_ultb
+	if [[ $ENABLE_ULTB == 1 ]]; then init_ultb; fi
+	if [[ $ENABLE_UWT == 1 ]]; then init_uwt; fi
+}
+
+### -- PATHS!
+init_path () {
+        export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
+        export PATH=$PATH:.local/bin
 }
 
 #### -- Initialize oh-my-zsh plugins
@@ -101,10 +110,20 @@ init_sshkeys () {
 
 ####-- Ultimate Linux Tool Box
 init_ultb () {
-        if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc ]]; then
+        if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/.zshrc ]]; then
                 _echo "-- Including Ultimate Linux Tool Box Paths"
-                source $ZSH_ROOT/ultimate-linux-tool-box/path.zshrc
-        fi
+                source $ZSH_ROOT/ultimate-linux-tool-box/.zshrc
+	fi
+       	export PATH=$PATH:$ZSH_ROOT/ultimate-linux-tool-box
+}
+
+####-- Ultimate WordPress Tools
+init_uwt () {
+        if [[ -a $ZSH_ROOT/ultimate-wordpress-tools/.zshrc ]]; then
+                _echo "-- Including Ultimate WordPress Tools"
+                source $ZSH_ROOT/ultimate-wordpress-tools/.zshrc
+	fi
+	export PATH=$PATH:$ZSH_ROOT/ultimate-wordpress-tools
 }
 
 ####-- Clear Cache
@@ -145,6 +164,7 @@ cp_wtconfig () {
 	cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/profiles.json  $ZSH_ROOT/windows_terminal.json
 }
 
+#### -- Configure git
 git_config () {
 	vared -p "Name? " -c GIT_NAME
 	vared -p "Email? " -c GIT_EMAIL
@@ -152,4 +172,9 @@ git_config () {
 	git config --global user.name $GIT_NAME
 	git config --global --get user.email
 	git config --global --get user.name
+}
+
+#### -- Install required software
+install_pkgs () {
+    apt-get install pwgen
 }
