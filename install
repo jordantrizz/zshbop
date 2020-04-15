@@ -43,6 +43,8 @@ install_method() {
         read BRANCH
         echo "Include Ultimate Linux Toolbox? (y/n)"
         read ULTB
+        echo "Include Ultimate WordPress Tools? (y/n)"
+        read ULTB
 }
 
 clone_repository() {
@@ -97,6 +99,9 @@ setup_system() {
 	#	echo -e " -- Detected Debian/Ubuntu OS"		
 	#fi
 	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zsh?"
+	
+	echo -e "You can now copy the .zshrc_local to your home directory"
+	echo -e "cp $SYSTEM/zsh/.zshrc_install ~/.zshrc"
 
 }		
 
@@ -104,9 +109,9 @@ setup_system() {
 # Main Code
 #--------------------
 
-echo -e "---Flight Check"
+echo -e " -- Flight Check"
 flight_check
-echo -e "---Begin Install"
+echo -e " -- Begin Install"
 install_method
 
 if [ $INSTALL = "s" ]; then
@@ -116,3 +121,5 @@ elif [ $INSTALL = "h" ]; then
 else
         install_method "Choose s or h on your keyboard"
 fi
+
+echo -e " -- Installation complete."
