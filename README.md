@@ -86,6 +86,11 @@ Command | Description|
  --- | --- |
 apt-select | Get fastest Ubuntu/Debian mirror.
 
+## Exim
+Command | Description |
+ --- | --- |
+eximcq | Clears Exim queue of messages.
+
 # ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
 - Look into diff so fancy wget https://raw.githubusercontent.com/so-fancy/diff-so-fancy/master/third_party/build_fatpack/diff-so-fancy

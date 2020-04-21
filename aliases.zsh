@@ -38,3 +38,6 @@ alias gr="cd ~/git;"
 
 # -- NGiNX
 nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
+
+# -- Exim
+eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
