@@ -41,3 +41,6 @@ nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$
 
 # -- Exim
 eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
+
+# -- WSL Specific Aliases
+alias wsl-screen="sudo /etc/init.d/screen-cleanup start"

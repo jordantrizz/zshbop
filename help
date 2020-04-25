@@ -1,1 +1,13 @@
-How to Remove a Bad GIT commit local and remote - https://ncona.com/2011/07/how-to-delete-a-commit-in-git-local-and-remote/
+# git
+## Simple Answers
+### How to Ammened a co
+*https://www.burntfen.com/2015-10-30/how-to-amend-a-commit-on-a-github-pull-request
+'''
+$ vi your_file.md  
+# Do the edits you need to, here, and then type `:wq`.  
+# There's no reason you can't use your usual editor to edit the file.  
+$ git add -A  
+$ git commit --amend  
+'''
+## Guides
+* How to Remove a Bad GIT commit local and remote - https://ncona.com/2011/07/how-to-delete-a-commit-in-git-local-and-remote/
