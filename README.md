@@ -5,15 +5,19 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
    * [jordantrizz/ZSH](#jordantrizzzsh)
    * [Quick Install](#quick-install)
    * [Advanced Install](#advanced-install)
+   * [Notes](#notes)
+      * [Windows Terminal](#windows-terminal)
    * [Commands/Aliases](#commandsaliases)
       * [Core](#core)
       * [General](#general)
       * [Coding](#coding)
       * [Web](#web)
       * [Ubuntu/Debian Specific](#ubuntudebian-specific)
+      * [Exim](#exim)
+      * [WSL](#wsl)
    * [ToDo](#todo)
 
-<!-- Added by: jtrask, at: Thu 30 May 2019 21:21:39 PDT -->
+<!-- Added by: jtrask, at: Sat Apr 25 12:40:56 PDT 2020 -->
 
 <!--te-->
 
@@ -90,6 +94,12 @@ apt-select | Get fastest Ubuntu/Debian mirror.
 Command | Description |
  --- | --- |
 eximcq | Clears Exim queue of messages.
+
+## WSL
+Command | Description |
+ --- | --- |
+wsl-screen | Fixes screen error "Cannot make directory '/var/run/screen': Permission denied" when rebooting your system
+
 
 # ToDo
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
