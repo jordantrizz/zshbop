@@ -14,3 +14,9 @@ $ git commit --amend
 
 ## Using Curl
 * Curl another host - curl --header "Host: domain.com" --head https://127.0.0.1/
+
+# Linux
+## Ubuntu
+### /etc/resolve.conf
+* Edit /run/systemd/resolve/resolv.conf
+* ```sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf```
