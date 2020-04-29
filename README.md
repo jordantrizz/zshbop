@@ -17,7 +17,7 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
       * [WSL](#wsl)
    * [ToDo](#todo)
 
-<!-- Added by: jtrask, at: Sat Apr 25 12:40:56 PDT 2020 -->
+<!-- Added by: jtrask, at: Wed Apr 29 08:27:03 PDT 2020 -->
 
 <!--te-->
 
@@ -62,6 +62,7 @@ Alias | Description|
  --- | --- |
 update | Update this repository an pull down any updates from sub-modules.
 setup_environment | Installed the necessary packages.
+pk | Print out all public keys in ".ssh" folder
 
 ## General 
 Alias | Description|
