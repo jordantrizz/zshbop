@@ -1,14 +1,14 @@
 # git
 ## Simple Answers
 ### How to Ammened a commit
-*https://www.burntfen.com/2015-10-30/how-to-amend-a-commit-on-a-github-pull-request
-'''
+* https://www.burntfen.com/2015-10-30/how-to-amend-a-commit-on-a-github-pull-request
+```
 $ vi your_file.md  
 # Do the edits you need to, here, and then type `:wq`.  
 # There's no reason you can't use your usual editor to edit the file.  
 $ git add -A  
 $ git commit --amend  
-'''
+```
 ### How to update a GIT fork repository
 * Add the remote, call it "upstream": 
 ```git remote add upstream https://github.com/whoever/whatever.git```
