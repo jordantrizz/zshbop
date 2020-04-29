@@ -46,4 +46,4 @@ eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
 alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
 
 # Ubuntu Specific
-alias netselect='sudo netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
+alias netselect='netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
