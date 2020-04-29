@@ -18,6 +18,7 @@ alias joe4="joe --wordwrap -nobackups -tab 4"
 alias pk="cat ~/.ssh/*.pub"
 alias fdcount="tree | grep directories"
 alias whatismyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
+alias listen='netstat -anp | grep LISTEN'
 
 # - Shell Aliases
 #alias mtime="find . -type f -printf "\n%TD %TT %p" | sort -k1.8n -k1.1nr -k1 | less"
