@@ -72,6 +72,7 @@ Alias | Description|
 fdcount | Count of files and directories in current directory.
 update | Update this repository an pull down any updates from sub-modules.
 setup_environment | Installed the necessary packages.
+whatismyip | checks opendns and tells you what your external IP address is
 
 ## Coding
 Command | Description|

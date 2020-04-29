@@ -19,6 +19,9 @@ $ git commit --amend
 * Rewrite your master branch so that any commits of yours that aren't already in upstream/master are replayed on top of that other branch:
 ```git rebase upstream/master```
 
+### How to create and apply GIT patch
+* git format-patch -1 87c800f87c09c395237afdb45c98c20259c20152 -o patches
+* git am <patch_file>
 
 ## Guides
 * How to Remove a Bad GIT commit local and remote - https://ncona.com/2011/07/how-to-delete-a-commit-in-git-local-and-remote/
