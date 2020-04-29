@@ -1,6 +1,8 @@
 # jordantrizz/ZSH
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
+<a href="https://www.buymeacoffee.com/jordantrask" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+
 <!--ts-->
    * [jordantrizz/ZSH](README.md#jordantrizzzsh)
    * [Quick Install](README.md#quick-install)
