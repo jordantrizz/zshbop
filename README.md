@@ -2,22 +2,22 @@
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
 <!--ts-->
-   * [jordantrizz/ZSH](#jordantrizzzsh)
-   * [Quick Install](#quick-install)
-   * [Advanced Install](#advanced-install)
-   * [Notes](#notes)
-      * [Windows Terminal](#windows-terminal)
-   * [Commands/Aliases](#commandsaliases)
-      * [Core](#core)
-      * [General](#general)
-      * [Coding](#coding)
-      * [Web](#web)
-      * [Ubuntu/Debian Specific](#ubuntudebian-specific)
-      * [Exim](#exim)
-      * [WSL](#wsl)
-   * [ToDo](#todo)
+   * [jordantrizz/ZSH](README.md#jordantrizzzsh)
+   * [Quick Install](README.md#quick-install)
+   * [Advanced Install](README.md#advanced-install)
+   * [Notes](README.md#notes)
+      * [Windows Terminal](README.md#windows-terminal)
+   * [Commands/Aliases](README.md#commandsaliases)
+      * [Core](README.md#core)
+      * [General](README.md#general)
+      * [Coding](README.md#coding)
+      * [Web](README.md#web)
+      * [Ubuntu/Debian Specific](README.md#ubuntudebian-specific)
+      * [Exim](README.md#exim)
+      * [WSL](README.md#wsl)
+   * [ToDo](README.md#todo)
 
-<!-- Added by: jtrask, at: Wed Apr 29 08:27:03 PDT 2020 -->
+<!-- Added by: jtrask, at: Wed Apr 29 08:59:02 PDT 2020 -->
 
 <!--te-->
 
