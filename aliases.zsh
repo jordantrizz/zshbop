@@ -15,7 +15,7 @@ alias rm_error_log="find . | grep error_log | xargs -pl rm"
 alias cg="clustergit"
 alias toc="gh-md-toc --nobackup-insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
-alias pk="cat ~/.ssh/id_rsa.pub"
+alias pk="cat ~/.ssh/*.pub"
 alias fdcount="tree | grep directories"
 alias whatsmyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 
