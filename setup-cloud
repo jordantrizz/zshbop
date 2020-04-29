@@ -1,0 +1,30 @@
+#!/bin/bash
+# This will fix the could.cfg hostname presistin on reboots issue as well as the resolv.conf soft link.
+
+setup-cloud () {
+        # Setup hostname properly and persist after reboot
+        if [ -f /etc/cloud/cloud.cfg ]; then
+                sed -i 's/preserve_hostname: false/preserve_hostname: true/g' /etc/cloud/cloud.cfg
+                echo "Set cloud.cfg perserve_hostname"
+        fi
+        hostnamectl set-hostname $1
+        echo "Set hostname to $1"
+
+        # Setup resolved.conf properly and fix the bug
+        if [ -f /etc/systemd/resolved.conf ]; then
+                sed -i 's/#DNS=/DNS=8.8.8.8/g' /etc/systemd/resolved.conf
+                echo "Set DNS resolver to 8.8.8.8"
+                service systemd-resolved restart
+        fi
+        if [ "$(readlink /etc/resolv.conf)" -ef "../run/systemd/resolve/stub-resolv.conf" ]; then
+                echo "Bug exists...fixing"
+                rm /etc/resolv.conf
+                ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+        fi
+}
+
+if [ -z $1 ]; then
+	echo "Specify a hostname: setup-cloud <hostname>"
+else
+	setup-cloud $1
+fi

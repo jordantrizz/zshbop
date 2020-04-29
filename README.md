@@ -90,6 +90,7 @@ msds | MySQL Dump Search
 Command | Description|
  --- | --- |
 apt-select | Get fastest Ubuntu/Debian mirror.
+setup-cloud | Updates hostname, address cloud.cfg hostname peserve and fixes resolv.conf bug. Made in bash.
 
 ## Exim
 Command | Description |
