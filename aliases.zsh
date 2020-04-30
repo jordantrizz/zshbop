@@ -19,7 +19,8 @@ alias pk="cat ~/.ssh/*.pub"
 alias fdcount="tree | grep directories"
 alias whatismyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 alias listen='netstat -anp | grep LISTEN'
-alias less='less -N'
+alias less="less -N"
+function vh { vh_run=$(curl --header "Host: $1" $2 --insecure -i | head -50);echo $vh_run }
 
 # - Shell Aliases
 #alias mtime="find . -type f -printf "\n%TD %TT %p" | sort -k1.8n -k1.1nr -k1 | less"

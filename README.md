@@ -19,7 +19,7 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
       * [WSL](README.md#wsl)
    * [ToDo](README.md#todo)
 
-<!-- Added by: jtrask, at: Wed Apr 29 08:59:02 PDT 2020 -->
+<!-- Added by: jtrask, at: Wed Apr 29 20:38:57 PDT 2020 -->
 
 <!--te-->
 
@@ -74,6 +74,7 @@ update | Update this repository an pull down any updates from sub-modules.
 setup_environment | Installed the necessary packages.
 whatismyip | Checks opendns and tells you what your external IP address is.
 listen | What's listening on what port.
+vh | Using curl to test virtual hosts before migration
 
 ## Coding
 Command | Description|
