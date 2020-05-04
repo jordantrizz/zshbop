@@ -49,6 +49,13 @@ If you don't want to have zsh within your home directory, then use the following
 # Notes
 
 ## Windows Terminal
+### Direct Font Files
+You can simply download these fonts and install them.
+* https://github.com/romkatv/dotfiles-public/tree/master/.local/share/fonts/NerdFonts.
+
+Then use the ```windows_terminal.json``` in this repository.
+
+### Script Install - Broken
 There is an issue with some of the Powerline fonts I downloaded and installed in windows. So I opted for this set of fonts using a script in a GIST https://gist.github.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b
 
 You can simply run this command within WSL
