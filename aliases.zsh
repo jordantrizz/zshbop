@@ -35,9 +35,9 @@ alias dhparam="openssl dhparam -out dhparam.pem 2048"
 alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 
 # -- GIT configuration and aliases
-alias gp="git submodule foreach git pull origin master"
-alias gs="git submodule update --init --recursive;git submodule update --recursive --remote"
-alias gr="cd ~/git;"
+alias gitp="git submodule foreach git pull origin master"
+alias gits="git submodule update --init --recursive;git submodule update --recursive --remote"
+alias gitr="cd ~/git;"
 
 # -- NGiNX
 nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }

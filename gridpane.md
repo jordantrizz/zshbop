@@ -4,3 +4,4 @@
 # Misc
 ## MySQL Root Login
 * gridenv/promethean.env
+* gp mysql -get-pass root
