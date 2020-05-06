@@ -23,9 +23,12 @@ flight_check() {
         if ! [ -x "$(command -v zsh)" ]; then
                 echo -e "- Error: zsh is not installed."
                 echo -e "- Trying to install via $PKG_MANAGER...."
-                if [[ $PKG_MANAGER == "apt" ]]; then sudo apt-get install zsh; fi
-                if [[ $PKG_MANAGER == "yum" ]]; then sudo yum install zsh; fi
-                exit 1
+                if [[ $PKG_MANAGER == "apt" ]]; then 
+                	sudo apt-get install zsh
+                	if [ $? -eq 1 ];then echo "zsh install failed....";exit 1; fi
+                elif [[ $PKG_MANAGER == "yum" ]]; then 
+                	sudo yum install zsh
+			if [ $? -eq 1 ];then echo "zsh install failed....";exit 1; fi
         else
                 ZSH_SHELL=`which zsh`
                 echo -e "- ZSH is installed in $ZSH_SHELL"
