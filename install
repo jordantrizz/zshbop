@@ -8,10 +8,23 @@
 #--------------------
 
 flight_check() {
+	# Checking what package manager we have
+	echo -n "Checking what package manager we have...."
+	if [ -x "$(command -v apt)" ]; then
+		echo "We have apt!"
+		PKG_MANAGER="apt"
+	elif [ -x "$(command -v yum)" ]; then
+		echo "We have yum!"
+		PKG_MANAGER="yum"
+	fi
+	
         # Checking if zsh is installed
         echo -n "Checking if zsh is installed...."
         if ! [ -x "$(command -v zsh)" ]; then
                 echo -e "- Error: zsh is not installed."
+                echo -e "- Trying to install via $PKG_MANAGER...."
+                if [[ $PKG_MANAGER == "apt" ]]; then sudo apt-get install zsh; fi
+                if [[ $PKG_MANAGER == "yum" ]]; then sudo yum install zsh; fi
                 exit 1
         else
                 ZSH_SHELL=`which zsh`
