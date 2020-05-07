@@ -8,3 +8,6 @@
 
 # Default Site Redirect
 <meta http-equiv="refresh" content="0; URL='https://site.com/?utm_source=gridpane&utm_medium=redirect&utm_campaign=default'" />
+
+# Clear Site Redis Full Page Cache
+* gp fix cache cached site.com
