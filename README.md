@@ -28,6 +28,11 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 bash <(wget -qO- https://raw.githubusercontent.com/jordantrizz/zsh/master/install)
 ```
 
+# Quick Install Development
+```
+bash <(wget -qO- https://raw.githubusercontent.com/jordantrizz/zsh/develop/install)
+```
+
 # Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
 <p>
