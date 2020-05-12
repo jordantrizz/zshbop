@@ -6,10 +6,11 @@
 #ZSH_ROOT="$HOME/zsh"
 
 # Detecting where JTZSH might be installed
-if [ -d /usr/local/sbin/zsh ]; then
-        if [ -f /usr/local/sbin/zsh/.zshrc ]; then ZSH_ROOT=/usr/local/sbin/zsh;fi
-elif [ -d $HOME/zsh ]; then ZSH_ROOT=$HOME/zsh;
-elif [ -d $HOME/git/zsh ]; then ZSH_ROOT=$HOME/git/zsh; fi
+if [ -d $HOME/zsh ]; then ZSH_ROOT=$HOME/zsh;
+elif [ -d $HOME/git/zsh ]; then ZSH_ROOT=$HOME/git/zsh;
+elif [ -d /usr/local/sbin/zsh ]; then 
+	if [ -f /usr/local/sbin/zsh/.zshrc ]; then ZSH_ROOT=/usr/local/sbin/zsh;fi
+fi
 
 echo "-- Setting path to $ZSH_ROOT"
 
