@@ -103,6 +103,9 @@ init_sshkeys () {
 	        else
         	        _debug " - NOTFOUND: $SSH_KEY not set."
 	        fi
+
+		# Load any id_rsa* keys
+		eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
 	else
 		_echo " - Command keychain doesn't exist, please install for SSH keys to work"
 	fi
