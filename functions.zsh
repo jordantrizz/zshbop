@@ -136,9 +136,7 @@ clear_cache () {
 
 ####-- Setup Environment
 setup_environment () {
-	sudo apt install keychain mosh
-	#sudo apt install mtr dnstracer fpart tree keychain mosh pwgen # migrate to ultb?
-	#apt install aptitude # migrate to ultb?
+	sudo apt install keychain mosh traceroute mtr keychain pwgen tree ncdu fpart
 	#sudo apt install python-pip npm # Skipping python dependencies
 	#sudo pip install apt-select # Skipping python dependencies
        	#sudo npm install -g gnomon # Skipping node dependencies
