@@ -75,6 +75,9 @@ init_defaults () {
         if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then
                 _debug " - Loaded $ZSH_ROOT/zsh-personal/.zshrc"
                 source $ZSH_ROOT/zsh-personal/.zshrc
+        elif [[ -a git/zsh-personal/.zshrc || -L git/zsh-personal/.zshrc ]]; then
+                _debug " - Loaded git/zsh-personal/.zshrc"
+                source git/zsh-personal/.zshrc
         elif [[ -a $HOME/.personal.zshrc || -L $HOME/.personal.zshrc ]]; then
                _debug " - Loaded $HOME/.personal.zshrc"
                source $HOME/.personal.zshrc
@@ -82,6 +85,7 @@ init_defaults () {
                 printf " - No personal ZSH config loaded\n"
         fi
 }
+
 ####-- Load default SSH keys into keychain
 init_sshkeys () {
 	_echo "-- Loading SSH keychain"
