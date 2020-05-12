@@ -9,29 +9,26 @@
 
 flight_check() {
         # Checking if zsh is installed
-        echo -n "Checking if zsh is installed...."
+        echo -n "-- Checking if zsh is installed...."
         if ! [ -x "$(command -v zsh)" ]; then
-                echo -e "- Error: zsh is not installed."
-                echo -e "- Trying to install via $PKG_MANAGER...."
-                pkg_install("zsh")
+                echo -e " - Error: zsh is not installed. Trying to install."
+                pkg_install "zsh"
         else
                 ZSH_SHELL=`which zsh`
-                echo -e "- ZSH is installed in $ZSH_SHELL"
+                echo -e " - ZSH is installed in $ZSH_SHELL"
         fi
         
         # Checking if git is installed
-        echo -n "Checking if git is installed...."
+        echo -n "-- Checking if git is installed...."
         if ! [ -x "$(command -v git)" ]; then
-                echo -e "- Error: zsh is not installed."
-                echo -e "- Trying to install via $PKG_MANAGER...."
-                pkg_install("zsh")
-                exit 1
+                echo -e " - Error: git is not installed. Trying to install."
+                pkg_install "git"
         else
-                echo -e "- GIT is installed!"
+                echo -e " - GIT is installed!"
         fi
 
         # Check if zsh is the default shell
-        echo -n "Checking if zsh is the default shell...."
+        echo -n "-- Checking if zsh is the default shell...."
         if ! [[ $SHELL == *"zsh" ]]; then
                 echo -e "- Your default shell isn't zsh, use chsh to change it to zsh."
         else
@@ -42,14 +39,25 @@ flight_check() {
 
 pkg_install() {
         # Checking what package manager we have
-        echo -n "Checking what package manager we have...."
+        echo -n "-- Checking what package manager we have...."
         if [ -x "$(command -v apt)" ]; then
-                echo "We have apt!"
-                sudo yum install zsh
-                if [ $? -eq 1 ];then echo "$@ install failed....";exit 1;else;echo "$@ installed successfully"; fi
+                echo " - We have apt!"
+                sudo apt install $@
+                if [ $? -eq 1 ]; then 
+                	echo " - $@ install failed...."
+                	exit 1
+                else
+	                echo " - $@ installed successfully"
+                fi
         elif [ -x "$(command -v yum)" ]; then
-                echo "We have yum!"
-		if [ $? -eq 1 ];then echo "$@ install failed....";exit 1;else;echo "$@ installed successfully"; fi
+                echo " - We have yum!"
+                sudo yum install $@
+		if [ $? -eq 1 ]; then 
+			echo " - $@ install failed...."
+			exit 1
+		else
+			echo "- $@ installed successfully"
+		fi
         fi
 }
 
@@ -126,9 +134,9 @@ setup_system() {
 # Main Code
 #--------------------
 
-echo -e " -- Flight Check"
+echo -e "-- Pre-flight Check"
 flight_check
-echo -e " -- Begin Install"
+echo -e "-- Begin Install"
 install_method
 
 if [ $INSTALL = "s" ]; then
@@ -139,4 +147,4 @@ else
         install_method "Choose s or h on your keyboard"
 fi
 
-echo -e " -- Installation complete."
+echo -e "-- Installation complete."
