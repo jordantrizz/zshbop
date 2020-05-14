@@ -29,7 +29,7 @@ _cexists () {
 init () {
         #- Include functions file
 	_echo "-- Starting init"
-	source $ZSH_ROOT/functions.zsh
+	source $ZSH_ROOT/functions.zshrc
 	source $ZSH_ROOT/aliases.zsh
 	init_path
         init_omz_plugins
