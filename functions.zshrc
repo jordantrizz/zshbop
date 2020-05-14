@@ -29,7 +29,7 @@ _cexists () {
 init () {
         #- Include functions file
 	_echo "-- Starting init"
-	source $ZSH_ROOT/functions.zsh
+	source $ZSH_ROOT/functions.zshrc
 	source $ZSH_ROOT/aliases.zsh
 	init_path
         init_omz_plugins
@@ -75,6 +75,9 @@ init_defaults () {
         if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then
                 _debug " - Loaded $ZSH_ROOT/zsh-personal/.zshrc"
                 source $ZSH_ROOT/zsh-personal/.zshrc
+        elif [[ -a git/zsh-personal/.zshrc || -L git/zsh-personal/.zshrc ]]; then
+                _debug " - Loaded git/zsh-personal/.zshrc"
+                source git/zsh-personal/.zshrc
         elif [[ -a $HOME/.personal.zshrc || -L $HOME/.personal.zshrc ]]; then
                _debug " - Loaded $HOME/.personal.zshrc"
                source $HOME/.personal.zshrc
@@ -82,6 +85,7 @@ init_defaults () {
                 printf " - No personal ZSH config loaded\n"
         fi
 }
+
 ####-- Load default SSH keys into keychain
 init_sshkeys () {
 	_echo "-- Loading SSH keychain"
@@ -103,6 +107,9 @@ init_sshkeys () {
 	        else
         	        _debug " - NOTFOUND: $SSH_KEY not set."
 	        fi
+
+		# Load any id_rsa* keys
+		eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
 	else
 		_echo " - Command keychain doesn't exist, please install for SSH keys to work"
 	fi
@@ -133,9 +140,7 @@ clear_cache () {
 
 ####-- Setup Environment
 setup_environment () {
-	sudo apt install keychain
-	#sudo apt install mtr dnstracer fpart tree keychain mosh pwgen # migrate to ultb?
-	#apt install aptitude # migrate to ultb?
+	sudo apt install keychain mosh traceroute mtr keychain pwgen tree ncdu fpart
 	#sudo apt install python-pip npm # Skipping python dependencies
 	#sudo pip install apt-select # Skipping python dependencies
        	#sudo npm install -g gnomon # Skipping node dependencies

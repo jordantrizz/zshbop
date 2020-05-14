@@ -3,7 +3,7 @@
 #- List functions - print -l ${(ok)functions}
 
 #- Include functions file
-source $ZSH_ROOT/functions.zsh
+source $ZSH_ROOT/functions.zshrc
 
 #- Are we debugging?
 if [ -f $ZSH_ROOT/.debug ]; then
