@@ -1,6 +1,21 @@
 #!/bin/bash
-# This will fix the could.cfg hostname presistin on reboots issue as well as the resolv.conf soft link.
+HOSTNAME=$1
 
+if [ -z $HOSTNAME ]; then
+        echo "Usage: setup-host <hostname>"
+        exit 1
+fi
+
+echo "A script to setup a host"
+install-apps () {
+	apt-get install joe whois net-tools
+}
+
+setup-hostname () {
+	hostnamectl set-hostname $1
+}
+
+# This will fix the could.cfg hostname presistin on reboots issue as well as the resolv.conf soft link.
 setup-cloud () {
         # Setup hostname properly and persist after reboot
         if [ -f /etc/cloud/cloud.cfg ]; then
@@ -22,9 +37,3 @@ setup-cloud () {
                 ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
         fi
 }
-
-if [ -z $1 ]; then
-	echo "Specify a hostname: setup-cloud <hostname>"
-else
-	setup-cloud $1
-fi
