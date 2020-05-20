@@ -3,7 +3,7 @@
 #- List functions - print -l ${(ok)functions}
 
 #- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
-$ZDOTDIR=$HOME
+ZDOTDIR=$HOME
 
 # Need to refactor this at somepoint
 JTZSH_ROOT=$ZSH_ROOT
