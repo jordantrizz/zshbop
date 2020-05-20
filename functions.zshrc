@@ -140,7 +140,7 @@ clear_cache () {
 
 ####-- Setup Environment
 setup_environment () {
-	sudo apt install keychain mosh traceroute mtr keychain pwgen tree ncdu fpart
+	sudo apt install keychain mosh traceroute mtr keychain pwgen tree ncdu fpart whois
 	#sudo apt install python-pip npm # Skipping python dependencies
 	#sudo pip install apt-select # Skipping python dependencies
        	#sudo npm install -g gnomon # Skipping node dependencies
