@@ -5,18 +5,6 @@
 # But you can do it manually too
 #ZSH_ROOT="$HOME/zsh"
 
-# Detecting where JTZSH might be installed
-if [ -d $HOME/zsh ]; then ZSH_ROOT=$HOME/zsh;
-elif [ -d $HOME/git/zsh ]; then ZSH_ROOT=$HOME/git/zsh;
-elif [ -d /usr/local/sbin/zsh ]; then 
-	if [ -f /usr/local/sbin/zsh/.zshrc ]; then ZSH_ROOT=/usr/local/sbin/zsh;fi
-fi
-
-echo "-- Setting path to $ZSH_ROOT"
-
-# Need to refactor this at somepoint
-JTZSH_ROOT=$ZSH_ROOT
-
 # Enable Ultimate Linux Toolbox
 ENABLE_ULTB=1
 
