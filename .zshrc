@@ -5,13 +5,6 @@
 #- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 $ZDOTDIR=$HOME
 
-#- Detecting where JTZSH might be installed
-if [ -d $HOME/zsh ]; then ZSH_ROOT=$HOME/zsh;
-elif [ -d $HOME/git/zsh ]; then ZSH_ROOT=$HOME/git/zsh;
-elif [ -d /usr/local/sbin/zsh ]; then
-        if [ -f /usr/local/sbin/zsh/.zshrc ]; then ZSH_ROOT=/usr/local/sbin/zsh;fi
-fi
-
 # Need to refactor this at somepoint
 JTZSH_ROOT=$ZSH_ROOT
 
