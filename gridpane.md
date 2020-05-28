@@ -15,3 +15,6 @@
 # Suspend a Site
 * gp site {site.url} -suspend
 * Utilizes /var/www/holding.html so update this file if needed.
+
+# Setup System Cron for WordPress
+* gp site {site.url} -gpcron-on {minute.interval}

@@ -183,3 +183,12 @@ git_config () {
 install_pkgs () {
     apt-get install pwgen
 }
+
+#### -- Help
+help () { 
+	if [ -z $1 ]; then
+	        cat $ZSH_ROOT/help.md
+	elif [ $1 = gp ]; then
+		cat $ZSH_ROOT/gridpane.md
+	fi
+}
