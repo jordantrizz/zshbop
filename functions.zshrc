@@ -188,12 +188,10 @@ install_pkgs () {
 
 
 help () { 
-	doc=$1
-	if _cexists mdv; then md_reader=mdv; else md_reader=cat  fi
-        if [ -z $doc ]; then
-		$mdv_reader $ZSH_ROOT/help/$1.md
-        fi
-        if [ $mdv_reader = "cat" ]
+	if [ -z $1 ]; then doc=help; else doc=$1 fi
+	if _cexists mdv; then md_reader=mdv; else md_reader=cat fi
+	$md_reader $ZSH_ROOT/help/$doc.md | less
+        if [ $md_reader = cat ]; then
                 echo "\n\n\n"
                 echo "---------------------------------------"
                 echo "mdv not avaialble failing back to cat"
