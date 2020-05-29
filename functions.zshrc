@@ -17,7 +17,7 @@ _debug () {
 _cexists () {
         if (( $+commands[$@] )); then
                 if [[ $ZSH_DEBUG == 1 ]]; then
-                        #_debug "$@ is installed";
+                        _debug "$@ is installed";
                 fi
                 return 0
         else
@@ -43,7 +43,7 @@ init () {
 ### -- PATHS!
 init_path () {
         export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
-        export PATH=$PATH:.local/bin
+        export PATH=$PATH:$HOME/.local/bin
 }
 
 #### -- Initialize oh-my-zsh plugins
@@ -185,10 +185,18 @@ install_pkgs () {
 }
 
 #### -- Help
+
+
 help () { 
-	if [ -z $1 ]; then
-	        cat $ZSH_ROOT/help.md
-	elif [ $1 = gp ]; then
-		cat $ZSH_ROOT/gridpane.md
-	fi
+	doc=$1
+	if _cexists mdv; then md_reader=mdv; else md_reader=cat  fi
+        if [ -z $doc ]; then
+		$mdv_reader $ZSH_ROOT/help/$1.md
+        fi
+        if [ $mdv_reader = "cat" ]
+                echo "\n\n\n"
+                echo "---------------------------------------"
+                echo "mdv not avaialble failing back to cat"
+                echo "you should install mdv, pip install mdv"
+        fi
 }
