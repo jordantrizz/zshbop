@@ -67,21 +67,27 @@ init_antigen () {
 
 ####-- Load default zsh scripts
 init_defaults () {
-	_echo "-- Loading defaults"
+        _echo "-- Loading default scripts"
         source $ZSH_ROOT/defaults.zshrc
 
-        # Include Personal Configuration if present.
-        printf " - Loading personal ZSH config...\n"
+        # Find out if we have personal ZSH scripts.
+        printf "-- Loading personal ZSH scripts...\n"
         if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then
-                _debug " - Loaded $ZSH_ROOT/zsh-personal/.zshrc"
-                source $ZSH_ROOT/zsh-personal/.zshrc
-        elif [[ -a git/zsh-personal/.zshrc || -L git/zsh-personal/.zshrc ]]; then
-                _debug " - Loaded git/zsh-personal/.zshrc"
-                source git/zsh-personal/.zshrc
+                ZSH_PERSONAL_DIR=$ZSH_ROOT/zsh-personal
+        elif [[ -a $HOME/git/zsh-personal/.zshrc || -L $HOME/git/zsh-personal/.zshrc ]]; then
+                ZSH_PERSONAL_DIR=$HOME/git/zsh-personal
         elif [[ -a $HOME/.personal.zshrc || -L $HOME/.personal.zshrc ]]; then
-               _debug " - Loaded $HOME/.personal.zshrc"
-               source $HOME/.personal.zshrc
-	else
+                ZSH_PERSONAL_SCRIPT=$HOME/.personal.zshrc
+        fi
+
+        # Source personal configuration
+        if [ ! -z $ZSH_PERSONAL_DIR ]; then
+                echo " - Loading $ZSH_PERSONAL_DIR/.zshrc"
+                source $ZSH_PERSONAL_DIR/.zshrc
+        elif [ ! -z $ZSH_PERSONAL_SCRIPT]; then
+                echo " - Loading $ZSH_PERSONAL_SCRIPT"
+                source $ZSH_PERSONAL_SCRIPT
+        else
                 printf " - No personal ZSH config loaded\n"
         fi
 }
@@ -148,12 +154,21 @@ setup_environment () {
 
 ####-- Update
 update () {
+    	# Update ZSH
 	cd $ZSH_ROOT
-	git pull
+    	git pull
         git -C $ZSH_ROOT pull --recurse-submodules
         git -C $ZSH_ROOT submodule update --init --recursive
         git -C $ZSH_ROOT submodule update --recursive --remote
-        init_defaults
+
+        # Update Personal ZSH
+    	if [ ! -z $ZSH_PERSONAL_DIR ] {
+	        cd $ZSH_PERSONAL_DIR
+		git pull
+	}   
+
+        # Reload scripts
+        init_defaults        
 }
 
 ####-- List current functions available to zsh
@@ -193,7 +208,7 @@ help () {
         if [ -z $doc ]; then
 		$mdv_reader $ZSH_ROOT/help/$1.md
         fi
-        if [ $mdv_reader = "cat" ]
+        if [ $mdv_reader = "cat" ]; then
                 echo "\n\n\n"
                 echo "---------------------------------------"
                 echo "mdv not avaialble failing back to cat"
