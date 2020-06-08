@@ -162,17 +162,17 @@ update () {
         git -C $ZSH_ROOT submodule update --recursive --remote
 
         # Update Personal ZSH
-    	if [ ! -z $ZSH_PERSONAL_DIR ] {
+    	if [ ! -z $ZSH_PERSONAL_DIR ]; then
 	        cd $ZSH_PERSONAL_DIR
 		git pull
-	}   
+	fi
 
         # Reload scripts
         init_defaults        
 }
 
 ####-- List current functions available to zsh
-function options() {
+options () {
     PLUGIN_PATH="$HOME/.oh-my-zsh/plugins/"
     for plugin in $plugins; do
         _echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
