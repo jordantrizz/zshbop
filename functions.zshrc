@@ -152,6 +152,11 @@ setup_environment () {
        	#sudo npm install -g gnomon # Skipping node dependencies
 }
 
+####-- Instally Python Apps
+setup_pip () {
+	pip install uptimerobot
+}
+
 ####-- Update
 update () {
     	# Update ZSH
