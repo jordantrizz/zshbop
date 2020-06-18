@@ -7,7 +7,9 @@ case "${UNAME}" in
     MINGW*)     MACHINE=MinGw;;
     *)          MACHINE="UNKNOWN:${unameOut}"
 esac
+
 echo "- Running in ${MACHINE}"
+
 zmodload zsh/mapfile
 export HISTSIZE=5000
 export PAGER='less -Q -j16'
