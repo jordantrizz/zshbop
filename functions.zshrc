@@ -205,16 +205,15 @@ install_pkgs () {
 }
 
 #### -- Help
-
-
 help () { 
-	doc=$1
-	if _cexists mdv; then md_reader=mdv; else md_reader=cat  fi
-        if [ -z $doc ]; then
+	if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
+        if [ ! -z $1 ]; then
 		$mdv_reader $ZSH_ROOT/help/$1.md
+        else
+        	ls -l $ZSH_ROOT/help
         fi
-        if [ $mdv_reader = "cat" ]; then
-                echo "\n\n\n"
+        if [[ $mdv_reader == cat ]]; then
+                echo "\n\n"
                 echo "---------------------------------------"
                 echo "mdv not avaialble failing back to cat"
                 echo "you should install mdv, pip install mdv"
