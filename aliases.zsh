@@ -54,3 +54,4 @@ mysql-db-size () { mysql -e 'SELECT table_schema AS "Database", SUM(data_length 
 
 # -- VPS Related
 vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash }
+yabs () { curl -sL yabs.sh | bash }
