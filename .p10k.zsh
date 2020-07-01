@@ -635,12 +635,15 @@
   typeset -g POWERLEVEL9K_CONTEXT_FOREGROUND=3
   typeset -g POWERLEVEL9K_CONTEXT_BACKGROUND=0
 
+  # Fix for %M not providing a fully qualified hostname
+  HOSTNAME=$(hostname -f)
+
   # Context format when running with privileges: user@hostname.
-  typeset -g POWERLEVEL9K_CONTEXT_ROOT_TEMPLATE='%n@%M'
+  typeset -g POWERLEVEL9K_CONTEXT_ROOT_TEMPLATE="%n@$HOSTNAME"
   # Context format when in SSH without privileges: user@hostname.
-  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_TEMPLATE='%n@%M'
+  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_TEMPLATE="%n@$HOSTNAME"
   # Default context format (no privileges, no SSH): user@hostname.
-  typeset -g POWERLEVEL9K_CONTEXT_TEMPLATE='%n@%M'
+  typeset -g POWERLEVEL9K_CONTEXT_TEMPLATE="%n@$HOSTNAME"
 
   # Don't show context unless running with privileges or in SSH.
   # Tip: Remove the next line to always show context.
