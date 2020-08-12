@@ -30,6 +30,8 @@
 * gp stack php -site-mem-limit 512 test.com
 
 # Backups
+## Commands
+* /usr/local/bin/gpbup domain.com -get-available-backups - Get's available backups.
 ## Logs
 * /var/log/gridpane.log
-* /var/opt/gridpane/backups.log
+* /var/opt/gridpane/backups.log - Seems Empty.
