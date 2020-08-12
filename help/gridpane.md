@@ -29,6 +29,10 @@
 ## Update PHP memory per site.
 * gp stack php -site-mem-limit 512 test.com
 
+# Cache
+## Commands
+* wp nginx-helper purge-all
+
 # Backups
 ## Commands
 * /usr/local/bin/gpbup domain.com -get-available-backups - Get's available backups.
