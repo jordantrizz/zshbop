@@ -28,3 +28,8 @@
 * gp stack php 7.4 -mem-limit 512 -no-reload &&
 ## Update PHP memory per site.
 * gp stack php -site-mem-limit 512 test.com
+
+# Backups
+## Logs
+* /var/log/gridpane.log
+* /var/opt/gridpane/backups.log
