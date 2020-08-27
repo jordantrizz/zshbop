@@ -11,6 +11,9 @@
 ## Default Site Redirect
 <meta http-equiv="refresh" content="0; URL='https://site.com/?utm_source=gridpane&utm_medium=redirect&utm_campaign=default'" />
 
+# Redis Cache Expiry
+* gp stack nginx redis -site-cache-valid {accepted.value} {site.url}
+
 # Clear Site Redis Full Page Cache
 * gp fix cache cached site.com
 

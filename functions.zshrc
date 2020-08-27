@@ -115,7 +115,9 @@ init_sshkeys () {
 	        fi
 
 		# Load any id_rsa* keys
-		eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
+		if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
+			eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
+		fi
 	else
 		_echo " - Command keychain doesn't exist, please install for SSH keys to work"
 	fi
