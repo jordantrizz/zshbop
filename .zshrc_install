@@ -11,6 +11,9 @@ ENABLE_ULTB=1
 # Enable Ultimate Wordpress Toolbox
 ENABLE_UWT=1
 
+# Enable loading all id_rsa keys in ~/.ssh/
+ENABLE_ALL_SSH_KEYS=0
+
 #------------------------------------
 # DO NOT ADD ANYTHING BELOW THIS LINE
 #------------------------------------

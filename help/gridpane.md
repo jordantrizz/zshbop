@@ -6,8 +6,13 @@
 * gridenv/promethean.env
 * gp mysql -get-pass root
 
-# Default Site Redirect
+# Set Default Site
+* gp site {site.url} -set-nginx-default
+## Default Site Redirect
 <meta http-equiv="refresh" content="0; URL='https://site.com/?utm_source=gridpane&utm_medium=redirect&utm_campaign=default'" />
+
+# Redis Cache Expiry
+* gp stack nginx redis -site-cache-valid {accepted.value} {site.url}
 
 # Clear Site Redis Full Page Cache
 * gp fix cache cached site.com
@@ -29,7 +34,15 @@
 ## Update PHP memory per site.
 * gp stack php -site-mem-limit 512 test.com
 
+# Cache
+## Commands
+* wp nginx-helper purge-all
+
 # Backups
+## Local Backups
+* /usr/local/bin/gpbup domain.com -get-available-backups - Get's available local backups.
+## Remote Backups
+* /usr/local/bin/gpbup2 domain.com -get-available-backups - Get's available remote backups.
 ## Logs
 * /var/log/gridpane.log
-* /var/opt/gridpane/backups.log
+* /var/opt/gridpane/backups.log - Seems Empty.
