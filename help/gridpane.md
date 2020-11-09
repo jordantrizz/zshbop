@@ -1,10 +1,16 @@
 # GridPane CLI Commands
 *gp fix clear-cache - clear entire server cache
 
-# Misc
+# MySQL
 ## MySQL Root Login
 * gridenv/promethean.env
 * gp mysql -get-pass root
+
+## Setting MySQL Configuration
+* gp stack mysql -max-connections 100 &&  
+* gp stack mysql -innodb-buffer-pool-size 2048 && 
+* gp stack mysql -innodb-buffer-pool-instances 2 && 
+* gp mysql restart
 
 # Set Default Site
 * gp site {site.url} -set-nginx-default
