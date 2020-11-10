@@ -54,3 +54,6 @@ mysql-db-size () { mysql -e 'SELECT table_schema AS "Database", SUM(data_length 
 
 # -- VPS Related
 vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash }
+
+# -- Install CSF
+csf-install () { cd /usr/src; rm -fv csf.tgz; wget https://download.configserver.com/csf.tgz; tar -xzf csf.tgz; cd csf; sh install.sh }
