@@ -1,3 +1,8 @@
+# - Describe all aliases
+cmd () {
+
+}
+
 # - General Aliases
 alias rld="source $ZSH_ROOT/.zshrc"
 alias joe="joe --wordwrap -nobackups"
