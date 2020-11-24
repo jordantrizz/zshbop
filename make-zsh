@@ -1,4 +1,10 @@
-# Make CentOS 6 ZSH 5.7
+# Make CentOS 6 ZSH 5.1.1
+wget https://www.zsh.org/pub/old/zsh-5.1.1.tar.xz
+tar --strip-components=1 -xvf zsh-5.1.1-doc.tar.xz
+./Util/preconfig
+./configure
+
+# Make CentOS 7 ZSH 5.7
 sudo yum update -y
 sudo yum install -y git make ncurses-devel gcc autoconf man yodl
 git clone -b zsh-5.7.1 https://github.com/zsh-users/zsh.git /tmp/zsh
