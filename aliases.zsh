@@ -1,9 +1,11 @@
 # - Describe all aliases
+# ----------------------
 cmd () {
 
 }
 
 # - General Aliases
+# -----------------
 alias rld="source $ZSH_ROOT/.zshrc"
 alias joe="joe --wordwrap -nobackups"
 alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
@@ -20,7 +22,7 @@ alias rm_error_log="find . | grep error_log | xargs -pl rm"
 alias cg="clustergit"
 alias toc="gh-md-toc --nobackup-insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
-alias pk="cat ~/.ssh/*.pub"
+#alias pk="ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'cat {};echo "\n-----------------------------"'"
 alias fdcount="tree | grep directories"
 alias whatismyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 alias listen='netstat -anp | grep LISTEN'
@@ -28,11 +30,13 @@ alias less="less -N"
 function vh { vh_run=$(curl --header "Host: $1" $2 --insecure -i | head -50);echo $vh_run }
 
 # - Shell Aliases
+# ---------------
 #alias mtime="find . -type f -printf "\n%TD %TT %p" | sort -k1.8n -k1.1nr -k1 | less"
 alias mtime="find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | less"
 alias path='echo $PATH | tr ":" "\n"'
 
 # -- Web Aliases
+# --------------
 alias ttfb='curl -s -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_starttransfer} Total time: %{time_total} \n" $1'
 alias ab_quick="ab -c 5 -n 100 $1"
 alias phpinfo="echo '<?php phpinfo() ?>' > phpinfo.php"
@@ -40,25 +44,7 @@ alias dhparam="openssl dhparam -out dhparam.pem 2048"
 alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 
 # -- GIT configuration and aliases
+# --------------------------------
 alias gitp="git submodule foreach git pull origin master"
 alias gits="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gitr="cd ~/git;"
-
-# -- NGiNX
-nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
-
-# -- Exim
-eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
-
-# -- WSL Specific Aliases
-alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
-
-# Ubuntu Specific
-alias netselect='netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
-mysql-db-size () { mysql -e 'SELECT table_schema AS "Database", SUM(data_length + index_length) / 1024 / 1024 / 1024 AS "Size (GB)" FROM information_schema.TABLES GROUP BY table_schema;' }
-
-# -- VPS Related
-vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash }
-
-# -- Install CSF
-csf-install () { cd /usr/src; rm -fv csf.tgz; wget https://download.configserver.com/csf.tgz; tar -xzf csf.tgz; cd csf; sh install.sh }
