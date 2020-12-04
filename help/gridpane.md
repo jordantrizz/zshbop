@@ -45,10 +45,14 @@
 * wp nginx-helper purge-all
 
 # Backups
-## Local Backups
-* /usr/local/bin/gpbup domain.com -get-available-backups - Get's available local backups.
+## Local Backup Commands
+* /usr/local/bin/gpbup domain.com -get-available-backups
 ## Remote Backups
-* /usr/local/bin/gpbup2 domain.com -get-available-backups - Get's available remote backups.
+* /usr/local/bin/gpbup2 domain.com -get-available-backups
+## Backup Configuration
+* /var/www/site.url/logs/backups.env
+
 ## Logs
+* /var/www/site.url/logs/backups.env
 * /var/log/gridpane.log
 * /var/opt/gridpane/backups.log - Seems Empty.
