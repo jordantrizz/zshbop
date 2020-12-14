@@ -5,9 +5,12 @@
 # -----------------------
 
 # -- general functions
-function pk { ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'cat {};echo '-----------------------------''}
+pk () { ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'cat {};echo '-----------------------------''}
 nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
 eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
+
+# -- mysql functions
+dbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema;' }
 
 # -- WSL Specific Aliases
 alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
