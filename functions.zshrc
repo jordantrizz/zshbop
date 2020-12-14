@@ -11,6 +11,7 @@ eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
 
 # -- mysql functions
 dbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema;' }
+tablesize () { mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" }
 
 # -- WSL Specific Aliases
 alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
