@@ -7,4 +7,4 @@ sudo apt update
 sudo apt install gh```
 
 ## Posting Gists
-gh gist create -d "my test gist" -f some_local_file.txt  test_gist
+gh gist create /usr/local/bin/gphourlyworker -d "gphourlyworker fix"
