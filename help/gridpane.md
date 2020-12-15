@@ -7,9 +7,11 @@
 * gp mysql -get-pass root
 
 ## Setting MySQL Configuration
-* gp stack mysql -max-connections 100 &&  
-* gp stack mysql -innodb-buffer-pool-size 2048 && 
-* gp stack mysql -innodb-buffer-pool-instances 2 && 
+* gp stack mysql -max-connections 100
+* gp stack mysql -innodb-buffer-pool-size 2048
+* gp stack mysql -innodb-buffer-pool-instances 2
+* gp stack mysql -slow-query-log 1
+** MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
 * gp mysql restart
 
 # Set Default Site
