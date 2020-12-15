@@ -48,3 +48,20 @@ alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 alias gitp="git submodule foreach git pull origin master"
 alias gits="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gitr="cd ~/git;"
+
+# -- NGiNX
+nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
+
+# -- Exim
+eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
+
+# -- WSL Specific Aliases
+alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
+
+# Ubuntu Specific
+alias netselect='netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
+mysql-db-size () { mysql -e 'SELECT table_schema AS "Database", SUM(data_length + index_length) / 1024 / 1024 / 1024 AS "Size (GB)" FROM information_schema.TABLES GROUP BY table_schema;' }
+
+# -- VPS Related
+vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash }
+yabs () { curl -sL yabs.sh | bash }
