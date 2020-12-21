@@ -10,7 +10,7 @@
 # -- core functions
 rld () { source $ZSH_ROOT/.zshrc }
 _echo () { echo "$@" }
-_debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@" fi }
+_debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 clear_cache () { antigen reset } 
 
 # -- general functions
