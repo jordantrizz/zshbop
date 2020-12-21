@@ -4,9 +4,19 @@
 # -- One line functions
 # -----------------------
 
+# -- core functions
+rld () { source $ZSH_ROOT/.zshrc }
+
+
 # -- general functions
 pk () { ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'cat {};echo '-----------------------------''}
+
+# -- nginx
+
 nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
+
+# -- exim
+
 eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
 
 # -- mysql functions
@@ -186,21 +196,20 @@ setup_pip () {
 
 ####-- Update
 update () {
-    	# Update ZSH
-	cd $ZSH_ROOT
-    	git pull
-        git -C $ZSH_ROOT pull --recurse-submodules
-        git -C $ZSH_ROOT submodule update --init --recursive
-        git -C $ZSH_ROOT submodule update --recursive --remote
-
+        git -C $ZSH_ROOT pull
+	# Updated sub-modules
+	if [[ $1 == "-f" ]] {
+	        git -C $ZSH_ROOT pull --recurse-submodules
+	        git -C $ZSH_ROOT submodule update --init --recursive
+        	git -C $ZSH_ROOT submodule update --recursive --remote
+	}
         # Update Personal ZSH
     	if [ ! -z $ZSH_PERSONAL_DIR ]; then
-	        cd $ZSH_PERSONAL_DIR
-		git pull
+		git -C $ZSH_PERSONAL_DIR pull
 	fi
 
         # Reload scripts
-        init_defaults        
+        rld
 }
 
 ####-- List current functions available to zsh

@@ -6,7 +6,6 @@ cmd () {
 
 # - General Aliases
 # -----------------
-alias rld="source $ZSH_ROOT/.zshrc"
 alias joe="joe --wordwrap -nobackups"
 alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
 alias jz="joe --wordwrap -nobackups $ZSH_ROOT/.zshrc"
