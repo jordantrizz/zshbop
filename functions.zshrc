@@ -14,7 +14,10 @@ _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 clear_cache () { antigen reset } 
 cmd () { } # describe all aliases (notworking)
 
-# -- general functions
+# -- Linux Specific
+findswap () { find /proc -maxdepth 2 -path "/proc/[0-9]*/status" -readable -exec awk -v FS=":" '{process[$1]=$2;sub(/^[ \t]+/,"",process[$1]);} END {if(process["VmSwap"] && process["VmSwap"] != "0 kB") printf "%10s %-30s %20s\n",process["Pid"],process["Name"],process["VmSwap"]}' '{}' \; | awk '{print $(NF-1),$0}' | sort -h | cut -d " " -f2- }
+
+# -- ssh/sshkeys
 pk () { ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'cat {};echo '-----------------------------''}
 
 # -- nginx
@@ -33,9 +36,6 @@ msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" }
 
 # -- WSL Specific Aliases
 alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
-
-# Ubuntu Specific
-mysql-db-size () { mysql -e 'SELECT table_schema AS "Database", SUM(data_length + index_length) / 1024 / 1024 / 1024 AS "Size (GB)" FROM information_schema.TABLES GROUP BY table_schema;' }
 
 # -- Software
 vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash }
