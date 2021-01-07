@@ -198,10 +198,18 @@ check_environment () {
 setup_environment () {
 	sudo apt install $default_tools
 	echo "gh - installed separately, run github-cli"
+	echo "install_environment - install more tools"
 	#keychain mosh traceroute mtr keychain pwgen tree ncdu fpart whois pwgen
 	#sudo apt install python-pip npm # Skipping python dependencies
 	#sudo pip install apt-select # Skipping python dependencies
        	#sudo npm install -g gnomon # Skipping node dependencies
+}
+
+####-- Install Environment
+# Custom install of some much needed tools!
+install_environment () {
+	# Need to add in check for pip3
+	pip3 install -U checkdmarc
 }
 
 ####-- Update

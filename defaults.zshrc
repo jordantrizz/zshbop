@@ -25,7 +25,7 @@ eval BGRED='$bg[red]'
 eval BGGREEN='$bg[green]'
 
 # Default tools
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen')
+default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip')
 
 # ----------
 # -- Exports
