@@ -36,7 +36,6 @@ msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" } # needs to be doc
 mysqlmyisam () { mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';" }
 mysqlmax () { mysql -e "
 	SELECT ( @@key_buffer_size
-	+ @@query_cache_size
 	+ @@innodb_buffer_pool_size
 	+ @@innodb_log_buffer_size
 	+ @@max_allowed_packet
