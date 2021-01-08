@@ -34,6 +34,25 @@ mysqldbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_len
 mysqltablesize () { mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" }
 msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" } # needs to be documented.
 mysqlmyisam () { mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';" }
+mysqlmax () { mysql -e "
+	SELECT ( @@key_buffer_size
+	+ @@query_cache_size
+	+ @@innodb_buffer_pool_size
+	+ @@innodb_log_buffer_size
+	+ @@max_allowed_packet
+	+ @@max_connections * ( 
+	    @@read_buffer_size
+	    + @@read_rnd_buffer_size
+	    + @@sort_buffer_size
+	    + @@join_buffer_size
+	    + @@binlog_cache_size
+	    + @@net_buffer_length
+	    + @@net_buffer_length
+	    + @@thread_stack
+	    + @@tmp_table_size )
+	) / (1024 * 1024 * 1024) AS MAX_MEMORY_GB;"
+}
+
 
 # -- WSL Specific Aliases
 alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
