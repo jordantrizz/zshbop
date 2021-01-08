@@ -30,9 +30,10 @@ eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
 function vh { vh_run=$(curl --header "Host: $1" $2 --insecure -i | head -50);echo $vh_run }
 
 # -- mysql functions
-dbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema;' }
-tablesize () { mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" }
-msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" }
+mysqldbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema;' }
+mysqltablesize () { mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" }
+msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" } # needs to be documented.
+mysqlmyisam () { mysql -e "select * from information_schema.tables where engine='MyISAM';" }
 
 # -- WSL Specific Aliases
 alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
