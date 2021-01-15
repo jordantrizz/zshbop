@@ -4,3 +4,4 @@
 zsh-personal
 *.zwc
 .debug
+.development
