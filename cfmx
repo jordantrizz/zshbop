@@ -36,7 +36,7 @@ function set-google () {
 	echo_and_run cloudflare add record $DOMAIN mx @ ALT4.ASPMX.L.GOOGLE.COM 1 10
         if [[ $SPF = 1 ]]; then
                 echo "** Setting Google spf record.."
-                echo_and_run cloudflare add record $DOMAIN TXT @ \"$GOOGLE_SPF\"
+                echo_and_run cloudflare add record $DOMAIN TXT @ "$GOOGLE_SPF"
         fi
 }
 
