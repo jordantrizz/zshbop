@@ -30,9 +30,28 @@ eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
 function vh { vh_run=$(curl --header "Host: $1" $2 --insecure -i | head -50);echo $vh_run }
 
 # -- mysql functions
-dbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema;' }
-tablesize () { mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" }
-msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" }
+mysqldbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema;' }
+mysqltablesize () { mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" }
+msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" } # needs to be documented.
+mysqlmyisam () { mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';" }
+mysqlmax () { mysql -e "
+	SELECT ( @@key_buffer_size
+	+ @@innodb_buffer_pool_size
+	+ @@innodb_log_buffer_size
+	+ @@max_allowed_packet
+	+ @@max_connections * ( 
+	    @@read_buffer_size
+	    + @@read_rnd_buffer_size
+	    + @@sort_buffer_size
+	    + @@join_buffer_size
+	    + @@binlog_cache_size
+	    + @@net_buffer_length
+	    + @@net_buffer_length
+	    + @@thread_stack
+	    + @@tmp_table_size )
+	) / (1024 * 1024 * 1024) AS MAX_MEMORY_GB;"
+}
+
 
 # -- WSL Specific Aliases
 alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
@@ -198,10 +217,18 @@ check_environment () {
 setup_environment () {
 	sudo apt install $default_tools
 	echo "gh - installed separately, run github-cli"
+	echo "install_environment - install more tools"
 	#keychain mosh traceroute mtr keychain pwgen tree ncdu fpart whois pwgen
 	#sudo apt install python-pip npm # Skipping python dependencies
 	#sudo pip install apt-select # Skipping python dependencies
        	#sudo npm install -g gnomon # Skipping node dependencies
+}
+
+####-- Install Environment
+# Custom install of some much needed tools!
+install_environment () {
+	# Need to add in check for pip3
+	pip3 install -U checkdmarc
 }
 
 ####-- Update
