@@ -1,3 +1,6 @@
+# Setup Cloudflare Real Visitor IP
+* https://openlitespeed.org/kb/show-real-visitor-ip-instead-of-cloudflare-ips/
+
 # Setting up SSL for Admin URL
 * https://blog.cyberpanel.net/2018/12/25/how-to-remove-port-8090-from-cyberpanel/
 
