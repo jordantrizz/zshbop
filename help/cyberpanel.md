@@ -1,3 +1,6 @@
+# Setting up SSL for Admin URL
+* https://blog.cyberpanel.net/2018/12/25/how-to-remove-port-8090-from-cyberpanel/
+
 # Password Protection
 1. Setup webadmin console if you haven't already: https://forums.cyberpanel.net/discussion/87/tutorial-how-to-setup-and-login-to-openlitespeed-webadmin-console
 2. Go to Virtual Hosts->Example->Security
