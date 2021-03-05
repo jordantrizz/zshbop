@@ -7,7 +7,7 @@
 # -- One line functions
 # -----------------------
 
-# -- core functions
+# -- Core functions
 rld () { source $ZSH_ROOT/.zshrc }
 _echo () { echo "$@" }
 _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
@@ -126,6 +126,7 @@ init_antigen () {
 init_defaults () {
         _echo "-- Loading default scripts"
         source $ZSH_ROOT/defaults.zshrc
+        source $ZSH_ROOT/w10.zshrc
 
         # Find out if we have personal ZSH scripts.
         printf "-- Loading personal ZSH scripts...\n"
