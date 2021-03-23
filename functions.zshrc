@@ -277,7 +277,9 @@ git_config () {
 #### -- Help
 help () { 
 	if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
-        if [ ! -z $1 ]; then
+
+        if [[ -a $ZSH_ROOT/help/$1.md ]]; then
+        	echo "Opening $ZSH_ROOT/help/$1.md"
 		$mdv_reader $ZSH_ROOT/help/$1.md
         else
         	ls -l $ZSH_ROOT/help
