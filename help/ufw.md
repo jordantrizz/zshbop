@@ -1,3 +1,6 @@
+# Quick Commands
+Allow a single IP into anything.
+* ufw allow in from 76.70.117.11 to any
 # Rule Syntax
 	ufw [rule]
 	  [delete] [insert NUM] [prepend]
