@@ -36,7 +36,6 @@ bash <(wget -qO- https://raw.githubusercontent.com/jordantrizz/zsh/develop/insta
 ## Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
 <p>
-
 If you don't want to have zsh within your home directory, then use the following.
 1. Ensure you have zsh shell
 ```apt-get install zsh```
@@ -56,11 +55,49 @@ See [commands.md](Commands)
 
 # Notes
 
-## Windows Terminal
-### Direct Font Files
-You can simply download these fonts and install them.
+# macOS Installation Notes
+Nothing at this time!
+
+# Windows Installation Notes
+## WSL Subsystem
+You'll need the WSL Subsystem installed.
+* Open PowerShell as Administrator and run
+```
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+```
+### Windows Terminal
+Windows Terminal is a means to manage the various terminals installed in Windows.
+
+* WSL
+* Command Prompt
+* Powershell
+* Custom Powershell (Azure + Exchange)
+
+It's a great and I suggest you install it!
+
+### VcXsrv (WSL Gui)
+If you want to run Xserver for a GUI under WSL, this guide will help.
+
+* https://medium.com/@dhanar.santika/installing-wsl-with-gui-using-vcxsrv-6f307e96fac0
+
+## Fonts
+So if you've used Powerlevel9k, you'd need the powerline fonts. With Powerline10k you need patched font files. The patch font files are "MesloLGS NF" and are located on the following Github repository.
+
 * https://github.com/romkatv/dotfiles-public/tree/master/.local/share/fonts/NerdFonts.
 
+They're included in the /fonts directory and you can install them as needed based on your OS.
+
+### macOS
+```
+cp fonts/* ~/Library/fonts
+```
+
+### Windows
+Todo
+```
+```
+
+## Windows Terminal
 Then use the ```windows_terminal.json``` in this repository.
 
 ### Script Install - Broken
@@ -72,7 +109,7 @@ You can simply run this command within WSL
 bash -c "$(curl -fsSL https://gist.githubusercontent.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b/raw/install_meslo_wsl.sh)"
 ```
 
-## ZSH
+## ZSH Installation Issues
 ### CentOS 7 + zsh 5.1.1
 ```
 sudo yum update -y
