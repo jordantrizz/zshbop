@@ -83,9 +83,16 @@ If you want to run Xserver for a GUI under WSL, this guide will help.
 ## Fonts
 So if you've used Powerlevel9k, you'd need the powerline fonts. With Powerline10k you need patched font files. The patch font files are "MesloLGS NF" and are located on the following Github repository.
 
-* https://github.com/romkatv/dotfiles-public/tree/master/.local/share/fonts/NerdFonts.
+* https://github.com/romkatv/powerlevel10k/blob/master/font.md
 
-They're included in the /fonts directory and you can install them as needed based on your OS.
+### Automatic Font Install
+As per the font.md file above.
+
+>Automatic font installation
+>If you are using iTerm2 or Termux, `p10k configure` can install the recommended font for you. Simply answer Yes when asked whether to install Meslo Nerd Font.
+
+
+### Manual Font Install
 
 ### macOS
 ```
