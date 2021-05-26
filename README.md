@@ -129,6 +129,13 @@ sudo make -j 20 install
 ```
 
 # ToDo
+## Current Todo
+* Place all included files into directory inc
+* Check for ssh-key id_rsa if chmod 600 and if not ask to do it.
+* If any packages aren't installed ask to install them.
+
+
+## Random Notes
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
 - Look into diff so fancy wget https://raw.githubusercontent.com/so-fancy/diff-so-fancy/master/third_party/build_fatpack/diff-so-fancy
 - git submodule add https://github.com/skx/sysadmin-util.git
