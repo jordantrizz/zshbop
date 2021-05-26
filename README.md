@@ -133,6 +133,7 @@ sudo make -j 20 install
 * Place all included files into directory inc
 * Check for ssh-key id_rsa if chmod 600 and if not ask to do it.
 * If any packages aren't installed ask to install them.
+* Flight check command to confirm what's setup and isn't, check packacges installed.
 
 
 ## Random Notes
