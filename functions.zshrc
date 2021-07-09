@@ -27,7 +27,10 @@ nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$
 eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
 
 # -- curl
-function vh { vh_run=$(curl --header "Host: $1" $2 --insecure -i | head -50);echo $vh_run }
+vh () { vh_run=$(curl --header "Host: $1" $2 --insecure -i | head -50);echo $vh_run }
+
+# -- openssl
+check_ssl () { echo | openssl s_client -showcerts -servername $1 -connect $1:443 2>/dev/null | openssl x509 -inform pem -noout -text }
 
 # -- mysql functions
 mysqldbsize () { mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema;' }
