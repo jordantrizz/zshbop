@@ -243,6 +243,7 @@ update () {
 	        git -C $ZSH_ROOT pull --recurse-submodules
 	        git -C $ZSH_ROOT submodule update --init --recursive
         	git -C $ZSH_ROOT submodule update --recursive --remote
+        	git -C $ZSH_ROOT submodule foreach git pull origin master
 	fi
         # Update Personal ZSH
     	if [ ! -z $ZSH_PERSONAL_DIR ]; then
