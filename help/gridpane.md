@@ -1,3 +1,6 @@
+# Popular Links
+*[wpinfo.net - Gridpane Cheatsheet CLI](https://wpinfo.net/2021/05/13/gridpane-cli-cheatsheet/)
+
 # GridPane CLI Commands
 *gp fix clear-cache - clear entire server cache
 
