@@ -73,3 +73,9 @@ Block User enumeration
 * gp site {site.url} -configure-wp-fail2ban -block-user-enumeration
 Enable server wide
 *
+
+# Maldet
+## Log files
+* /opt/gridpane/maldet-all-sites-report.ids
+* /opt/gridpane/maldet-all-sites-scan.log
+* /usr/local/maldetect/logs/event_log
