@@ -21,7 +21,7 @@ Type `commands` or `aliases` to get a list of commands and aliases. Doesn't work
 Alias | Description|
  --- | --- |
 update | Update this repository an pull down any updates from sub-modules.
-setup_environment | Installed the necessary packages.
+setup-environment | Installed the necessary packages.
 pk | Print out all public keys in ".ssh" folder
 
 # General 
@@ -29,7 +29,7 @@ Alias | Description|
  --- | --- |
 fdcount | Count of files and directories in current directory.
 update | Update this repository an pull down any updates from sub-modules.
-setup_environment | Installed the necessary packages.
+setup-environment | Installed the necessary packages.
 whatismyip | Checks opendns and tells you what your external IP address is.
 listen | What's listening on what port.
 vh | Using curl to test virtual hosts before migration

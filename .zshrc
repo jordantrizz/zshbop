@@ -1,12 +1,14 @@
-#-- When in doubt.
-#- Command Type - type (command) eg type rm
-#- List functions - print -l ${(ok)functions}
+# Welcome
+SCRIPT_NAME="jtzsh"
 
 #- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 ZDOTDIR=$HOME
 
 # Need to refactor this at somepoint
 JTZSH_ROOT=$ZSH_ROOT
+
+# - Initlize jtzsh
+source $ZSH_ROOT/init.zshrc
 
 #- Include functions file
 source $ZSH_ROOT/functions.zshrc

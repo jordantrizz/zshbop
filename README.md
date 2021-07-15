@@ -1,7 +1,7 @@
 # jordantrizz/ZSH
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
-<a href="https://www.buymeacoffee.com/jordantrask" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+<a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 <!--ts-->
    * [jordantrizz/ZSH](#jordantrizzzsh)
@@ -60,7 +60,7 @@ There are quite a few configuration options you can set. You can set these optio
 | `EXBIN_HOST`        	| Exbin host, for netcat just the hostname and for api the full URL.                                    | String                  	| `exbin.call-cc.be` 	|
 | `EXBIN_PORT`		| If you don't use the standard 9999 port for exbin.							| Number			| `9999`		|
 
-## Example
+## Example `.zshrc_config`
 ```
 EXBIN="https://exbin.call-cc.be/"
 ```
