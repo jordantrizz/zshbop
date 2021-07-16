@@ -1,2 +1,2 @@
 # Commands
-* csf -a - Restart CSF/LFD.
+* csf -ra - Restart CSF/LFD. 
