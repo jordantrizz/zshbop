@@ -149,7 +149,7 @@ sudo make -j 20 install
 * Check for ssh-key id_rsa if chmod 600 and if not ask to do it.
 * If any packages aren't installed ask to install them.
 * Flight check command to confirm what's setup and isn't, check packacges installed.
-
+* Borrow or steal https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/upgrade.sh
 
 ## Random Notes
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz

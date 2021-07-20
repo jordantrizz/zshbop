@@ -170,6 +170,10 @@ update () {
         rld
 }
 
+check-updates () {
+
+}
+
 #### -- List current functions available to zsh
 # when in doubt print -l ${(ok)functions}
 options () {

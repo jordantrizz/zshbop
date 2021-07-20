@@ -3,6 +3,34 @@
 # --------------
 # This is the initilization for jtzsh
 
+# Use colors, but only if connected to a terminal
+# and that terminal supports them.
+
+local -a RAINBOW
+local RED GREEN YELLOW BLUE BOLD DIM UNDER RESET
+
+if [ -t 1 ]; then
+  RAINBOW=(
+    "$(printf '\033[38;5;196m')"
+    "$(printf '\033[38;5;202m')"
+    "$(printf '\033[38;5;226m')"
+    "$(printf '\033[38;5;082m')"
+    "$(printf '\033[38;5;021m')"
+    "$(printf '\033[38;5;093m')"
+    "$(printf '\033[38;5;163m')"
+  )
+
+  RED=$(printf '\033[31m')
+  GREEN=$(printf '\033[32m')
+  YELLOW=$(printf '\033[33m')
+  BLUE=$(printf '\033[34m')
+  BOLD=$(printf '\033[1m')
+  DIM=$(printf '\033[2m')
+  UNDER=$(printf '\033[4m')
+  RESET=$(printf '\033[m')
+fi
+
+
 # -----------------------
 # -- One line functions
 # -----------------------
@@ -123,3 +151,4 @@ init_uwt () {
 	fi
 	export PATH=$PATH:$ZSH_ROOT/ultimate-wordpress-tools
 }
+
