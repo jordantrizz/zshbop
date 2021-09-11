@@ -33,11 +33,11 @@ help () {
 kb () {
         if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
 
-        if [[ -a $ZSH_ROOT/help/$1.md ]]; then
-                echo "Opening $ZSH_ROOT/help/$1.md"
-                $mdv_reader $ZSH_ROOT/help/$1.md
+        if [[ -a $ZSH_ROOT/kb/$1.md ]]; then
+                echo "Opening $ZSH_ROOT/kb/$1.md"
+                $mdv_reader $ZSH_ROOT/kb/$1.md
         else
-                ls -l $ZSH_ROOT/help
+                ls -l $ZSH_ROOT/kb
         fi
         if [[ $mdv_reader == cat ]]; then
                 echo "\n\n"
