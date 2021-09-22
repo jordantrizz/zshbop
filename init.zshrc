@@ -48,8 +48,9 @@ init () {
         init_sshkeys
         if [[ $ENABLE_ULTB == 1 ]]; then init_ultb; fi
         if [[ $ENABLE_UWT == 1 ]]; then init_uwt; fi
-        uptime
-        uname -a
+	echo "--------------------------------------------"
+        echo $RED "Uptime:" $RESET $(uptime)
+        echo $YELLOW "Uname:" $RESET $(uname -a)
 }
 
 # -- PATHS!
