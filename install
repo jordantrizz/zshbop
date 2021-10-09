@@ -125,8 +125,8 @@ setup_system() {
 	#fi
 	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zsh?"
 	
-	echo -e "You can now copy the .zshrc_local to your home directory"
-	echo -e "cp $SYSTEM/zsh/.zshrc_install ~/.zshrc"
+	echo -e "Copied $SYSTEM/zsh/.zshrc_install to ~/.zshrc"
+	cp $SYSTEM/zsh/.zshrc_install ~/.zshrc
 
 }		
 
