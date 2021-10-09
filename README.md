@@ -25,12 +25,12 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 # Installation
 ## Quick Installation
 ```
-bash <(wget -qO- https://raw.githubusercontent.com/jordantrizz/zsh/master/install)
+bash <(curl -sL https://zshrc.pl)
 ```
 
 ## Quick Install Development
 ```
-bash <(wget -qO- https://raw.githubusercontent.com/jordantrizz/zsh/develop/install)
+bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zsh/develop/install)
 ```
 
 ## Advanced Install
