@@ -62,14 +62,22 @@ pkg_install() {
 }
 
 install_method() {
-        echo "Do you want to install system wide or home only? (s/h)"
-        read INSTALL
-        echo "(d)evelop or (m)aster Branch? (d/m)"
-        read BRANCH
-        echo "Include Ultimate Linux Toolbox? (y/n)"
-        read ULTB
-        echo "Include Ultimate WordPress Tools? (y/n)"
-        read ULTB
+	echo "Install (d)efaults or (c)ustomize? (d/c)?"
+	read INSTALL
+
+	if [ $INSTALL = "d" ];then
+		setup_system
+		INSTALL_LOCATION=s
+		BRANCH=m
+		ULTB=y
+	elif [ $INSTALL = "c" ]; then
+	        echo "Do you want to install system wide or home only? (s/h)"
+	        read INSTALL_LOCATION
+	        echo "(d)evelop or (m)aster Branch? (d/m)"
+	        read BRANCH
+	        echo "Include Ultimate Linux Toolbox? (y/n)"
+	        read ULTB
+	fi
 }
 
 clone_repository() {
@@ -77,19 +85,14 @@ clone_repository() {
                 echo -e "- Start Cloning repository into $1..."
                 if [ $BRANCH = "d" ]; then
                         git clone --branch develop https://github.com/jordantrizz/zsh.git $1
-			if [ $ULTB = "y" ]; then
-				echo -e "- Installing ULTB $1"
-				cd $1
-                        	git submodule update --init --recursive
-                        fi
                 elif [ $BRANCH = "m" ]; then
                         git clone https://github.com/jordantrizz/zsh.git $1
-			if [ $ULTB = "y" ]; then
-				echo -e "- Installing ULTB $1"
-				cd $1
-                                git submodule update --init --recursive
-                        fi
-                fi
+		fi		
+		if [ $ULTB = "y" ]; then
+			echo -e "- Installing ULTB $1"
+			cd $1
+	                git submodule update --init --recursive
+        	fi
         else
                 echo -e "- Directory $1 exists...exiting."
                 exit 1
@@ -139,12 +142,14 @@ flight_check
 echo -e "-- Begin Install"
 install_method
 
-if [ $INSTALL = "s" ]; then
-        setup_system
-elif [ $INSTALL = "h" ]; then
-        setup_home
-else
-        install_method "Choose s or h on your keyboard"
+if [ $INSTALL = "d" ];then
+	setup_system
+elif [ $INSTALL = "c" ]; then
+	if [ $INSTALL_LOCATION = "s" ]; then
+	        setup_system
+	elif [ $INSTALL_LOCATION = "h" ]; then
+	        setup_home
+	fi
 fi
 
 echo -e "-- Installation complete."
