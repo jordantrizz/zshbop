@@ -137,6 +137,24 @@ setup_system() {
 # Main Code
 #--------------------
 
+if [ $1 = "clean" ]; then
+	echo "### REMOVING jtZSH ###"
+	echo "Continue (y/n)?"
+	read CLEAN
+	
+	if [ $CLEAN = "y" ]; then
+		echo "Cleaning up!"		
+		rm ~/.zshrc
+		rm -rf /usr/local/sbin/zsh
+		rm -rf ~/zsh
+		exit
+	else
+		echo "Aboring....Goodbye!"
+		exit
+	fi
+fi
+	
+
 echo -e "-- Pre-flight Check"
 flight_check
 echo -e "-- Begin Install"
