@@ -69,7 +69,6 @@ install_method() {
 		INSTALL_LOCATION=s
 		BRANCH=m
 		ULTB=y
-		setup_system
 	elif [ $INSTALL = "c" ]; then
 	        echo "Do you want to install system wide or home only? (s/h)"
 	        read INSTALL_LOCATION
