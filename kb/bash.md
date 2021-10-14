@@ -83,3 +83,8 @@ if [[ -n $1 ]]; then
 fi
 EOF
 ```
+
+# Date and Time!
+```
+enddate=$(date "+%d/%m/%Y %H:%M:%S +%Z");
+```
