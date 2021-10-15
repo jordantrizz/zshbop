@@ -88,3 +88,6 @@ EOF
 ```
 enddate=$(date "+%d/%m/%Y %H:%M:%S +%Z");
 ```
+
+# Pid File Snippet
+* https://gist.github.com/darth-veitcher/f47eb0a52ae42a1c5e9a65adca460723
