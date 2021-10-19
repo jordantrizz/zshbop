@@ -26,11 +26,13 @@ help () {
         echo " cc - clear antigen cache"
         echo " update - update this script"
         echo " options - list all zsh functions"
+        echo " checkenv - check environment tools"
+        echo " installenv - install environment tools via apt"
+        echo " customenv - install custom environment tools"
 }
 
 startup_motd () {
-echo "---- "
-
+	echo "---- Run checkenv to make sure you have all the right tools! ----"
 }
 
 #### -- kb
@@ -68,7 +70,7 @@ _cexists () {
 }
 
 ###-- Check Environment
-check_environment () {
+checkenv () {
 	echo "------------------------"
 	for i in $default_tools; do
 		if _cexists $i; then
@@ -83,7 +85,7 @@ check_environment () {
 }
 
 #### -- Setup Environment
-setup-environment () {
+installenv () {
 	sudo apt install $default_tools
 	echo "gh - installed separately, run github-cli"
 	echo "install_environment - install more tools"
@@ -95,7 +97,7 @@ setup-environment () {
 
 #### -- Install Environment
 # Custom install of some much needed tools!
-install-environment () {
+customenv () {
 	# Need to add in check for pip3
 	pip3 install -U checkdmarc
 }
