@@ -39,7 +39,8 @@ fi
 init () {
         #- Include functions file
         _echo "-- Starting init"
-        source $ZSH_ROOT/functions.zshrc
+        source $ZSH_ROOT/functions.zshrc # Core functions
+        source $ZSH_ROOT/functions-tools.zshrc # Fucntions that are tools.
         source $ZSH_ROOT/aliases.zsh
         init_path
         init_omz_plugins
@@ -49,6 +50,7 @@ init () {
         if [[ $ENABLE_ULTB == 1 ]]; then init_ultb; fi
         if [[ $ENABLE_UWT == 1 ]]; then init_uwt; fi
         neofetch
+        startup_motd
 }
 
 # -- PATHS!
