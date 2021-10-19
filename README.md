@@ -1,4 +1,4 @@
-# jordantrizz/ZSH
+# totalzsh
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
 <a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
@@ -66,15 +66,15 @@ EXBIN="https://exbin.call-cc.be/"
 ```
 
 # Commands/Aliases
-See [commands.md](Commands)
+You can start by typeing ```help``` which will give you some top level commands.
+You can also review [commands.md](Commands)
 
-# Notes
-
-# macOS Installation Notes
+# Installation Notes
+## macOS Installation Notes
 Nothing at this time!
 
-# Windows Installation Notes
-## WSL Subsystem
+## Windows Installation Notes
+### WSL Subsystem
 You'll need the WSL Subsystem installed.
 * Open PowerShell as Administrator and run
 ```
@@ -95,7 +95,7 @@ If you want to run Xserver for a GUI under WSL, this guide will help.
 
 * https://medium.com/@dhanar.santika/installing-wsl-with-gui-using-vcxsrv-6f307e96fac0
 
-## Fonts
+## Font Installation Notes
 So if you've used Powerlevel9k, you'd need the powerline fonts. With Powerline10k you need patched font files. The patch font files are "MesloLGS NF" and are located on the following Github repository.
 
 * https://github.com/romkatv/powerlevel10k/blob/master/font.md
@@ -144,6 +144,8 @@ sudo make -j 20 install
 ```
 
 # ToDo
+* https://github.com/picatz/hunter
+
 ## Current Todo
 * Place all included files into directory inc
 * Check for ssh-key id_rsa if chmod 600 and if not ask to do it.

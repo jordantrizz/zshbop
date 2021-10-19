@@ -21,7 +21,7 @@ Type `commands` or `aliases` to get a list of commands and aliases. Doesn't work
 Alias | Description|
  --- | --- |
 update | Update this repository an pull down any updates from sub-modules.
-setup-environment | Installed the necessary packages.
+setupenv | Installed the necessary packages.
 pk | Print out all public keys in ".ssh" folder
 
 # General 
@@ -38,6 +38,9 @@ vh | Using curl to test virtual hosts before migration
 Command | Description|
  --- | --- |
 toc | Runs patched gh-md-toc with --nobackup-insert on current directories README.md
+
+# Binaries
+* check-if-email-exists - https://github.com/reacherhq/check-if-email-exists
 
 # Web
 Command | Description|
