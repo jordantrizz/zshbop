@@ -1,7 +1,7 @@
 # Using Curl
 ## Curl another host 
 ```
-curl --head "Host: domain.com" --head https://127.0.0.1/
+curl --header "Host: domain.ca" https://127.0.0.1 -k --head
 ```
 ## Show Headers
 ```
