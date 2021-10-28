@@ -67,7 +67,7 @@ EXBIN="https://exbin.call-cc.be/"
 
 # Commands/Aliases
 You can start by typeing ```help``` which will give you some top level commands.
-You can also review [commands.md](Commands)
+You can also review [help/commands.md](Commands)
 
 # Installation Notes
 ## macOS Installation Notes
