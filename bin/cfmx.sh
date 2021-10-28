@@ -92,11 +92,6 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # -- Let's go!
 
-if [ -z $CF_ACCOUNT ]; then
-	echo "WARNING: no \$CF_ACCOUNT set"
-	exit
-fi
-
 if [ -z $DOMAIN ]; then
 	echo "ERROR: No domain specified"
 	help

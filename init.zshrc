@@ -101,6 +101,7 @@ init_antigen () {
 
 # -- Load default zsh scripts
 init_defaults () {
+	# Load defaults
         _echo "-- Loading default scripts"
         source $ZSH_ROOT/defaults.zshrc
 
@@ -182,9 +183,22 @@ zshbop_migrate () {
 }
 
 zshbop  () {
-	echo "---- ZSH_ROOT = $ZSH_ROOT"
-        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
-        echo "---- Running zshbop $BRANCH ----"
+	if [ -z $1 ]; then
+		echo "---- ZSH_ROOT = $ZSH_ROOT"
+	        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
+	        echo "---- Running zshbop $BRANCH ----"
+		echo "---- To switch branch type zshbop develop or zshbop master"
+	elif [ "$1" = "devolop" ]; then
+		echo "---- Switching to develop branch"
+		git -C $ZSH_ROOT checkout develop
+	elif [ "$1" = "master" ]; then
+		echo "---- Switching to master branch"
+		git -C $ZSH_ROOT checkout master
+	fi
+}
+
+zshbop_switch_branch () {
+
 }
 
 # -- Init
