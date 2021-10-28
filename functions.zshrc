@@ -170,3 +170,9 @@ git_config () {
 	git config --global --get user.email
 	git config --global --get user.name
 }
+
+# ---- Add SSH Key
+addsshkey () {
+	echo "-- Adding $1 to keychain"
+	keychain -q --eval --agents ssh $HOME/.ssh/$1
+}
