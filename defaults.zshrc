@@ -61,6 +61,10 @@ fi
 echo " -- Loading WordPress commands"
 source $ZSH_ROOT/wordpress.zshrc 
 
+# --- Include host specific commands
+echo " -- Loading host specific commands"
+source $HOME/.zshrc_host
+
 # ------------------
 # -- fzf keybindings
 # ------------------
