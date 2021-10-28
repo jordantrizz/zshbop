@@ -90,12 +90,10 @@ init_path () {
         
         # Extra software
         export PATH=$PATH:$ZSH_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
-	export PATH=$PATH:$ZSH_ROOT/bin/clustergit
-	export PATH=$PATH:$ZSH_ROOT/bin/MySQLTuner-perl
-	export PATH=$PATH:$ZSH_ROOT/bin/parsyncfp
-	export PATH=$PATH:$ZSH_ROOT/bin/httpstat
-	export PATH=$PATH:$ZSH_ROOT/bin/cloudflare-cli/bin
-	export PATH=$PATH:$ZSH_ROOT/bin/dog/bin
+	export PATH=$PATH:$ZSH_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
+	export PATH=$PATH:$ZSH_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
+	export PATH=$PATH:$ZSH_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
+	export PATH=$PATH:$ZSH_ROOT/bin/httpstat # https://github.com/reorx/httpstat
 
 	# Functions
 	source $ZSH_ROOT/bin/functions.zsh
