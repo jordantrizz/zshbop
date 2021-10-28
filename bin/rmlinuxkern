@@ -1,0 +1,24 @@
+#!/bin/sh
+KERN=`uname -r|sed 's/-generic//g'|sed 's/-pae//g'`
+
+echo "Currently running the following kernel linux-image-$KERN"
+echo ''
+echo 'Double check the below commands to ensure you''re not removing the running kernel'
+echo ''
+RM_KERN_CMD=`dpkg -l | egrep "linux-image|linux-headers" | egrep -v "linux-image-generic|$KERN|linux-headers-generic|linux-image-server|linux-headers-virtual" | awk '{ print $2 }'`
+echo "$RM_KERN_CMD"
+
+if [ -f /var/run/reboot-required ]; then
+        echo "\nNot running the latest kernel. Reboot required!"
+elif [ ! -z "$RM_KERN_CMD" ]; then
+	echo -n "\nProceed with the removal of the above kernel images and headers? "
+	read PROCEED
+	if [ $PROCEED = 'y' ]; then
+		echo "\nRemoving kernels and headers and logging to ~/rmlinuxkern.log....."
+		`dpkg -R --purge $RM_KERN_CMD` >>  ~/rmlinuxkern.log
+	else
+		echo "\nQuiting...."
+fi
+else
+	echo "\nNo kernels to remove sir!"
+fi

@@ -54,3 +54,13 @@ github-cli () { sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99
 # -- Large Functions
 # ------------------
 
+ubuntu-netselect () {
+	mkdir ~/tmp
+        wget http://ftp.us.debian.org/debian/pool/main/n/netselect/netselect_0.3.ds1-28+b1_amd64.deb -P ~/tmp
+        sudo dpkg -i ~/tmpnetselect_0.3.ds1-28+b1_amd64.deb
+}
+
+setup-automysqlbackup () {
+        cd $ZSH_ROOT/bin/AutoMySQLBackup
+        ./install
+}

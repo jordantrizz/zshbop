@@ -1,0 +1,18 @@
+#!/bin/bash
+TIMESTAMP=$(date +"%F")
+if [ -z "$1" ];then
+	BACKUP_DIR="backup/$TIMESTAMP"
+else
+	BACKUP_DIR=$1
+fi
+
+MYSQL=/usr/bin/mysql
+MYSQLDUMP=/usr/bin/mysqldump
+
+mkdir -p "$BACKUP_DIR/mysql"
+
+databases=`$MYSQL -e "SHOW DATABASES;" | grep -Ev "(Database|information_schema|performance_schema)"`
+
+for db in $databases; do
+  $MYSQLDUMP --force --opt --databases $db | gzip > "$BACKUP_DIR/mysql/$db.gz"
+done

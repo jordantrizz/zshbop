@@ -1,0 +1,17 @@
+#!/bin/env bash
+if ! [ -x "$(command -v go)" ]; then
+  echo 'Error: go is not installed.' >&2
+  exit 1
+fi
+
+if [ ! -f "$HOME/go/bin/MailHog" ]; then
+	echo 'Can't find MailHog...installing'
+	go get github.com/mailhog/MailHog
+fi
+
+if [ ! -f "$HOME/auth" ]; then
+	echo 'Can't find auth file'
+	exit 1
+fi
+
+~/go/bin/MailHog -api-bind-addr 0.0.0.0:8025 -smtp-bind-addr 127.0.0.1:1025 -auth-file auth

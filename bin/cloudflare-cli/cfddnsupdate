@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+conffile=/etc/cfddnsupdate.conf
+[ -n "$1" ] && conffile=$1
+set -e
+declare -a dyns
+. "$conffile"
+set +e
+
+tstamp=`date +%s`
+latestip=''
+lastchange=''
+
+
+if [ -z "$zone" ]
+then
+	echo "Zone name is not set up." >&2
+	exit 1
+fi
+if [ -z "${dyns[0]}" ]
+then
+	echo "Not any subdomain is set up." >&2
+	exit 1
+fi
+
+
+echo -n "Getting external IP ... " >&2
+# put your script here to obtain your external ip:
+# see github.com/bAndie91/extip
+currentip=`extip -q`
+echo "$currentip" >&2
+
+if [ -z "$currentip" ]
+then
+	echo "Could not get external IP." >&2
+	exit 1
+fi
+
+
+if [ -n "$subdom" ]
+then
+	echo "Getting DDNS log from CloudFlare ..." >&2
+	declare -A iplog
+	IFS=$'\n'
+	history=`cloudflare list records "$zone" | grep -E "^.*?\\.$subdom\\s" | sed -e 's/\./ /' | awk '{print $1,$5}' | sort -n`
+	if [ -n "$history" ]
+	then
+		for str in $history
+		do
+			tag=${str%% *}
+			ip=${str##* }
+			
+			iplog[$tag]=$ip
+			latestip=$ip
+			lastchange=$tag
+		done
+	fi
+	IFS=$'\n\t '
+else
+	echo "Getting last IP from CloudFlare ..." >&2
+	sub1=${dyns[0]}
+	latestip=`cloudflare list records "$zone" | sed -ne "s/^$sub1\s\+\S\+\s\+A\s\+\(\S\+\).*/\1/ p"`
+fi
+
+
+
+if [ -z "$latestip" ]
+then
+	echo "There is no last entry." >&2
+else
+	echo "Last entry: $latestip" >&2
+fi
+
+
+echo "Record current IP: $currentip" >&2
+if [ "$latestip" != "$currentip" ]
+then
+	if type cfddnsupdate-callback >/dev/null 2>&1
+	then
+		cfddnsupdate-callback "$latestip" "$lastchange" "$currentip"
+	fi
+	lastchange=$tstamp
+	if [ -n "$subdom" ]
+	then
+		cloudflare add record "$zone" A "$tstamp.$subdom" "$currentip"
+	fi
+else
+	echo "Last IP is up to date" >&2
+fi
+
+for dyn in "${dyns[@]}"
+do
+	# Update dynamic records anyway
+	cloudflare set record "$dyn.$zone" type A content "$currentip"
+	cloudflare -q set record "lastchange.$dyn.$zone" type TXT content "${lastchange:-$tstamp}"
+done
+

@@ -1,0 +1,187 @@
+#!/usr/bin/perl
+
+# Usage: addwww <domain to add> <user>
+# Example: addwww example.com example
+
+# User defined variables 
+
+$nginx_dir = '/etc/nginx';
+
+# Are we running the script as root
+
+$run_user = `/usr/bin/id`;
+
+if($run_user !~ m/root/) {
+      print "This should be ran as the user root.\n";
+      exit;
+}
+
+# Check arguement syntax and set vars
+
+#print $ARGV[1];
+#print $ARGV[2];
+
+if(!$ARGV[0]) {
+        print "A script for creating websites.\nUsage: addwww <user> <domain>\nExample: $0 user website.com\n";
+        exit;
+}
+
+$user = $ARGV[0];
+$domain = $ARGV[1];
+
+if($user && !$domain) {
+	create_user($user);
+} elsif($user && $domain) {
+	create_user($user);
+	create_website($user,$domain);
+}
+
+# Subroutines
+
+# Create system account
+sub create_user {
+	print "Creating system account $user\n";
+
+        print "/usr/sbin/adduser --shell /bin/false --gecos $user --disabled-password $user\n";
+        system("/usr/sbin/adduser --shell /bin/false --gecos $user --disabled-password $user");
+}
+
+# Create website
+sub create_website {
+
+	# Template for nginx
+
+	$template = "# default.conf - NGiNX default sample - v0.1 - 2017-06-14
+#-
+# v0.1 first created
+#-
+
+server {
+        access_log off;
+        listen    80;
+        server_name  $domain www.$domain;
+        rewrite ^ https://\$host\$request_uri? permanent;
+}
+
+server {
+        listen    443;
+        server_name  $domain www.$domain;
+
+        include ssl.conf;
+
+        access_log /var/log/nginx/".$domain."_access.log;
+        error_log /var/log/nginx/".$domain."_error.log;
+
+        root /home/$user/public_html;
+
+        # default settings
+        include defaults.conf;
+
+        location ~ \.php {
+                index  index.php index.html index.htm;
+                #try_files \$uri =404;
+
+                include /etc/nginx/fastcgi_params;
+                # Custom FastCGI Params
+                fastcgi_param   SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
+                fastcgi_pass  unix:/var/run/php7-fpm.sock.$user;
+                fastcgi_index   index.php;
+        }
+
+}
+";
+
+	# Print what configuration is going to look like.
+  	print $template;
+
+	# Ask to proceed
+
+	if($proceed eq ""){
+        	$proceed = &read_bool("Proceed with the above?","");
+
+	        if ($proceed eq "0") {
+	                exit;
+        	};
+        
+	        if ($proceed eq "1") {
+                	generate_config($template);
+        	};
+	}
+}
+        
+# Confirmation
+sub read_bool {
+        local($prompt,$def) = @_;
+        $ans = -1;
+        until($ans >= 0){
+                print $prompt,"[",$def,"] (y/n):";
+                $| = 1;
+                $_ = <STDIN>;
+                chop;
+                $_ = $_ ? $_ : $def;
+                $_ = substr($_, 0, 1);
+                if ($_ eq "y" || $_ eq "Y"){
+                        $ans = 1;
+                }elsif ($_ eq "n" || $_ eq "N"){
+                        $ans = 0;
+                }else {
+                        print "Please enter y or n.\n";
+                }
+        }
+        return $ans;
+}
+
+# Generate nginx config
+sub generate_config {
+
+	# Check to see if the site is already created.
+	$domainconfig = "$nginx_dir/sites-available/$domain";
+
+	print "\nChecking to see if the domain configuration exists...\n";
+
+	if (-e $domainconfig) { 
+        	print "\nFile $domainconfig exists!\nThis is bad!\nRemove the file $domainconfig and run $ARGV[1] again.\nExiting...\n";
+	        exit;   
+        }
+	print "\nFile doesn't exist!\nTrying to create the file..\n\n";
+	open(DAT,">>$domainconfig") || die("Cannot Open File $domainconfig for writing!\n");
+	print DAT $template;
+	close(DAT);
+	print "File created! Enalbing site!\n";
+	system("ln -s $domainconfig $nginx_dir/sites-enabled/$domain");
+	
+}
+
+# Create password for system user.
+sub create_password {
+        my $rndpassword = randomPassword(12);
+        print "\nUsername: $user";
+        print "\nPassword: $rndpassword\n";
+        my $itoa64 = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        my $salt;
+        for (1..2) { $salt .= substr $itoa64, rand(length($itoa64)), 1; }
+        my $password = crypt($rndpassword,$salt);
+	print "Setting password for $user\n";
+        system("/usr/sbin/usermod -p $password $user");                        
+}
+
+# Generate random password.
+sub randomPassword {
+	my $password;
+	my $_rand;
+	my $password_length = $_[0];
+
+	if (!$password_length) {
+		$password_length = 10;
+	}
+
+	my @chars = split(" ","a b c d e f g h i j k l m n o p q r s t u v w x y z ! # ^ * + A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9");
+
+	srand;
+
+	for (my $i=0; $i <= $password_length ;$i++) {
+		$_rand = int(rand 67);
+		$password .= $chars[$_rand];
+	}
+	return $password;
+}

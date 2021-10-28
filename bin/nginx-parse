@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+SITE_CONFIG=$1
+cat $SITE_CONFIG
+grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat

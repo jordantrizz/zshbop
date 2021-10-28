@@ -1,0 +1,23 @@
+#!/bin/bash
+DATE=`date +%Y-%m-%d`
+FILE=$1-$DATE.sql
+if [ -z $1 ]; then
+	echo "Specify a database!"
+	mysql -e 'show databases'
+	exit 1
+else
+	echo "Backing up $FILE"
+	if [ -f $FILE ]; then
+		echo "Error $FILE exists!"
+		exit 1
+	else
+		mysqldump --routines --triggers $1 > $FILE
+	fi
+	echo "Gzipping up $FILE"
+	if [ -f $FILE.gz ]; then
+	        echo "Error $FILE.gz  exists!"
+	        exit 1
+	else
+	        gzip $FILE
+	fi
+fi

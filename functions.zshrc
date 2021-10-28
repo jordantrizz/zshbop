@@ -82,6 +82,7 @@ checkenv () {
 	echo "--------------------------------------------"
 	echo "Run setup_environment to install above tools"
 	echo "--------------------------------------------"
+
 }
 
 #### -- Setup Environment

@@ -6,6 +6,32 @@
 # Use colors, but only if connected to a terminal
 # and that terminal supports them.
 
+# ------------
+# -- Variables
+# ------------
+export UNAME=$(uname -s)
+case "${UNAME}" in
+    Linux*)     MACHINE=Linux;;
+    Darwin*)    MACHINE=Mac;;
+    CYGWIN*)    MACHINE=Cygwin;;
+    MINGW*)     MACHINE=MinGw;;
+    *)          MACHINE="UNKNOWN:${unameOut}"
+esac
+echo "- Running in ${MACHINE}"
+
+# Colors
+autoload colors
+if [[ "$terminfo[colors]" -gt 8 ]]; then
+    colors
+fi
+for COLOR in RED GREEN YELLOW BLUE MAGENTA CYAN BLACK WHITE; do
+    eval $COLOR='$fg_no_bold[${(L)COLOR}]'
+    eval BOLD_$COLOR='$fg_bold[${(L)COLOR}]'
+done
+eval RESET='$reset_color'
+eval BGRED='$bg[red]'
+eval BGGREEN='$bg[green]'
+
 local -a RAINBOW
 local RED GREEN YELLOW BLUE BOLD DIM UNDER RESET
 
@@ -30,6 +56,9 @@ if [ -t 1 ]; then
   RESET=$(printf '\033[m')
 fi
 
+# Default tools to install
+default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain')
+extra_tools=('pip')
 
 # -----------------------
 # -- One line functions
@@ -61,6 +90,22 @@ init_path () {
         
         # Extra software
         export PATH=$PATH:$ZSH_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
+	export PATH=$PATH:$ZSH_ROOT/bin/clustergit
+	export PATH=$PATH:$ZSH_ROOT/bin/MySQLTuner-perl
+	export PATH=$PATH:$ZSH_ROOT/bin/parsyncfp
+	export PATH=$PATH:$ZSH_ROOT/bin/httpstat
+	export PATH=$PATH:$ZSH_ROOT/bin/cloudflare-cli/bin
+	export PATH=$PATH:$ZSH_ROOT/bin/dog/bin
+
+	# Functions
+	source $ZSH_ROOT/bin/functions.zsh
+
+	# -- Mention some tools need to be installed.
+	if (( !$+commands[ls] )); then
+	        echo "pip doesn't exist?"
+	else
+	        echo "pip not installed, run ultb-install"
+	fi
 }
 
 # -- Initialize oh-my-zsh plugins
@@ -86,7 +131,6 @@ init_antigen () {
 init_defaults () {
         _echo "-- Loading default scripts"
         source $ZSH_ROOT/defaults.zshrc
-        source $ZSH_ROOT/w10.zshrc
 
         # Find out if we have personal ZSH scripts.
         printf "-- Loading personal ZSH scripts...\n"
@@ -139,15 +183,6 @@ init_sshkeys () {
 	else
 		_echo " - Command keychain doesn't exist, please install for SSH keys to work"
 	fi
-}
-
-# -- Ultimate Linux Tool Box
-init_ultb () {
-        if [[ -a $ZSH_ROOT/ultimate-linux-tool-box/.zshrc ]]; then
-                _echo "-- Including Ultimate Linux Tool Box Paths"
-                source $ZSH_ROOT/ultimate-linux-tool-box/.zshrc
-	fi
-       	export PATH=$PATH:$ZSH_ROOT/ultimate-linux-tool-box
 }
 
 # -- Ultimate WordPress Tools
