@@ -158,16 +158,15 @@ init_sshkeys () {
 }
 
 zshbop_check_migrate () {
-	if [ -d /usr/local/sbin/zsh ]; then echo "---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----"; fi
-	if [ -d $HOME/zsh ];then  echo "---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----"; fi
-	if [ -d $HOME/git/zsh ];then echo "---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----"; fi
-	echo "---- No need to migrate"
+	if [ -d /usr/local/sbin/zsh ]; then echo "$RED---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----$RESET"; fi
+	if [ -d $HOME/zsh ];then  echo "$RED---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----$RESET"; fi
+	if [ -d $HOME/git/zsh ];then echo "$RED---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----$RESET"; fi
 }
 
 zshbop_migrate () {
 	if [ -d /usr/local/sbin/zsh ]; then
 		echo "---- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
-		mv /usr/local/sbin/zshbop
+		sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
 	fi
 	if [ -d $HOME/zsh ]; then
 		echo "---- Moving $HOME/zsh to $HOME/zshbop"
@@ -175,6 +174,7 @@ zshbop_migrate () {
 	fi
 	if [ -d $HOME/git/zsh ]; then
 		echo "---- Moving $HOME/git/zsh to $HOME/git/zshbop"
+		mv $HOME/git/zsh $HOME/git/zshbop
 	fi	
 }
 
