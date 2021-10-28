@@ -1,11 +1,8 @@
 # Welcome
-SCRIPT_NAME="jtzsh"
+SCRIPT_NAME="zshbop"
 
 #- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 ZDOTDIR=$HOME
-
-# Need to refactor this at somepoint
-JTZSH_ROOT=$ZSH_ROOT
 
 # - Initlize jtzsh
 source $ZSH_ROOT/init.zshrc
@@ -21,7 +18,7 @@ fi
 #- We use $ZSH_ROOT to know our working directory.
 if [ -z "$ZSH_ROOT" ]; then
 	_debug "-- \$ZSH_ROOT empty so using \$HOME/zsh"
-	export ZSH_ROOT=$HOME/zsh
+	export ZSH_ROOT=$HOME/$SCRIPT_NAME
 else
 	_debug "-- \$ZSH_ROOT not empty so using $ZSH_ROOT"
 fi

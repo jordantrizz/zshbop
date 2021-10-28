@@ -1,15 +1,10 @@
-# Loading jordantrizz/zsh
+# Loading jordantrizz/zshbop
 # You can't use ~ within ZSH, you need to use $HOME as per https://superuser.com/questions/142611/user-directory-in-path-in-zsh-does-not-work
 
 # Set the path to your installation, the install script should do this automatically
 # But you can do it manually too
-#ZSH_ROOT="$HOME/zsh"
-
-# Enable Ultimate Linux Toolbox
-ENABLE_ULTB=1
-
-# Enable Ultimate Wordpress Toolbox
-ENABLE_UWT=1
+SCRIPT_NAME="zshbop"
+ZSH_ROOT="$HOME/$SCRIPTNAME"
 
 # Enable loading all id_rsa keys in ~/.ssh/
 ENABLE_ALL_SSH_KEYS=0
@@ -17,11 +12,11 @@ ENABLE_ALL_SSH_KEYS=0
 #------------------------------------
 # DO NOT ADD ANYTHING BELOW THIS LINE
 #------------------------------------
-#- Detecting where JTZSH might be installed
-if [ -d $HOME/zsh ]; then export ZSH_ROOT=$HOME/zsh;
-elif [ -d $HOME/git/zsh ]; then export ZSH_ROOT=$HOME/git/zsh;
-elif [ -d /usr/local/sbin/zsh ]; then
-        if [ -f /usr/local/sbin/zsh/.zshrc ]; then export ZSH_ROOT=/usr/local/sbin/zsh;fi
+#- Detecting where zshbop might be installed
+if [ -d $HOME/zshbop ]; then export ZSH_ROOT=$HOME/zshbop;
+elif [ -d $HOME/git/zshbop ]; then export ZSH_ROOT=$HOME/git/zshbop;
+elif [ -d /usr/local/sbin/zshbop ]; then
+        if [ -f /usr/local/sbin/zshbop/.zshrc ]; then export ZSH_ROOT=/usr/local/sbin/zshbop;fi
 fi
 
 #- Sourcing main init file
