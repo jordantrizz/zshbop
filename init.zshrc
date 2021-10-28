@@ -81,6 +81,8 @@ init () {
         if [[ $ENABLE_UWT == 1 ]]; then init_uwt; fi
         neofetch
         startup_motd
+        
+        echo "---- Running zshbop `git rev-parse --abbrev-ref HEAD` ----"
 }
 
 # -- PATHS!
