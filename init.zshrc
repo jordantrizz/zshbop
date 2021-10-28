@@ -188,7 +188,7 @@ zshbop  () {
 	        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
 	        echo "---- Running zshbop $BRANCH ----"
 		echo "---- To switch branch type zshbop develop or zshbop master"
-	elif [ "$1" = "devolop" ]; then
+	elif [ "$1" = "develop" ]; then
 		echo "---- Switching to develop branch"
 		git -C $ZSH_ROOT checkout develop
 	elif [ "$1" = "master" ]; then
