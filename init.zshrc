@@ -55,7 +55,7 @@ init () {
 
 # -- PATHS!
 init_path () {
-        export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT
+        export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT:$ZSH_ROOT/bin
         export PATH=$PATH:$HOME/.local/bin
 }
 

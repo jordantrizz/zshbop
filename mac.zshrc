@@ -1,7 +1,7 @@
 # Mac PATH
 # - Mac Ports in /opt/local/bin
-export PATH=/opt/local/bin:/opt/local/sbin/:$PATH
-export PATH=/usr/local/sbin:$PATH
+export PATH=$PATH:/opt/local/bin:/opt/local/sbin/
+export PATH=$PATH:/usr/local/sbin
 
 # Mac Aliases
 alias ps="/bin/ps aux"
