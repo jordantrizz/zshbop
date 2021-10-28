@@ -57,6 +57,10 @@ elif [[ $MACHINE = "Linux" ]] then
         fi
 fi
 
+# --- Include task specific files.
+echo " -- Loading WordPress commands"
+source $ZSH_ROOT/wordpress.zshrc 
+
 # ------------------
 # -- fzf keybindings
 # ------------------

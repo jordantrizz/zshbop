@@ -212,7 +212,7 @@ init () {
         init_omz_plugins
         init_antigen
         init_defaults
-        init_sshkeys
+        init_sshkeys       
         neofetch
         startup_motd
         zshbop
