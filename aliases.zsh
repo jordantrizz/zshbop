@@ -35,7 +35,7 @@ alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
 alias gitp="git submodule foreach git pull origin master"
 alias gits="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gitr="cd ~/git;"
-alias gc="git commit -am $1"
+alias gcp="git commit -am $1"
 
 # -- Ubuntu Specific
 alias netselect='netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
