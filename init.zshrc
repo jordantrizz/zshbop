@@ -65,24 +65,6 @@ pip_install=('ngxtop')
 # -- One line functions
 # -----------------------
 
-# -- Init
-init () {
-        #- Include functions file
-        _echo "-- Starting init"
-        source $ZSH_ROOT/functions.zshrc # Core functions
-        source $ZSH_ROOT/functions-tools.zshrc # Fucntions that are tools.
-        source $ZSH_ROOT/aliases.zsh
-        init_path
-        init_omz_plugins
-        init_antigen
-        init_defaults
-        init_sshkeys
-        neofetch
-        startup_motd
-        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
-        echo "---- Running zshbop $BRANCH ----"
-}
-
 # -- PATHS!
 init_path () {
 	# Default paths to look for
@@ -175,12 +157,47 @@ init_sshkeys () {
 	fi
 }
 
-# -- Ultimate WordPress Tools
-init_uwt () {
-        if [[ -a $ZSH_ROOT/ultimate-wordpress-tools/.zshrc ]]; then
-                _echo "-- Including Ultimate WordPress Tools"
-                source $ZSH_ROOT/ultimate-wordpress-tools/.zshrc
-	fi
-	export PATH=$PATH:$ZSH_ROOT/ultimate-wordpress-tools
+zshbop_check_migrate () {
+	if [ -f /usr/local/sbin/zsh ]; then echo "---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----"; fi
+	if [ -f $HOME/zsh ];then  echo "---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----"; fi
+	if [ -f $HOME/git/zsh ];then echo "---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----"; fi
+	echo "---- No need to migrate"
 }
 
+zshbop_migrate () {
+	if [ -f /usr/local/sbin/zsh ]; then
+		echo "---- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
+		mv /usr/local/sbin/zshbop
+	fi
+	if [ -f $HOME/zsh ]; then
+		echo "---- Moving $HOME/zsh to $HOME/zshbop"
+		mv $HOME/zsh $HOME/zshbop
+	fi
+	if [ -f $HOME/git/zsh ]; then
+		echo "---- Moving $HOME/git/zsh to $HOME/git/zshbop"
+	fi	
+}
+
+zshbop  () {
+	echo "---- ZSH_ROOT = $ZSH_ROOT"
+        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
+        echo "---- Running zshbop $BRANCH ----"
+}
+
+# -- Init
+init () {
+        #- Include functions file
+        _echo "-- Starting init"
+        init_path
+        source $ZSH_ROOT/functions.zshrc # Core functions
+        source $ZSH_ROOT/functions-tools.zshrc # Fucntions that are tools.
+        source $ZSH_ROOT/aliases.zsh
+        init_omz_plugins
+        init_antigen
+        init_defaults
+        init_sshkeys
+        neofetch
+        startup_motd
+        zshbop
+        zshbop_check_migrate
+}

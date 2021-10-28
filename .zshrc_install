@@ -14,9 +14,12 @@ ENABLE_ALL_SSH_KEYS=0
 #------------------------------------
 #- Detecting where zshbop might be installed
 if [ -d $HOME/zshbop ]; then export ZSH_ROOT=$HOME/zshbop;
+	echo "---- Loading from $ZSH_ROOT"
 elif [ -d $HOME/git/zshbop ]; then export ZSH_ROOT=$HOME/git/zshbop;
+	echo "---- Loading from $ZSH_ROOT"
 elif [ -d /usr/local/sbin/zshbop ]; then
         if [ -f /usr/local/sbin/zshbop/.zshrc ]; then export ZSH_ROOT=/usr/local/sbin/zshbop;fi
+	echo "---- Loading from $ZSH_ROOT"
 fi
 
 #- Sourcing main init file

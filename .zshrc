@@ -1,10 +1,8 @@
-# Welcome
 SCRIPT_NAME="zshbop"
-
 #- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 ZDOTDIR=$HOME
 
-# - Initlize jtzsh
+# - Initilize zshbop
 source $ZSH_ROOT/init.zshrc
 
 #- Include functions file
