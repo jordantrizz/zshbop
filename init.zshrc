@@ -167,14 +167,17 @@ zshbop_migrate () {
 	if [ -d /usr/local/sbin/zsh ]; then
 		echo "---- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
 		sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
+		echo "---- Make sure to copy /usr/local/sbin/zshbop/.zshrc_install to your .zshrc locations"	
 	fi
 	if [ -d $HOME/zsh ]; then
 		echo "---- Moving $HOME/zsh to $HOME/zshbop"
 		mv $HOME/zsh $HOME/zshbop
+		echo "---- Make sure to copy $HOME/zshbop/.zshrc_install to your .zshrc"
 	fi
 	if [ -d $HOME/git/zsh ]; then
 		echo "---- Moving $HOME/git/zsh to $HOME/git/zshbop"
 		mv $HOME/git/zsh $HOME/git/zshbop
+		echo "---- Make sure to copy $HOME/zshbop/.zshrc_install to your .zshrc"
 	fi	
 }
 
