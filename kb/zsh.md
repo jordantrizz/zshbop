@@ -31,10 +31,10 @@ sudo make -j 20 install
 * string == pattern
 * true if string matches pattern. The two forms are exactly equivalent. The ‘=’ form is the traditional shell syntax (and hence the only one generally used with the test and [ builtins); the ‘==’ form provides compatibility with other sorts of computer language.
 
-
 * string != pattern
 * true if string does not match pattern.
 * string =~ regexp
+* string -eq string
 
 ## Switches
 * -a file - true if file exists.

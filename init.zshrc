@@ -185,9 +185,9 @@ zshbop  () {
 	        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
 	        echo "---- Running zshbop $BRANCH ----"
 		echo "---- To switch branch type zshbop dev or zshbop master"
-	elfi [ $1 == "dev" ]; then
+	elif [ "$1" = "dev" ]; then
 		git -C $ZSH_ROOT checkout develop
-	elfi [ $1 == "master" ]; then
+	elif [ "$1" = "master" ]; then
 		git -C $ZSH_ROOT checkout master
 	fi
 }
