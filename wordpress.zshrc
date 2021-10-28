@@ -2,9 +2,9 @@
 
 # --- WordPress Alias
 wp-db () {
-	if [ -f wp-config.php]; then
+	if [ -f wp-config.php ]; then
 		grep 'DB' wp-config.php
-	elif [ -f ../wp-config.php]; then
+	elif [ -f ../wp-config.php ]; then
 		grep 'DB' ../wp-config.php
 	fi
 }
