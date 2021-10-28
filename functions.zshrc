@@ -71,7 +71,10 @@ _cexists () {
 
 ###-- Check Environment
 checkenv () {
-	echo "------------------------"
+	echo "---------------------------"
+	echo "Looking for default tools.."
+	echo "---------------------------"
+	echo ""
 	for i in $default_tools; do
 		if _cexists $i; then
 			echo "$i is $BGGREEN INSTALLED. $RESET"
@@ -79,15 +82,33 @@ checkenv () {
 			echo "$i is $BGRED MISSING. $RESET"
 		fi
 	done
+        echo "---------------------------"
+        echo "Looking for default tools.."
+        echo "---------------------------"
+        echo ""
+        for i in $extra_tools; do
+        if _cexists $i; then
+		echo "$i is $BGGREEN INSTALLED. $RESET"
+        else
+                echo "$i is $BGRED MISSING. $RESET"
+        fi
+        done
 	echo "--------------------------------------------"
-	echo "Run setup_environment to install above tools"
+	echo "Run installenv to install above tools"
 	echo "--------------------------------------------"
 
 }
 
 #### -- Setup Environment
 installenv () {
+        echo "---------------------------"
+        echo "Installing default tools.."
+        echo "---------------------------"
 	sudo apt install $default_tools
+        echo "---------------------------"
+        echo "Installing extra tools.."
+        echo "---------------------------"
+        sudo apt install $extra_tools
 	echo "gh - installed separately, run github-cli"
 	echo "install_environment - install more tools"
 	#keychain mosh traceroute mtr keychain pwgen tree ncdu fpart whois pwgen

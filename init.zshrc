@@ -58,7 +58,8 @@ fi
 
 # Default tools to install
 default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain')
-extra_tools=('pip')
+extra_tools=('pip' 'npm')
+pip_install=('ngxtop')
 
 # -----------------------
 # -- One line functions
