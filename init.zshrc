@@ -101,6 +101,7 @@ init_antigen () {
 
 # -- Load default zsh scripts
 init_defaults () {
+	# Load defaults
         _echo "-- Loading default scripts"
         source $ZSH_ROOT/defaults.zshrc
 
