@@ -3,10 +3,6 @@
 
 # - General Aliases
 alias joe="joe --wordwrap -nobackups"
-alias jp="joe --wordwrap -nobackups ~/.personal.zshrc"
-alias jz="joe --wordwrap -nobackups $ZSH_ROOT/.zshrc"
-alias jd="joe --wordwrap -nobackups $ZSH_ROOT/defaults.zshrc"
-alias jm="joe --wordwrap -nobackups $ZSH_ROOT/mac.zshrc"
 alias sbin="cd /usr/local/sbin"
 alias cpu="lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('"
 alias which="which -a"

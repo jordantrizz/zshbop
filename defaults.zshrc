@@ -45,13 +45,15 @@ export LANGUAGE=en_US.UTF-8
 # - Include OS Specific configuration
 # -----------------------------------
 if [[ $MACHINE == "Mac" ]] then
-        echo "- Loading mac.zshrc"
-        source $ZSH_ROOT/mac.zshrc
+        echo "- Loading os/mac.zshrc"
+        source $ZSH_ROOT/os/mac.zshrc
 elif [[ $MACHINE = "Linux" ]] then
 	if [[ $(uname -r) == "Microsoft" ]] then
-		echo "Microsoft WSL"
+		echo "- Loading os/wsl.zshrc"
+		source $ZSH_ROOT/os/wsl.zshrc
 	else
-        	source $ZSH_ROOT/linux.zshrc
+        	source $ZSH_ROOT/os/linux.zshrc
+        	echo "- Loading os/linux.zshrc"
         fi
 fi
 
