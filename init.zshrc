@@ -55,8 +55,12 @@ init () {
 
 # -- PATHS!
 init_path () {
+	# Default paths to look for
         export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT:$ZSH_ROOT/bin
         export PATH=$PATH:$HOME/.local/bin
+        
+        # Extra software
+        export PATH=$PATH:$ZSH_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
 }
 
 # -- Initialize oh-my-zsh plugins
