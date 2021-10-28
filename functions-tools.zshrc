@@ -49,10 +49,12 @@ vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/m
 csf-install () { cd /usr/src; rm -fv csf.tgz; wget https://download.configserver.com/csf.tgz; tar -xzf csf.tgz; cd csf; sh install.sh }
 github-cli () { sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0; sudo apt-add-repository https://cli.github.com/packages; sudo apt update; sudo apt install gh }
 
+# -- Git
+gcp () {
+	git commit -am "$*" &&	git push
+}
 
-# ------------------
-# -- Large Functions
-# ------------------
+# -- Setup Apps
 
 ubuntu-netselect () {
 	mkdir ~/tmp
