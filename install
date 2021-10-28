@@ -83,9 +83,9 @@ clone_repository() {
         if ! [ -d $1 ];then
                 echo -e "- Start Cloning repository into $1..."
                 if [ $BRANCH = "d" ]; then
-                        git clone --branch develop https://github.com/jordantrizz/zsh.git $1
+                        git clone --branch develop https://github.com/jordantrizz/zshbop.git $1
                 elif [ $BRANCH = "m" ]; then
-                        git clone https://github.com/jordantrizz/zsh.git $1
+                        git clone https://github.com/jordantrizz/zshbop.git $1
 		fi		
 		if [ $ULTB = "y" ]; then
 			echo -e "- Installing ULTB $1"
@@ -100,8 +100,8 @@ clone_repository() {
 
 setup_home() {
 	if ! [ -f $HOME/.zshrc ]; then
-		clone_repository "$HOME/zsh"
-	       	cp $HOME/zsh/.zshrc_install $HOME/.zshrc
+		clone_repository "$HOME/zshbop"
+	       	cp $HOME/zshbop/.zshrc_install $HOME/.zshrc
 	       	echo -e "- ZSH in-place, type zsh to start your shell\n"
 	else
 	       	echo -e "- There's already a .zshrc in-place, remove it and re-run\n"
@@ -113,11 +113,11 @@ setup_system() {
 	# Confirm that /usr/local/sbin exists
 	echo -e "Setting up system based .zshrc..."
 	SYSTEM=/usr/local/sbin
-	if ! [ -d "$SYSTEM/zsh" ]; then
-		echo -e " - Cloning into $SYSTEM/zsh\n"
-		clone_repository "$SYSTEM/zsh"
+	if ! [ -d "$SYSTEM/zshbop" ]; then
+		echo -e " - Cloning into $SYSTEM/zshbop\n"
+		clone_repository "$SYSTEM/zshbop"
 	else
-		echo -e " - $SYSTEM/zsh already exists\n"
+		echo -e " - $SYSTEM/zshbop already exists\n"
 		exit 1
 	fi
 	# Uncommented for now, need to review
@@ -125,10 +125,10 @@ setup_system() {
 	#if [ -f /etc/debian_version ]; then
 	#	echo -e " -- Detected Debian/Ubuntu OS"		
 	#fi
-	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zsh?"
+	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zshbop?"
 	
-	echo -e "Copied $SYSTEM/zsh/.zshrc_install to ~/.zshrc"
-	cp $SYSTEM/zsh/.zshrc_install ~/.zshrc
+	echo -e "Copied $SYSTEM/zshbop/.zshrc_install to ~/.zshrc"
+	cp $SYSTEM/zshbop/.zshrc_install ~/.zshrc
 
 }		
 
@@ -144,8 +144,8 @@ if [ $1 = "clean" ]; then
 	if [ $CLEAN = "y" ]; then
 		echo "Cleaning up!"		
 		rm ~/.zshrc
-		rm -rf /usr/local/sbin/zsh
-		rm -rf ~/zsh
+		rm -rf /usr/local/sbin/zshbop
+		rm -rf ~/zshbop
 		exit
 	else
 		echo "Aboring....Goodbye!"

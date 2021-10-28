@@ -1,4 +1,4 @@
-# totalzsh
+# zshbop
 This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 
 <a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
@@ -30,7 +30,7 @@ bash <(curl -sL https://zshrc.pl)
 
 ## Quick Install Development
 ```
-bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zsh/develop/install)
+bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install)
 ```
 
 ## Advanced Install
@@ -40,12 +40,12 @@ If you don't want to have zsh within your home directory, then use the following
 1. Ensure you have zsh shell
 ```apt-get install zsh```
 2. Clone repository to the directory of your choise
-```git clone https://github.com/jordantrizz/zsh```
+```git clone https://github.com/jordantrizz/zshbop```
 3. Copy .zshrc_install to ~/.zshrc or $HOME/.zshrc
 ```cp zsh/.zshrc_install ~/.zshrc```
 4. Edit $ZSH_ROOT variable in your new ~/.zshrc to the path to the git cloned repository
 ***WARNING: don't use ~ use $HOME instead, as tilde doesn't work with zsh***
-```sed -i 's/CHANGEME/zsh/g' .zshrc```
+```sed -i 's/CHANGEME/zshbop/g' .zshrc```
 5. Restart your terminal/shell
 </p>
 </details>
