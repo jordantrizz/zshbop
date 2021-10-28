@@ -77,12 +77,10 @@ init () {
         init_antigen
         init_defaults
         init_sshkeys
-        if [[ $ENABLE_ULTB == 1 ]]; then init_ultb; fi
-        if [[ $ENABLE_UWT == 1 ]]; then init_uwt; fi
         neofetch
         startup_motd
-        
-        echo "---- Running zshbop `git rev-parse --abbrev-ref HEAD` ----"
+        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
+        echo "---- Running zshbop $BRANCH ----"
 }
 
 # -- PATHS!
@@ -98,15 +96,6 @@ init_path () {
 	export PATH=$PATH:$ZSH_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
 	export PATH=$PATH:$ZSH_ROOT/bin/httpstat # https://github.com/reorx/httpstat
 
-	# Functions
-	source $ZSH_ROOT/bin/functions.zsh
-
-	# -- Mention some tools need to be installed.
-	if (( !$+commands[ls] )); then
-	        echo "pip doesn't exist?"
-	else
-	        echo "pip not installed, run ultb-install"
-	fi
 }
 
 # -- Initialize oh-my-zsh plugins
