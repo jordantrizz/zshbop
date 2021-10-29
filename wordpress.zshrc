@@ -1,5 +1,11 @@
 #!/usr/bin/env zsh
 
+# --- General WordPress Functions
+
+wp-help () {
+	echo " -- Welcome, this is currently a use at your own risk function"
+}
+
 # --- WordPress Alias
 wp-db () {
 	if [ -f wp-config.php ]; then
