@@ -2,7 +2,7 @@
 *[wpinfo.net - Gridpane Cheatsheet CLI](https://wpinfo.net/2021/05/13/gridpane-cli-cheatsheet/)
 
 # GridPane CLI Commands
-*gp fix clear-cache - clear entire server cache
+* gp fix clear-cache
 
 # General
 ## Set Default Site
@@ -90,3 +90,8 @@ Enable server wide
 * /opt/gridpane/maldet-all-sites-report.ids
 * /opt/gridpane/maldet-all-sites-scan.log
 * /usr/local/maldetect/logs/event_log
+
+# 7G Firewall
+## Logs
+* /var/www/{site.url}/logs/7g.log
+
