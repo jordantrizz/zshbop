@@ -19,6 +19,16 @@ case "${UNAME}" in
 esac
 echo "- Running in ${MACHINE}"
 
+zmodload zsh/mapfile
+export HISTSIZE=5000
+export PAGER='less -Q -j16'
+export EDITOR='joe'
+export BLOCKSIZE='K'
+export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+
 # Colors
 autoload colors
 if [[ "$terminfo[colors]" -gt 8 ]]; then
@@ -56,6 +66,14 @@ if [ -t 1 ]; then
   RESET=$(printf '\033[m')
 fi
 
+# ------------------
+# -- fzf keybindings
+# ------------------
+# Need to enable if fzf is available
+#[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
+####-- diff-so-fancy
+git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
+
 # Default tools to install
 default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain')
 extra_tools=('pip' 'npm')
@@ -77,7 +95,6 @@ init_path () {
 	export PATH=$PATH:$ZSH_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
 	export PATH=$PATH:$ZSH_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
 	export PATH=$PATH:$ZSH_ROOT/bin/httpstat # https://github.com/reorx/httpstat
-
 }
 
 # -- Initialize oh-my-zsh plugins
@@ -92,8 +109,8 @@ init_antigen () {
 	_echo "-- Loading Antigen"
         if [[ -a $ZSH_ROOT/antigen.zsh ]]; then
                 _debug "- Loading antigen from $ZSH_ROOT/antigen.zsh";
-		source $ZSH_ROOT/antigen.zsh
-		antigen init $ZSH_ROOT/.antigenrc
+		source $ZSH_ROOT/antigen.zsh > /dev/null 2>&1
+		antigen init $ZSH_ROOT/.antigenrc > /dev/null 2>&1
         else
                 _echo "	- Couldn't load antigen..";
         fi
@@ -101,10 +118,6 @@ init_antigen () {
 
 # -- Load default zsh scripts
 init_defaults () {
-	# Load defaults
-        _echo "-- Loading default scripts"
-        source $ZSH_ROOT/defaults.zshrc
-
         # Find out if we have personal ZSH scripts.
         printf "-- Loading personal ZSH scripts...\n"
         if [[ -a $ZSH_ROOT/zsh-personal/.zshrc || -L $ZSH_ROOT/zsh-personal/.zshrc ]]; then
@@ -125,6 +138,30 @@ init_defaults () {
         else
                 printf " - No personal ZSH config loaded\n"
         fi
+        
+	# Include OS Specific configuration
+	if [[ $MACHINE == "Mac" ]] then
+        	echo "- Loading os/mac.zshrc"
+	        source $ZSH_ROOT/os/mac.zshrc
+	elif [[ $MACHINE = "Linux" ]] then
+        	if [[ $(uname -r) == "Microsoft" ]] then
+                	echo "- Loading os/wsl.zshrc"
+	                source $ZSH_ROOT/os/wsl.zshrc
+	        else
+	                source $ZSH_ROOT/os/linux.zshrc
+        	        echo "- Loading os/linux.zshrc"
+	        fi
+	fi
+
+	# Include task specific files.
+	echo " -- Loading WordPress commands"
+	source $ZSH_ROOT/wordpress.zshrc
+
+	# --- Include custom configuration
+	if [ -f $HOME/.zshbop ]; then
+        	echo " -- Loading custom configuration"
+	        source $HOME/.zshbop
+	fi
 }
 
 # -- Load default SSH keys into keychain
