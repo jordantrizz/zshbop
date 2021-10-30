@@ -50,17 +50,18 @@ If you don't want to have zsh within your home directory, then use the following
 </p>
 </details>
 
-# Configuration
-There are quite a few configuration options you can set. You can set these options in the file `.zshrc_config` and use the following options.
+# Custom Configuration File
+If you have any custom variables, functions or zshbop specific configuration. You can add it to the .zshbop
 
-## Configuration Variables
+## Custom Configuration Examples
+There is a wrapper for exbin, if you specify the following variables in onof the custom configuration files.
+
 | Variable        	| Description                                                                                           | Values                     	| Default     	|
 |-----------------	|------------------------------------------------------------------------------------------------------ |----------------------------	|-------------	|
 | `EXBIN_TYPE`          | Choose either `netcat` or `api` for exbin posting.                                            | String                     	| `netcat`      	|
 | `EXBIN_HOST`        	| Exbin host, for netcat just the hostname and for api the full URL.                                    | String                  	| `exbin.call-cc.be` 	|
 | `EXBIN_PORT`		| If you don't use the standard 9999 port for exbin.							| Number			| `9999`		|
 
-## Example `.zshrc_config`
 ```
 EXBIN="https://exbin.call-cc.be/"
 ```
