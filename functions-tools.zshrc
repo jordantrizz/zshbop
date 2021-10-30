@@ -10,7 +10,10 @@ nginx-log-404 () {
 	if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
 	$CAT $1 | awk '($8 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn 
 	}
-gp-nginx-log-404 () { zcat $1 | awk '($10 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn }
+gp-nginx-log-404 () {
+	if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
+	$CAT $1 | awk '($10 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn }
+}
 
 # -- exim
 eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
