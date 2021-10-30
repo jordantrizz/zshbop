@@ -19,7 +19,7 @@ nginx-log-404 () {
 	else
 		if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
 		if [ ! -z $2 ]; then
-                        FULLCMD="$CAT $1 | egrep -v $2"
+                        FULLCMD="$CAT $1 | egrep -v '$2'"
                 else
                 	FULLCMD="$CAT $1"
                 fi
