@@ -7,7 +7,7 @@ pk () { ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'echo {};cat {};echo '------
 # -- nginx
 nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
 nginx-log-404 () { 
-	if [ isgzip ]; the CAT="cat"; else CAT="cat"; fi
+	if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
 	$CAT $1 | awk '($8 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn 
 	}
 gp-nginx-log-404 () { zcat $1 | awk '($10 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn }
@@ -73,10 +73,3 @@ setup-automysqlbackup () {
 }
 
 # -- General functions
-isgzip () {
-	if gzip -t $1; then 
-		true;
-	else 
-		false
-	fi
-}
