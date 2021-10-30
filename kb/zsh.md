@@ -17,6 +17,13 @@ cd /tmp/zsh
 ./configure
 sudo make -j 20 install
 ```
+# Arguments
+* $1 first argument
+* $@ all arguments
+*
+
+
+
 
 # Common if statements
 ## Check command

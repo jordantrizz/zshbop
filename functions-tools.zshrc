@@ -7,12 +7,30 @@ pk () { ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'echo {};cat {};echo '------
 # -- nginx
 nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
 nginx-log-404 () { 
-	if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
-	$CAT $1 | awk '($8 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn 
-	}
+	local CAT
+	local EGREP
+	local FULLCMD
+	if [ -z $1 ]; then 
+		echo "./$0 <logfile> <strip>"
+		echo "	<logfile> is a nginx log file."
+		echo "	<strip> is a list of file excludes"
+		echo ""
+		echo "	example: ./$0 access_log '.js|.css'"
+	else
+		if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
+		if [ ! -z $2 ]; then
+                        FULLCMD="$CAT $1 | egrep -i $2"
+                else
+                	FULLCMD="$CAT $1"
+                fi
+		eval $FULLCMD | awk '($8 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn
+		
+	fi
+}
+
 gp-nginx-log-404 () {
-	if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
-	$CAT $1 | awk '($10 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn }
+#	if [[ $1 == *.gz ]]; then CAT="zcat"; else CAT="cat"; fi
+#	$CAT $1 | awk '($10 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn }
 }
 
 # -- exim
