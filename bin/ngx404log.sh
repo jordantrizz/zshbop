@@ -1,4 +1,4 @@
-#!/bin/env zsh
+#!/usr/bin/env zsh
 nginx-log-404 () {
         local CAT
         local EGREP
