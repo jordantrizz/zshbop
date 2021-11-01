@@ -19,10 +19,11 @@ else
         else
         	FULLCMD="$CAT $1"
         fi
-        if [[ $2 -eq "n" ]]; then
+        if [ $2 = "n" ]; then
+        	echo $2
 		echo " -- Running nginx 404"
         	eval $FULLCMD | awk '($8 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn
-        elif [[ $2 -eq "g" ]]; then
+        elif [ $2 = "g" ]; then
         	echo " -- Running gridpane 404"
         	eval $FULLCMD | awk '($10 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn
         fi
