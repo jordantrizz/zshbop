@@ -109,12 +109,12 @@ installenv () {
         echo "Installing extra tools.."
         echo "---------------------------"
         sudo apt install $extra_tools
+	echo "---------------------------"
+	echo "Manual installs"
+	echo "---------------------------"
 	echo "gh - installed separately, run github-cli"
-	echo "install_environment - install more tools"
-	#keychain mosh traceroute mtr keychain pwgen tree ncdu fpart whois pwgen
-	#sudo apt install python-pip npm # Skipping python dependencies
-	#sudo pip install apt-select # Skipping python dependencies
-       	#sudo npm install -g gnomon # Skipping node dependencies
+	echo "gnomon - via npm"
+	echo "lsd - https://github.com/Peltoche/lsd"
 }
 
 #### -- Install Environment
