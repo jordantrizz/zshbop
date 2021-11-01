@@ -258,6 +258,6 @@ init () {
         startup_motd
         zshbop
         zshbop_check_migrate
-	echo "------------"
+	echo "-- Screen Sessions --"
         screen -list
 }
