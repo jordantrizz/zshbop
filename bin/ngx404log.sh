@@ -28,6 +28,6 @@ else
         	eval $FULLCMD | awk '($10 ~ /404/)' | awk '{print $8}' | sort | uniq -c | sort -rn
         elif
                 echo " -- Running Gridpane OLS 404"
-                RUNCMD="$FULLCMD | awk '($7 ~ /404/)' | awk '{print $9}' | sort | uniq -c | sort -rn"
-                eval $RUNCMD
+                echo "$FULLCMD | awk '(\$7 ~ /404/)' | awk '{print \$9}' | sort | uniq -c | sort -rn"
+                $FULLCMD | awk '($7 ~ /404/)' | awk '{print $9}' | sort | uniq -c | sort -rn
 fi
