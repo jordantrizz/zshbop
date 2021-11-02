@@ -11,3 +11,4 @@ curl --head https://google.com
 ```
 curl --head -L https://google.com
 ```
+
