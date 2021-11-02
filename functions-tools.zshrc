@@ -42,9 +42,6 @@ mysqlmax () { mysql -e "
 }
 
 
-# -- WSL Specific Aliases
-alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
-
 # -- Software
 vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash }
 csf-install () { cd /usr/src; rm -fv csf.tgz; wget https://download.configserver.com/csf.tgz; tar -xzf csf.tgz; cd csf; sh install.sh }

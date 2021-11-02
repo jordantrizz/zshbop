@@ -144,7 +144,7 @@ init_defaults () {
         	echo "- Loading os/mac.zshrc"
 	        source $ZSH_ROOT/os/mac.zshrc
 	elif [[ $MACHINE = "Linux" ]] then
-        	if [[ $(uname -r) == "Microsoft" ]] then
+        	if [[ $(uname -r) =~ "Microsoft" ]] then
                 	echo "- Loading os/wsl.zshrc"
 	                source $ZSH_ROOT/os/wsl.zshrc
 	        else
