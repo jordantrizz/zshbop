@@ -2,6 +2,8 @@
 
 # --- General WordPress Functions
 
+alias wp="wp --allow-root"
+
 wp-help () {
 	echo " -- Welcome, this is currently a use at your own risk function"
 }
