@@ -44,4 +44,6 @@ alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
 alias yabs='yabs.sh'
 
 # -- Screen
+alias screen="screen -c $ZSH_ROOT/.screenrc"
 alias screens="screen -list"
+
