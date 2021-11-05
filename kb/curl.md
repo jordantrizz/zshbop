@@ -11,4 +11,7 @@ curl --head https://google.com
 ```
 curl --head -L https://google.com
 ```
-
+## Check SSL Certificate
+```
+curl -vvI https://google.com
+```
