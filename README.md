@@ -4,21 +4,36 @@ This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
 <a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 <!--ts-->
-   * [jordantrizz/ZSH](#jordantrizzzsh)
-   * [Installation](#installation)
-      * [Quick Installation](#quick-installation)
-      * [Quick Install Development](#quick-install-development)
-      * [Advanced Install](#advanced-install)
-   * [Commands/Aliases](#commandsaliases)
-   * [Notes](#notes)
+* [zshbop](#zshbop)
+* [Installation](#installation)
+   * [Quick Installation](#quick-installation)
+   * [Quick Install Development](#quick-install-development)
+   * [Advanced Install](#advanced-install)
+* [Custom Configuration File](#custom-configuration-file)
+   * [Custom Configuration Examples](#custom-configuration-examples)
+* [Commands/Aliases](#commandsaliases)
+* [Installation Notes](#installation-notes)
+   * [macOS Installation Notes](#macos-installation-notes)
+   * [Windows Installation Notes](#windows-installation-notes)
+      * [WSL 1 vs WSL 2](#wsl-1-vs-wsl-2)
+      * [Upgrade WSL 1 to WSL 2](#upgrade-wsl-1-to-wsl-2)
+      * [WSL Subsystem](#wsl-subsystem)
       * [Windows Terminal](#windows-terminal)
-         * [Direct Font Files](#direct-font-files)
-         * [Script Install - Broken](#script-install---broken)
-      * [ZSH](#zsh)
-         * [CentOS 7   zsh 5.1.1](#centos-7--zsh-511)
-   * [ToDo](#todo)
+      * [VcXsrv (WSL Gui)](#vcxsrv-wsl-gui)
+   * [Font Installation Notes](#font-installation-notes)
+      * [Automatic Font Install](#automatic-font-install)
+      * [Manual Font Install](#manual-font-install)
+      * [macOS](#macos)
+      * [Windows](#windows)
+   * [Windows Terminal](#windows-terminal-1)
+      * [Script Install - Broken](#script-install---broken)
+   * [ZSH Installation Issues](#zsh-installation-issues)
+      * [CentOS 7 + zsh 5.1.1](#centos-7--zsh-511)
+* [ToDo](#todo)
+   * [Current Todo](#current-todo)
+   * [Random Notes](#random-notes)
 
-<!-- Added by: jtrask, at: Fri Dec 18 08:46:08 EST 2020 -->
+<!-- Added by: jtrask, at: Thu 18 Nov 2021 09:40:38 AM EST -->
 
 <!--te-->
 
