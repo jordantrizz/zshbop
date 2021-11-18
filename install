@@ -70,14 +70,11 @@ install_method() {
 	if [ $INSTALL = "d" ];then
 		INSTALL_LOCATION=s
 		BRANCH=m
-		ULTB=y
 	elif [ $INSTALL = "c" ]; then
 	        echo "Do you want to install system wide or home only? (s/h)"
 	        read INSTALL_LOCATION
 	        echo "(d)evelop or (m)aster Branch? (d/m)"
 	        read BRANCH
-	        echo "Include Ultimate Linux Toolbox? (y/n)"
-	        read ULTB
 	fi
 }
 
@@ -138,7 +135,7 @@ setup_system() {
 # Main Code
 #--------------------
 
-if [ CMD = "clean" ]; then
+if [ $CMD = "clean" ]; then
 	echo "### REMOVING jtZSH ###"
 	echo "Continue (y/n)?"
 	read CLEAN
@@ -154,12 +151,16 @@ if [ CMD = "clean" ]; then
 		exit
 	fi
 fi
-	
+
+if [ $CMD = "default" ]; then
+	INSTALL="d"
+else
+	install_method
+fi	
 
 echo -e "-- Pre-flight Check"
 flight_check
 echo -e "-- Begin Install"
-install_method
 
 if [ $INSTALL = "d" ]; then
 	setup_system
