@@ -75,6 +75,27 @@ You can also review [help/commands.md](Commands)
 Nothing at this time!
 
 ## Windows Installation Notes
+### WSL 1 vs WSL 2
+Don't know much now. But I needed to upgrade and this is the way to do it!
+
+Open a command prompt on Windows 10 and run the following command to confirm what version of WSL you're running.
+```
+wsl --list --verbose
+```
+### Upgrade WSL 1 to WSL 2
+I used this guide https://www.tenforums.com/tutorials/164301-how-update-wsl-wsl-2-windows-10-a.html
+
+* Upgrade WSL
+```
+dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+```
+* 
+The following enables the Virtual Machine Platform. This is important for WSL 2 for some reason. https://docs.microsoft.com/en-us/windows/wsl/faq#does-wsl-2-use-hyper-v--will-it-be-available-on-windows-10-home-
+```
+dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+```
+* Restart your Computer
+
 ### WSL Subsystem
 You'll need the WSL Subsystem installed.
 * Open PowerShell as Administrator and run
