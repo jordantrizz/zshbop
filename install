@@ -1,7 +1,9 @@
 #!/bin/bash
-#
-# This script will install zsh within your home directory or within /usr/local/sbin
-#
+# -- zshbop Install script
+
+# -- Variables
+CMD=$1
+
 
 #--------------------
 # Functions
@@ -136,7 +138,7 @@ setup_system() {
 # Main Code
 #--------------------
 
-if [ $1 = "clean" ]; then
+if [ CMD = "clean" ]; then
 	echo "### REMOVING jtZSH ###"
 	echo "Continue (y/n)?"
 	read CLEAN
@@ -159,7 +161,7 @@ flight_check
 echo -e "-- Begin Install"
 install_method
 
-if [ $INSTALL = "d" ];then
+if [ $INSTALL = "d" ]; then
 	setup_system
 elif [ $INSTALL = "c" ]; then
 	if [ $INSTALL_LOCATION = "s" ]; then
