@@ -81,16 +81,11 @@ install_method() {
 clone_repository() {
         if ! [ -d $1 ];then
                 echo -e "- Start Cloning repository into $1..."
-                if [ $BRANCH = "d" ]; then
+                if [[ $BRANCH = "d" ]]; then
                         git clone --branch develop https://github.com/jordantrizz/zshbop.git $1
-                elif [ $BRANCH = "m" ]; then
+                elif [[ $BRANCH = "m" ]]; then
                         git clone https://github.com/jordantrizz/zshbop.git $1
 		fi		
-		if [ $ULTB = "y" ]; then
-			echo -e "- Installing ULTB $1"
-			cd $1
-	                git submodule update --init --recursive
-        	fi
         else
                 echo -e "- Directory $1 exists...exiting."
                 exit 1
