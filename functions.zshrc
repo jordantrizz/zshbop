@@ -13,9 +13,7 @@ _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 
 # -- General functions
 cmd () { } # describe all aliases (notworking)
-rld () { 
-	init
-}
+rld () { init }
 cc () { antigen reset; rm ~/.zshrc.zwc } # clear cache
 
 #### -- help
