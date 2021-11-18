@@ -157,11 +157,11 @@ flight_check
 echo -e "-- Begin Install"
 
 if [[ $CMD = "default" ]]; then
-        INSTALL="d"
+        INSTALL=d
 elif [[ $CMD = "home" ]]; then
-        INSTALL="c"
-        BRANCH="m"
-        INSTALL_LOCATION="h"
+        INSTALL=c
+        BRANCH=m
+        INSTALL_LOCATION=h
 else
 	install_method
 fi
