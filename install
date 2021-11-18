@@ -94,7 +94,7 @@ clone_repository() {
 
 setup_home() {
 	if ! [ -f $HOME/.zshrc ]; then
-		if [ $1 == "git" ]; then
+		if [[ $1 == "git" ]]; then
 			setup_home_path = "$HOME/git"
 		else
 			setup_home_path = "$HOME"
@@ -162,6 +162,10 @@ elif [[ $CMD == "home" ]]; then
         INSTALL=c
         BRANCH=m
         INSTALL_LOCATION=h
+elif [[ $CMD == "git" ]]; then
+	INSTAL=c
+	BRANCH=d
+	INSTALL_LOCATION=g
 else
 	install_method
 fi
