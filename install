@@ -103,7 +103,7 @@ setup_home() {
 		fi
 		clone_repository "$SETUP_PATH/zshbop"
 	       	cp $SETUP_PATH/zshbop/.zshrc_install $HOME/.zshrc
-	       	echo -e "- ZSH in-place at SETUP_PATH, type zsh to start your shell\n"
+	       	echo -e "- ZSH in-place at $SETUP_PATH, type zsh to start your shell\n"
 	else
 	       	echo -e "- There's already a .zshrc in-place, remove it and re-run\n"
 	       	exit 1
