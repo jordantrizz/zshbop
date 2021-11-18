@@ -135,7 +135,7 @@ setup_system() {
 # Main Code
 #--------------------
 
-if [ $CMD = "clean" ]; then
+if [[ $CMD = "clean" ]]; then
 	echo "### REMOVING jtZSH ###"
 	echo "Continue (y/n)?"
 	read CLEAN
@@ -152,7 +152,7 @@ if [ $CMD = "clean" ]; then
 	fi
 fi
 
-if [ $CMD = "default" ]; then
+if [[ $CMD = "default" ]]; then
 	INSTALL="d"
 else
 	install_method
