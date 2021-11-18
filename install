@@ -96,8 +96,10 @@ setup_home() {
 	if ! [ -f $HOME/.zshrc ]; then
 		if [[ $1 == "git" ]]; then
 			setup_home_path = "$HOME/git"
+			echo "- Install path - $setup_home_path"
 		else
 			setup_home_path = "$HOME"
+			echo "- Install path - $setup_home_path"
 		fi
 		clone_repository "$setup_home_path/zshbop"
 	       	cp $setup_home_path/zshbop/.zshrc_install $HOME/.zshrc
@@ -163,16 +165,16 @@ elif [[ $CMD == "home" ]]; then
         BRANCH=m
         INSTALL_LOCATION=h
 elif [[ $CMD == "git" ]]; then
-	INSTAL=c
+	INSTALL=c
 	BRANCH=d
 	INSTALL_LOCATION=g
 else
 	install_method
 fi
 
-if [ $INSTALL == "d" ]; then
+if [[ $INSTALL == "d" ]]; then
 	setup_system
-elif [ $INSTALL == "c" ]; then
+elif [[ $INSTALL == "c" ]]; then
 	if [ $INSTALL_LOCATION == "s" ]; then
 	        setup_system
 	elif [ $INSTALL_LOCATION == "h" ]; then
