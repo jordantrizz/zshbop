@@ -152,18 +152,18 @@ if [[ $CMD = "clean" ]]; then
 	fi
 fi
 
-if [[ $CMD = "default" ]]; then
-	INSTALL="d"
-elif [[ $CMD = "home" ]]; then
-	INSTALL="c"
-	INSTALL_LOCATION="h"
-else
-	install_method
-fi	
-
 echo -e "-- Pre-flight Check"
 flight_check
 echo -e "-- Begin Install"
+
+if [[ $CMD = "default" ]]; then
+        INSTALL="d"
+elif [[ $CMD = "home" ]]; then
+        INSTALL="c"
+        INSTALL_LOCATION="h"
+else
+	install_method
+fi
 
 if [ $INSTALL = "d" ]; then
 	setup_system
