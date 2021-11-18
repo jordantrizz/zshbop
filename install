@@ -95,10 +95,10 @@ clone_repository() {
 setup_home() {
 	if ! [ -f $HOME/.zshrc ]; then
 		if [[ $1 == "git" ]]; then
-			setup_home_path = "$HOME/git"
+			setup_home_path="$HOME/git"
 			echo "- Install path - $setup_home_path"
 		else
-			setup_home_path = "$HOME"
+			setup_home_path="$HOME"
 			echo "- Install path - $setup_home_path"
 		fi
 		clone_repository "$setup_home_path/zshbop"
