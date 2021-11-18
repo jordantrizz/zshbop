@@ -13,7 +13,9 @@ _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 
 # -- General functions
 cmd () { } # describe all aliases (notworking)
-rld () { source $ZSH_ROOT/.zshrc }
+rld () { 
+	init
+}
 cc () { antigen reset; rm ~/.zshrc.zwc } # clear cache
 
 #### -- help
@@ -29,10 +31,6 @@ help () {
         echo " checkenv - check environment tools"
         echo " installenv - install environment tools via apt"
         echo " customenv - install custom environment tools"
-}
-
-startup_motd () {
-	echo "---- Run checkenv to make sure you have all the right tools! ----"
 }
 
 #### -- kb

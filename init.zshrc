@@ -254,10 +254,13 @@ init () {
         init_antigen
         init_defaults
         init_sshkeys       
+}
+
+startup_motd () {
         neofetch
-        startup_motd
         zshbop
         zshbop_check_migrate
-	echo "-- Screen Sessions --"
+        echo "-- Screen Sessions --"
         screen -list
+        echo "---- Run checkenv to make sure you have all the right tools! ----"
 }

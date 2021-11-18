@@ -31,3 +31,4 @@ umask 022
 
 #- Let's start init
 init 
+startup_motd
