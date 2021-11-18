@@ -100,17 +100,15 @@ wsl --list --verbose
 ### Upgrade WSL 1 to WSL 2
 I used this guide https://www.tenforums.com/tutorials/164301-how-update-wsl-wsl-2-windows-10-a.html
 
-1.  Upgrade WSL
-```
-dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
-```
-2.
-The following enables the Virtual Machine Platform. This is important for WSL 2 for some reason. https://docs.microsoft.com/en-us/windows/wsl/faq#does-wsl-2-use-hyper-v--will-it-be-available-on-windows-10-home-
-```
-dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
-```
+1.  Upgrade WSL via elevated PowerShell 
+    ```dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart```
+2. Install VMP via elevated PowerShell. The following enables the Virtual Machine Platform. This is important for WSL 2 for some reason. https://docs.microsoft.com/en-us/windows/wsl/faq#does-wsl-2-use-hyper-v--will-it-be-available-on-windows-10-home-
+    ```dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart```
 3. Restart your Computer
-
+4. Set WSL to version 2
+    ```wsl --set-default-version 2```
+5. Convert your existing linux distro from WSL 1 to 2
+    ``` wsl --set-version <distro_name> 2```
 ### WSL Subsystem
 You'll need the WSL Subsystem installed.
 * Open PowerShell as Administrator and run
