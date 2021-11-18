@@ -109,6 +109,7 @@ I used this guide https://www.tenforums.com/tutorials/164301-how-update-wsl-wsl-
     ```wsl --set-default-version 2```
 5. Convert your existing linux distro from WSL 1 to 2
     ``` wsl --set-version <distro_name> 2```
+Note: If you have an error converting your distro, look at this thread https://github.com/microsoft/WSL/issues/4929
 ### WSL Subsystem
 You'll need the WSL Subsystem installed.
 * Open PowerShell as Administrator and run
