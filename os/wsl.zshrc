@@ -13,11 +13,14 @@ function wsl () {
 
 function fixscreen () {
 	# -- Screen fix https://github.com/microsoft/WSL/issues/1245 
-	sudo /etc/init.d/screen-cleanup start
+	if [ -d "/run/screen" ]; then
+	else
+		sudo /etc/init.d/screen-cleanup start
+	fi
 }
 
 # -- Aliases
 alias traceroute="sudo traceroute -M icmp"
 
 # -- Init
-#fixscreen
+fixscreen
