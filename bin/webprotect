@@ -1,0 +1,115 @@
+#!/usr/bin/perl
+#
+# Webprotect - A unified script for simple webspace directory protection and
+#              authorized user management
+#
+# Copyright 1997 Rick Franchuk - TranSpecT Consulting for NetNation Communications
+#
+# $Id: webprotect,v 1.1 1997/05/22 02:55:29 root Exp $
+#
+# $Log: webprotect,v $
+# Revision 1.1  1997/05/22 02:55:29  root
+# Initial revision
+#
+# Nov 2001 - Fix to accommodate spaces. Chris Marchesi (chrism\@netnation.com)
+
+
+sub dodie {
+  die "\nwebprotect - Simple webspace password protection/user management tool\n\n@_\n";
+}
+
+$pwd      = `pwd`; chop $pwd;
+$function = shift @ARGV;
+
+die '
+webprotect - Simple webspace password protection/user management tool
+
+Usage: webprotect [function [user]]
+
+webprotect prot      - Password-protect the current directory
+webprotect unprot    - Remove protection from the current directory  
+webprotect add USER  - Add or change the password of "USER"
+webprotect del USER  - Remove "USER" from the authorized list
+
+Revision: $Id: webprotect,v 1.1 1997/05/22 02:55:29 root Exp $
+' if($function eq "" || $function !~ /^(prot|unprot|add|del)/);
+
+dodie "ERROR: You don't own this directory." if(! -O "." && $<!=0 && $<!=80);
+
+# Protect directory
+if($function =~ /^prot/i) {
+  dodie "ERROR: This directory is already protected." if( -f ".htaccess");
+
+  open(HTP, ">> .htpasswd") || dodie "ERROR: You don't have permission to protect this directory.";
+  close HTP;
+
+  open(OUT, "> .htaccess") || dodie "ERROR: You don't have permission to protect this directory.";
+  print OUT "<LIMIT GET POST>
+Require valid-user
+</LIMIT>
+
+AuthType     Basic
+AuthName     this_protected_area
+AuthUserFile \"$pwd/.htpasswd\"
+";
+  close OUT;
+
+  print '
+webprotect - Simple webspace password protection/user management tool
+
+SUCCESS: Directory now requires password authorization when viewed from a web browser.
+You\'ll probably want to add some authorized members using the "webprotect add" command.
+';
+  exit;
+}
+
+# All functions from here on need an existing ".htaccess" file
+dodie "ERROR: Directory is not protected." if(! -f ".htaccess");
+
+# Unprotect Directory
+if($function =~ /^unprot/i) {
+  dodie "ERROR: You don't have permission to unprotect this directory." if(! -w ".htaccess" || ! unlink ".htaccess");
+
+# Unlink the .htpasswd file if it exists, don't bitch if it doesn't
+  unlink ".htpasswd";
+
+  print '
+webprotect - Simple webspace password protection/user management tool
+
+SUCCESS: The directory has been unprotected.
+';
+  exit;
+}
+
+# All functions from here on need a username
+$user = shift @ARGV;
+dodie "ERROR: The '$function' function needs a username. Try\n\nwebprotect $function USER" if($user eq "");
+
+# All functions from here need a writable password file
+dodie "ERROR: You don't have permission to modify the password file." if( -f ".htpasswd" && ! -w ".htpasswd");
+
+# Add a user to .htpasswd
+if($function =~ /^add/i) {
+  exec "/usr/bin/htpasswd .htpasswd $user" if( -f ".htpasswd" );
+  exec "/usr/bin/htpasswd -c .htpasswd $user"  if(! -f ".htpasswd");
+
+  dodie "ERROR: *MAJOR PROBLEM!* Please inform support\@netnation.com immediately!";
+}
+
+# Delete a user
+open(IN, "< .htpasswd") || dodie "ERROR: You don't have permission to read the password file.";
+@tmp = <IN>;
+close IN;
+
+$flag = 0;
+foreach(@tmp) { if(/^$user:/) { $flag =1 ; last; } }
+dodie "Couldn't find user '$user'. Typo? Remember, upper/lowercase counts..." if($flag == 0);
+
+open(OUT, "> .htpasswd") || dodie "ERROR: Problem writing new .htpasswd file. Please inform support\@netnation.com";
+foreach(@tmp) {
+  next if(/^$user:/);
+  print OUT $_;
+}
+close OUT;
+
+print "\nwebprotect - Simple webspace password protection/user management tool\n\nSUCCESS: User '$user' has been removed.\n";
