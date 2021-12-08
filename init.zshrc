@@ -261,6 +261,10 @@ startup_motd () {
         zshbop
         zshbop_check_migrate
         echo "-- Screen Sessions --"
-        screen -list
+	if _cexists screen; then
+		screen -list
+	else
+		echo "** Screen not installed"
+	fi
         echo "---- Run checkenv to make sure you have all the right tools! ----"
 }
