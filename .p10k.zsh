@@ -637,7 +637,11 @@
   typeset -g POWERLEVEL9K_CONTEXT_BACKGROUND=0
 
   # Fix for %M not providing a fully qualified hostname
-  HOSTNAME=$(hostname -f)
+  if hostname -af; then
+  	HOSTNAME=$(hostname -f)
+  else 
+	HOSTNAME=$(hostname)
+  fi
 
   # Context format when running with privileges: user@hostname.
   typeset -g POWERLEVEL9K_CONTEXT_ROOT_TEMPLATE="%n@$HOSTNAME"
