@@ -75,7 +75,7 @@ fi
 git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
 
 # Default tools to install
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain')
+default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois')
 extra_tools=('pip' 'npm')
 pip_install=('ngxtop' 'apt-select')
 
