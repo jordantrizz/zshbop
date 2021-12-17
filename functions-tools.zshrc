@@ -56,7 +56,6 @@ repos () {
 	else
 		if [ $1 = 'gp-tools' ]; then
 			echo "-- Installing gp-tools repo"
-			mkdir $ZSH_ROOT/repos
 			git clone https://github.com/jordantrizz/gp-tools.git $ZSH_ROOT/repos/gp-tools
 		fi
 	fi	
