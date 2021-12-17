@@ -95,6 +95,9 @@ init_path () {
 	export PATH=$PATH:$ZSH_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
 	export PATH=$PATH:$ZSH_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
 	export PATH=$PATH:$ZSH_ROOT/bin/httpstat # https://github.com/reorx/httpstat
+	
+	# Repos
+	export PATH=$PATH:$ZSH_ROOT/repos/gp-tools
 }
 
 # -- Initialize oh-my-zsh plugins
