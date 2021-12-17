@@ -132,6 +132,13 @@ update () {
 		git -C $ZSH_PERSONAL_DIR pull
 	fi
 
+	# Update repos
+	for name in $ZSH_ROOT/repos/*
+	do 
+		echo "-- Updating repo $name"
+		git -C $name pull
+	done
+
         # Reload scripts
         echo "--- Type rld to reload zshbop"
 }
