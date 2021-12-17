@@ -47,7 +47,23 @@ vhwinfo () { wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/m
 csf-install () { cd /usr/src; rm -fv csf.tgz; wget https://download.configserver.com/csf.tgz; tar -xzf csf.tgz; cd csf; sh install.sh }
 github-cli () { sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0; sudo apt-add-repository https://cli.github.com/packages; sudo apt update; sudo apt install gh }
 
-# -- Git
+# -- Git Repositories
+repos () { 
+	if [ ! $1 ]; then
+		echo "repos <reponame>"
+		echo "--"
+		echo "gp-tools		-GridPane Tools"
+	else
+		if [ $1 = 'gp-tools' ]; then
+			echo "-- Installing gp-tools repo"
+			mkdir $ZSH_ROOT/repos
+			git clone https://github.com/jordantrizz/gp-tools.git $ZSH_ROOT/repos/gp-tools
+		fi
+	fi	
+}
+
+
+# -- Git Commands
 gcp () {
 	git commit -am "$*" &&	git push
 }
