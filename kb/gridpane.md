@@ -27,6 +27,7 @@
 
 ## Monit
 * gp site monit -ssl-renewal
+* gpmonit mysql 
 
 # MySQL
 ## MySQL Root Login
