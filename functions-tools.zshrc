@@ -52,6 +52,10 @@ mysqltablesize () { mysql -e "SELECT table_name AS \"Table\", ROUND(((data_lengt
 help_mysql[mysqldbrowsize]='Get number of rows in a table'
 mysqldbrowsize () { mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ;" }
 
+# - mysqldatafree
+help_mysql[mysqldatafree]='List tables that have white space'
+mysqldatafree () { mysql -e "SELECT ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables  where  DATA_FREE > 0;" }
+
 # - msds
 help_mysql[msds]='Undocumented'
 msds () { zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" } # needs to be documented.
