@@ -16,9 +16,6 @@ cmd () { } # describe all aliases (notworking)
 rld () { init }
 cc () { antigen reset; rm ~/.zshrc.zwc } # clear cache
 
-# -- Help
-include $ZSH_DIR/help.zshrc
-
 # -- Knowledge Base
 # A built in knowledge base.
 kb () {
