@@ -16,22 +16,10 @@ cmd () { } # describe all aliases (notworking)
 rld () { init }
 cc () { antigen reset; rm ~/.zshrc.zwc } # clear cache
 
-#### -- help
-help () {
-        echo "General help for $SCRIPT_NAME"
-        echo " ------------------------------ "
-        echo " kb - Knowledge Base"
-        echo " help - this command"
-        echo " rld - reload this script"
-        echo " cc - clear antigen cache"
-        echo " update - update this script"
-        echo " options - list all zsh functions"
-        echo " checkenv - check environment tools"
-        echo " installenv - install environment tools via apt"
-        echo " customenv - install custom environment tools"
-}
+# -- Help
+include $ZSH_DIR/help.zshrc
 
-#### -- kb
+# -- Knowledge Base
 # A built in knowledge base.
 kb () {
         if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
