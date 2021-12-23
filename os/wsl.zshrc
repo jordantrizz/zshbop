@@ -19,6 +19,12 @@ function fixscreen () {
 	fi
 }
 
+#### -- Copy Windows Terminal Config
+cp_wtconfig () {
+        cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/profiles.json  $ZSH_ROOT/windows_terminal.json
+}
+
+
 # -- Aliases
 alias traceroute="sudo traceroute -M icmp"
 
