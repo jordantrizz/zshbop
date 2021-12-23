@@ -8,16 +8,18 @@
 # -----------------------
 
 # -- Core functions
+typeset -gA help_core
 _echo () { echo "$@" }
 _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 
-# -- General functions
-cmd () { } # describe all aliases (notworking)
-rld () { init }
-cc () { antigen reset; rm ~/.zshrc.zwc } # clear cache
+# - mysqldbsize
+cmd () { }; help_core[cmd]='broken'
+rld () { init } ; help_core[rld]='Reload $SCRIPT'
+cc () { antigen reset; rm ~/.zshrc.zwc } ; help_core[cc]='Clear antigen and zsh cache'# clear cache
 
 # -- Knowledge Base
 # A built in knowledge base.
+help_core[kb]='knowledge base'
 kb () {
         if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
 
@@ -51,6 +53,7 @@ _cexists () {
 }
 
 ###-- Check Environment
+help_core[checkenv]='check environment for installed software and tools'
 checkenv () {
 	echo "---------------------------"
 	echo "Looking for default tools.."
@@ -81,6 +84,7 @@ checkenv () {
 }
 
 #### -- Setup Environment
+help_core[installenv]='install software and tools into environment'
 installenv () {
         echo "---------------------------"
         echo "Installing default tools.."
@@ -106,6 +110,7 @@ customenv () {
 }
 
 #### -- Update
+help_core[update]='update zshbop'
 update () {
 	# Pull zshbop
 	echo "--- Pulling zshbop updates"
@@ -139,21 +144,6 @@ options () {
     for plugin in $plugins; do
         _echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
     done
-}
-
-#### -- Copy Windows Terminal Config
-cp_wtconfig () {
-	cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/profiles.json  $ZSH_ROOT/windows_terminal.json
-}
-
-#### -- Configure git
-git_config () {
-	vared -p "Name? " -c GIT_NAME
-	vared -p "Email? " -c GIT_EMAIL
-	git config --global user.email $GIT_EMAIL
-	git config --global user.name $GIT_NAME
-	git config --global --get user.email
-	git config --global --get user.name
 }
 
 # ---- Add SSH Key
