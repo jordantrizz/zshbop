@@ -66,23 +66,25 @@ mysqlmyisam () { mysql -e "select table_schema,table_name,engine,table_collation
 
 # - mysqlmax
 help_mysql[msds]='Maximum potential memory usage by MySQL'
-mysqlmax () { mysql -e "
-	SELECT ( @@key_buffer_size
-	+ @@innodb_buffer_pool_size
-	+ @@innodb_log_buffer_size
-	+ @@max_allowed_packet
-	+ @@max_connections * ( 
-	    @@read_buffer_size
-	    + @@read_rnd_buffer_size
-	    + @@sort_buffer_size
-	    + @@join_buffer_size
-	    + @@binlog_cache_size
-	    + @@net_buffer_length
-	    + @@net_buffer_length
-	    + @@thread_stack
-	    + @@tmp_table_size )
-	) / (1024 * 1024 * 1024) AS MAX_MEMORY_GB;"
-}
+mysqlmax() { mysqltuner.pl | grep "Maximum possible memory usage" }
+# Broken, needs fixing!
+#mysqlmax () { mysql -e "
+#	SELECT ( @@key_buffer_size
+#	+ @@innodb_buffer_pool_size
+#	+ @@innodb_log_buffer_size
+#	+ @@max_allowed_packet
+#	+ @@max_connections * ( 
+#	    @@read_buffer_size
+#	    + @@read_rnd_buffer_size
+#	    + @@sort_buffer_size
+#	    + @@join_buffer_size
+#	    + @@binlog_cache_size
+#	    + @@net_buffer_length
+#	    + @@net_buffer_length
+#	    + @@thread_stack
+#	    + @@tmp_table_size )
+#	) / (1024 * 1024 * 1024) AS MAX_MEMORY_GB;"
+#}
 
 
 # -- Software
