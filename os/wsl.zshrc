@@ -22,6 +22,7 @@ function fixscreen () {
 #### -- Copy Windows Terminal Config
 backup_wt () {
         cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json  $ZSH_ROOT/os/wt_settings.json
+        gcp "Backup of Windows Terminals settings.json"
 }
 
 
