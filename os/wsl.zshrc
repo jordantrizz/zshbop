@@ -20,8 +20,8 @@ function fixscreen () {
 }
 
 #### -- Copy Windows Terminal Config
-cp_wtconfig () {
-        cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/profiles.json  $ZSH_ROOT/windows_terminal.json
+backup_wt () {
+        cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json  $ZSH_ROOT/os/wt_settings.json
 }
 
 
