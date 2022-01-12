@@ -15,7 +15,10 @@ _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 # - mysqldbsize
 cmd () { }; help_core[cmd]='broken'
 rld () { init } ; help_core[rld]='Reload $SCRIPT'
-cc () { antigen reset; rm ~/.zshrc.zwc } ; help_core[cc]='Clear antigen and zsh cache'# clear cache
+cc () { # clear antigen cache 
+	antigen reset; rm ~/.zshrc.zwc 
+	help_core[cc]='Clear antigen and zsh cache' 
+}
 
 # -- Knowledge Base
 # A built in knowledge base.
