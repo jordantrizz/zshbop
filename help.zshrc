@@ -42,17 +42,22 @@ help_intro () {
         echo " help mysql"
 
 }
-# -- Mysql
+# -- Core commands
 help_core_cmd () {
         for key value in ${(kv)help_core}; do
                 echo "    $key			- $value"
-        done
+        done        
 }
 
-# -- Mysql
+# -- MySQL commands
 help_mysql_cmd () {
         for key value in ${(kv)help_mysql}; do
                 echo "    $key			- $value"
+        done
+        echo ""
+        echo " -- Scripts"
+        for key value in ${(kv)help_mysql_scripts}; do
+                echo "    $key                  - $value"
         done
 }
 
