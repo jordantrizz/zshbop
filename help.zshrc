@@ -35,7 +35,7 @@ help_intro () {
 	echo " help all		- List all commands"
 	echo " help core	- List core commands"
 	echo " help mysql	- List mysql commands"
-	ehco " help ssh		- List ssh commands"
+	echo " help ssh		- List ssh commands"
 	echo ""
         echo "Examples:"
         echo " --"
