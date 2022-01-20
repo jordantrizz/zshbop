@@ -8,8 +8,8 @@ help () {
         if [ ! $1 ]; then
         	help_intro
         else
-        	echo "** $HCMD Commands **"
-		echo "--------------------"
+        	echo "-- $HCMD"
+		echo "**********************"
                 if [ "$HCMD" = "all" ]; then 
                 	echo "-- core --"
                 	help_core_cmd
@@ -51,6 +51,7 @@ help_core_cmd () {
 
 # -- MySQL commands
 help_mysql_cmd () {
+	echo " -- Commands"
         for key value in ${(kv)help_mysql}; do
                 echo "    $key			- $value"
         done

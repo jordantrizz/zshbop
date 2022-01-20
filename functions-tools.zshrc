@@ -39,6 +39,7 @@ check_ssl () { echo | openssl s_client -showcerts -servername $1 -connect $1:443
 #-------------------
 # Init help array
 typeset -gA help_mysql
+typeset -gA help_mysql_scripts
 
 # Add scripts
 help_mysql_scripts[maxmysqlmem]='Calculate maximum MySQL memory'
