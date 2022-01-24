@@ -42,30 +42,6 @@ eval RESET='$reset_color'
 eval BGRED='$bg[red]'
 eval BGGREEN='$bg[green]'
 
-local -a RAINBOW
-local RED GREEN YELLOW BLUE BOLD DIM UNDER RESET
-
-if [ -t 1 ]; then
-  RAINBOW=(
-    "$(printf '\033[38;5;196m')"
-    "$(printf '\033[38;5;202m')"
-    "$(printf '\033[38;5;226m')"
-    "$(printf '\033[38;5;082m')"
-    "$(printf '\033[38;5;021m')"
-    "$(printf '\033[38;5;093m')"
-    "$(printf '\033[38;5;163m')"
-  )
-
-#  RED=$(printf '\033[31m')
-#  GREEN=$(printf '\033[32m')
-#  YELLOW=$(printf '\033[33m')
-#  BLUE=$(printf '\033[34m')
-#  BOLD=$(printf '\033[1m')
-#  DIM=$(printf '\033[2m')
-#  UNDER=$(printf '\033[4m')
-#  RESET=$(printf '\033[m')
-fi
-
 # ------------------
 # -- fzf keybindings
 # ------------------
