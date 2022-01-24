@@ -56,14 +56,14 @@ if [ -t 1 ]; then
     "$(printf '\033[38;5;163m')"
   )
 
-  RED=$(printf '\033[31m')
-  GREEN=$(printf '\033[32m')
-  YELLOW=$(printf '\033[33m')
-  BLUE=$(printf '\033[34m')
-  BOLD=$(printf '\033[1m')
-  DIM=$(printf '\033[2m')
-  UNDER=$(printf '\033[4m')
-  RESET=$(printf '\033[m')
+#  RED=$(printf '\033[31m')
+#  GREEN=$(printf '\033[32m')
+#  YELLOW=$(printf '\033[33m')
+#  BLUE=$(printf '\033[34m')
+#  BOLD=$(printf '\033[1m')
+#  DIM=$(printf '\033[2m')
+#  UNDER=$(printf '\033[4m')
+#  RESET=$(printf '\033[m')
 fi
 
 # ------------------
@@ -169,37 +169,46 @@ init_defaults () {
 
 # -- Load default SSH keys into keychain
 init_sshkeys () {
-	_echo "-- Loading SSH keychain"
-	if (( $+commands[keychain] )); then
-	        # Load default SSH key
-	        _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
-        	if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
-	                _debug  " - FOUND: $HOME/.ssh/id_rsa"
-	                eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
-	        else
-	                _debug " - NOTFOUND: $HOME/.ssh/id_rsa"
-        	fi
+	# Ask if you want to even load local ssh keys.
+        echo " -- Load local ssh keys into keychain? (y/n)"
+        read LOAD_SSH_KEYCHAIN
 
-	        # Check and load custom SSH key
-        	_debug " - Check for custom SSH key via $SSH_KEY and load keychain"
-	        if [ ! -z "${SSH_KEY+1}" ]; then
-        	        _debug " - FOUND: $SSH_KEY"
-                	eval `keychain -q --eval --agents ssh $SSH_KEY`
-	        else
-        	        _debug " - NOTFOUND: $SSH_KEY not set."
-	        fi
+        if [[ "$LOAD_SSH_KEYCHAIN" == "y" ]]; then
+		_echo "-- Loading SSH keychain"
+		if (( $+commands[keychain] )); then
+		        # Load default SSH key
+		        _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
+        		if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
+		                _debug  " - FOUND: $HOME/.ssh/id_rsa"
+		                eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
+		        else
+		                _debug " - NOTFOUND: $HOME/.ssh/id_rsa"
+        		fi
 
-		# Load any id_rsa* keys
-		if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
-			eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
+		        # Check and load custom SSH key
+        		_debug " - Check for custom SSH key via $SSH_KEY and load keychain"
+		        if [ ! -z "${SSH_KEY+1}" ]; then
+        		        _debug " - FOUND: $SSH_KEY"
+                		eval `keychain -q --eval --agents ssh $SSH_KEY`
+		        else
+        		        _debug " - NOTFOUND: $SSH_KEY not set."
+		        fi
+
+			# Load any id_rsa* keys
+			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
+				eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
+			fi
+			# Load any client-* keys
+			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
+                        	eval `keychain -q --eval --agents ssh $HOME/.ssh/clients*`
+                	fi
+		else
+			_echo " - Command keychain doesn't exist, please install for SSH keys to work"
 		fi
-		# Load any client-* keys
-		if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
-                        eval `keychain -q --eval --agents ssh $HOME/.ssh/clients*`
-                fi
-	else
-		_echo " - Command keychain doesn't exist, please install for SSH keys to work"
-	fi
+	elif [[ $LOAD_SSH_KEYCHAIN == "n" ]]; then
+		# Skipping keychain
+		echo " -- Skipping loading ssh keys into keychain."
+        fi
 }
 
 zshbop_check_migrate () {
@@ -247,7 +256,7 @@ zshbop_switch_branch () {
 
 # -- Init
 init () {
-        #- Include functions file
+        #- Include functions file        
         _echo "-- Starting init"
         init_path
 	source $ZSH_ROOT/help.zshrc
@@ -257,7 +266,12 @@ init () {
         init_omz_plugins
         init_antigen
         init_defaults
-        init_sshkeys       
+	if [[ $funcstack[2] != "rld" ]]; then
+		
+		init_sshkeys
+	else
+		echo " -- Skipped some scripts due to running rld"
+	fi
 }
 
 startup_motd () {

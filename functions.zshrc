@@ -14,7 +14,7 @@ _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 
 # - mysqldbsize
 cmd () { }; help_core[cmd]='broken'
-rld () { init } ; help_core[rld]='Reload $SCRIPT'
+rld () { source $ZSH_ROOT/init.zshrc;init } ; help_core[rld]='Reload $SCRIPT'
 cc () { # clear antigen cache 
 	antigen reset; rm ~/.zshrc.zwc 
 	help_core[cc]='Clear antigen and zsh cache' 
@@ -147,10 +147,4 @@ options () {
     for plugin in $plugins; do
         _echo "\n\nPlugin: $plugin"; grep -r "^function \w*" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/()//'| tr '\n' ', '; grep -r "^alias" $PLUGIN_PATH$plugin | awk '{print $2}' | sed 's/=.*//' |  tr '\n' ', '
     done
-}
-
-# ---- Add SSH Key
-addsshkey () {
-	echo "-- Adding $1 to keychain"
-	keychain -q --eval --agents ssh $HOME/.ssh/$1
 }
