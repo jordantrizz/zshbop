@@ -1,6 +1,17 @@
 # ----------------------------------------------
-# -- Help function and it's associated functions
+# -- help function and it's associated functions
 # ----------------------------------------------
+#
+# The following script handles all of the help information for fucntions and scripts added throughout.
+#
+# - To add script help, which is a file within this repostiryo and not a function.
+#
+# 	help_mysql_scripts[maxmysqlmem]='Calculate maximum MySQL memory'
+#
+# - To add function help, which is a function in a file.
+#
+# 	help_mysql[mysqldbsize]='Get size of all databases in MySQL'
+#
 
 # -- Help
 help () {
