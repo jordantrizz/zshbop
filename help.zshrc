@@ -44,9 +44,15 @@ help_intro () {
 }
 # -- Core commands
 help_core_cmd () {
+        echo " -- Commands"
         for key value in ${(kv)help_core}; do
-                echo "    $key			- $value"
-        done        
+                echo "    $key                  - $value"
+        done
+        echo ""
+        echo " -- Scripts"
+        for key value in ${(kv)help_core_scripts}; do
+                echo "    $key                  - $value"
+        done
 }
 
 # -- MySQL commands
@@ -62,9 +68,15 @@ help_mysql_cmd () {
         done
 }
 
-# -- Mysql
+# -- SSH
 help_ssh_cmd () {
+        echo " -- Commands"
         for key value in ${(kv)help_ssh}; do
-                echo "    $key			- $value"
+                echo "    $key                  - $value"
+        done
+        echo ""
+        echo " -- Scripts"
+        for key value in ${(kv)help_ssh_scripts}; do
+                echo "    $key                  - $value"
         done
 }
