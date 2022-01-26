@@ -9,21 +9,26 @@
 
 # -- Core functions
 typeset -gA help_core
+
+# -- placehodler for echo
 _echo () { echo "$@" }
+
+# -- debugging
 _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
 
-# - mysqldbsize
-cmd () { }; help_core[cmd]='broken'
+# -- mysqldbsize - get mysqldbsize
+cmd () { }; help_core[cmd]='broken and needs to be fixed'
+
+# -- rld - rld zshbop
 rld () { source $ZSH_ROOT/init.zshrc;init } ; help_core[rld]='Reload $SCRIPT'
 
-# cc - clear cache
+# -- cc - clear cache
 help_core[cc]='Clear antigen and zsh cache'
 cc () { # clear antigen cache 
 	antigen reset; rm ~/.zshrc.zwc 
 }
 
-# -- Knowledge Base
-# A built in knowledge base.
+# -- Knowledge Base - A built in knowledge base.
 help_core[kb]='knowledge base'
 kb () {
         if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
@@ -57,7 +62,7 @@ _cexists () {
         fi
 }
 
-###-- Check Environment
+# -- Check Environment
 help_core[checkenv]='check environment for installed software and tools'
 checkenv () {
 	echo "---------------------------"
