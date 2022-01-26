@@ -51,7 +51,7 @@ eval BGGREEN='$bg[green]'
 git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
 
 # Default tools to install
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois')
+default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' )
 extra_tools=('pip' 'npm')
 pip_install=('ngxtop' 'apt-select')
 
