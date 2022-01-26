@@ -145,12 +145,8 @@ init_defaults () {
 
 # -- Load default SSH keys into keychain
 init_sshkeys () {
-	# Ask if you want to even load local ssh keys.
-        echo " -- Load local ssh keys into keychain? (y/n)"
-        read LOAD_SSH_KEYCHAIN
-
-        if [[ "$LOAD_SSH_KEYCHAIN" == "y" ]]; then
-		_echo "-- Loading SSH keychain"
+	
+		_echo "-- Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
 		        # Load default SSH key
 		        _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
@@ -181,10 +177,6 @@ init_sshkeys () {
 		else
 			_echo " - Command keychain doesn't exist, please install for SSH keys to work"
 		fi
-	elif [[ $LOAD_SSH_KEYCHAIN == "n" ]]; then
-		# Skipping keychain
-		echo " -- Skipping loading ssh keys into keychain."
-        fi
 }
 
 zshbop_check_migrate () {
@@ -242,8 +234,7 @@ init () {
         init_omz_plugins
         init_antigen
         init_defaults
-	if [[ $funcstack[2] != "rld" ]]; then
-		
+	if [[ $funcstack[2] != "rld" ]]; then		
 		init_sshkeys
 	else
 		echo " -- Skipped some scripts due to running rld"
