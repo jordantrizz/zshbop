@@ -38,19 +38,34 @@ help () {
 
 # -- Help introduction
 help_intro () {
-        echo "** General help for $SCRIPT_NAME **"
-        echo "-----------------------------------"
+	echo "-----------------------------"
+	echo "-- General help for $SCRIPT_NAME --"
+        echo "-----------------------------"
+        echo ""
+        echo "ZSHBop contains a number of built-in functions, scripts and binaries."
+        echo ""
+        echo "This help command will list all that are available."
+        echo ""
+        echo "-- Help Commands --"
+        echo "--------------------"
+        echo ""
         echo " kb 		- Knowledge Base"
         echo " help 		- this command"
-        echo " --"
-	echo " help all		- List all commands"
-	echo " help core	- List core commands"
-	echo " help mysql	- List mysql commands"
-	echo " help ssh		- List ssh commands"
 	echo ""
-        echo "Examples:"
-        echo " --"
-        echo " help mysql"
+	echo "-- Command Categories --"
+        echo "------------------------"
+	echo ""
+	echo " help all 		- List all"
+	echo " help core 		- List core"
+	echo " help mysql		- List mysql"
+	echo " help ssh 		- List ssh"
+	echo " help tools		- List general tools"
+	echo ""
+        echo "-- Examples --"
+        echo "---------------"
+        echo "$> help mysql"
+        echo "$> help tools"
+        echo ""
 
 }
 # -- Core commands
@@ -80,6 +95,18 @@ help_mysql_cmd () {
 }
 
 # -- SSH
+help_ssh_cmd () {
+        echo " -- Commands"
+        for key value in ${(kv)help_ssh}; do
+                echo "    $key                  - $value"
+        done
+        echo ""
+        echo " -- Scripts"
+        for key value in ${(kv)help_ssh_scripts}; do
+                echo "    $key                  - $value"
+        done
+}
+
 help_ssh_cmd () {
         echo " -- Commands"
         for key value in ${(kv)help_ssh}; do
