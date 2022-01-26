@@ -4,14 +4,16 @@
 #
 # The following script handles all of the help information for fucntions and scripts added throughout.
 #
-# - To add script help, which is a file within this repostiryo and not a function.
+# - To add command help, which is a file within this repostiryo and not a function.
 #
-# 	help_mysql_scripts[maxmysqlmem]='Calculate maximum MySQL memory'
+# 	help_mysql[maxmysqlmem]='Calculate maximum MySQL memory'
 #
-# - To add function help, which is a function in a file.
-#
-# 	help_mysql[mysqldbsize]='Get size of all databases in MySQL'
-#
+
+# -- Help header
+help_sub_header () {
+                echo "-- $HCMD"
+                echo "----------------------"
+}
 
 # -- Help
 help () {
@@ -19,20 +21,21 @@ help () {
         if [ ! $1 ]; then
         	help_intro
         else
-        	echo "-- $HCMD"
-		echo "**********************"
-                if [ "$HCMD" = "all" ]; then 
-                	echo "-- core --"
-                	help_core_cmd
-                	echo "-- mysql --"
-                	help_mysql_cmd
-                	echo "-- ssh --"
-                	help_ssh_cmd
-                fi
-                if [ "$HCMD" = "core" ]; then help_core_cmd; fi
-                if [ "$HCMD" = "mysql" ]; then help_mysql_cmd; fi
-                if [ "$HCMD" = "ssh" ]; then help_ssh_cmd; fi
-                
+                if [ "$HCMD" = "all" ]; then
+                	help_core
+                	help_mysql
+                	help_ssh
+                	help_wordpress
+                	help_other
+                elif [ "$HCMD" = "core" ]; then help_core;
+                elif [ "$HCMD" = "mysql" ]; then help_mysql;
+                elif [ "$HCMD" = "ssh" ]; then help_ssh;
+                elif [ "$HCMD" = "wordpress" ]; then help_wordpress;
+                elif [ "$HCMD" = "other" ]; then help_other;
+                else
+                	echo "No command category $2"
+                	return
+                fi                
         fi
 }
 
@@ -55,11 +58,12 @@ help_intro () {
 	echo "-- Command Categories --"
         echo "------------------------"
 	echo ""
-	echo " help all 		- List all"
-	echo " help core 		- List core"
-	echo " help mysql		- List mysql"
-	echo " help ssh 		- List ssh"
-	echo " help tools		- List general tools"
+	echo " help all 		- List all possible commands."
+	echo " help core 		- List core ZSHbop commands."
+	echo " help mysql		- List mysql commands."
+	echo " help ssh 		- List ssh commands."
+	echo " help wordpress		- List WordPress commands."
+	echo " help other		- List other commands."
 	echo ""
         echo "-- Examples --"
         echo "---------------"
@@ -69,52 +73,41 @@ help_intro () {
 
 }
 # -- Core commands
-help_core_cmd () {
-        echo " -- Commands"
+help_core () {
+        echo " -- Core ------------------------------------------------------------"
         for key value in ${(kv)help_core}; do
-                echo "    $key                  - $value"
-        done
-        echo ""
-        echo " -- Scripts"
-        for key value in ${(kv)help_core_scripts}; do
-                echo "    $key                  - $value"
+                printf '%s\n' "  ${(r:25:)key} - $value"
         done
 }
 
 # -- MySQL commands
-help_mysql_cmd () {
-	echo " -- Commands"
+help_mysql () {
+        echo " -- MySQL ------------------------------------------------------------"
         for key value in ${(kv)help_mysql}; do
-                echo "    $key			- $value"
-        done
-        echo ""
-        echo " -- Scripts"
-        for key value in ${(kv)help_mysql_scripts}; do
-                echo "    $key                  - $value"
+		printf '%s\n' "  ${(r:25:)key} - $value"
         done
 }
 
 # -- SSH
-help_ssh_cmd () {
-        echo " -- Commands"
+help_ssh () {
+        echo " -- SSH ------------------------------------------------------------"
         for key value in ${(kv)help_ssh}; do
-                echo "    $key                  - $value"
-        done
-        echo ""
-        echo " -- Scripts"
-        for key value in ${(kv)help_ssh_scripts}; do
-                echo "    $key                  - $value"
+		printf '%s\n' "  ${(r:25:)key} - $value"
         done
 }
 
-help_ssh_cmd () {
-        echo " -- Commands"
-        for key value in ${(kv)help_ssh}; do
-                echo "    $key                  - $value"
+# -- WordPress
+help_wordpress () {
+        echo " -- WordPress ------------------------------------------------------------"
+        for key value in ${(kv)help_wordpress}; do
+		printf '%s\n' "  ${(r:25:)key} - $value"
         done
-        echo ""
-        echo " -- Scripts"
-        for key value in ${(kv)help_ssh_scripts}; do
-                echo "    $key                  - $value"
+}
+
+# -- Other
+help_other () {
+        echo " -- Other ------------------------------------------------------------"
+        for key value in ${(kv)help_other}; do
+		printf '%s\n' "  ${(r:25:)key} - $value"
         done
 }
