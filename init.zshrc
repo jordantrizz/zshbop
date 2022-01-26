@@ -230,7 +230,8 @@ init () {
 	source $ZSH_ROOT/help.zshrc
         source $ZSH_ROOT/functions.zshrc # Core functions
         source $ZSH_ROOT/functions-tools.zshrc # Fucntions that are tools.
-        source $ZSH_ROOT/aliases.zshrc
+        srouce $ZSH_ROOT/cmds/commands.zshrc # Available commands
+        source $ZSH_ROOT/aliases.zshrc #
         init_omz_plugins
         init_antigen
         init_defaults
