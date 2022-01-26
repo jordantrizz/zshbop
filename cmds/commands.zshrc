@@ -4,4 +4,4 @@
 # Including command files.
 #
 # --
-include $ZSH_BOP/cmds/cmds-email.zshrc
+source $ZSH_ROOT/cmds/cmds-email.zshrc
