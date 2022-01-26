@@ -55,6 +55,7 @@ help_intro () {
         echo " kb 		- Knowledge Base"
         echo " help 		- this command"
 	echo ""
+	echo "------------------------"
 	echo "-- Command Categories --"
         echo "------------------------"
 	echo ""

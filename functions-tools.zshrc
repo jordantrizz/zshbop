@@ -99,9 +99,20 @@ github-cli () { sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99
 # -- Git Repositories
 repos () { 
 	if [ ! $1 ]; then
-		echo "repos <reponame>"
-		echo "--"
-		echo "gp-tools		-GridPane Tools"
+		echo "--------------------------"
+		echo "-- Popular Github Repos --"
+		echo "--------------------------"
+		echo ""
+		echo "This command installs popular Github repositories."
+		echo ""
+		echo "To install, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
+		echo ""
+		echo "-- Repositories --"
+		echo ""
+		printf " gp-tools 			- GridPane Tools by @jordantrizz\n"
+		printf " github-markdown-toc		- Add markdown table of contents to README.md\n"
+		printf " cloudflare-cli			- Interface with Cloudflares API\n"
+		echo ""
 	else
 		if [ $1 = 'gp-tools' ]; then
 			echo "-- Installing gp-tools repo"
