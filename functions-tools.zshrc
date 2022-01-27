@@ -117,14 +117,17 @@ repos () {
 		echo ""	
 		for key value in ${(kv)GIT_REPOS}; do
 			printf '%s\n' "  ${(r:40:)key} - $value"
-			GIT_REPO_URL=$key
 		done			
 		echo ""
 	else
 		echo "-- Start repo install --"
 		if [ $1 ]; then
 			echo " - Installing $1 repo"
-			git -C $ZSH_ROOT/repos clone https://github.com/$GIT_REPO_URL
+			if [[ $ZSH_GOLD == "1" ]]; then
+				git -C $ZSH_ROOT/repos clone git@github.com:$1.git
+			else
+				git -C $ZSH_ROOT/repos clone https://github.com/$1
+			fi
 		else
 			echo "Uknown repo $1"
 		fi 
