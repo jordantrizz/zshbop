@@ -14,7 +14,7 @@ if [ -f $ZSH_ROOT/.debug ]; then
 fi
 
 # - Are we golden eye 007?
-if [ -f $ZSSH_ROOT/.gold ]; then
+if [ -f $ZSH_ROOT/.gold ]; then
 	export ZSH_GOLD=1
 fi
 

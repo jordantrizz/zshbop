@@ -124,6 +124,7 @@ repos () {
 		if [ $1 ]; then
 			echo " - Installing $1 repo"
 			if [[ $ZSH_GOLD == "1" ]]; then
+				echo " - Gold007 Mode!"
 				git -C $ZSH_ROOT/repos clone git@github.com:$1.git
 			else
 				git -C $ZSH_ROOT/repos clone https://github.com/$1
