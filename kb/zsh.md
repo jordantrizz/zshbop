@@ -20,10 +20,6 @@ sudo make -j 20 install
 # Arguments
 * $1 first argument
 * $@ all arguments
-*
-
-
-
 
 # Common if statements
 ## Check command
@@ -69,3 +65,13 @@ sudo make -j 20 install
 * -G file - true if file exists and its group matches the effective group ID of this process.
 * -S file - true if file exists and is a socket.
 * -N file - true if file exists and its access time is not newer than its modification time.
+
+# Associatve Arrays
+* See https://scriptingosx.com/2019/11/associative-arrays-in-zsh/
+```
+userinfo=( name armin shell zsh website scriptingosx.com )
+userinfo=( [name]=armin [shell]=zsh [website]="scriptingosx.com" )
+% userinfo=( [name]=beth [shell]=zsh )
+% if [[ -z $userinfo[website] ]]; then echo no value; fi
+no value
+```
