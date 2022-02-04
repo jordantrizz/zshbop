@@ -125,7 +125,6 @@ repos () {
 		if [ $1 ]; then
 			echo " - Installing $1 repo"
 				git -C $ZSH_ROOT/repos clone https://github.com/$1
-			fi
 		else
 			echo "Uknown repo $1"
 		fi 
