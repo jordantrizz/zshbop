@@ -1,14 +1,17 @@
-#!/usr/bin/env zsh
+# --
+# WordPress commands
+# --
+_debug " -- Loading ${(%):-%N}"
 
-# --- General WordPress Functions
+# - Init help array
+typeset -gA help_wordpress
 
+# -- wp-cli but allow root ;)
+help_wordpress[wp]='Generate phpinfo() file'
 alias wp="wp --allow-root"
 
-wp-help () {
-	echo " -- Welcome, this is currently a use at your own risk function"
-}
-
-# --- WordPress Alias
+# -- wp-db
+help_wordpress[wp-db]='Echo WordPress database credentials'
 wp-db () {
 	if [ -f wp-config.php ]; then
 		grep 'DB' wp-config.php
@@ -17,8 +20,9 @@ wp-db () {
 	fi
 }
 
-# --- WordPress functions
-wp-posts () {
+# --- wp-countposts
+help_wordpress[wp-countposts]='Count WordPress wp_posts table rows.'
+wp-countposts () {
 	if [ -z $1 ]; then 
 		echo "$0 <dbname>";
 		echo ""

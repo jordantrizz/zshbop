@@ -132,10 +132,6 @@ init_defaults () {
 	        fi
 	fi
 
-	# Include task specific files.
-	echo " -- Loading WordPress commands"
-	source $ZSH_ROOT/wordpress.zshrc
-
 	# --- Include custom configuration
 	if [ -f $HOME/.zshbop ]; then
         	echo " -- Loading custom configuration"

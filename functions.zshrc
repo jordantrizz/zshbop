@@ -7,45 +7,11 @@
 # -- One line functions
 # -----------------------
 
-# -- Core functions
-typeset -gA help_core
-
 # -- placehodler for echo
 _echo () { echo "$@" }
 
 # -- debugging
 _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
-
-# -- mysqldbsize - get mysqldbsize
-cmd () { }; help_core[cmd]='broken and needs to be fixed'
-
-# -- rld - rld zshbop
-rld () { source $ZSH_ROOT/init.zshrc;init } ; help_core[rld]='Reload $SCRIPT'
-
-# -- cc - clear cache
-help_core[cc]='Clear antigen and zsh cache'
-cc () { # clear antigen cache 
-	antigen reset; rm ~/.zshrc.zwc 
-}
-
-# -- Knowledge Base - A built in knowledge base.
-help_core[kb]='knowledge base'
-kb () {
-        if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
-
-        if [[ -a $ZSH_ROOT/kb/$1.md ]]; then
-                echo "Opening $ZSH_ROOT/kb/$1.md"
-                $mdv_reader $ZSH_ROOT/kb/$1.md
-        else
-                ls -l $ZSH_ROOT/kb
-        fi
-        if [[ $mdv_reader == cat ]]; then
-                echo "\n\n"
-                echo "---------------------------------------"
-                echo "mdv not avaialble failing back to cat"
-                echo "you should install mdv, pip install mdv"
-        fi
-}
 
 #-- Check to see if command exists and then return true or false
 _cexists () {
@@ -55,12 +21,13 @@ _cexists () {
                 fi
                 return 0
         else
-        	if [[ $ZSH_DEBUG == 1 ]]; then
-        		_debug "$@ not installed";
-        	fi
+                if [[ $ZSH_DEBUG == 1 ]]; then
+                        _debug "$@ not installed";
+                fi
                 return 1
         fi
 }
+
 
 # -- Check Environment
 help_core[checkenv]='check environment for installed software and tools'
@@ -94,11 +61,12 @@ checkenv () {
 }
 
 #### -- Setup Environment
-help_core[installenv]='install software and tools into environment'
+help_core[installenv]='Install tools into environment'
 installenv () {
         echo "---------------------------"
         echo "Installing default tools.."
         echo "---------------------------"
+	sudo apt-get update
 	sudo apt install $default_tools
         echo "---------------------------"
         echo "Installing extra tools.."
@@ -107,16 +75,20 @@ installenv () {
 	echo "---------------------------"
 	echo "Manual installs"
 	echo "---------------------------"
-	echo "gh - installed separately, run github-cli"
-	echo "gnomon - via npm"
-	echo "lsd - https://github.com/Peltoche/lsd"
+	echo " mdv       - pip install mdv"
+	echo " gnomon    - via npm"
+	echo " lsd       - https://github.com/Peltoche/lsd"
+	echo ""
+	echo "You can install all manual installs, via customenv"
 }
 
 #### -- Install Environment
 # Custom install of some much needed tools!
+help_core[customenv]='Install custom tools into environment'
 customenv () {
 	# Need to add in check for pip3
-	pip3 install -U checkdmarc
+	pip install -U checkdmarc
+	pip install mdv
 }
 
 #### -- Update
