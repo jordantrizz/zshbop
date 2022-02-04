@@ -1,5 +1,6 @@
 # Expressions
-Primary	Meaning
+
+```python
 [ -a FILE ]	True if FILE exists.
 [ -b FILE ]	True if FILE exists and is a block-special file.
 [ -c FILE ]	True if FILE exists and is a character-special file.
@@ -32,11 +33,10 @@ Primary	Meaning
 [ STRING1 < STRING2 ]	True if "STRING1" sorts before "STRING2" lexicographically in the current locale.
 [ STRING1 > STRING2 ]	True if "STRING1" sorts after "STRING2" lexicographically in the current locale.
 [ ARG1 OP ARG2 ]	"OP" is one of -eq, -ne, -lt, -le, -gt or -ge. These arithmetic binary operators return true if "ARG1" is equal to, not equal to, less than, less than or equal to, greater than, or greater than or equal to "ARG2", respectively. "ARG1" and "ARG2" are integers.
-
+```
 
 # Dealing with Command Arguments
 ```
-cat >/tmp/demo-space-separated.sh <<'EOF'
 #!/bin/bash
 
 POSITIONAL=()
@@ -91,3 +91,15 @@ enddate=$(date "+%d/%m/%Y %H:%M:%S +%Z");
 
 # Pid File Snippet
 * https://gist.github.com/darth-veitcher/f47eb0a52ae42a1c5e9a65adca460723
+
+# String Matching in Substring
+https://linuxize.com/post/how-to-check-if-string-contains-substring-in-bash/
+```
+#!/bin/bash
+
+STR='GNU/Linux is an operating system'
+SUB='Linux'
+if [[ "$STR" == *"$SUB"* ]]; then
+  echo "It's there."
+fi
+```
