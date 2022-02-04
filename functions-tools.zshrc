@@ -101,7 +101,8 @@ repos () {
 	declare -A GIT_REPOS
 	GIT_REPOS[jordantrizz/gp-tools]="GridPane Tools by @Jordantrizz"
 	GIT_REPOS[jordantrizz/github-markdown-toc]="Add markdown table of contents to README.md"
-	GIT_REPOS[jordantrizz/cloudflare-cli]="Interface with Cloudflares API"
+	GIT_REPOS[jordantrizz/cloudflare-cli]="Interface with Cloudflares API"	
+	GIT_REPOS[lmtca/site24x7-custom-install]="Custom Site24x7 install"
 	
 	
 	if [ ! $1 ]; then
@@ -109,9 +110,9 @@ repos () {
 		echo "-- Popular Github Repos --"
 		echo "--------------------------"
 		echo ""
-		echo "This command installs popular Github repositories."
+		echo "This command pulls down popular Github repositories."
 		echo ""
-		echo "To install, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
+		echo "To pull down a repo, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
 		echo ""
 		echo "-- Repositories --"
 		echo ""	
@@ -123,10 +124,6 @@ repos () {
 		echo "-- Start repo install --"
 		if [ $1 ]; then
 			echo " - Installing $1 repo"
-			if [[ $ZSH_GOLD == "1" ]]; then
-				echo " - Gold007 Mode!"
-				git -C $ZSH_ROOT/repos clone git@github.com:$1.git
-			else
 				git -C $ZSH_ROOT/repos clone https://github.com/$1
 			fi
 		else

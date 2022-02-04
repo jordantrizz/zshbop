@@ -1,3 +1,4 @@
+# - Script Name
 SCRIPT_NAME="zshbop"
 # - Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 ZDOTDIR=$HOME
@@ -11,11 +12,6 @@ source $ZSH_ROOT/functions.zshrc
 # - Are we debugging?
 if [ -f $ZSH_ROOT/.debug ]; then
 	export ZSH_DEBUG=1
-fi
-
-# - Are we golden eye 007?
-if [ -f $ZSH_ROOT/.gold ]; then
-	export ZSH_GOLD=1
 fi
 
 # - We use $ZSH_ROOT to know our working directory.

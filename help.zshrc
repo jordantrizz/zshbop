@@ -32,6 +32,7 @@ help () {
                 elif [ "$HCMD" = "mysql" ]; then help_mysql;
                 elif [ "$HCMD" = "ssh" ]; then help_ssh;
                 elif [ "$HCMD" = "wordpress" ]; then help_wordpress;
+                elif [ "$HCMD" = "php" ]; then help_php;
                 elif [ "$HCMD" = "other" ]; then help_other;
                 else
                 	echo "No command category $2"
@@ -109,9 +110,9 @@ help_wordpress () {
         done
 }
 
-# -- Other
+# -- PHP
 help_php () {
-        echo " -- Other ------------------------------------------------------------"
+        echo " -- PHP ------------------------------------------------------------"
         for key value in ${(kv)help_php}; do
                 printf '%s\n' "  ${(r:25:)key} - $value"
         done
