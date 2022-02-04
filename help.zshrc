@@ -11,6 +11,7 @@
 
 # -- Help header
 help_sub_header () {
+		echo "----------------------"
                 echo "-- $HCMD"
                 echo "----------------------"
 }
@@ -49,6 +50,7 @@ help_intro () {
         echo ""
         echo "This help command will list all that are available."
         echo ""
+        echo "--------------------"
         echo "-- Help Commands --"
         echo "--------------------"
         echo ""
@@ -59,13 +61,15 @@ help_intro () {
 	echo "-- Command Categories --"
         echo "------------------------"
 	echo ""
-	echo " help all 		- List all possible commands."
-	echo " help core 		- List core ZSHbop commands."
-	echo " help mysql		- List mysql commands."
-	echo " help ssh 		- List ssh commands."
-	echo " help wordpress		- List WordPress commands."
-	echo " help other		- List other commands."
+	printf '%-25s %s\n' " help all" "- List all possible commands."
+	printf '%-25s %s\n' " help core" "- List core ZSHbop commands."
+	printf '%-25s %s\n' " help mysql" "- List mysql commands."
+	printf '%-25s %s\n' " help ssh" "- List ssh commands."
+	printf '%-25s %s\n' " help wordpress"	"- List WordPress commands."
+	printf '%-25s %s\n' " help php" "- List PHP commands."
+	printf '%-25s %s\n' " help other" "- List other commands."
 	echo ""
+	echo "---------------"
         echo "-- Examples --"
         echo "---------------"
         echo "$> help mysql"
@@ -102,6 +106,14 @@ help_wordpress () {
         echo " -- WordPress ------------------------------------------------------------"
         for key value in ${(kv)help_wordpress}; do
 		printf '%s\n' "  ${(r:25:)key} - $value"
+        done
+}
+
+# -- Other
+help_php () {
+        echo " -- Other ------------------------------------------------------------"
+        for key value in ${(kv)help_php}; do
+                printf '%s\n' "  ${(r:25:)key} - $value"
         done
 }
 
