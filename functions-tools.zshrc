@@ -97,7 +97,13 @@ csf-install () { cd /usr/src; rm -fv csf.tgz; wget https://download.configserver
 github-cli () { sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0; sudo apt-add-repository https://cli.github.com/packages; sudo apt update; sudo apt install gh }
 
 # -- Git Repositories
-repos () { 
+repos () {
+	declare -A GIT_REPOS
+	GIT_REPOS[jordantrizz/gp-tools]="GridPane Tools by @Jordantrizz"
+	GIT_REPOS[jordantrizz/github-markdown-toc]="Add markdown table of contents to README.md"
+	GIT_REPOS[jordantrizz/cloudflare-cli]="Interface with Cloudflares API"
+	
+	
 	if [ ! $1 ]; then
 		echo "--------------------------"
 		echo "-- Popular Github Repos --"
@@ -108,16 +114,24 @@ repos () {
 		echo "To install, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
 		echo ""
 		echo "-- Repositories --"
-		echo ""
-		printf " gp-tools 			- GridPane Tools by @jordantrizz\n"
-		printf " github-markdown-toc		- Add markdown table of contents to README.md\n"
-		printf " cloudflare-cli			- Interface with Cloudflares API\n"
+		echo ""	
+		for key value in ${(kv)GIT_REPOS}; do
+			printf '%s\n' "  ${(r:40:)key} - $value"
+		done			
 		echo ""
 	else
-		if [ $1 = 'gp-tools' ]; then
-			echo "-- Installing gp-tools repo"
-			git clone https://github.com/jordantrizz/gp-tools.git $ZSH_ROOT/repos/gp-tools
-		fi
+		echo "-- Start repo install --"
+		if [ $1 ]; then
+			echo " - Installing $1 repo"
+			if [[ $ZSH_GOLD == "1" ]]; then
+				echo " - Gold007 Mode!"
+				git -C $ZSH_ROOT/repos clone git@github.com:$1.git
+			else
+				git -C $ZSH_ROOT/repos clone https://github.com/$1
+			fi
+		else
+			echo "Uknown repo $1"
+		fi 
 	fi	
 }
 
