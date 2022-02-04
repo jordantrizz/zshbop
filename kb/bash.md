@@ -36,6 +36,7 @@
 ```
 
 # Dealing with Command Arguments
+https://readforlearn.com/how-do-i-parse-command-line-arguments-in-bash/
 ```
 #!/bin/bash
 
