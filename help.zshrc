@@ -35,7 +35,7 @@ help () {
                 elif [ "$HCMD" = "php" ]; then help_php;
                 elif [ "$HCMD" = "other" ]; then help_other;
                 else
-                	echo "No command category $2"
+                	echo "No command category $HCMD, try running kb $HCMD"
                 	return
                 fi                
         fi

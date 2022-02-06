@@ -1,6 +1,7 @@
 # Expressions
 
 ```python
+""" TEST """
 [ -a FILE ]	True if FILE exists.
 [ -b FILE ]	True if FILE exists and is a block-special file.
 [ -c FILE ]	True if FILE exists and is a character-special file.
@@ -37,8 +38,6 @@
 
 # Dealing with Command Arguments
 ```
-#!/bin/bash
-
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
