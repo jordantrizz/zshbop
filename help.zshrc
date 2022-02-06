@@ -22,6 +22,33 @@ help_sub_header () {
                 echo "----------------------"
 }
 
+get_category_commands () {	
+	# If help all is used
+	echo "-- Finding category: $1"
+        if [[ $1 == "all" ]]; then
+		output_all=" -- Featching All Commands\n"
+                for key in ${(k)help_files}; do
+                        help_all_cat=(help_${key})
+                        output_all+=" -- $key ------------------------------------------------------------\n"
+                        for key value in ${(kv)${(P)help_all_cat}}; do
+                    	    output_all+=$(printf '%s\n' "  ${(r:25:)key} - $value\n")
+                    	done
+                    	output_all+="\n"
+                    	echo $output_all | more
+		done
+	elif [[ -z ${(P)help_cat} ]];then
+        	echo "No command category $HCMD, try running kb $HCMD"
+                echo ""
+		return
+	else
+		echo " -- $1 ------------------------------------------------------------"
+		for key value in ${(kv)${(P)help_cat}}; do
+        		printf '%s\n' "  ${(r:25:)key} - $value"
+        	done
+        	echo ""
+        fi
+}
+
 # -- Help
 help () {
         HCMD=$@
@@ -29,29 +56,8 @@ help () {
 		# print out help intro
         	help_intro
         else
-        	# print out help for category specified
-	        echo " -- $1 ------------------------------------------------------------"
-		help_cat=(help_${1})
-	        for key value in ${(kv)${(P)help_cat}}; do
-	                printf '%s\n' "  ${(r:25:)key} - $value"
-        	done
-		return
-                if [ "$HCMD" = "all" ]; then
-                	help_core
-                	help_mysql
-                	help_ssh
-                	help_wordpress
-                	help_other
-                elif [ "$HCMD" = "core" ]; then help_core;
-                elif [ "$HCMD" = "mysql" ]; then help_mysql;
-                elif [ "$HCMD" = "ssh" ]; then help_ssh;
-                elif [ "$HCMD" = "wordpress" ]; then help_wordpress;
-                elif [ "$HCMD" = "php" ]; then help_php;
-                elif [ "$HCMD" = "other" ]; then help_other;
-                else
-                	echo "No command category $HCMD, try running kb $HCMD"
-                	return
-                fi                
+        	help_cat=(help_${1})
+		get_category_commands $1
         fi
 }
 
@@ -94,51 +100,4 @@ help_intro () {
         echo "$> help tools"
         echo ""
 
-}
-# -- Core commands
-help_core () {
-        echo " -- Core ------------------------------------------------------------"
-        for key value in ${(kv)help_core}; do
-                printf '%s\n' "  ${(r:25:)key} - $value"
-        done
-}
-
-# -- MySQL commands
-help_mysql () {
-        echo " -- MySQL ------------------------------------------------------------"
-        for key value in ${(kv)help_mysql}; do
-		printf '%s\n' "  ${(r:25:)key} - $value"
-        done
-}
-
-# -- SSH
-help_ssh () {
-        echo " -- SSH ------------------------------------------------------------"
-        for key value in ${(kv)help_ssh}; do
-		printf '%s\n' "  ${(r:25:)key} - $value"
-        done
-}
-
-# -- WordPress
-help_wordpress () {
-        echo " -- WordPress ------------------------------------------------------------"
-        for key value in ${(kv)help_wordpress}; do
-		printf '%s\n' "  ${(r:25:)key} - $value"
-        done
-}
-
-# -- PHP
-help_php () {
-        echo " -- PHP ------------------------------------------------------------"
-        for key value in ${(kv)help_php}; do
-                printf '%s\n' "  ${(r:25:)key} - $value"
-        done
-}
-
-# -- Other
-help_other () {
-        echo " -- Other ------------------------------------------------------------"
-        for key value in ${(kv)help_other}; do
-		printf '%s\n' "  ${(r:25:)key} - $value"
-        done
 }
