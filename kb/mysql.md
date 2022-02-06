@@ -1,4 +1,24 @@
 # MySQL
+
+# MySQL Tools
+* Mytop - https://www.digitalocean.com/community/tutorials/how-to-use-mytop-to-monitor-mysql-performance
+
+# MySQL .my.cnf Formatting
+```
+[client]
+user=root
+password="qweqwe"
+
+[mysql]
+user=root
+password="qweqwe"
+
+[mysqldump]
+user=root
+password="qweqwe"
+```
+
+# MySQL Commands
 ## Check System Variables
 * SHOW VARIABLES LIKE '%max_connect_errors%';
 
