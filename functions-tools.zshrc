@@ -2,10 +2,6 @@
 # -- Functions that are Tools!
 # ----------------------------
 
-# -- Nginx
-nginx-inc () { cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat }
-alias ngx404log="$ZSH_ROOT/bin/ngx404log.sh"
-
 # -- Exim
 eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
 

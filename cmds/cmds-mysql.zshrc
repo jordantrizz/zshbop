@@ -6,6 +6,9 @@
 # --
 _debug " -- Loading ${(%):-%N}"
 
+# What help file is this?
+help_files[mysql]='MySQL related commands'
+
 # - Init help array
 typeset -gA help_mysql
 

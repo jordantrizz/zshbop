@@ -6,6 +6,9 @@
 # --
 _debug " -- Loading ${(%):-%N}"
 
+# What help file is this?
+help_files[core]='Core commands'
+
 # - Init help array
 typeset -gA help_core
 
