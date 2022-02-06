@@ -9,6 +9,9 @@
 # 	help_mysql[maxmysqlmem]='Calculate maximum MySQL memory'
 #
 
+# Set help_files
+typeset -gA help_files
+
 # -- Help header
 help_sub_header () {
 		echo "----------------------"
@@ -18,12 +21,10 @@ help_sub_header () {
 
 get_help () {
 	for file in "${ZSH_ROOT}/cmds/"cmds-*; do
-	    filename="$(basename $file)"
-	    echo $filename
-	    help_topic="${filename//cmds-}"
-	    help_topic="${help_topic//.zshrc}"
-	    echo $help_topic
-	    
+		filename="$(basename $file)"
+	    	help_topic="${filename//cmds-}"
+	    	help_topic="${help_topic//.zshrc}"
+	    	echo $help_topic	    
 	done
 }
 
