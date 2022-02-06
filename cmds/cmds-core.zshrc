@@ -15,10 +15,6 @@ typeset -gA help_core
 # - Don't know what cmd was for?
 cmd () { }; help_core[cmd]='broken and needs to be fixed'
 
-# -- rld - rld zshbop
-help_core[rld]='Reload $SCRIPT'
-rld () { source $ZSH_ROOT/init.zshrc;init }
-
 # -- cc - clear cache for various tools
 help_core[cc]='Clear cache for antigen + more'
 cc () {

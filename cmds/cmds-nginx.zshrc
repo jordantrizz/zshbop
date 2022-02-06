@@ -7,7 +7,7 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_files[git]='Nginx related commands'
+help_files[nginx]='Nginx related commands'
 
 # - Init help array
 typeset -gA help_nginx

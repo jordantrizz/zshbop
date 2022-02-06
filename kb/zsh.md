@@ -17,6 +17,10 @@ cd /tmp/zsh
 ./configure
 sudo make -j 20 install
 ```
+
+# Paramter Expansion
+* https://thevaluable.dev/zsh-expansion-guide-example/
+
 # Arguments
 * $1 first argument
 * $@ all arguments
