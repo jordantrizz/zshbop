@@ -184,6 +184,7 @@ init () {
         source $ZSH_ROOT/functions.zshrc # Core functions
         source $ZSH_ROOT/functions-tools.zshrc # Fucntions that are tools.
         # Include commands
+        typeset -gA help_files
 	for file in $ZSH_ROOT/cmds/cmds-*; do
 		source "$file"
 	done

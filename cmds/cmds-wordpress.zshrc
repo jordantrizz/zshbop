@@ -1,7 +1,13 @@
 # --
-# WordPress commands
+# Mail commands
+#
+# Example help: help_wordpress[wp]='Generate phpinfo() file'
+#
 # --
 _debug " -- Loading ${(%):-%N}"
+
+# What help file is this?
+help_files[wordpress]='WordPress related commands'
 
 # - Init help array
 typeset -gA help_wordpress
