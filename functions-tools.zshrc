@@ -2,9 +2,6 @@
 # -- Functions that are Tools!
 # ----------------------------
 
-# -- Exim
-eximcq () { exim -bp | exiqgrep -i | xargs exim -Mrm }
-
 # -- curl
 vh () { vh_run=$(curl --header "Host: $1" $2 --insecure -i | head -50);echo $vh_run }
 
