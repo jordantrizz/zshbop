@@ -152,3 +152,29 @@ repos () {
                 fi
         fi
 }
+
+# -- help-template
+help_core[help-template]='Create help template'
+help-template () {
+	help_template_file=$ZSH_ROOT/cmds/cmds-$1.zshrc
+	if [[ -z $1 ]]; then
+		echo "-- Provide a name for the new help file"
+	elif [[ -f $help_template_file ]]; then
+		echo "-- File exists $help_template_file, exiting."
+	else
+		echo "-- Writting cmds file $help_template_file"
+cat > $help_template_file <<TEMPLATE
+# --
+# $1 commands
+#
+# Example help: help_$1[wp]='Generate phpinfo() file'
+#
+# --
+_debug " -- Loading \${(%):-%N}"
+
+# - Init help array
+typeset -gA help_$1
+TEMPLATE
+	fi
+
+}
