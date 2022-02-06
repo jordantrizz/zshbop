@@ -16,6 +16,18 @@ help_sub_header () {
                 echo "----------------------"
 }
 
+get_help () {
+	for file in "${ZSH_ROOT}/cmds/"cmds-*; do
+	    filename="$(basename $file)"
+	    echo $filename
+	    help_topic="${filename//cmds-}"
+	    help_topic="${help_topic//.zshrc}"
+	    echo $help_topic
+	    
+	done
+}
+
+
 # -- Help
 help () {
         HCMD=$@
