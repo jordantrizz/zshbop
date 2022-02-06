@@ -9,8 +9,11 @@
 # 	help_mysql[maxmysqlmem]='Calculate maximum MySQL memory'
 #
 
-# Set help_files
+echo "-- Loading help.zshrc"
+
+# Set Arrays
 typeset -gA help_files
+help_topics=()
 
 # -- Help header
 help_sub_header () {
@@ -19,22 +22,20 @@ help_sub_header () {
                 echo "----------------------"
 }
 
-get_help () {
-	for file in "${ZSH_ROOT}/cmds/"cmds-*; do
-		filename="$(basename $file)"
-	    	help_topic="${filename//cmds-}"
-	    	help_topic="${help_topic//.zshrc}"
-	    	echo $help_topic	    
-	done
-}
-
-
 # -- Help
 help () {
         HCMD=$@
         if [ ! $1 ]; then
+		# print out help intro
         	help_intro
         else
+        	# print out help for category specified
+	        echo " -- $1 ------------------------------------------------------------"
+		help_cat=(help_${1})
+	        for key value in ${(kv)${(P)help_cat}}; do
+	                printf '%s\n' "  ${(r:25:)key} - $value"
+        	done
+		return
                 if [ "$HCMD" = "all" ]; then
                 	help_core
                 	help_mysql
@@ -61,9 +62,16 @@ help_intro () {
         echo "-----------------------------"
         echo ""
         echo "ZSHBop contains a number of built-in functions, scripts and binaries."
-        echo ""
         echo "This help command will list all that are available."
         echo ""
+        echo "--------------------"
+        echo "-- zshbop Commands --"
+        echo "--------------------"
+        echo ""
+        for key value in ${(kv)help_zshbop}; do
+                printf '%s\n' "  zshbop ${(r:25:)key} - $value"
+        done
+	echo ""
         echo "--------------------"
         echo "-- Help Commands --"
         echo "--------------------"
@@ -72,16 +80,12 @@ help_intro () {
         echo " help 		- this command"
 	echo ""
 	echo "------------------------"
-	echo "-- Command Categories --"
+	echo "-- Help Command Categories --"
         echo "------------------------"
 	echo ""
-	printf '%-25s %s\n' " help all" "- List all possible commands."
-	printf '%-25s %s\n' " help core" "- List core ZSHbop commands."
-	printf '%-25s %s\n' " help mysql" "- List mysql commands."
-	printf '%-25s %s\n' " help ssh" "- List ssh commands."
-	printf '%-25s %s\n' " help wordpress"	"- List WordPress commands."
-	printf '%-25s %s\n' " help php" "- List PHP commands."
-	printf '%-25s %s\n' " help other" "- List other commands."
+        for key value in ${(kv)help_files}; do
+                printf '%s\n' "  help ${(r:25:)key} - $value"
+        done
 	echo ""
 	echo "---------------"
         echo "-- Examples --"

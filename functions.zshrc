@@ -31,10 +31,15 @@ _cexists () {
         fi
 }
 
+# -- rld - rld zshbop
+help_zshbop[reload]='Reload $SCRIPT'
+rld () { source $ZSH_ROOT/init.zshrc;init }
+
 # -------------------
 # -- zshbop functions
 # -------------------
 
+# -- zshbop
 zshbop () {
 	if [[ $1 == "help" ]]; then
 	echo " --- zshbop ---"
