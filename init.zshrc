@@ -183,11 +183,13 @@ init () {
 	source $ZSH_ROOT/help.zshrc
         source $ZSH_ROOT/functions.zshrc # Core functions
         source $ZSH_ROOT/functions-tools.zshrc # Fucntions that are tools.
+
         # Include commands
-        typeset -gA help_files
-	for file in $ZSH_ROOT/cmds/cmds-*; do
-		source "$file"
-	done
+        for file in "${ZSH_ROOT}/cmds/"cmds-*; do
+		source $file
+        done
+
+	source $ZSH_ROOT/help.zshrc
         source $ZSH_ROOT/aliases.zshrc #
         init_omz_plugins
         init_antigen
