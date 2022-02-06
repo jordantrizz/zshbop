@@ -34,8 +34,8 @@ get_category_commands () {
                     	    output_all+=$(printf '%s\n' "  ${(r:25:)key} - $value\n")
                     	done
                     	output_all+="\n"
-                    	echo $output_all | more
 		done
+		echo $output_all | less
 	elif [[ -z ${(P)help_cat} ]];then
         	echo "No command category $HCMD, try running kb $HCMD"
                 echo ""
