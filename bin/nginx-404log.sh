@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+# Created by jordantrizz
 local CAT
 local EGREP
 local FULLCMD
