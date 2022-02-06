@@ -66,3 +66,10 @@ mysql-maxmem() {
 #           + @@tmp_table_size )
 #       ) / (1024 * 1024 * 1024) AS MAX_MEMORY_GB;"
 #}
+
+# -- setup-automysqlbackup - Install automysqlbackup
+help_mysql[setup-automysqlbackup]='Install automysqlbackup'
+setup-automysqlbackup () {
+        cd $ZSH_ROOT/bin/AutoMySQLBackup
+        ./install
+}

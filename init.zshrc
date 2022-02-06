@@ -72,7 +72,7 @@ init_path () {
 	export PATH=$PATH:$ZSH_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
 	export PATH=$PATH:$ZSH_ROOT/bin/httpstat # https://github.com/reorx/httpstat
 	
-	# Repos
+	# Repos - Needs to be updated to find repos installed and add them to $PATH
 	export PATH=$PATH:$ZSH_ROOT/repos/gp-tools
 }
 
@@ -173,49 +173,6 @@ init_sshkeys () {
 		else
 			_echo " - Command keychain doesn't exist, please install for SSH keys to work"
 		fi
-}
-
-zshbop_check_migrate () {
-	if [ -d /usr/local/sbin/zsh ]; then echo "$RED---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----$RESET"; fi
-	if [ -d $HOME/zsh ];then  echo "$RED---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----$RESET"; fi
-	if [ -d $HOME/git/zsh ];then echo "$RED---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----$RESET"; fi
-}
-
-zshbop_migrate () {
-	if [ -d /usr/local/sbin/zsh ]; then
-		echo "---- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
-		sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
-		echo "---- Make sure to copy /usr/local/sbin/zshbop/.zshrc_install to your .zshrc locations"	
-	fi
-	if [ -d $HOME/zsh ]; then
-		echo "---- Moving $HOME/zsh to $HOME/zshbop"
-		mv $HOME/zsh $HOME/zshbop
-		echo "---- Make sure to copy $HOME/zshbop/.zshrc_install to your .zshrc"
-	fi
-	if [ -d $HOME/git/zsh ]; then
-		echo "---- Moving $HOME/git/zsh to $HOME/git/zshbop"
-		mv $HOME/git/zsh $HOME/git/zshbop
-		echo "---- Make sure to copy $HOME/zshbop/.zshrc_install to your .zshrc"
-	fi	
-}
-
-zshbop  () {
-	if [ -z $1 ]; then
-		echo "---- ZSH_ROOT = $ZSH_ROOT"
-	        BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
-	        echo "---- Running zshbop $BRANCH ----"
-		echo "---- To switch branch type zshbop develop or zshbop master"
-	elif [ "$1" = "develop" ]; then
-		echo "---- Switching to develop branch"
-		git -C $ZSH_ROOT checkout develop
-	elif [ "$1" = "master" ]; then
-		echo "---- Switching to master branch"
-		git -C $ZSH_ROOT checkout master
-	fi
-}
-
-zshbop_switch_branch () {
-
 }
 
 # -- Init

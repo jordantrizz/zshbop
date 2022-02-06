@@ -94,19 +94,8 @@ installenv () {
 }
 
 
-# -- customenv - Install custom software into environment.
-help_core[customenv]='Install custom tools into environment'
-customenv () {
-        # Need to add in check for pip3
-        pip install -U checkdmarc
-	mkdir $ZSH_ROOT/tmp
-	cd $ZSH_ROOT/tmp
-	git clone https://github.com/axiros/terminal_markdown_viewer.git
-	pip install .
-}
-
 # -- update - Update ZSHBOP
-help_core[update]='update zshbop'
+help_core[update]='Update zshbop'
 update () {
         # Pull zshbop
         echo "--- Pulling zshbop updates"
@@ -129,7 +118,38 @@ update () {
         echo "--- Type rld to reload zshbop"
 }
 
-# -- check-updates - Check for zshbop updates.
-check-updates () {
+# -- repos - Install popular github.com Repositories
+help_core[repos]='Install popular github.com repositories.'
+repos () {
+        declare -A GIT_REPOS
+        GIT_REPOS[jordantrizz/gp-tools]="GridPane Tools by @Jordantrizz"
+        GIT_REPOS[jordantrizz/github-markdown-toc]="Add markdown table of contents to README.md"
+        GIT_REPOS[jordantrizz/cloudflare-cli]="Interface with Cloudflares API"
+        GIT_REPOS[lmtca/site24x7-custom-install]="Custom Site24x7 install"
 
+
+        if [ ! $1 ]; then
+                echo "--------------------------"
+                echo "-- Popular Github Repos --"
+                echo "--------------------------"
+                echo ""
+                echo "This command pulls down popular Github repositories."
+                echo ""
+                echo "To pull down a repo, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
+                echo ""
+                echo "-- Repositories --"
+                echo ""
+                for key value in ${(kv)GIT_REPOS}; do
+                        printf '%s\n' "  ${(r:40:)key} - $value"
+                done
+                echo ""
+        else
+                echo "-- Start repo install --"
+                if [ $1 ]; then
+                        echo " - Installing $1 repo"
+                                git -C $ZSH_ROOT/repos clone https://github.com/$1
+                else
+                        echo "Uknown repo $1"
+                fi
+        fi
 }
