@@ -39,7 +39,7 @@ _notice () { echo "$fg[blue] ** $@ $reset_color" }
 # -- debugging
 _debug () { 
 	if [[ $ZSH_DEBUG == 1 ]]; then 
-		echo "** DEBUG: $@"; 
+		echo "$fg[cyan]** DEBUG: $@$reset_color"; 
 	fi
 }
 

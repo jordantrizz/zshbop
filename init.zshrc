@@ -231,7 +231,7 @@ init () {
 
 	# -- Skip when running rld
 	_debug "\$funcstack is $funcstack"
-	if [[ $funcstack[3] != "zshbop_reload" ]]; then
+	if [[ $funcstack[4] != "zshbop_reload" ]]; then
 		init_sshkeys
 		startup_motd
 	else
