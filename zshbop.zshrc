@@ -11,7 +11,7 @@
 SCRIPT_NAME="zshbop"
 ZSH_ROOT=$ZSHBOP_ROOT # Converting from ZSH_ROOT to ZSHBOP_ROOT
 ZSHBOP_BRANCH=$(git -C $ZSHBOP_ROOT rev-parse --abbrev-ref HEAD)
-ZSHBOP_COMMIT=$(git rev-parse HEAD)
+ZSHBOP_COMMIT=$(git -C $ZSHBOP_ROOT rev-parse HEAD)
 ZSHBOP_REPO="jordantrizz/zshbop"
 
 # -- Current version installed
