@@ -1,20 +1,31 @@
-# --------------
-# -- Functions
-# --------------
+# ------------------------
+# -- zshbop functions file
+# -------------------------
 # This file contains all the required functions for the main .zshrc script.
 
-# Set help_zshbop
+# ------------
+# -- Variables
+# ------------
+
+# -- Current zshbop branch
+ZSHBOP_BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
+
+# -- Current version installed
+ZSHBOP_VERSION=$(<$ZSH_ROOT/version)
+
+# -- Set help_zshbop
 typeset -gA help_zshbop
 
 # -----------------------
 # -- Internal Functions
 # -----------------------
 
-# -- placehodler for echo
+# -- Different colored messages
 _echo () { echo "$@" }
-_error () { echo  "$fg[red]$@$resetcolor" }
-_warning () { echo "$fg[yellow]$@$resetcolor" }
-_success () { echo "$fg[green]$@$resetcolor" }
+_error () { echo  "$fg[red] ** $@ $resetcolor" }
+_warning () { echo "$fg[yellow] ** $@ $resetcolor" }
+_success () { echo "$fg[green] ** $@ $resetcolor" }
+_notice () { echo "$fg[blue] ** $@ $resetcolor" }
 
 # -- debugging
 _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
@@ -37,6 +48,9 @@ _cexists () {
 # -------------------
 # -- zshbop functions
 # -------------------
+
+# -- alias zb to zshbop
+alias zb=zshbop
 
 # -- zshbop
 zshbop () {
@@ -65,9 +79,9 @@ zshbop_reload () {
 help_zshbop[check-migrate]='Check if running old zshbop.'
 zshbop_check-migrate () {
 	echo " -- Checking for legacy zshbop"
-        if [ -d /usr/local/sbin/zsh ]; then echo "$RED---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----$RESET";
-        elif [ -d $HOME/zsh ];then  echo "$RED---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----$RESET";
-        elif [ -d $HOME/git/zsh ];then echo "$RED---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----$RESET";
+        if [ -d /usr/local/sbin/zsh ]; then _error "Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate";
+        elif [ -d $HOME/zsh ];then _error "Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate";
+        elif [ -d $HOME/git/zsh ];then _error "Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate";
         else
         	echo " -- Not running legacy zshbop"
         fi        
@@ -77,19 +91,22 @@ zshbop_check-migrate () {
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
         if [ -d /usr/local/sbin/zsh ]; then
-                echo "---- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
+                echo "-- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
                 sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
-                echo "---- Make sure to copy /usr/local/sbin/zshbop/.zshrc_install to your .zshrc locations"
+                echo "-- Copying /usr/local/sbin/zshbop/.zshrc_install to your $HOME/.zshrc"
+                cp /usr/local/sbin/zshbop/.zshrc_install $HOME/.zshrc
         fi
         if [ -d $HOME/zsh ]; then
-                echo "---- Moving $HOME/zsh to $HOME/zshbop"
+                echo "-- Moving $HOME/zsh to $HOME/zshbop"
                 mv $HOME/zsh $HOME/zshbop
-                echo "---- Make sure to copy $HOME/zshbop/.zshrc_install to your .zshrc"
+                echo "-- Copying $HOME/zshbop/.zshrc_install to your $HOME/.zshrc"
+                cp $HOME/zshbop/.zshrc_install $HOME/.zshrc
         fi
         if [ -d $HOME/git/zsh ]; then
-                echo "---- Moving $HOME/git/zsh to $HOME/git/zshbop"
+                echo "-- Moving $HOME/git/zsh to $HOME/git/zshbop"
                 mv $HOME/git/zsh $HOME/git/zshbop
-                echo "---- Make sure to copy $HOME/zshbop/.zshrc_install to your .zshrc"
+		echo "-- Copyiong $HOME/zshbop/.zshrc_install to $HOME/.zshrc"
+                cp $HOME/zshbop/.zshrc_install $HOME/.zshrc
         fi
 }
 
@@ -97,15 +114,14 @@ zshbop_migrate () {
 help_zshbop[branch]='Run master or development branch of zshbop'
 zshbop_branch  () {
         if [ "$2" = "develop" ]; then
-                echo "-- Switching to develop branch"
+                echo "	-- Switching to develop branch"
                 git -C $ZSH_ROOT checkout develop
         elif [ "$2" = "master" ]; then
-                echo "-- Switching to master branch"
+                echo "	-- Switching to master branch"
                 git -C $ZSH_ROOT checkout master
-        elif [ ! $1 ]; then
-                BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
-                echo "-- zshbop located in $ZSH_ROOT running branch $BRANCH ----"
-                echo "-- To switch branch type zshbop branch develop or zshbop branch master"
+        elif [ -z $2 ]; then
+                echo "	-- zshbop: $ZSH_ROOT branch: $ZSHBOP_BRANCH ----"
+                echo "	-- To switch branch type zshbop branch develop or zshbop branch master"
         else
         	_error "Unknown $@"
         fi
@@ -114,19 +130,43 @@ zshbop_branch  () {
 # -- check-updates - Check for zshbop updates.
 help_zshbop[check-updates]='Check for zshbop update, not completed yet'
 zshbop_check-updates () {
-        echo " -- Not completed yet"
+	# Sources for version check
+	MASTER_UPDATE="https://raw.githubusercontent.com/jordantrizz/zshbop/master/version"
+	DEVELOP_UPDATE="https://raw.githubusercontent.com/jordantrizz/zshbop/develop/version"
+
+        _debug "	-- Running $ZSHBOP_VERSION, checking $ZSHBOP_BRANCH for updates."
+        if [[ "$ZSHBOP_BRANCH" = "master" ]]; then
+        	_debug "	-- Checking $MASTER_UPDATE"
+        	NEW_MASTER_VERSION=$(curl -s $DEVELOP_UPDATE)
+        	if [[ $NEW_MASTER_VERSION != $ZSHBOP_VERSION ]]; then
+        		_warning "Update available $NEW_MASTER_VERSION"
+                else
+                        _success "Running current version $NEW_MASTER_VERSION"
+                fi
+        elif [[ "$ZSHBOP_BRANCH" = "develop" ]]; then
+        	_debug "	-- Checking $DEVELOP_UPDATE"
+        	NEW_DEVELOP_VERSION=$(curl -s $DEVELOP_UPDATE)
+        	if [[ $NEW_DEVELOP_VERSION != $ZSHBOP_VERSION ]]; then
+	        	_warning "Update available $NEW_DEVELOP_VERSION"
+	        else
+	        	_success "Running current version $NEW_DEVELOP_VERSION"
+	        fi
+        	
+        else
+        	_error "Don't know what branch zshbop is on"
+        fi
 }
 
 # -- update - Update ZSHBOP
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
         # Pull zshbop
-        echo "--- Pulling zshbop updates"
+        echo "-- Pulling zshbop updates"
         git -C $ZSH_ROOT pull
 
         # Update Personal ZSH
         if [ ! -z $ZSH_PERSONAL_DIR ]; then
-                echo "--- Pulling Personal ZSH repo"
+                echo "-- Pulling Personal ZSH repo"
                 git -C $ZSH_PERSONAL_DIR pull
         fi
 
@@ -138,5 +178,5 @@ zshbop_update () {
         done
 
         # Reload scripts
-        echo "--- Type rld to reload zshbop"
+        echo "-- Type rld to reload zshbop"
 }
