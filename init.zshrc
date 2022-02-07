@@ -241,6 +241,7 @@ init () {
 
 # -- startup_motd - initial scripts to run on login
 startup_motd () {
+	echo ""
         neofetch
         zshbop
         zshbop_check-migrate
@@ -251,4 +252,6 @@ startup_motd () {
 		echo "** Screen not installed"
 	fi
         echo "---- Run checkenv to make sure you have all the right tools! ----"
+        echo ""
+        echo ""
 }
