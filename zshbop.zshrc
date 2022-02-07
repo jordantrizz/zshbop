@@ -15,7 +15,7 @@ ZSHBOP_COMMIT=$(git rev-parse HEAD)
 ZSHBOP_REPO="jordantrizz/zshbop"
 
 # -- Current version installed
-ZSHBOP_VERSION=$(<$ZSH_ROOT/version)
+ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version)
 
 # -- Set help_zshbop
 typeset -gA help_zshbop
@@ -23,7 +23,7 @@ typeset -gA help_zshbop
 # -----------
 # -- includes
 # -----------
-source $ZSH_ROOT/init.zshrc
+source $ZSHBOP_ROOT/init.zshrc
 
 # -----------------------
 # -- Internal Functions
@@ -83,7 +83,7 @@ zshbop () {
 help_zshbop[reload]='Reload zshbop'
 alias rld=zshbop_reload
 zshbop_reload () { 
-	source $ZSH_ROOT/init.zshrc;init 
+	source $ZSHBOP_ROOT/init.zshrc;init 
 	_warning "You may have to close your shell and restart it to see changes"
 }
 
@@ -131,12 +131,12 @@ help_zshbop[branch]='Run master or development branch of zshbop'
 zshbop_branch  () {
         if [ "$2" = "develop" ]; then
                 echo "	-- Switching to develop branch"
-                git -C $ZSH_ROOT checkout develop
+                git -C $ZSHBOP_ROOT checkout develop
         elif [ "$2" = "master" ]; then
                 echo "	-- Switching to master branch"
-                git -C $ZSH_ROOT checkout master
+                git -C $ZSHBOP_ROOT checkout master
         elif [ -z $2 ]; then
-                echo "	-- zshbop: $ZSH_ROOT branch: $ZSHBOP_BRANCH ----"
+                echo "	-- zshbop: $ZSHBOP_ROOT branch: $ZSHBOP_BRANCH ----"
                 echo "	-- To switch branch type zshbop branch develop or zshbop branch master"
         else
         	_error "Unknown $@"
@@ -190,7 +190,7 @@ help_zshbop[update]='Update zshbop'
 zshbop_update () {
         # Pull zshbop
         echo "-- Pulling zshbop updates"
-        git -C $ZSH_ROOT pull
+        git -C $ZSHBOP_ROOT pull
 
         # Update Personal ZSH
         if [ ! -z $ZSH_PERSONAL_DIR ]; then
@@ -199,7 +199,7 @@ zshbop_update () {
         fi
 
         # Update repos
-        for name in $ZSH_ROOT/repos/*
+        for name in $ZSHBOP_ROOT/repos/*
         do
                 echo "-- Updating repo $name"
                 git -C $name pull
@@ -217,7 +217,7 @@ zshbop_previous-version-check () {
         _debug "-- .zshrc md5 is $ZSHRC_MD5"
         if [[ "$ZSHRC_MD5" != "4273a17657dc907210c0c872d9842a9f" ]]; then
                 echo " -- Replacing $HOME/.zshrc due to v1.1.3 changes."
-                cp $ZSH_ROOT/.zshrc $HOME/.zshrc
+                cp $ZSHBOP_ROOT/.zshrc $HOME/.zshrc
         else
         	echo " -- No need to fix .zshrc"
         fi
