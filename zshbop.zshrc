@@ -236,4 +236,3 @@ zshbop_previous-version-check
 
 # -- Initalize and Start ZSHBOP
 init
-startup_motd
