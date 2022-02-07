@@ -31,30 +31,36 @@ _cexists () {
         fi
 }
 
-# -- rld - rld zshbop
-help_zshbop[reload]='Reload $SCRIPT'
-rld () { source $ZSH_ROOT/init.zshrc;init }
-
 # -------------------
 # -- zshbop functions
 # -------------------
 
 # -- zshbop
 zshbop () {
-	if [[ $1 == "help" ]]; then
-	echo " --- zshbop ---"
-	echo ""
-        for key value in ${(kv)help_zshbop}; do
-                printf '%s\n' "  ${(r:25:)key} - $value"
-        done		
+	if [[ $1 == "help" ]] || [[ ! $1 ]]; then
+		echo " --- zshbop help ---"
+		echo ""
+	        for key value in ${(kv)help_zshbop}; do
+        	        printf '%s\n' "  ${(r:25:)key} - $value"
+	        done
+	        echo ""
+	else
+		echo "-- Running zshbop $1"
+		zshbop_cmd=(zshbop_${1})
+		exec "$zshbop_cmd"
 	fi
-	echo "fin."
+}
 
+# -- rld / reload
+help_zshbop[reload]='Reload zshbop'
+alias rld=zshbop_reload
+zshbop_reload () { 
+	source $ZSH_ROOT/init.zshrc;init 
 }
 
 # -- check-migrate
 help_zshbop[check-migrate]='Check if running old zshbop.'
-zshbop_check_migrate () {
+zshbop_check-migrate () {
         if [ -d /usr/local/sbin/zsh ]; then echo "$RED---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----$RESET"; fi
         if [ -d $HOME/zsh ];then  echo "$RED---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----$RESET"; fi
         if [ -d $HOME/git/zsh ];then echo "$RED---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----$RESET"; fi
@@ -82,7 +88,7 @@ zshbop_migrate () {
 
 # -- branch
 help_zshbop[branch]='Run master or development branch of zshbop'
-branch  () {
+zshbop_branch  () {
         if [ -z $1 ]; then
                 echo "---- ZSH_ROOT = $ZSH_ROOT"
                 BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
@@ -99,13 +105,13 @@ branch  () {
 
 # -- check-updates - Check for zshbop updates.
 help_zshbop[check-updates]='Check for zshbop update, not completed yet'
-check-updates () {
+zshbop_check-updates () {
         echo " -- Not completed yet"
 }
 
 # -- update - Update ZSHBOP
 help_zshbop[update]='Update zshbop'
-update () {
+zshbop_update () {
         # Pull zshbop
         echo "--- Pulling zshbop updates"
         git -C $ZSH_ROOT pull
