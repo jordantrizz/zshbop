@@ -47,7 +47,7 @@ zshbop () {
 	else
 		echo "-- Running zshbop $1"
 		zshbop_cmd=(zshbop_${1})
-		exec "$zshbop_cmd"
+		$zshbop_cmd
 	fi
 }
 
@@ -61,9 +61,13 @@ zshbop_reload () {
 # -- check-migrate
 help_zshbop[check-migrate]='Check if running old zshbop.'
 zshbop_check-migrate () {
-        if [ -d /usr/local/sbin/zsh ]; then echo "$RED---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----$RESET"; fi
-        if [ -d $HOME/zsh ];then  echo "$RED---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----$RESET"; fi
-        if [ -d $HOME/git/zsh ];then echo "$RED---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----$RESET"; fi
+	echo " -- Checking for legacy zshbop"
+        if [ -d /usr/local/sbin/zsh ]; then echo "$RED---- Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate ----$RESET";
+        elif [ -d $HOME/zsh ];then  echo "$RED---- Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate ----$RESET";
+        elif [ -d $HOME/git/zsh ];then echo "$RED---- Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate ----$RESET";
+        else
+        	echo " -- Not running legacy zshbop"
+        fi        
 }
 
 # -- migrate
@@ -93,11 +97,11 @@ zshbop_branch  () {
                 echo "---- ZSH_ROOT = $ZSH_ROOT"
                 BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
                 echo "---- Running zshbop $BRANCH ----"
-                echo "---- To switch branch type zshbop develop or zshbop master"
-        elif [ "$1" = "develop" ]; then
+                echo "---- To switch branch type zshbop branch develop or zshbop branch master"
+        elif [ "$2" = "develop" ]; then
                 echo "---- Switching to develop branch"
                 git -C $ZSH_ROOT checkout develop
-        elif [ "$1" = "master" ]; then
+        elif [ "$2" = "master" ]; then
                 echo "---- Switching to master branch"
                 git -C $ZSH_ROOT checkout master
         fi
