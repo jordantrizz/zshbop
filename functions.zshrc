@@ -12,6 +12,9 @@ typeset -gA help_zshbop
 
 # -- placehodler for echo
 _echo () { echo "$@" }
+_error () { echo  "$fg[red]$@$resetcolor" }
+_warning () { echo "$fg[yellow]$@$resetcolor" }
+_success () { echo "$fg[green]$@$resetcolor" }
 
 # -- debugging
 _debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
@@ -47,7 +50,7 @@ zshbop () {
 	else
 		echo "-- Running zshbop $1"
 		zshbop_cmd=(zshbop_${1})
-		$zshbop_cmd
+		$zshbop_cmd $@
 	fi
 }
 
@@ -93,17 +96,18 @@ zshbop_migrate () {
 # -- branch
 help_zshbop[branch]='Run master or development branch of zshbop'
 zshbop_branch  () {
-        if [ -z $1 ]; then
-                echo "---- ZSH_ROOT = $ZSH_ROOT"
-                BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
-                echo "---- Running zshbop $BRANCH ----"
-                echo "---- To switch branch type zshbop branch develop or zshbop branch master"
-        elif [ "$2" = "develop" ]; then
-                echo "---- Switching to develop branch"
+        if [ "$2" = "develop" ]; then
+                echo "-- Switching to develop branch"
                 git -C $ZSH_ROOT checkout develop
         elif [ "$2" = "master" ]; then
-                echo "---- Switching to master branch"
+                echo "-- Switching to master branch"
                 git -C $ZSH_ROOT checkout master
+        elif [ ! $1 ]; then
+                BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
+                echo "-- zshbop located in $ZSH_ROOT running branch $BRANCH ----"
+                echo "-- To switch branch type zshbop branch develop or zshbop branch master"
+        else
+        	_error "Unknown $@"
         fi
 }
 
