@@ -205,17 +205,20 @@ zshbop_update () {
                 git -C $name pull
         done
 
-	# Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
-	echo " -- Checking if $HOME/.zshrc is pre v1.1.3"
-	ZSHRC_MD5=$(md5sum $HOME/.zshrc)
-	_debug "-- .zshrc md5 is $ZSHRC_MD5"
-	if [[ "$ZSHRC_MD5" = "256bb9511533e9697f639821ba63adb9" ]]; then
-		echo " -- Replacing $HOME/.zshrc due to v1.1.3 changes."
-		cp $ZSH_ROOT/.zshrc $HOME/.zshrc
-	fi
-	
         # Reload scripts
         _warning "Type zb reload to reload zshbop, or restart your shell."
+}
+
+help_zshbop[previous-version-check]='Checking if \$HOME/.zshrc is pre v1.1.3 and replacing.'
+zshbop_previous-version-check () {
+        # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
+        echo " -- Checking if $HOME/.zshrc is pre v1.1.3"
+        ZSHRC_MD5=$(md5sum $HOME/.zshrc)
+        _debug "-- .zshrc md5 is $ZSHRC_MD5"
+        if [[ "$ZSHRC_MD5" != "0073c0d7f453a127c5742fea46583029" ]]; then
+                echo " -- Replacing $HOME/.zshrc due to v1.1.3 changes."
+                cp $ZSH_ROOT/.zshrc $HOME/.zshrc
+        fi
 }
 
 # -- zshbop_color
@@ -226,6 +229,9 @@ zshbop_colors () {
 	done
 }
 
-# -- Initalize ZSHBOP
+# -- Check if $HOME/.zshrc needs to be replaced and do it fingers crossed.
+zshbop_previous-version-check
+
+# -- Initalize and Start ZSHBOP
 init
 startup_motd
