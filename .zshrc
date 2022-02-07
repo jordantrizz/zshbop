@@ -27,4 +27,5 @@ if [ -z "$ZSHBOP_ROOT" ]; then
 fi
 
 # - Initilize zshbop
+echo "-- Initilizing zshbop"
 source $ZSHBOP_ROOT/zshbop.zshrc
