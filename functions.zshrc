@@ -9,6 +9,8 @@
 
 # -- Current zshbop branch
 ZSHBOP_BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
+ZSHBOP_COMMIT=$(git rev-parse HEAD)
+ZSHBOP_REPO="jordantrizz/zshbop"
 
 # -- Current version installed
 ZSHBOP_VERSION=$(<$ZSH_ROOT/version)
@@ -75,6 +77,7 @@ help_zshbop[reload]='Reload zshbop'
 alias rld=zshbop_reload
 zshbop_reload () { 
 	source $ZSH_ROOT/init.zshrc;init 
+	_warning "You may have to close your shell and restart it to see changes"
 }
 
 # -- zshbop_startup
@@ -137,12 +140,12 @@ zshbop_branch  () {
 help_zshbop[check-updates]='Check for zshbop update, not completed yet'
 zshbop_check-updates () {
 	# Sources for version check
-	MASTER_UPDATE="https://raw.githubusercontent.com/jordantrizz/zshbop/master/version"
-	DEVELOP_UPDATE="https://raw.githubusercontent.com/jordantrizz/zshbop/develop/version"
+	MASTER_UPDATE="https://raw.githubusercontent.com/$ZSHBOP_REPO/master/version"
+	DEVELOP_UPDATE="https://raw.githubusercontent.com/$ZSHBOP_REPO/develop/version"
 
         _debug "	-- Running $ZSHBOP_VERSION, checking $ZSHBOP_BRANCH for updates."
         if [[ "$ZSHBOP_BRANCH" = "master" ]]; then
-        	_debug "	-- Checking $MASTER_UPDATE"
+        	_debug "	-- Checking $MASTER_UPDATE on $ZSHBOP_REPO"
         	NEW_MASTER_VERSION=$(curl -s $DEVELOP_UPDATE)
         	if [[ $NEW_MASTER_VERSION != $ZSHBOP_VERSION ]]; then
         		_warning "Update available $NEW_MASTER_VERSION"
@@ -150,12 +153,24 @@ zshbop_check-updates () {
                         _success "Running current version $NEW_MASTER_VERSION"
                 fi
         elif [[ "$ZSHBOP_BRANCH" = "develop" ]]; then
-        	_debug "	-- Checking $DEVELOP_UPDATE"
+		# Get repository develop commit.
+        	ZSHBOP_REMOTE_COMMIT=$(curl -s https://api.github.com/repos/jordantrizz/zshbop/branches/develop | jq -r '.commit.sha')
+
+		# Check remote github.com repository
+        	_debug "	-- Checking $DEVELOP_UPDATE on $ZSHBOP_REPO"
         	NEW_DEVELOP_VERSION=$(curl -s $DEVELOP_UPDATE)
+	
+        	# Compare versions	
         	if [[ $NEW_DEVELOP_VERSION != $ZSHBOP_VERSION ]]; then
 	        	_warning "Update available $NEW_DEVELOP_VERSION"
 	        else
 	        	_success "Running current version $NEW_DEVELOP_VERSION"
+	        fi
+	        
+	        # Compare commits
+	        _debug "	-- Checking $ZSHBOP_COMMIT against $ZSHBOP_REMOTE_COMMIT"
+	        if [[ $ZSHBOP_COMMIT != $ZSHBOP_REMOTE_COMMIT ]]; then
+	        	_warning "Not on $ZSHBOP_BRANCH latest commit - Local: $ZSHBOP_COMMIT / Remote: $ZSBBOP_REMOTE_COMMIT"
 	        fi
         	
         else
