@@ -1,3 +1,10 @@
+# Bash
+
+# Checking Bash Syntax
+## shellcheck
+* https://github.com/koalaman/shellcheck
+## bash -x
+* https://tldp.org/LDP/Bash-Beginners-Guide/html/sect_02_03.html
 # Expressions
 
 ```python
