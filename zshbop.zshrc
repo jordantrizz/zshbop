@@ -83,7 +83,7 @@ zshbop () {
 help_zshbop[reload]='Reload zshbop'
 alias rld=zshbop_reload
 zshbop_reload () { 
-	source $ZSHBOP_ROOT/zshbop.zshrc
+	source $HOME/.zshrc
 	_warning "You may have to close your shell and restart it to see changes"
 }
 
