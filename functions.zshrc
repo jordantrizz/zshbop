@@ -22,10 +22,10 @@ typeset -gA help_zshbop
 
 # -- Different colored messages
 _echo () { echo "$@" }
-_error () { echo  "$fg[red] ** $@ $resetcolor" }
-_warning () { echo "$fg[yellow] ** $@ $resetcolor" }
-_success () { echo "$fg[green] ** $@ $resetcolor" }
-_notice () { echo "$fg[blue] ** $@ $resetcolor" }
+_error () { echo  "$fg[red] ** $@ $reset_color" }
+_warning () { echo "$fg[yellow] ** $@ $reset_color" }
+_success () { echo "$fg[green] ** $@ $reset_color" }
+_notice () { echo "$fg[blue] ** $@ $reset_color" }
 
 # -- debugging
 _debug () { 
@@ -53,13 +53,11 @@ _cexists () {
 # -- zshbop functions
 # -------------------
 
-# -- alias zb to zshbop
-alias zb=zshbop
-
 # -- zshbop
+alias zb=zshbop
 zshbop () {
 	if [[ $1 == "help" ]] || [[ ! $1 ]]; then
-		echo " --- zshbop help $ZSHBOP_VERSION---"
+		echo " --- zshbop help $fg[green]$ZSHBOP_VERSION/$ZSHBOP_BRANCH$reset_color ---"
 		echo ""
 	        for key value in ${(kv)help_zshbop}; do
         	        printf '%s\n' "  ${(r:25:)key} - $value"
@@ -78,6 +76,10 @@ alias rld=zshbop_reload
 zshbop_reload () { 
 	source $ZSH_ROOT/init.zshrc;init 
 }
+
+# -- zshbop_startup
+help_zshbop[startup]='Run zshbop startup'
+zshbop_startup () { startup_motd; }
 
 # -- check-migrate
 help_zshbop[check-migrate]='Check if running old zshbop.'
@@ -183,4 +185,12 @@ zshbop_update () {
 
         # Reload scripts
         echo "-- Type rld to reload zshbop"
+}
+
+# -- zshbop_color
+help_zshbop[colors]='List variables for using color'
+zshbop_colors () {
+	for k in ${color}; do
+	   print -- key: $k 
+	done
 }
