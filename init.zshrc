@@ -1,7 +1,7 @@
 # --------------
-# -- Init
+# -- zshbop Init
 # --------------
-# This is the initilization for jtzsh
+# This is the initilization for zsbhop
 
 # Use colors, but only if connected to a terminal
 # and that terminal supports them.
@@ -9,6 +9,8 @@
 # ------------
 # -- Variables
 # ------------
+
+# -- Detect operating system
 export UNAME=$(uname -s)
 case "${UNAME}" in
     Linux*)     MACHINE=Linux;;
@@ -19,6 +21,7 @@ case "${UNAME}" in
 esac
 echo "- Running in ${MACHINE}"
 
+# -- zsh and environment settings
 zmodload zsh/mapfile
 export HISTSIZE=5000
 export PAGER='less -Q -j16'
@@ -28,8 +31,11 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
+export TERM="xterm-256color"
+export LANG="C.UTF-8"
+export ZSH_CUSTOM="$ZSH_ROOT/custom"
 
-# Colors
+# -- colors
 autoload colors
 if [[ "$terminfo[colors]" -gt 8 ]]; then
     colors
@@ -42,24 +48,31 @@ eval RESET='$reset_color'
 eval BGRED='$bg[red]'
 eval BGGREEN='$bg[green]'
 
-# ------------------
-# -- fzf keybindings
-# ------------------
-# Need to enable if fzf is available
-#[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
-####-- diff-so-fancy
-git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
+# -- Are we debugging?
+if [ -f $ZSH_ROOT/.debug ]; then
+        export ZSH_DEBUG=1
+elif [ ! -f $ZSH_ROOT/.debug ]; then
+	export ZSH_DEBUG=0	
+fi
+
+# -- Unsorted stuff.
 
 # Default tools to install
 default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' )
 extra_tools=('pip' 'npm')
 pip_install=('ngxtop' 'apt-select')
 
-# -----------------------
-# -- One line functions
-# -----------------------
+# -- fzf keybindings
+# Need to enable if fzf is available
+#[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
+####-- diff-so-fancy
+git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
 
-# -- PATHS!
+# ------------
+# -- Functions
+# ------------
+
+# -- init_path - setup all the required paths.
 init_path () {
 	# Default paths to look for
         export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSH_ROOT:$ZSH_ROOT/bin
@@ -198,6 +211,7 @@ init () {
 	fi
 }
 
+# -- startup_motd - initial scripts to run on login
 startup_motd () {
         neofetch
         zshbop

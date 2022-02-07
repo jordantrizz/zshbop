@@ -28,7 +28,11 @@ _success () { echo "$fg[green] ** $@ $resetcolor" }
 _notice () { echo "$fg[blue] ** $@ $resetcolor" }
 
 # -- debugging
-_debug () { if [[ $ZSH_DEBUG == 1 ]]; then echo "** DEBUG: $@"; fi }
+_debug () { 
+	if [[ $ZSH_DEBUG == 1 ]]; then 
+		echo "** DEBUG: $@"; 
+	fi
+}
 
 #-- Check to see if command exists and then return true or false
 _cexists () {
@@ -55,7 +59,7 @@ alias zb=zshbop
 # -- zshbop
 zshbop () {
 	if [[ $1 == "help" ]] || [[ ! $1 ]]; then
-		echo " --- zshbop help ---"
+		echo " --- zshbop help $ZSHBOP_VERSION---"
 		echo ""
 	        for key value in ${(kv)help_zshbop}; do
         	        printf '%s\n' "  ${(r:25:)key} - $value"
