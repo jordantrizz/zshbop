@@ -10,7 +10,7 @@
 # -- Current zshbop branch
 SCRIPT_NAME="zshbop"
 ZSH_ROOT=$ZSHBOP_ROOT # Converting from ZSH_ROOT to ZSHBOP_ROOT
-ZSHBOP_BRANCH=$(git -C $ZSH_ROOT rev-parse --abbrev-ref HEAD)
+ZSHBOP_BRANCH=$(git -C $ZSHBOP_ROOT rev-parse --abbrev-ref HEAD)
 ZSHBOP_COMMIT=$(git rev-parse HEAD)
 ZSHBOP_REPO="jordantrizz/zshbop"
 
@@ -215,7 +215,7 @@ zshbop_previous-version-check () {
         echo " -- Checking if $HOME/.zshrc is pre v1.1.3"
         ZSHRC_MD5=$(md5sum $HOME/.zshrc)
         _debug "-- .zshrc md5 is $ZSHRC_MD5"
-        if [[ "$ZSHRC_MD5" != "4273a17657dc907210c0c872d9842a9f" ]]; then
+        if [[ "$ZSHRC_MD5" != "bc6c62965dfe93767c3bb9fabed48ce6" ]]; then
                 echo " -- Replacing $HOME/.zshrc due to v1.1.3 changes."
                 cp $ZSHBOP_ROOT/.zshrc $HOME/.zshrc
         else

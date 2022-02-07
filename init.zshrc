@@ -213,7 +213,7 @@ init () {
 	source $ZSHBOP_ROOT/help.zshrc # help command
 
         # -- Include commands
-        for file in "${ZSH_ROOT}/cmds/"cmds-*; do
+        for file in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
 		source $file
         done
 
