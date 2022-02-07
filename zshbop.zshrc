@@ -215,7 +215,7 @@ zshbop_previous-version-check () {
         echo " -- Checking if $HOME/.zshrc is pre v1.1.3"
         ZSHRC_MD5=$(md5sum $HOME/.zshrc)
         _debug "-- .zshrc md5 is $ZSHRC_MD5"
-        if [[ "$ZSHRC_MD5" != "3f9fb12f974e1772da2e4230e2b95500" ]]; then
+        if [[ "$ZSHRC_MD5" != "4273a17657dc907210c0c872d9842a9f" ]]; then
                 echo " -- Replacing $HOME/.zshrc due to v1.1.3 changes."
                 cp $ZSH_ROOT/.zshrc $HOME/.zshrc
         else
