@@ -9,11 +9,6 @@ source $ZSH_ROOT/init.zshrc
 # - Include functions file
 source $ZSH_ROOT/functions.zshrc
 
-# - Are we debugging?
-if [ -f $ZSH_ROOT/.debug ]; then
-	export ZSH_DEBUG=1
-fi
-
 # - We use $ZSH_ROOT to know our working directory.
 if [ -z "$ZSH_ROOT" ]; then
 	_debug "-- \$ZSH_ROOT empty so using \$HOME/zsh"
