@@ -22,8 +22,8 @@ help_mysql[mysql-dbrowsize]='Get number of rows in a table'
 mysql-dbrowsize () { mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ;" }
 
 # - mysqltablesize
-help_mysql[mysqldtablesize]='Get size of all tables in MySQL'
-mysqltablesize () { 
+help_mysql[mysql-tablesize]='Get size of all tables in MySQL'
+mysql-tablesize () { 
 	mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" 
 }
 
@@ -40,8 +40,8 @@ mysql-msds () {
 }
 
 # - mysql-myisam
-help_mysql[msds]='Locate myisam tables in MySQL'
-mysqlmyisam () { 
+help_mysql[mysql-myisam]='Locate myisam tables in MySQL'
+mysql-myisam () { 
 	mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';" 
 }
 
@@ -71,8 +71,8 @@ mysql-maxmem() {
 #}
 
 # -- setup-automysqlbackup - Install automysqlbackup
-help_mysql[setup-automysqlbackup]='Install automysqlbackup'
-setup-automysqlbackup () {
+help_mysql[mysql-setup-automysqlbackup]='Install automysqlbackup'
+mysql-setup-automysqlbackup () {
         cd $ZSH_ROOT/bin/AutoMySQLBackup
         ./install
 }

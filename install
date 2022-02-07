@@ -1,9 +1,15 @@
 #!/bin/bash
 # -- zshbop Install script
 
+# ------------
 # -- Variables
+# ------------
+
+# -- first arguement
 CMD=$1
 
+# -- required tools
+required_tools=('jq' 'curl' 'zsh' 'git')
 
 #--------------------
 # Functions
@@ -11,24 +17,17 @@ CMD=$1
 
 flight_check() {
         # Checking if zsh is installed
-        echo -n "-- Checking if zsh is installed...."
-        if ! [ -x "$(command -v zsh)" ]; then
-                echo -e " - Error: zsh is not installed. Trying to install."
-                pkg_install "zsh"
-        else
-                ZSH_SHELL=`which zsh`
-                echo -e " - ZSH is installed in $ZSH_SHELL"
-        fi
-        
-        # Checking if git is installed
-        echo -n "-- Checking if git is installed...."
-        if ! [ -x "$(command -v git)" ]; then
-                echo -e " - Error: git is not installed. Trying to install."
-                pkg_install "git"
-        else
-                echo -e " - GIT is installed!"
-        fi
-
+        echo "-- Checking if required tools are installed"
+	for tool in ${required_tools[@]}; do
+        	if ! [ -x "$(command -v $tool)" ]; then
+                	echo -e "	-- Error: $tool is not installed, trying to install."
+                	pkg_install $tool
+	        else
+        	        TOOL_PATH=`which $tool`
+	                echo "	-- $tool is installed in $TOOL_PATH"
+	        fi
+	done
+	return        
         # Check if zsh is the default shell
         echo -n "-- Checking if zsh is the default shell...."
         if ! [[ $SHELL == *"zsh" ]]; then
