@@ -13,7 +13,7 @@ ZDOTDIR=$HOME
 
 #- Detecting where zshbop might be installed
 if [ -z "$ZSHBOP_ROOT" ]; then
-	_debug "\$ZSHBOP_ROOT empty so running detection"
+	echo "-- \$ZSHBOP_ROOT empty so running detection"
 	if [ -f $HOME/zshbop/zshbop.zshrc ]; then 
 		export ZSHBOP_ROOT=$HOME/zshbop;
         	echo "---- Loading from $ZSHBOP_ROOT"
