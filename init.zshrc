@@ -182,7 +182,6 @@ init () {
         init_path
 	source $ZSH_ROOT/help.zshrc
         source $ZSH_ROOT/functions.zshrc # Core functions
-        source $ZSH_ROOT/functions-tools.zshrc # Fucntions that are tools.
 
         # Include commands
         for file in "${ZSH_ROOT}/cmds/"cmds-*; do
@@ -202,7 +201,7 @@ init () {
 startup_motd () {
         neofetch
         zshbop
-        zshbop_check_migrate
+        zshbop_check-migrate
         echo "-- Screen Sessions --"
 	if _cexists screen; then
 		screen -list
