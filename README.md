@@ -179,6 +179,9 @@ cd /tmp/zsh
 sudo make -j 20 install
 ```
 
+# Issues
+All issues are makred with ```@@ISSUE``` and need to be addressed.
+
 # ToDo
 * https://github.com/picatz/hunter
 

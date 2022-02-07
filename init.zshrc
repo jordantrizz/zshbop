@@ -13,17 +13,6 @@
 # - Set umask
 umask 022
 
-# -- Detect operating system
-export UNAME=$(uname -s)
-case "${UNAME}" in
-    Linux*)     MACHINE=Linux;;
-    Darwin*)    MACHINE=Mac;;
-    CYGWIN*)    MACHINE=Cygwin;;
-    MINGW*)     MACHINE=MinGw;;
-    *)          MACHINE="UNKNOWN:${unameOut}"
-esac
-echo "- Running in ${MACHINE}"
-
 # -- zsh and environment settings
 zmodload zsh/mapfile
 export TERM="xterm-256color"
@@ -39,7 +28,8 @@ export TERM="xterm-256color"
 export LANG="C.UTF-8"
 
 # -- zshbop specific environment variables
-export ZSH_CUSTOM="$ZSH_ROOT/custom"
+
+
 # -- zshbop debugging
 if [ -f $ZSH_ROOT/.debug ]; then
         export ZSH_DEBUG=1
@@ -145,10 +135,10 @@ init_defaults () {
         fi
         
 	# Include OS Specific configuration
-	if [[ $MACHINE == "Mac" ]] then
+	if [[ $MACHINE_OS == "Mac" ]] then
         	echo "- Loading os/mac.zshrc"
 	        source $ZSH_ROOT/os/mac.zshrc
-	elif [[ $MACHINE = "Linux" ]] then
+	elif [[ $MACHINE_OS = "Linux" ]] then
         	if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]] then
                 	echo "- Loading os/wsl.zshrc"
 	                source $ZSH_ROOT/os/wsl.zshrc
@@ -180,15 +170,15 @@ init_sshkeys () {
         		fi
 
 		        # Check and load custom SSH key
-        		_debug " - Check for custom SSH key via $SSH_KEY and load keychain"
-		        if [ ! -z "${SSH_KEY+1}" ]; then
-        		        _debug " - FOUND: $SSH_KEY"
-                		eval `keychain -q --eval --agents ssh $SSH_KEY`
+        		_debug " - Check for custom SSH key via $CUSTOM_SSHKEY and load keychain"
+		        if [ ! -z "${CUSTOM_SSHKEY+1}" ]; then
+        		        _debug " - FOUND: $CUSTOM_SSHKEY"
+                		eval `keychain -q --eval --agents ssh $CUSTOM_SSHKEY`
 		        else
-        		        _debug " - NOTFOUND: $SSH_KEY not set."
+        		        _debug " - NOTFOUND: $CUSTOM_SSHKEY not set."
 		        fi
 
-			# Load any id_rsa* keys
+			# Load any id_rsa* keys @@ISSUE
 			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
 				eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
 			fi
@@ -203,26 +193,51 @@ init_sshkeys () {
 
 # -- Init
 init () {
-        #- Include functions file        
         _echo "-- Starting init"
+        _debug "\$ZSHBOP_ROOT = $ZSH_ROOT"
+        
+	_echo "-- Detecting Operating System"
+        # -- Detect operating system
+        export UNAME=$(uname -s)
+        case "${UNAME}" in
+            Linux*)     MACHINE_OS=Linux;;
+            Darwin*)    MACHINE_OS=Mac;;
+            CYGWIN*)    MACHINE_OS=Cygwin;;
+            MINGW*)     MACHINE_OS=MinGw;;
+            *)          MACHINE_OS="UNKNOWN:${unameOut}"
+        esac
+        echo "	-- Running in ${MACHINE_OS}"
+
+	# -- Init paths
         init_path
 	source $ZSH_ROOT/help.zshrc # help command
-        source $ZSH_ROOT/zshbop.zshrc # zshbop command
 
-        # Include commands
+        # -- Include commands
         for file in "${ZSH_ROOT}/cmds/"cmds-*; do
 		source $file
         done
 
+	# -- Include aliases @@ISSUE
         source $ZSH_ROOT/aliases.zshrc
+
+	# -- Init OhMyZSH plugins
         init_omz_plugins
+        
+        # -- Init antigen
         init_antigen
+        
+        # -- Init defaults @@ISSUE
         init_defaults
+
+	# -- Init SSH keys
 	if [[ $funcstack[2] != "rld" ]]; then		
 		init_sshkeys
 	else
 		echo " -- Skipped some scripts due to running rld"
 	fi
+	
+	# -- Run startup_motd
+	startup_motd
 }
 
 # -- startup_motd - initial scripts to run on login
