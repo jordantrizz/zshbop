@@ -21,10 +21,10 @@ if [ -z "$ZSHBOP_ROOT" ]; then
 		export ZSHBOP_ROOT=$HOME/git/zshbop
 	        echo "---- Loading from $ZSHBOP_ROOT"
 	elif [ -f /usr/local/sbin/zshbop/zshbop.zshrc ]; then
-        	export ZSH_ROOT=/usr/local/sbin/zshbop
-	        echo "---- Loading from $ZSH_ROOT"
+        	export ZSHBOP_ROOT=/usr/local/sbin/zshbop
+	        echo "---- Loading from $ZSHBOP_ROOT"
         fi
 fi
 
 # - Initilize zshbop
-source $ZSH_ROOT/zshbop.zshrc
+source $ZSHBOP_ROOT/zshbop.zshrc
