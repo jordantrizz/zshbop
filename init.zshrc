@@ -6,9 +6,12 @@
 # Use colors, but only if connected to a terminal
 # and that terminal supports them.
 
-# ------------
-# -- Variables
-# ------------
+# ------------------------
+# -- Environment Variables
+# ------------------------
+
+# - Set umask
+umask 022
 
 # -- Detect operating system
 export UNAME=$(uname -s)
@@ -23,17 +26,33 @@ echo "- Running in ${MACHINE}"
 
 # -- zsh and environment settings
 zmodload zsh/mapfile
+export TERM="xterm-256color"
+export LANG="C.UTF-8"
 export HISTSIZE=5000
 export PAGER='less -Q -j16'
 export EDITOR='joe'
 export BLOCKSIZE='K'
-export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 export TERM="xterm-256color"
 export LANG="C.UTF-8"
+
+# -- zshbop specific environment variables
 export ZSH_CUSTOM="$ZSH_ROOT/custom"
+# -- zshbop debugging
+if [ -f $ZSH_ROOT/.debug ]; then
+        export ZSH_DEBUG=1
+elif [ ! -f $ZSH_ROOT/.debug ]; then
+        export ZSH_DEBUG=0
+fi
+
+# -- ohmyzsh specific environment variables
+export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
+
+# ------------
+# -- Variables
+# ------------
 
 # -- colors
 autoload colors
@@ -50,15 +69,7 @@ fi
 #eval BGRED='$bg[red]'
 #eval BGGREEN='$bg[green]'
 
-# -- Are we debugging?
-if [ -f $ZSH_ROOT/.debug ]; then
-        export ZSH_DEBUG=1
-elif [ ! -f $ZSH_ROOT/.debug ]; then
-	export ZSH_DEBUG=0	
-fi
-
 # -- Unsorted stuff.
-
 # Default tools to install
 default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' )
 extra_tools=('pip' 'npm')
@@ -195,13 +206,14 @@ init () {
         #- Include functions file        
         _echo "-- Starting init"
         init_path
-	source $ZSH_ROOT/help.zshrc
-        source $ZSH_ROOT/functions.zshrc # Core functions
+	source $ZSH_ROOT/help.zshrc # help command
+        source $ZSH_ROOT/zshbop.zshrc # zshbop command
 
         # Include commands
         for file in "${ZSH_ROOT}/cmds/"cmds-*; do
 		source $file
         done
+
         source $ZSH_ROOT/aliases.zshrc
         init_omz_plugins
         init_antigen
