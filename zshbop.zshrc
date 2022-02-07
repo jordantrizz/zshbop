@@ -83,7 +83,7 @@ zshbop () {
 help_zshbop[reload]='Reload zshbop'
 alias rld=zshbop_reload
 zshbop_reload () { 
-	source $ZSHBOP_ROOT/init.zshrc;init 
+	source $ZSHBOP_ROOT/zshbop.zshrc
 	_warning "You may have to close your shell and restart it to see changes"
 }
 
@@ -213,7 +213,7 @@ help_zshbop[previous-version-check]='Checking if \$HOME/.zshrc is pre v1.1.3 and
 zshbop_previous-version-check () {
         # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
         echo " -- Checking if $HOME/.zshrc is pre v1.1.3"
-        CURRENT_ZSHRC_MD5=$(md5sum $HOME/.zshrc)
+        CURRENT_ZSHRC_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '})
         ZSHBOP_ZSHRC_MD5="bc6c62965dfe93767c3bb9fabed48ce6"
         _debug " -- Current .zshrc md5 is - $CURRENT_ZSHRC_MD5"
         _debug " -- zshbop .zshrc md5 is - $ZSHBOP_ZSHRC_MD5"
@@ -236,5 +236,5 @@ zshbop_colors () {
 # -- Check if $HOME/.zshrc needs to be replaced and do it fingers crossed.
 zshbop_previous-version-check
 
-# -- Initalize and Start ZSHBOP
+# -- Init
 init
