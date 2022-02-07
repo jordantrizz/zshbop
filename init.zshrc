@@ -230,12 +230,13 @@ init () {
         init_defaults
 
 	# -- Skip when running rld
+	_debug "\$funcstack is $funcstack"
 	if [[ $funcstack[3] != "zshbop_reload" ]]; then
 		init_sshkeys
 		startup_motd
 	else
 		echo " -- Skipped some scripts due to running rld"
-	fi	
+	fi
 }
 
 # -- startup_motd - initial scripts to run on login
