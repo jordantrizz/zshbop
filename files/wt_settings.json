@@ -62,21 +62,22 @@
                 },
                 "guid": "{2c4de342-38b7-51cf-b940-2309a097f518}",
                 "hidden": false,
+                "historySize": 1000000,
                 "name": "Ubuntu",
                 "source": "Windows.Terminal.Wsl",
-                "startingDirectory": "//wsl$/Ubuntu/home/jtrask"
+                "startingDirectory": "/home/jtrask"
             },
             {
                 "acrylicOpacity": 0.90000000000000002,
                 "closeOnExit": "graceful",
                 "colorScheme": "One Half Dark",
-                "commandline": "%PROGRAMFILES%/git/usr/bin/bash.exe -i -l",
+                "commandline": "%PROGRAMFILES%/git/usr/bin/bash.exe --login -I -l",
                 "cursorColor": "#FFFFFF",
                 "cursorShape": "bar",
                 "font": 
                 {
                     "face": "Consolas",
-                    "size": 10
+                    "size": 14
                 },
                 "guid": "{00000000-0000-0000-ba54-000000000002}",
                 "historySize": 9001,
@@ -84,7 +85,7 @@
                 "name": "Git Bash",
                 "padding": "0, 0, 0, 0",
                 "snapOnInput": true,
-                "startingDirectory": "%USERPROFILE%",
+                "startingDirectory": "C:\\Program Files\\Git",
                 "tabTitle": "Git Bash",
                 "useAcrylic": true
             }
