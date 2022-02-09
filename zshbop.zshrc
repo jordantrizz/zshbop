@@ -106,7 +106,6 @@ zshbop_check-migrate () {
                 fi
         done
         if [[ "$FOUND" == "0" ]]; then
-                echo $FOUND
                 echo " -- Don't need to migrate legacy zshbop"
         fi
 }
