@@ -24,7 +24,7 @@ help_sub_header () {
 
 get_category_commands () {	
 	# If help all is used
-	echo "-- Finding category: $1"
+	_debug "-- Finding category: $1"
         if [[ $1 == "all" ]]; then
 		output_all=" -- Featching All Commands\n"
                 for key in ${(k)help_files}; do
@@ -41,6 +41,8 @@ get_category_commands () {
                 echo ""
 		return
 	else
+		echo ""
+		echo $help_files[$1_description]
 		echo " -- $1 ------------------------------------------------------------"
 		for key value in ${(kv)${(P)help_cat}}; do
         		printf '%s\n' "  ${(r:25:)key} - $value"

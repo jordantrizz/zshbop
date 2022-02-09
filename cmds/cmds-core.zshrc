@@ -24,6 +24,7 @@ cc () {
 # -- kb - A built in knowledge base.
 help_core[kb]='knowledge base'
 kb () {
+	# Check if mdv exists if not use cat
         if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
 
         if [[ -a $ZSH_ROOT/kb/$1.md ]]; then
@@ -36,7 +37,8 @@ kb () {
                 echo "\n\n"
                 echo "---------------------------------------"
                 echo "mdv not avaialble failing back to cat"
-                echo "you should install mdv, pip install mdv"
+                echo "trying installing mdv by typing"
+                echo "---------------------------------------"
         fi
 }
 
@@ -174,6 +176,11 @@ _debug " -- Loading \${(%):-%N}"
 
 # - Init help array
 typeset -gA help_$1
+
+# What help file is this?
+help_files[$1_description]="-- To install, run software <cmd>"
+help_files[$1]='Software related commands'
+
 TEMPLATE
 	fi
 

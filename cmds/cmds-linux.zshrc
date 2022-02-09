@@ -23,3 +23,10 @@ help_linux[dir-filecount]='Count how many files are in each directory, recusivel
 dir-filecount () {
 	find -maxdepth 1 -type d | sort | while read -r dir; do n=$(find "$dir" -type f | wc -l); printf "%4d : %s\n" $n "$dir"; done
 }
+
+# -- vhwinfo - Run vhwinfo.
+help_software[vhwinfo]='Downlooads vhwinfo and disp;ays system information.'
+software_vhwinfo () {
+        echo " -- Downloading vhwinfo.sh via wget and running"
+        wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
+}
