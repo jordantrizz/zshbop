@@ -151,9 +151,12 @@ init_defaults () {
 	fi
 
 	# --- Include custom configuration
-	if [ -f $HOME/.zshbop ]; then
-        	echo " -- Loading custom configuration"
-	        source $HOME/.zshbop
+	_debug "Detecting custom .zshbop configuration"
+	if [ -f $HOME/.zshbop.zshrc ]; then
+        	echo " -- Loading custom configuration $HOME/.zshbop.zshrc"
+	        source $HOME/.zshbop.zshrc
+	else
+		echo " -- No custom configuration found"
 	fi
 }
 
