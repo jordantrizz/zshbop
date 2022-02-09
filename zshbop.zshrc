@@ -97,40 +97,37 @@ zshbop_startup () { startup_motd; }
 # -- check-migrate
 help_zshbop[check-migrate]='Check if running old zshbop.'
 zshbop_check-migrate () {
-	echo " -- Checking for legacy zshbop"
-	NO_ZBPATH_MIGRATE_CHECK="0"
-	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
-		if [ -d "$ZBPATH_MIGRATE" ]; then
-        		_error "Detected old zshbop under $ZBPATH_MIGRATE, double check and run zshbop_migrate";
-	        else
-			NO_ZBPATH_MIGRATE_CHECK="1"
-	        fi
-	done
-        if [[ "$NO_ZBPATH_MIGRATE_CHECK"=="1" ]]; then
+        echo " -- Checking for legacy zshbop"
+        FOUND="0"
+        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
+                if [ -d "$ZBPATH_MIGRATE" ]; then
+                        _error "Detected old zshbop under $ZBPATH_MIGRATE, run 'zshbop migrate'";
+                        FOUND="1"
+                fi
+        done
+        if [[ "$FOUND" == "0" ]]; then
+                echo $FOUND
                 echo " -- Don't need to migrate legacy zshbop"
-		NO_ZBPATH_MIGRATE_CHECK="0"
         fi
 }
 
 # -- migrate
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
-	echo " -- Migrating legacy zshbop"
-	DO_ZBPATH_MIGRATE="0"
-	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
-		if [ -d "$ZBPATH_MIGRATE" ]; then			
-	                echo "-- Moving $ZSHPATH_MIGRATE to $ZSHPATH_MIGRATEbop"
-#        	        sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
-                	echo "-- Copying $ZSHPATH_MIGRATE/.zshrc to your $HOME/.zshrc"
-#	                cp /usr/local/sbin/zshbop/.zshrc_install $HOME/.zshrc
-			DO_ZBPATH_MIGRATE="1"
-	        else
-	        	DO_ZBPATH_MIGRATE="0"
-	        fi
-	done
-	if [[ "$DO_ZBPATH_MIGRATE"=="0" ]]; then
-		echo " -- Don't need to migrate legacy zshbop"
-	fi
+        echo " -- Migrating legacy zshbop"
+        FOUND="0"
+        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
+                if [ -d "$ZBPATH_MIGRATE" ]; then
+                        echo " -- Moving $ZBPATH_MIGRATE to ${ZBPATH_MIGRATE}bop"
+                        sudo mv $ZBPATH_MIGRATE ${ZBPATH_MIGRATE}bop
+                        echo " -- Copying ${ZBPATH_MIGRATE}bop/.zshrc to your $HOME/.zshrc"
+                        cp ${ZBPATH_MIGRATE}bop/.zshrc $HOME/.zshrc
+                        FOUND="1"
+                fi
+        done
+        if [[ "$FOUND" == "0" ]]; then
+                echo " -- Don't need to migrate legacy zshbop"
+        fi
 }
 
 # -- branch
