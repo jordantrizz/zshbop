@@ -187,8 +187,8 @@ TEMPLATE
 }
 
 # -- kbe
-help_core[kbed]='Edit a KB with $EDITOR'
-kbed () {
+help_core[kbe]='Edit a KB with $EDITOR'
+kbe () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
 	if [[ $1 ]]; then
 		${=EDITOR_RUN} $ZSHBOP_ROOT/kb/$1.md
@@ -197,13 +197,13 @@ kbed () {
 	fi
 }
 
-# -- cedit
-help_core[ced]='Edit a cmd file with $EDITOR'
-ced () {
+# -- ce
+help_core[ce]='Edit a cmd file with $EDITOR'
+ce () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
         if [[ $1 ]]; then        
                 ${=EDITOR_RUN} $ZSHBOP_ROOT/cmds/cmds-$1.zshrc
         else
-                echo "Usage: $funcstack[1] <name of KB>"
+                echo "Usage: $funcstack[1] <name of command file>"
         fi
 }
