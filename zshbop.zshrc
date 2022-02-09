@@ -20,6 +20,9 @@ ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version)
 # -- Set help_zshbop
 typeset -gA help_zshbop
 
+# -- Set help_custom for custom help files
+typeset -gA help_custom
+
 # -- Previous zsbop paths
 ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh")
 
