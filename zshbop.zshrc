@@ -116,20 +116,20 @@ zshbop_check-migrate () {
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
 	echo " -- Migrating legacy zshbop"
-	NO_ZBPATH_MIGRATE="0"
+	DO_ZBPATH_MIGRATE="0"
 	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
-		if [ -d "$ZBPATH_MIGRATE" ]; then
+		if [ -d "$ZBPATH_MIGRATE" ]; then			
 	                echo "-- Moving $ZSHPATH_MIGRATE to $ZSHPATH_MIGRATEbop"
 #        	        sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
                 	echo "-- Copying $ZSHPATH_MIGRATE/.zshrc to your $HOME/.zshrc"
 #	                cp /usr/local/sbin/zshbop/.zshrc_install $HOME/.zshrc
+			DO_ZBPATH_MIGRATE="1"
 	        else
-	        	NO_ZBPATH_MIGRATE="1"
+	        	DO_ZBPATH_MIGRATE="0"
 	        fi
 	done
-	if [[ "$NO_ZBPATH_MIGRATE"=="1" ]]; then
+	if [[ "$DO_ZBPATH_MIGRATE"=="0" ]]; then
 		echo " -- Don't need to migrate legacy zshbop"
-		NO_ZBPATH_MIGRATE="0"
 	fi
 }
 
