@@ -18,7 +18,7 @@ cd /tmp/zsh
 sudo make -j 20 install
 ```
 
-# Paramter Expansion
+# ZSH Expansion + Pattern Matching
 * https://thevaluable.dev/zsh-expansion-guide-example/
 
 # Arguments
@@ -85,5 +85,32 @@ no value
 ARGS="-auwxxf"
 TEST="ps $args"
 $TEST
+```
 
+# How to show function definition
+```
+zsh$ whence -f foo
+foo () {
+    echo hello
+}
+zsh$
+```
+
+# Ask question and read input
+```
+_warning "*** WARNING: This will re-install WordPress core files ***"
+_warning "*** Please make sure this is the correct directory $1 ***"
+read -q "REPLY?Continue? (y/n)"
+```
+
+# Run a command stored in a variable
+* https://stackoverflow.com/questions/13665172/zsh-run-a-command-stored-in-a-variable
+```
+I believe you have two problems here - the first is that your install_cmd is being interpreted as a single string, instead of a command (sudo) with 3 arguments.
+
+Your final attempt $=install_cmd actually does solve that problem correctly (though I'd write it as ${=install_cmd} instead), but then you hit your second problem: ~some_server/bin/do_install is not a known command. This is because sudo doesn't interpret the ~ like you intend, for safety reasons; it would need to evaluate its arguments using the shell (or do some special-casing for ~, which is really none of sudo's business), which opens up a whole can of worms that, understandably, sudo does its best to avoid.
+
+That's also why it worked to do eval ${install_cmd} - because that's literally treating the whole string as a thing to be evaluated, possibly containing multiple commands (e.g. if install_cmd contained echo foo; sudo rm -rf / it would be happy to wipe your system).
+
+You have to be the one to decide whether you want install_cmd to allow full shell semantics, including variable interpolation, path expansion, multiple commands, etc. or whether it should just expand the words out and run them as a single command.
 ```

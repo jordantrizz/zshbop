@@ -29,7 +29,6 @@ export LANG="C.UTF-8"
 
 # -- zshbop specific environment variables
 
-
 # -- zshbop debugging
 if [ -f $ZSHBOP_ROOT/.debug ]; then
         export ZSH_DEBUG=1
@@ -70,6 +69,9 @@ pip_install=('ngxtop' 'apt-select')
 #[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
 ####-- diff-so-fancy
 git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
+
+# -- Take $EDITOR run it through alias and strip it down
+EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 
 # ------------
 # -- Functions

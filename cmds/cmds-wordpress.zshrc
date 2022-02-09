@@ -65,3 +65,17 @@ wp-ultimo-delete-subs () {
 
 	#SELECT DISTINCT ID FROM wp_posts, wp_postmeta WHERE wp_posts.ID = wp_postmeta.post_id AND wp_postmeta.meta_key = 'wpu_order' AND post_type = 'wpultimo_plan' && post_status = 'publish' ORDER BY CAST(wp_postmeta.meta_value as unsigned) ASC
 }
+
+# -- wp-countposts
+help_wordpress[wp-reset]='Force install WordPress core files.'
+wp-reset () {
+	_warning "*** WARNING: This will re-install WordPress core files ***"
+	_warning "*** Please make sure this is the correct directory $1 ***"
+	read -q "REPLY?Continue? (y/n)"
+	
+	if [[ "$REPLY" == "y" ]]; then
+		wp core download --force --skip-content
+	else
+		echo "\nPressed n Quitting.."
+	fi	
+}
