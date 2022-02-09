@@ -94,13 +94,15 @@ zshbop_startup () { startup_motd; }
 # -- check-migrate
 help_zshbop[check-migrate]='Check if running old zshbop.'
 zshbop_check-migrate () {
+	ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh")
 	echo " -- Checking for legacy zshbop"
-        if [ -d /usr/local/sbin/zsh ]; then _error "Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate";
-        elif [ -d $HOME/zsh ];then _error "Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate";
-        elif [ -d $HOME/git/zsh ];then _error "Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate";
-        else
-        	echo " -- Not running legacy zshbop"
-        fi        
+	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
+		if [ -d "$ZBPATH_MIGRATE" ]; then
+        		_error "Detected old zshbop under $ZBPATH_MIGRATE, double check and run zshbop_migrate";
+	        else
+        		echo " -- Not running legacy zshbop"
+	        fi        
+	done
 }
 
 # -- migrate
