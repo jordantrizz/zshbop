@@ -98,20 +98,25 @@ zshbop_startup () { startup_motd; }
 help_zshbop[check-migrate]='Check if running old zshbop.'
 zshbop_check-migrate () {
 	echo " -- Checking for legacy zshbop"
+	NO_ZBPATH_MIGRATE_CHECK="0"
 	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
 		if [ -d "$ZBPATH_MIGRATE" ]; then
         		_error "Detected old zshbop under $ZBPATH_MIGRATE, double check and run zshbop_migrate";
 	        else
-        		echo " -- Not running legacy zshbop"
-	        fi        
+			NO_ZBPATH_MIGRATE_CHECK="1"
+	        fi
 	done
+        if [[ "$NO_ZBPATH_MIGRATE_CHECK"=="1" ]]; then
+                echo " -- Don't need to migrate legacy zshbop"
+		NO_ZBPATH_MIGRATE_CHECK="0"
+        fi
 }
 
 # -- migrate
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
 	echo " -- Migrating legacy zshbop"
-	 NO_ZBPATH_MIGRATE="0"
+	NO_ZBPATH_MIGRATE="0"
 	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
 		if [ -d "$ZBPATH_MIGRATE" ]; then
 	                echo "-- Moving $ZSHPATH_MIGRATE to $ZSHPATH_MIGRATEbop"
@@ -124,6 +129,7 @@ zshbop_migrate () {
 	done
 	if [[ "$NO_ZBPATH_MIGRATE"=="1" ]]; then
 		echo " -- Don't need to migrate legacy zshbop"
+		NO_ZBPATH_MIGRATE="0"
 	fi
 }
 
