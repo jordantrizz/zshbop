@@ -94,6 +94,20 @@ help_intro () {
         for key value in ${(kv)help_files}; do
                 printf '%s\n' "  help ${(r:25:)key} - $value"
         done
+	_debug "Checking for \$help_custom"
+	_debug "$help_custom"
+        if [[ $help_custom ]]; then
+		_debug "Loading custom commands"
+	        echo "-----------------------"
+	        echo "-- Custom Commands --"
+	        echo "-----------------------"
+		for key value in ${(kv)help_custom}; do
+	                printf '%s\n' "  help ${(r:25:)key} - $value"
+	        done
+	else
+		_debug "No custom commands found in $HOME/.zshbop"
+	fi
+	
 	echo ""
 	echo "---------------"
         echo "-- Examples --"
