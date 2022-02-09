@@ -20,6 +20,9 @@ ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version)
 # -- Set help_zshbop
 typeset -gA help_zshbop
 
+# -- Previous zsbop paths
+ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh")
+
 # -----------
 # -- includes
 # -----------
@@ -94,7 +97,6 @@ zshbop_startup () { startup_motd; }
 # -- check-migrate
 help_zshbop[check-migrate]='Check if running old zshbop.'
 zshbop_check-migrate () {
-	ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh")
 	echo " -- Checking for legacy zshbop"
 	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
 		if [ -d "$ZBPATH_MIGRATE" ]; then
@@ -108,24 +110,21 @@ zshbop_check-migrate () {
 # -- migrate
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
-        if [ -d /usr/local/sbin/zsh ]; then
-                echo "-- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
-                sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
-                echo "-- Copying /usr/local/sbin/zshbop/.zshrc_install to your $HOME/.zshrc"
-                cp /usr/local/sbin/zshbop/.zshrc_install $HOME/.zshrc
-        fi
-        if [ -d $HOME/zsh ]; then
-                echo "-- Moving $HOME/zsh to $HOME/zshbop"
-                mv $HOME/zsh $HOME/zshbop
-                echo "-- Copying $HOME/zshbop/.zshrc_install to your $HOME/.zshrc"
-                cp $HOME/zshbop/.zshrc_install $HOME/.zshrc
-        fi
-        if [ -d $HOME/git/zsh ]; then
-                echo "-- Moving $HOME/git/zsh to $HOME/git/zshbop"
-                mv $HOME/git/zsh $HOME/git/zshbop
-		echo "-- Copyiong $HOME/zshbop/.zshrc_install to $HOME/.zshrc"
-                cp $HOME/zshbop/.zshrc_install $HOME/.zshrc
-        fi
+	echo " -- Migrating legacy zshbop"
+	 NO_ZBPATH_MIGRATE="0"
+	for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
+		if [ -d "$ZBPATH_MIGRATE" ]; then
+	                echo "-- Moving $ZSHPATH_MIGRATE to $ZSHPATH_MIGRATEbop"
+#        	        sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
+                	echo "-- Copying $ZSHPATH_MIGRATE/.zshrc to your $HOME/.zshrc"
+#	                cp /usr/local/sbin/zshbop/.zshrc_install $HOME/.zshrc
+	        else
+	        	NO_ZBPATH_MIGRATE="1"
+	        fi
+	done
+	if [[ "$NO_ZBPATH_MIGRATE"=="1" ]]; then
+		echo " -- Don't need to migrate legacy zshbop"
+	fi
 }
 
 # -- branch
