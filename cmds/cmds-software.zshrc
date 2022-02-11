@@ -58,3 +58,8 @@ software_mdv () {
         pip install .
 }
 
+# -- asciinema - Installs asciinema 
+help_software[asciinema]='Installs asciinema'
+software_asciinema () {
+	sudo apt-get install asciinema 
+}
