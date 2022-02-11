@@ -109,10 +109,14 @@ update () {
         fi
 
         # Update repos
-        for name in $ZSH_ROOT/repos/*
-        do
-                echo "-- Updating repo $name"
-                git -C $name pull
+        for name in $ZSH_ROOT/repos/*; do
+        	_debug "Found $name"
+		if [[ -d $name ]]; then
+	                echo "-- Updating repo $name"
+        	        git -C $name pull
+        	else
+        		echo "-- No repos to update"
+        	fi
         done
 
         # Reload scripts
@@ -198,11 +202,22 @@ kbe () {
 }
 
 # -- ce
-help_core[ce]='Edit a cmd file with $EDITOR'
-ce () {
+help_core[cmde]='Edit a cmd file with $EDITOR'
+cmde () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
         if [[ $1 ]]; then        
                 ${=EDITOR_RUN} $ZSHBOP_ROOT/cmds/cmds-$1.zshrc
+        else
+                echo "Usage: $funcstack[1] <name of command file>"
+        fi
+}
+
+# -- he
+help_core[ce]='Edit core files'
+ce () {
+        _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
+        if [[ $1 ]]; then
+                ${=EDITOR_RUN} $ZSHBOP_ROOT/$1.zshrc
         else
                 echo "Usage: $funcstack[1] <name of command file>"
         fi
