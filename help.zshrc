@@ -76,9 +76,12 @@ help_intro () {
         echo "-- zshbop Commands --"
         echo "--------------------"
         echo ""
-        for key value in ${(kv)help_zshbop}; do
-                printf '%s\n' "  zshbop ${(r:25:)key} - $value"
+        
+	
+        for key in ${(kon)help_zshbop}; do
+                printf '%s\n' "  zshbop ${(r:25:)key} - help_zshbop[$key]"
         done
+
 	echo ""
         echo "--------------------"
         echo "-- Help Commands --"
@@ -91,8 +94,10 @@ help_intro () {
 	echo "-- Help Command Categories --"
         echo "------------------------"
 	echo ""
-        for key value in ${(kv)help_files}; do
-                printf '%s\n' "  help ${(r:25:)key} - $value"
+	
+		
+        for key in ${(kon)help_files}; do
+                printf '%s\n' "  help ${(r:25:)key} - $help_files[$key]"
         done
 	_debug "Checking for \$help_custom"
 	_debug "$help_custom"
