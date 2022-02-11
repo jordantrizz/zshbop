@@ -124,3 +124,5 @@ Enable server wide
 ## Logs
 * /var/www/{site.url}/logs/7g.log
 
+# Post to Slack
+* /usr/local/bin/gpmonitor <title> <data>

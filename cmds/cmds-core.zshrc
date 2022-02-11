@@ -219,6 +219,6 @@ ce () {
         if [[ $1 ]]; then
                 ${=EDITOR_RUN} $ZSHBOP_ROOT/$1.zshrc
         else
-                echo "Usage: $funcstack[1] <name of command file>"
+                echo "Usage: $funcstack[1] <name of core file>"
         fi
 }
