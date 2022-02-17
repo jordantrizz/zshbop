@@ -79,6 +79,6 @@ mysql-setup-automysqlbackup () {
 
 # -- mysql-listdbs - List databases.
 help_mysql[mysql-listdbs]='List MySQL databases'
-mysql-setup-automysqlbackup () {
+mysql-listdbs () {
 	mysql -e 'show databaes'
 }
