@@ -76,3 +76,9 @@ mysql-setup-automysqlbackup () {
         cd $ZSH_ROOT/bin/AutoMySQLBackup
         ./install
 }
+
+# -- mysql-listdbs - List databases.
+help_mysql[mysql-listdbs]='List MySQL databases'
+mysql-setup-automysqlbackup () {
+	mysql -e 'show databaes'
+}
