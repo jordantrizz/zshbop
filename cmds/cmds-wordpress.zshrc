@@ -93,8 +93,8 @@ wp-autoload () {
         else	
 		# https://kinsta.com/knowledgebase/wp-options-autoloaded-data/
 		mysql -e "SELECT 'autoloaded data in KiB' as name, ROUND(SUM(LENGTH(option_value))/ 1024) as value FROM $1.wp_options WHERE autoload='yes' \
-		UNION SELECT 'autoloaded data count', count(*) FROM wp_options WHERE autoload='yes' UNION (SELECT option_name, length(option_value) \
-		FROM wp_options WHERE autoload='yes' ORDER BY length(option_value) DESC LIMIT 10)"
+		UNION SELECT 'autoloaded data count', count(*) FROM $1.wp_options WHERE autoload='yes' UNION (SELECT option_name, length(option_value) \
+		FROM $1.wp_options WHERE autoload='yes' ORDER BY length(option_value) DESC LIMIT 10)"
 	fi
 }
 
