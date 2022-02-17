@@ -79,7 +79,7 @@ wp-reinstall () {
 		echo "\nPressed n Quitting.."
 	fi	
 }
-help_wordpress[wp-reset]='Completely clean out a site. Danger!' @@ISSUE
+help_wordpress[wp-reset]='Completely clean out a site. Danger!' # @@ISSUE
 wp-reset () {
 	echo "Not built yet"
 }
