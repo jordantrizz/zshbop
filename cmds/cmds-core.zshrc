@@ -24,6 +24,7 @@ cc () {
 # -- kb - A built in knowledge base.
 help_core[kb]='knowledge base'
 kb () {
+	# Check if mdv exists if not use cat
         if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
 
         if [[ -a $ZSH_ROOT/kb/$1.md ]]; then
@@ -36,7 +37,8 @@ kb () {
                 echo "\n\n"
                 echo "---------------------------------------"
                 echo "mdv not avaialble failing back to cat"
-                echo "you should install mdv, pip install mdv"
+                echo "trying installing mdv by typing"
+                echo "---------------------------------------"
         fi
 }
 
@@ -107,10 +109,14 @@ update () {
         fi
 
         # Update repos
-        for name in $ZSH_ROOT/repos/*
-        do
-                echo "-- Updating repo $name"
-                git -C $name pull
+        for name in $ZSH_ROOT/repos/*; do
+        	_debug "Found $name"
+		if [[ -d $name ]]; then
+	                echo "-- Updating repo $name"
+        	        git -C $name pull
+        	else
+        		echo "-- No repos to update"
+        	fi
         done
 
         # Reload scripts
@@ -174,7 +180,45 @@ _debug " -- Loading \${(%):-%N}"
 
 # - Init help array
 typeset -gA help_$1
+
+# What help file is this?
+help_files[$1_description]="-- To install, run software <cmd>"
+help_files[$1]='Software related commands'
+
 TEMPLATE
 	fi
 
+}
+
+# -- kbe
+help_core[kbe]='Edit a KB with $EDITOR'
+kbe () {
+        _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
+	if [[ $1 ]]; then
+		${=EDITOR_RUN} $ZSHBOP_ROOT/kb/$1.md
+	else
+		echo "Usage: $funcstack <name of KB>"
+	fi
+}
+
+# -- ce
+help_core[cmde]='Edit a cmd file with $EDITOR'
+cmde () {
+        _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
+        if [[ $1 ]]; then        
+                ${=EDITOR_RUN} $ZSHBOP_ROOT/cmds/cmds-$1.zshrc
+        else
+                echo "Usage: $funcstack[1] <name of command file>"
+        fi
+}
+
+# -- he
+help_core[ce]='Edit core files'
+ce () {
+        _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
+        if [[ $1 ]]; then
+                ${=EDITOR_RUN} $ZSHBOP_ROOT/$1.zshrc
+        else
+                echo "Usage: $funcstack[1] <name of core file>"
+        fi
 }

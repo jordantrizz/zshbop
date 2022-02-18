@@ -24,7 +24,7 @@ help_sub_header () {
 
 get_category_commands () {	
 	# If help all is used
-	echo "-- Finding category: $1"
+	_debug "-- Finding category: $1"
         if [[ $1 == "all" ]]; then
 		output_all=" -- Featching All Commands\n"
                 for key in ${(k)help_files}; do
@@ -41,6 +41,8 @@ get_category_commands () {
                 echo ""
 		return
 	else
+		echo ""
+		echo $help_files[$1_description]
 		echo " -- $1 ------------------------------------------------------------"
 		for key value in ${(kv)${(P)help_cat}}; do
         		printf '%s\n' "  ${(r:25:)key} - $value"
@@ -74,9 +76,12 @@ help_intro () {
         echo "-- zshbop Commands --"
         echo "--------------------"
         echo ""
-        for key value in ${(kv)help_zshbop}; do
-                printf '%s\n' "  zshbop ${(r:25:)key} - $value"
+        
+	
+        for key in ${(kon)help_zshbop}; do
+                printf '%s\n' "  zshbop ${(r:25:)key} - help_zshbop[$key]"
         done
+
 	echo ""
         echo "--------------------"
         echo "-- Help Commands --"
@@ -89,9 +94,25 @@ help_intro () {
 	echo "-- Help Command Categories --"
         echo "------------------------"
 	echo ""
-        for key value in ${(kv)help_files}; do
-                printf '%s\n' "  help ${(r:25:)key} - $value"
+	
+		
+        for key in ${(kon)help_files}; do
+                printf '%s\n' "  help ${(r:25:)key} - $help_files[$key]"
         done
+	_debug "Checking for \$help_custom"
+	_debug "$help_custom"
+        if [[ $help_custom ]]; then
+		_debug "Loading custom commands"
+	        echo "-----------------------"
+	        echo "-- Custom Commands --"
+	        echo "-----------------------"
+		for key value in ${(kv)help_custom}; do
+	                printf '%s\n' "  help ${(r:25:)key} - $value"
+	        done
+	else
+		_debug "No custom commands found in $HOME/.zshbop"
+	fi
+	
 	echo ""
 	echo "---------------"
         echo "-- Examples --"

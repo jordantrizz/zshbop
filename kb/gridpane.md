@@ -30,17 +30,45 @@
 * gpmonit mysql 
 
 # MySQL
-## MySQL Root Login
-* gridenv/promethean.env
-* gp mysql -get-pass root
+## MySQL Service Control
+* gp mysql -stop
+* gp mysql -start
+* gp mysql -restart
+* gp mysql -reload
+
+## MySQL Logins
+* gridenv/promethean.env - root login stored
+* gp mysql -get-pass root - get root login
+* gp mysql -login root - login as root login
+* gp mysql -get-pass {site.url} - get site db login
+* gp mysql -login {site.url} - login as site db user
 
 ## MySQL Configuration
-* gp stack mysql -max-connections 100
-* gp stack mysql -innodb-buffer-pool-size 2048
-* gp stack mysql -innodb-buffer-pool-instances 2
-* gp stack mysql -innodb-log-file-size 256
-* gp stack mysql -slow-query-log 1
-** MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
+The default values are specified
+
+* gp stack mysql -binlog-expire-logs-seconds 2592000
+* gp stack mysql -innodb-autoinc-lock-mode 1
+* gp stack mysql -innodb-buffer-pool-instances 8 (or 1 if innodb_buffer_pool_size < 1GB)
+* gp stack mysql -innodb-buffer-pool-size 64 MB if the total RAM is less than 1200MB at the time the server is provisioned, or 128MB if more.
+* gp stack mysql -innodb-flush-log-at-trx-commit 1
+* gp stack mysql -innodb-flush-method O_DIRECT
+* gp stack mysql -innodb-io-capacity 1000
+* gp stack mysql -innodb-io-capacity-max 2000
+* gp stack mysql -innodb-log-file-size 100
+* gp stack mysql -join-buffer-size 256
+* gp stack mysql -long-query-time 0 
+* gp stack mysql -max-binlog-size 100
+* gp stack mysql -max-connections 150
+* gp stack mysql -slow-query-log 0
+* gp stack mysql -thread-handling one-thread-per-connection
+* gp stack mysql -thread-pool-high-prio-mode transactions
+* gp stack mysql -thread-pool-high-prio-tickets 4294967295
+* gp stack mysql -thread-pool-idle-timeout 60
+* gp stack mysql -thread-pool-max-threads 100000
+* gp stack mysql -thread-pool-size 4 - Based on CPU cores - This variable is inactive unless thread_handling is set to pool-of-threads
+* gp stack mysql -thread-pool-stall-limit 500
+
+MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
 * gp mysql restart
 
 # Redis
@@ -96,3 +124,5 @@ Enable server wide
 ## Logs
 * /var/www/{site.url}/logs/7g.log
 
+# Post to Slack
+* /usr/local/bin/gpmonitor <title> <data>

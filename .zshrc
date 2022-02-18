@@ -11,19 +11,21 @@ fi
 # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 ZDOTDIR=$HOME
 
-#- Detecting where zshbop might be installed
+# -- Potential zshbop paths, including old zsh path
+ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
+
+# -- Detecting where zshbop might be installed
 if [ -z "$ZSHBOP_ROOT" ]; then
-	echo "-- \$ZSHBOP_ROOT empty so running detection"
-	if [ -f $HOME/zshbop/zshbop.zshrc ]; then 
-		export ZSHBOP_ROOT=$HOME/zshbop;
-        	echo "---- Loading from $ZSHBOP_ROOT"
-	elif [ -f $HOME/git/zshbop/zshbop.zshrc ]; then 
-		export ZSHBOP_ROOT=$HOME/git/zshbop
-	        echo "---- Loading from $ZSHBOP_ROOT"
-	elif [ -f /usr/local/sbin/zshbop/zshbop.zshrc ]; then
-        	export ZSHBOP_ROOT=/usr/local/sbin/zshbop
-	        echo "---- Loading from $ZSHBOP_ROOT"
-        fi
+	for ZBPATH in "${ZSHBOP_PATHS[@]}"; do
+		if [[ -f "$ZBPATH/zshbop.zshrc" ]]; then
+			export ZSHBOP_ROOT=$ZBPATH;
+	                echo "-- Loading from $ZSHBOP_ROOT"
+		fi
+	done
+	if [ -z "$ZSHBOP_ROOT" ]; then
+		echo "-- Can't locate zshbop, we broken dude :("
+		return
+	fi
 fi
 
 # - Initilize zshbop
