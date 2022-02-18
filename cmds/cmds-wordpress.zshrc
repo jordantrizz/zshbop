@@ -13,7 +13,7 @@ help_files[wordpress]='WordPress related commands'
 typeset -gA help_wordpress
 
 # -- wp-cli but allow root ;)
-help_wordpress[wp]='Generate phpinfo() file'
+help_wordpress[wp]='Run wp-cli with --allow-root'
 alias wp="wp --allow-root"
 
 # -- wp-db
