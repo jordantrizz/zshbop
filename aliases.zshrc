@@ -1,5 +1,9 @@
+# ----------
 # -- Aliases
-# ----------------------
+# ----------
+#
+# Common aliases
+#
 
 # - General Aliases
 alias joe="joe --wordwrap -nobackups"
@@ -30,6 +34,7 @@ alias ttfb='curl -s -o /dev/null -w "Connect: %{time_connect} TTFB: %{time_start
 alias ab_quick="ab -c 5 -n 100 $1"
 alias dhparam="openssl dhparam -out dhparam.pem 2048"
 alias dnst="dnstracer -o -s b.root-servers.net -4 -r 1"
+alias lynx="lynx  -accept_all_cookies $@"
 
 # -- GIT configuration and aliases
 alias gitp="git submodule foreach git pull origin master"

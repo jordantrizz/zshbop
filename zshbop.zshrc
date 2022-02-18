@@ -20,6 +20,12 @@ ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version)
 # -- Set help_zshbop
 typeset -gA help_zshbop
 
+# -- Set help_custom for custom help files
+typeset -gA help_custom
+
+# -- Previous zsbop paths
+ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh")
+
 # -----------
 # -- includes
 # -----------
@@ -94,35 +100,35 @@ zshbop_startup () { startup_motd; }
 # -- check-migrate
 help_zshbop[check-migrate]='Check if running old zshbop.'
 zshbop_check-migrate () {
-	echo " -- Checking for legacy zshbop"
-        if [ -d /usr/local/sbin/zsh ]; then _error "Detected old zshbop under /usr/local/sbin/zsh, double check and run zshbop_migrate";
-        elif [ -d $HOME/zsh ];then _error "Detected old zshbop under $HOME/zsh, double check and run zshbop_migrate";
-        elif [ -d $HOME/git/zsh ];then _error "Detected old zshbop under $HOME/git/zsh, double check and run zshbop_migrate";
-        else
-        	echo " -- Not running legacy zshbop"
-        fi        
+        echo " -- Checking for legacy zshbop"
+        FOUND="0"
+        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
+                if [ -d "$ZBPATH_MIGRATE" ]; then
+                        _error "Detected old zshbop under $ZBPATH_MIGRATE, run 'zshbop migrate'";
+                        FOUND="1"
+                fi
+        done
+        if [[ "$FOUND" == "0" ]]; then
+                echo " -- Don't need to migrate legacy zshbop"
+        fi
 }
 
 # -- migrate
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
-        if [ -d /usr/local/sbin/zsh ]; then
-                echo "-- Moving /usr/local/sbin/zsh to /usr/local/sbin/zshbop"
-                sudo mv /usr/local/sbin/zsh /usr/local/sbin/zshbop
-                echo "-- Copying /usr/local/sbin/zshbop/.zshrc_install to your $HOME/.zshrc"
-                cp /usr/local/sbin/zshbop/.zshrc_install $HOME/.zshrc
-        fi
-        if [ -d $HOME/zsh ]; then
-                echo "-- Moving $HOME/zsh to $HOME/zshbop"
-                mv $HOME/zsh $HOME/zshbop
-                echo "-- Copying $HOME/zshbop/.zshrc_install to your $HOME/.zshrc"
-                cp $HOME/zshbop/.zshrc_install $HOME/.zshrc
-        fi
-        if [ -d $HOME/git/zsh ]; then
-                echo "-- Moving $HOME/git/zsh to $HOME/git/zshbop"
-                mv $HOME/git/zsh $HOME/git/zshbop
-		echo "-- Copyiong $HOME/zshbop/.zshrc_install to $HOME/.zshrc"
-                cp $HOME/zshbop/.zshrc_install $HOME/.zshrc
+        echo " -- Migrating legacy zshbop"
+        FOUND="0"
+        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
+                if [ -d "$ZBPATH_MIGRATE" ]; then
+                        echo " -- Moving $ZBPATH_MIGRATE to ${ZBPATH_MIGRATE}bop"
+                        sudo mv $ZBPATH_MIGRATE ${ZBPATH_MIGRATE}bop
+                        echo " -- Copying ${ZBPATH_MIGRATE}bop/.zshrc to your $HOME/.zshrc"
+                        cp ${ZBPATH_MIGRATE}bop/.zshrc $HOME/.zshrc
+                        FOUND="1"
+                fi
+        done
+        if [[ "$FOUND" == "0" ]]; then
+                echo " -- Don't need to migrate legacy zshbop"
         fi
 }
 
@@ -214,7 +220,7 @@ zshbop_previous-version-check () {
         # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
         echo " -- Checking if $HOME/.zshrc is pre v1.1.3"
         CURRENT_ZSHRC_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '})
-        ZSHBOP_ZSHRC_MD5="807e0725a6cde1af6dc15ec69fb32863"
+        ZSHBOP_ZSHRC_MD5="47a679861c437bceaa481d83ccaa6c10"
         _debug " -- Current .zshrc md5 is - $CURRENT_ZSHRC_MD5"
         _debug " -- zshbop .zshrc md5 is - $ZSHBOP_ZSHRC_MD5"
         if [[ "$CURRENT_ZSHRC_MD5" != "$ZSHBOP_ZSHRC_MD5" ]]; then

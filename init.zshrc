@@ -29,7 +29,6 @@ export LANG="C.UTF-8"
 
 # -- zshbop specific environment variables
 
-
 # -- zshbop debugging
 if [ -f $ZSHBOP_ROOT/.debug ]; then
         export ZSH_DEBUG=1
@@ -70,6 +69,9 @@ pip_install=('ngxtop' 'apt-select')
 #[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
 ####-- diff-so-fancy
 git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
+
+# -- Take $EDITOR run it through alias and strip it down
+EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 
 # ------------
 # -- Functions
@@ -139,22 +141,25 @@ init_defaults () {
         
 	# Include OS Specific configuration
 	if [[ $MACHINE_OS == "Mac" ]] then
-        	echo "- Loading os/mac.zshrc"
-	        source $ZSHBOP_ROOT/os/mac.zshrc
+        	echo "- Loading cmds/os-mac.zshrc"
+	        source $ZSHBOP_ROOT/cmds/os-mac.zshrc
 	elif [[ $MACHINE_OS = "Linux" ]] then
         	if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]] then
-                	echo "- Loading os/wsl.zshrc"
-	                source $ZSHBOP_ROOT/os/wsl.zshrc
+                	echo "- Loading cmds/os-wsl.zshrc"
+	                source $ZSHBOP_ROOT/cmds/os-wsl.zshrc
 	        else
-	                source $ZSHBOP_ROOT/os/linux.zshrc
-        	        echo "- Loading os/linux.zshrc"
+	                source $ZSHBOP_ROOT/cmds/os-linux.zshrc
+        	        echo "- Loading cmds/os-linux.zshrc"
 	        fi
 	fi
 
 	# --- Include custom configuration
-	if [ -f $HOME/.zshbop ]; then
-        	echo " -- Loading custom configuration"
-	        source $HOME/.zshbop
+	_debug "Detecting custom .zshbop configuration"
+	if [ -f $HOME/.zshbop.zshrc ]; then
+        	echo " -- Loading custom configuration $HOME/.zshbop.zshrc"
+	        source $HOME/.zshbop.zshrc
+	else
+		echo " -- No custom configuration found"
 	fi
 }
 
