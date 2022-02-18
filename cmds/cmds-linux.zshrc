@@ -25,7 +25,7 @@ dir-filecount () {
 }
 
 # -- vhwinfo - Run vhwinfo.
-help_software[vhwinfo]='Downlooads vhwinfo and disp;ays system information.'
+help_linux[vhwinfo]='Temporarily downloads vhwinfo and displays system information.'
 software_vhwinfo () {
         echo " -- Downloading vhwinfo.sh via wget and running"
         wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
