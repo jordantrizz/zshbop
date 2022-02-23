@@ -1,0 +1,19 @@
+#!/bin/zsh
+
+nginx-conf () {
+        nginx_conf=$(nginx -T)
+        #echo "$nginx_conf"
+        while IFS= read -r line; do
+#               echo "$line"
+                if [[ $line =~ "^[^#]*include .*;$" ]]; then
+                         line="${line/include/}"
+                         line="${line/;/}"
+                         line="${line/[[:space:]]/}"
+                         cat $line
+                fi
+        done <<< "$nginx_conf"
+
+        #cat $1; grep '^.*[^#]include' $1 | awk {'print $2'} | sed 's/;\+$//' | xargs cat
+}
+
+nginx-conf
