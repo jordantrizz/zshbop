@@ -90,8 +90,11 @@ init_path () {
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
 	
-	# Repos - Needs to be updated to find repos installed and add them to $PATH
+	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
 	export PATH=$PATH:$ZSHBOP_ROOT/repos/gp-tools
+	
+	# Golang Path?
+	export PATH=$PATH:$HOME/go/bin
 }
 
 # -- Initialize oh-my-zsh plugins
