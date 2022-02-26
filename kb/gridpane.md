@@ -2,9 +2,7 @@
 *[wpinfo.net - Gridpane Cheatsheet CLI](https://wpinfo.net/2021/05/13/gridpane-cli-cheatsheet/)
 
 # GridPane CLI Commands
-* gp fix clear-cache
 
-# General
 ## Set Default Site
 * gp site {site.url} -set-nginx-default
 ## Default Site Redirect
@@ -15,11 +13,15 @@
 * Utilizes /var/www/holding.html so update this file if needed.
 
 ## Clear site cache
-* gp fix cached eiexperience.com
+* gp fix cached eiexperience.com - Clear single site cache
+* gp fix clear-cache - Clear all site cache.
 
 # Advanced
 ## Setup System Cron for WordPress
 * gp site {site.url} -gpcron-on {minute.interval}
+
+## Check and Download Latest GridPane Scripts
+* /usr/local/bin/gpupdate
 
 # SSL
 ## PHPMyAdmin SSL
