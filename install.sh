@@ -101,7 +101,7 @@ setup_home() {
 			echo "- Install path - $SETUP_PATH"
 		fi
 		clone_repository "$SETUP_PATH/zshbop"
-	       	cp $SETUP_PATH/zshbop/.zshrc_install $HOME/.zshrc
+	       	cp $SETUP_PATH/zshbop/.zshrc $HOME/.zshrc
 	       	echo -e "- ZSH in-place at $SETUP_PATH, type zsh to start your shell\n"
 	else
 	       	echo -e "- There's already a .zshrc in-place, remove it and re-run\n"
@@ -127,8 +127,8 @@ setup_system() {
 	#fi
 	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zshbop?"
 	
-	echo -e "Copied $SYSTEM/zshbop/.zshrc_install to ~/.zshrc"
-	cp $SYSTEM/zshbop/.zshrc_install ~/.zshrc
+	echo -e "Copied $SYSTEM/zshbop/.zshrc to ~/.zshrc"
+	cp $SYSTEM/zshbop/.zshrc ~/.zshrc
 
 }		
 
