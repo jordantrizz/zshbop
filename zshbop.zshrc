@@ -52,6 +52,7 @@ _debug () {
 #-- Check to see if command exists and then return true or false
 _cexists () {
         if (( $+commands[$@] )); then
+        	_debug $(which $1)
                 if [[ $ZSH_DEBUG == 1 ]]; then
                         _debug "$@ is installed";
                 fi
@@ -62,6 +63,37 @@ _cexists () {
                 fi
                 return 1
         fi
+}
+
+_checkroot () {
+	if [[ $EUID -ne 0 ]]; then
+		_error "Requires root...exiting." 
+	return
+	fi
+}
+
+_debug_all () {
+        _debug "--------------------------"
+        _debug "arguments - $@"
+        _debug "funcstack - $funcstack"
+        _debug "ZSH_ARGZERO - $ZSH_ARGZERO"
+        _debug "--------------------------"
+}
+
+_if_marray () {
+        valid=1
+        _debug "$funcstack[1] - find value = $1 in array = $2"
+        for value in ${(k)${(P)2[@]}}; do
+                _debug "$funcstack[2] - array=$2 \$value = $value"
+                if [[ $value == "$1" ]]; then
+                        _debug "$funcstack[1] - array $2 does contain $1"
+                        valid="0"
+                else
+                        _debug "$funcstack[1] - array $2 doesn't contain $1"
+                fi
+        done
+        _debug "valid = $valid"
+        if [[ valid == "1" ]]; return 0
 }
 
 # -------------------

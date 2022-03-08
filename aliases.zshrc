@@ -21,7 +21,7 @@ alias joe4="joe --wordwrap -nobackups -tab 4"
 alias fdcount="tree | grep directories"
 alias whatismyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 alias listen='netstat -anp | grep LISTEN'
-alias less="less -N"
+alias lessn="less -N"
 alias highcpu="ps aux | sort -nrk 3,3 | head -n 5"
 
 # - Shell Aliases
@@ -51,3 +51,5 @@ alias yabs='yabs.sh'
 alias screen="screen -c $ZSH_ROOT/.screenrc"
 alias screens="screen -list"
 
+# - ssh
+alias sshc="ssh-connect"

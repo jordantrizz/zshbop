@@ -12,11 +12,13 @@ typeset -gA help_dns
 # What help file is this?
 help_files[dns]='DNS Commands'
 
-# -- dnst
-help_dns[dnst]='Run dnstracer on root name servers'
+# --
+# -- commands that need to be installed
+# --
+help_dns[dt]='DNS tool that displays information about your domain. https://github.com/42wim/dt type '
 
-	
- 
+# -- dnst
+help_dns[dnst]='Run dnstracer on root name servers' 
 dnst () {
 	server=""
 	root_servers=""
@@ -28,4 +30,3 @@ dnst () {
 	_debug "Selected server - $server.root-servers.net"
 	dnstracer -o -s $server.root-servers.net -4 -r 1 $1
 }
-
