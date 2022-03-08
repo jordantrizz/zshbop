@@ -27,8 +27,6 @@ export LANGUAGE=en_US.UTF-8
 export TERM="xterm-256color"
 export LANG="C.UTF-8"
 
-# -- zshbop specific environment variables
-
 # -- zshbop debugging
 if [ -f $ZSHBOP_ROOT/.debug ]; then
         export ZSH_DEBUG=1
@@ -49,18 +47,8 @@ if [[ "$terminfo[colors]" -gt 8 ]]; then
     colors
 fi
 
-# -- Don't think this is needed
-#for COLOR in RED GREEN YELLOW BLUE MAGENTA CYAN BLACK WHITE; do
-#    eval $COLOR='$fg_no_bold[${(L)COLOR}]'
-#    eval BOLD_$COLOR='$fg_bold[${(L)COLOR}]'
-#done
-#eval RESET='$reset_color'
-#eval BGRED='$bg[red]'
-#eval BGGREEN='$bg[green]'
-
 # -- Unsorted stuff.
-# Default tools to install
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' )
+default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo')
 extra_tools=('pip' 'npm')
 pip_install=('ngxtop' 'apt-select')
 
@@ -118,27 +106,6 @@ init_antigen () {
 
 # -- Load default zsh scripts
 init_defaults () {
-        # Find out if we have personal ZSH scripts.
-        printf "-- Loading personal ZSH scripts...\n"
-        if [[ -a $ZSHBOP_ROOT/zsh-personal/.zshrc || -L $ZSHBOP_ROOT/zsh-personal/.zshrc ]]; then
-                ZSH_PERSONAL_DIR=$ZSHBOP_ROOT/zsh-personal
-        elif [[ -a $HOME/git/zsh-personal/.zshrc || -L $HOME/git/zsh-personal/.zshrc ]]; then
-                ZSH_PERSONAL_DIR=$HOME/git/zsh-personal
-        elif [[ -a $HOME/.personal.zshrc || -L $HOME/.personal.zshrc ]]; then
-                ZSH_PERSONAL_SCRIPT=$HOME/.personal.zshrc
-        fi
-
-        # Source personal configuration
-        if [ ! -z $ZSH_PERSONAL_DIR ]; then
-                echo " - Loading $ZSH_PERSONAL_DIR/.zshrc"
-                source $ZSH_PERSONAL_DIR/.zshrc
-        elif [ ! -z $ZSH_PERSONAL_SCRIPT]; then
-                echo " - Loading $ZSH_PERSONAL_SCRIPT"
-                source $ZSH_PERSONAL_SCRIPT
-        else
-                printf " - No personal ZSH config loaded\n"
-        fi
-        
 	# Include OS Specific configuration
 	if [[ $MACHINE_OS == "Mac" ]] then
         	echo "- Loading cmds/os-mac.zshrc"

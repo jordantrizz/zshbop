@@ -110,3 +110,6 @@ if [[ "$STR" == *"$SUB"* ]]; then
   echo "It's there."
 fi
 ```
+
+# Get function name
+```${FUNCNAME[0]```

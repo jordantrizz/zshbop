@@ -72,6 +72,7 @@ sudo make -j 20 install
 
 # Associatve Arrays
 * See https://scriptingosx.com/2019/11/associative-arrays-in-zsh/
+## Example 1
 ```
 userinfo=( name armin shell zsh website scriptingosx.com )
 userinfo=( [name]=armin [shell]=zsh [website]="scriptingosx.com" )
@@ -79,6 +80,11 @@ userinfo=( [name]=armin [shell]=zsh [website]="scriptingosx.com" )
 % if [[ -z $userinfo[website] ]]; then echo no value; fi
 no value
 ```
+## Example 2
+```
+typeset -gA help_files
+help_files[kb]='knowledge base'
+``
 
 # Execute Function in a Variable
 ```
@@ -113,4 +119,12 @@ Your final attempt $=install_cmd actually does solve that problem correctly (tho
 That's also why it worked to do eval ${install_cmd} - because that's literally treating the whole string as a thing to be evaluated, possibly containing multiple commands (e.g. if install_cmd contained echo foo; sudo rm -rf / it would be happy to wipe your system).
 
 You have to be the one to decide whether you want install_cmd to allow full shell semantics, including variable interpolation, path expansion, multiple commands, etc. or whether it should just expand the words out and run them as a single command.
+
+```
+
+# Add to array
+```
+ARRAY=()
+ARRAY+=('foo')
+ARRAY+=('bar')
 ```

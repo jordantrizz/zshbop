@@ -94,6 +94,26 @@ installenv () {
         echo ""
 }
 
+help_core[install-pkg]='Install specific tool'
+install-pkg () {
+	# List of packages.
+	typeset -gA gopkg
+	typeset -gA gopkg_info
+	gopkg[dt]='https://github.com/42wim/dt'
+	gopkg_info[dt]='Test info'
+	if [[ $1 ]]; then
+		echo "Installing $1"
+	else
+		echo "Usage: install-pkg <package>"
+		echo ""
+		echo "Packages available"
+        for key in ${(kon)gopkg}; do
+                printf '%s\n' "  ${(r:25:)key} - $gopkg_info[$key]"
+        done	
+                echo ""
+	fi
+
+}
 
 # -- update - Update ZSHBOP
 help_core[update]='Update zshbop'
@@ -109,60 +129,80 @@ update () {
         fi
 
         # Update repos
-        for name in $ZSH_ROOT/repos/*; do
-        	_debug "Found $name"
-		if [[ -d $name ]]; then
-	                echo "-- Updating repo $name"
-        	        git -C $name pull
-        	else
-        		echo "-- No repos to update"
-        	fi
-        done
-
+	repos update
+	
         # Reload scripts
         echo "--- Type rld to reload zshbop"
 }
 
 # -- repos - Install popular github.com Repositories
 help_core[repos]='Install popular github.com repositories.'
+
 repos () {
+	# debug
+	_debug_all $@
+
+	# list of repositories
         declare -A GIT_REPOS
         GIT_REPOS[jordantrizz/gp-tools]="GridPane Tools by @Jordantrizz"
         GIT_REPOS[jordantrizz/github-markdown-toc]="Add markdown table of contents to README.md"
         GIT_REPOS[jordantrizz/cloudflare-cli]="Interface with Cloudflares API"
         GIT_REPOS[lmtca/site24x7-custom-install]="Custom Site24x7 install"
-
-
-        if [ ! $1 ]; then
-                echo "--------------------------"
-                echo "-- Popular Github Repos --"
-                echo "--------------------------"
+        
+        if [[ $1 == 'install' ]] && [[ -n "$2" ]]; then
+		_debug "Checking if $2 is in \$GIT_REPO"
+        	_if_marray "$2" GIT_REPOS
+        	contains=$?
+        	_debug "contains = $contains"
+		if [[ $valid == "0" ]]; then
+			repoparts=("${(@s|/|)2}") # @ modifier
+			repodir=${repoparts[2]}
+	                echo "-- Installing repository $2 into $ZSHBOP_ROOT/repos/$repodir"
+			if [[ ! -d "$ZSHBOP_ROOT/repos/$repodir" ]]; then
+				git -C $ZSHBOP_ROOT/repos clone https://github.com/$2
+			else
+				_error "Repo already installed or $ZSHBOP_ROOT/repos/$repodir folder exists..exiting"
+			fi
+		else
+			echo "No such repository $2"
+		fi
+		return
+        elif [[ $1 == 'update' ]]; then
+        	echo "-- Updating repos "
+		if [ "$(ls -A $ZSHBOP_ROOT/repos)" ]; then
+			_debug "Found repositories"
+			for name in $ZSHBOP_ROOT/repos/*; do
+		                _debug "Found $name"
+	        	        if [[ -d $name ]]; then
+	        	                echo "  -- Updating repo $name"
+	                	        git -C $name pull
+		                else
+		                        echo "  -- No repos to update"
+	       		        fi
+		        done
+		else
+			echo "  -- No repos to update"
+		fi
+        else
+                echo "Usage: repos <install|update>"
                 echo ""
                 echo "This command pulls down popular Github repositories."
                 echo ""
                 echo "To pull down a repo, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
                 echo ""
-                echo "-- Repositories --"
+                echo "Repositories"
                 echo ""
                 for key value in ${(kv)GIT_REPOS}; do
                         printf '%s\n' "  ${(r:40:)key} - $value"
                 done
                 echo ""
-        else
-                echo "-- Start repo install --"
-                if [ $1 ]; then
-                        echo " - Installing $1 repo"
-                                git -C $ZSH_ROOT/repos clone https://github.com/$1
-                else
-                        echo "Uknown repo $1"
-                fi
-        fi
+	fi
 }
 
 # -- help-template
 help_core[help-template]='Create help template'
 help-template () {
-	help_template_file=$ZSH_ROOT/cmds/cmds-$1.zshrc
+	help_template_file=$ZSHBOP_ROOT/cmds/cmds-$1.zshrc
 	if [[ -z $1 ]]; then
 		echo "-- Provide a name for the new help file"
 	elif [[ -f $help_template_file ]]; then
