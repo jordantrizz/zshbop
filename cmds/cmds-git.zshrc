@@ -18,6 +18,16 @@ gcp () {
         git commit -am "$*" &&  git push
 }
 
+# - gbdc
+help_git[gbdc]='git branch diff on commits'
+gbdc () {
+	if [[ ! -n $1 ]] || [[ ! -n $2 ]]; then
+		echo "Usage: gbdc <branch> <branch>"
+	else
+		git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative $1..$2
+	fi
+}
+
 # -- git-config
 help_git[git-config]='Configure git name and email'
 git-config () {
