@@ -17,7 +17,7 @@ ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/us
 # -- Detecting where zshbop might be installed
 if [ -z "$ZSHBOP_ROOT" ]; then
 	for ZBPATH in "${ZSHBOP_PATHS[@]}"; do
-		if [[ -f "$ZBPATH/zshbop.zshrc" ]]; then
+		if [[ -f "$ZBPATH/zshbop.zsh" ]]; then
 			export ZSHBOP_ROOT=$ZBPATH;
 	                echo "-- Loading from $ZSHBOP_ROOT"
 		fi
@@ -30,4 +30,4 @@ fi
 
 # - Initilize zshbop
 echo "-- Initilizing zshbop"
-source $ZSHBOP_ROOT/zshbop.zshrc
+source $ZSHBOP_ROOT/zshbop.zsh

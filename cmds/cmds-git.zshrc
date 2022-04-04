@@ -12,9 +12,9 @@ help_files[git]='Git related commands'
 # - Init help array
 typeset -gA help_git
 
-# - gcp
+# - gc
 help_git[gcp]='Git commit + push'
-gcp () {
+gc () {
         git commit -am "$*" &&  git push
 }
 

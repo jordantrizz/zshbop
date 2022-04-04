@@ -63,3 +63,38 @@ help_software[asciinema]='Installs asciinema'
 software_asciinema () {
 	sudo apt-get install asciinema 
 }
+
+# -- smtp-cli - installs smtp-cli
+help_software[smtp-cli]='Installs required packages for smtp-cli'
+software_smtp-cli () {
+	echo "  -- Installing smtp-cli required packages"
+	sudo apt install libio-socket-ssl-perl libdigest-hmac-perl libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl libnet-dns-perl
+}
+
+# -- atop
+help_software[atop]='Install atop and configure'
+software_atop () {
+	echo "-- Setting up atop"
+	sudo apt-get install atop
+	sudo sed -e 's/INTERVAL=600/INTERVAL=300/g' joe /usr/share/atop/atop.daily
+	sudo systemctl restart atop
+	sudo systemctl enable atop
+}
+
+# -- nala
+help_software[nala]='apt replacement for Ubuntu and Debian'
+software_nala () {
+	echo "-- Setting up nala"
+	sudo echo "deb [arch=amd64,arm64,armhf] http://deb.volian.org/volian/ scar main" | sudo tee /etc/apt/sources.list.d/volian-archive-scar-unstable.list
+	sudo wget -qO - https://deb.volian.org/volian/scar.key | sudo tee /etc/apt/trusted.gpg.d/volian-archive-scar-unstable.gpg > /dev/null
+	sudo apt update && sudo apt install nala
+}
+
+# -- nrich
+help_software[nrich]='Install nrich'
+software_nrich () {
+        echo "-- Setting up atop"
+        sudo wget -P /tmp https://gitlab.com/api/v4/projects/33695681/packages/generic/nrich/latest/nrich_latest_amd64.deb
+	sudo apt-get install /tmp/nrich_latest_amd64.deb
+}
+

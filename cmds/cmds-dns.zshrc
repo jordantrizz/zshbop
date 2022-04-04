@@ -30,3 +30,11 @@ dnst () {
 	_debug "Selected server - $server.root-servers.net"
 	dnstracer -o -s $server.root-servers.net -4 -r 1 $1
 }
+
+# -- mx
+help_dns[mx]='Look up MX records.'
+mx () {
+	dig $1 mx
+}
+
+

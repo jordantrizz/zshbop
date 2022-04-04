@@ -14,7 +14,13 @@
 umask 022
 
 # -- zsh and environment settings
-zmodload zsh/mapfile
+if [[ $(_cexists nala ) ]]; then
+	_debug "nala installed - running zsh completions"
+	source /usr/share/bash-completion/completions/nala
+fi
+
+
+# -- environment variables
 export TERM="xterm-256color"
 export LANG="C.UTF-8"
 export HISTSIZE=5000
@@ -42,14 +48,19 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 # ------------
 
 # -- colors
+# $fg[blue]
+# $fg[red]
+# $fg[yellow]
+# $fg[green]
+# $reset_color
 autoload colors
 if [[ "$terminfo[colors]" -gt 8 ]]; then
     colors
 fi
 
 # -- Unsorted stuff.
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo')
-extra_tools=('pip' 'npm')
+default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
+extra_tools=('pip' 'npm' 'golang-go')
 pip_install=('ngxtop' 'apt-select')
 
 # -- fzf keybindings
@@ -67,6 +78,7 @@ EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 
 # -- init_path - setup all the required paths.
 init_path () {
+	_debug_function
 	# Default paths to look for
         export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
         export PATH=$PATH:$HOME/.local/bin
@@ -79,6 +91,14 @@ init_path () {
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
+	if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+		_debug "Found repos, adding to \$PATH"
+		for name in $ZSHBOP_ROOT/repos/*; do
+			_debug "$funcstack[1] - found repo $name, adding to \$PATH"
+			export PATH=$PATH:$name
+		done
+	fi
+	
 	export PATH=$PATH:$ZSHBOP_ROOT/repos/gp-tools
 	
 	# Golang Path?
@@ -111,13 +131,11 @@ init_defaults () {
         	echo "- Loading cmds/os-mac.zshrc"
 	        source $ZSHBOP_ROOT/cmds/os-mac.zshrc
 	elif [[ $MACHINE_OS = "Linux" ]] then
-        	if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]] then
+                        source $ZSHBOP_ROOT/cmds/os-linux.zshrc
+                        echo "- Loading cmds/os-linux.zshrc"
+	elif [[ $MACHINE_OS = "WSL" ]]; then
                 	echo "- Loading cmds/os-wsl.zshrc"
 	                source $ZSHBOP_ROOT/cmds/os-wsl.zshrc
-	        else
-	                source $ZSHBOP_ROOT/cmds/os-linux.zshrc
-        	        echo "- Loading cmds/os-linux.zshrc"
-	        fi
 	fi
 
 	# --- Include custom configuration
@@ -132,7 +150,7 @@ init_defaults () {
 
 # -- Load default SSH keys into keychain
 init_sshkeys () {
-	
+		_debug_function
 		_echo "-- Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
 		        # Load default SSH key
@@ -166,6 +184,26 @@ init_sshkeys () {
 		fi
 }
 
+# -- init_pkg_manager
+init_pkg_manager () {
+	_debug_function
+	_debug "Running on $MACHINE_OS"
+	
+	if [[ $MACHINE_OS == "Linux" ]] || [[ $MACHINE_OS == "WSL" ]]; then
+		_debug "Checking for Linux package manager"
+			if [[ $(_cexists apt-get ) ]]; then
+				_debug "Found apt-get setting \$PKG_MANAGER to apt-get"
+				PKG_MANAGER="sudo apt-get"
+			fi				
+	elif [[ $MACHINE_OS == "Mac" ]]; then
+		_debug "Checking for Mac package manager"
+			if [[ $(_cexists brew) ]]; then
+				_debug "Found brew setting \$PKG_MANAGER to apt-get"
+				PKG_MANAGER="brew"
+			fi		
+	fi
+}
+
 # -- Init
 init () {
         _echo "-- Starting init"
@@ -181,12 +219,20 @@ init () {
             MINGW*)     MACHINE_OS=MinGw;;
             *)          MACHINE_OS="UNKNOWN:${unameOut}"
         esac
+
+        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
+        	MACHINE_OS="WSL"
+        fi
+        
         echo "	-- Running in ${MACHINE_OS}"
 
 	# -- Init paths
         init_path
 	source $ZSHBOP_ROOT/help.zshrc # help command
 
+	# -- Init package manager
+	init_pkg_manager
+	
         # -- Include commands
         for file in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
 		source $file
@@ -205,7 +251,7 @@ init () {
         init_defaults
 
 	# -- Skip when running rld
-	_debug "\$funcstack is $funcstack"
+	_debug "\$funcstack = $funcstack"
 	if [[ $funcstack[4] != "zshbop_reload" ]]; then
 		init_sshkeys
 		startup_motd
@@ -216,10 +262,13 @@ init () {
 
 # -- startup_motd - initial scripts to run on login
 startup_motd () {
+	_debug_function
 	echo ""
+	_joe_ftyperc
         neofetch
         zshbop
         zshbop_check-migrate
+        zshbop_previous-version-check
         echo "-- Screen Sessions --"
 	if _cexists screen; then
 		screen -list
