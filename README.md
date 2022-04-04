@@ -183,7 +183,12 @@ sudo make -j 20 install
 All issues are makred with ```@@ISSUE``` and need to be addressed.
 
 # ToDo
+## Add
 * https://github.com/picatz/hunter
+* https://github.com/ExplainDev/kmdr-cli
+* https://github.com/daveearley/cli.fyi
+* https://github.com/tldr-pages/tldr
+* https://github.com/isacikgoz/tldr
 
 ## Current Todo
 * Place all included files into directory inc
@@ -191,6 +196,7 @@ All issues are makred with ```@@ISSUE``` and need to be addressed.
 * If any packages aren't installed ask to install them.
 * Flight check command to confirm what's setup and isn't, check packacges installed.
 * Borrow or steal https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/upgrade.sh
+* Install jq and md5sum via brew for macos
 
 ## Random Notes
 - Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz

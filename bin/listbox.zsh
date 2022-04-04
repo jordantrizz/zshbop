@@ -1,53 +1,43 @@
-#!/bin/bash
-listbox () {
-  while [[ $# -gt 0 ]]
-  do
-    key="$1"
+#!env /bin/zsh
 
-    case $key in
-      -h|--help)
-        echo "choose from list of options"
+# -- Variables
+zparseopts -D -E h=help -help=help t+:=title o+:=opts r=result -result=result a=arrow -arrow=arrow
+
+title=$title[2]
+opts=$opts[2]
+result=$result[2]
+arrow=$arrow[2]
+
+IFS=$'\n' opts=($(echo "$opts" | tr "|" "\n"))
+
+# -- Functions
+usage () {
         echo "Usage: listbox [options]"
         echo "Example:"
-        echo "  listbox -t title -o \"option 1|option 2|option 3\" -r resultVariable -a '>'"
+        echo "  listbox -t \"title\" -o \"option 1|option 2|option 3\" -r resultVariable -a '>'"
         echo "Options:"
         echo "  -h, --help                         help"
         echo "  -t, --title                        list title"
         echo "  -o, --options \"option 1|option 2\"  listbox options"
         echo "  -r, --result <var>                 result variable"
         echo "  -a, --arrow <symbol>               selected option symbol"
-        return 0
-        ;;
-      -o|--options)
-        local OIFS=$IFS;
-        IFS="|";
-        # check if zsh/bash
-        shift
-        if [ -n "$ZSH_VERSION" ]; then
-          IFS=$'\n' opts=($(echo "$@" | tr "|" "\n"))
-        else
-          IFS="|" read -a opts <<< "$@";
-        fi
-        IFS=$OIFS;
-        shift
-        ;;
-      -t|--title)
-        local title="$2"
-        shift
-        ;;
-      -r|--result)
-        local __result="$2"
-        shift
-        ;;
-      -a|--arrow)
-        local arrow="$2"
-        shift
-        ;;
-      *)
-    esac
-    shift
-  done
+        echo ""
+}
 
+
+if [[ $help ]]; then
+	usage
+	exit
+fi
+
+if [[ -z $title ]] || [[ -z $opts ]]; then
+	echo "Error: need at least -t or -z specified"
+	echo ""
+	usage
+	exit 
+fi
+
+listbox () {
   if [[ -z $arrow ]]; then
     arrow=">"
   fi
@@ -108,9 +98,7 @@ listbox () {
         fi
       elif [[ $key = "" ]]; then
         # check if zsh/bash
-        if [ -n "$ZSH_VERSION" ]; then
           choice=$((choice+1))
-        fi
 
         if [[ -n $__result ]]; then
           eval "$__result=\"${opts[$choice]}\""
@@ -126,4 +114,5 @@ listbox () {
   listen
 }
 
+#echo "-- Working"
 listbox $@

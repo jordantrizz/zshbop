@@ -1,3 +1,9 @@
+# Error log
+* /home/cyberpanel/error-logs.txt
+
+# SSL Renewals
+* /root/.acme
+
 # Setup Cloudflare Real Visitor IP
 * https://openlitespeed.org/kb/show-real-visitor-ip-instead-of-cloudflare-ips/
 

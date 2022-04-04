@@ -26,12 +26,12 @@ get_category_commands () {
 	# If help all is used
 	_debug "-- Finding category: $1"
         if [[ $1 == "all" ]]; then
-		output_all=" -- Featching All Commands\n"
-                for key in ${(k)help_files}; do
+		output_all=" -- All Commands\n"
+                for key in ${(kon)help_files}; do
                         help_all_cat=(help_${key})
                         output_all+=" -- $key ------------------------------------------------------------\n"
-                        for key value in ${(kv)${(P)help_all_cat}}; do
-                    	    output_all+=$(printf '%s\n' "  ${(r:25:)key} - $value\n")
+                        for key in ${(kon)${(P)help_all_cat}}; do
+                    	    output_all+=$(printf '%s\n' "  ${(r:25:)key} - ${${(P)help_all_cat}[$key]}\n")
                     	done
                     	output_all+="\n"
 		done
@@ -44,8 +44,8 @@ get_category_commands () {
 		echo ""
 		echo $help_files[$1_description]
 		echo " -- $1 ------------------------------------------------------------"
-		for key value in ${(kv)${(P)help_cat}}; do
-        		printf '%s\n' "  ${(r:25:)key} - $value"
+		for key in ${(kon)${(P)help_cat}}; do
+        		printf '%s\n' "  ${(r:25:)key} - ${${(P)help_cat}[$key]}"
         	done
         	echo ""
         fi
@@ -56,7 +56,7 @@ help () {
         HCMD=$@
         if [ ! $1 ]; then
 		# print out help intro
-        	help_intro
+        	help_intro | less
         else
         	help_cat=(help_${1})
 		get_category_commands $1

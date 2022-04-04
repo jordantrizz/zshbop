@@ -128,3 +128,7 @@ Enable server wide
 
 # Post to Slack
 * /usr/local/bin/gpmonitor <title> <data>
+
+# Nginx
+## Regenerate Nginx Config
+* gp site domain.com -regenerate-nginx-configs --force

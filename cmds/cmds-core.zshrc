@@ -21,11 +21,18 @@ cc () {
         antigen reset; rm ~/.zshrc.zwc
 }
 
+# -- paths
+help_core[paths]='print out \$PATH on new lines'
+paths () {
+	echo ${PATH:gs/:/\\n}
+}
+
 # -- kb - A built in knowledge base.
 help_core[kb]='knowledge base'
 kb () {
 	# Check if mdv exists if not use cat
-        if _cexists mdv; then mdv_reader=mdv; else mdv_reader=cat fi
+        if _cexists mdv; then mdv_reader=less; else mdv_reader=mdv fi
+        _debug "mdv_reader: $mdv_reader"
 
         if [[ -a $ZSH_ROOT/kb/$1.md ]]; then
                 echo "Opening $ZSH_ROOT/kb/$1.md"
@@ -43,17 +50,17 @@ kb () {
 }
 
 # -- checkenv - Check Environment for installed software
-help_core[checkenv]='check environment for installed software and tools'
-checkenv () {
+help_core[env-check]='check environment for installed software and tools'
+env-check () {
         echo "---------------------------"
         echo "Looking for default tools.."
         echo "---------------------------"
         echo ""
         for i in $default_tools; do
                 if _cexists $i; then
-                        echo "$i is $BGGREEN INSTALLED. $RESET"
+                        echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
                 else
-                        echo "$i is $BGRED MISSING. $RESET"
+                        echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
                 fi
         done
         echo "---------------------------"
@@ -62,28 +69,30 @@ checkenv () {
         echo ""
         for i in $extra_tools; do
         if _cexists $i; then
-                echo "$i is $BGGREEN INSTALLED. $RESET"
-        else
-                echo "$i is $BGRED MISSING. $RESET"
+                        echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
+                else
+                        echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
         fi
         done
         echo "--------------------------------------------"
-        echo "Run installenv to install above tools"
+        echo "Run env-install to install above tools"
         echo "--------------------------------------------"
 
 }
 
-# -- installenv - Install tools into environment.
-help_core[installenv]='Install tools into environment'
-installenv () {
+# -- env-install - Install tools into environment.
+help_core[env-install]='Install tools into environment'
+env-install () {
         echo "---------------------------"
         echo "Installing default tools.."
         echo "---------------------------"
+        _debug "default_tools: $default_tools"
         sudo apt-get update
         sudo apt install $default_tools
         echo "---------------------------"
         echo "Installing extra tools.."
         echo "---------------------------"
+	_debug "extra_tools: $extra_tools"
         sudo apt install $extra_tools
         echo "---------------------------"
         echo "Manual installs"
@@ -94,109 +103,61 @@ installenv () {
         echo ""
 }
 
+# -- install-pkg - Install specific tool
 help_core[install-pkg]='Install specific tool'
 install-pkg () {
 	# List of packages.
-	typeset -gA gopkg
-	typeset -gA gopkg_info
-	gopkg[dt]='https://github.com/42wim/dt'
-	gopkg_info[dt]='Test info'
-	if [[ $1 ]]; then
-		echo "Installing $1"
+	typeset -gA pkg
+	typeset -gA pkg_info
+	
+	pkg[dt]='go install github.com/42wim/dt'
+	pkg_info[dt]='DNS tool that displays information about your domain.'
+	
+	pkg[broot]="$PKG_MANAGER broot"
+	pkg_info[broot]='Get an overview of a directory, even a big one'
+
+	# Check if we have go or apt installed?
+        _debug "pkg: $pkg[$1]"
+        # Get install command and confirm it's available
+        INSTALL_CMD=(${=pkg[$1]})
+        _debug "First command: $INSTALL_CMD[1]"
+        _debug "Checking if $INSTALL_CMD[1] exist?"
+        _cexists $INSTALL_CMD[1]
+        
+        # If using go.
+        if [[ $INSTALL_CMD[1] == "go" ]]; then
+        	_debug "Using go, checking version"
+        	GO_VER=$(go version | { read _ _ v _; echo ${v#go}; })
+        	GO_VER=${GO_VER%.*}
+		_debug "go_ver: $GO_VER"
+        	if (( $(echo "$GO_VER <= 1.17" | bc -l) )); then
+        		_debug "go <= 1.17, updating command"
+        		_debug "go get $INSTALL_CMD[3];$INSTALL_CMD"
+        		INSTALL_CMD="go get $INSTALL_CMD[3];$INSTALL_CMD"
+		else
+			_debug "go <= than 1.17, proceeding"
+		fi
+	fi
+	# Main
+	if [[ $1 ]]; then		
+		if [[ $CMD_EXISTS == "0" ]]; then
+			_debug "$INSTALL_CMD[1] exists"
+			echo "-- Installing using command: $INSTALL_CMD"
+			eval $INSTALL_CMD
+		else
+			_debug "$INSTALL_CMD[1] doesn't exist"
+			echo "  -- Missing \"$INSTALL_CMD[1]\" can't install package, run env-check"
+		fi
 	else
 		echo "Usage: install-pkg <package>"
 		echo ""
 		echo "Packages available"
-        for key in ${(kon)gopkg}; do
-                printf '%s\n' "  ${(r:25:)key} - $gopkg_info[$key]"
-        done	
-                echo ""
+	        for key in ${(kon)pkg}; do
+        	        printf '%s\n' "  ${(r:25:)key} - $pkg_info[$key]"
+	        done	
+	        echo ""
 	fi
 
-}
-
-# -- update - Update ZSHBOP
-help_core[update]='Update zshbop'
-update () {
-        # Pull zshbop
-        echo "--- Pulling zshbop updates"
-        git -C $ZSH_ROOT pull
-
-        # Update Personal ZSH
-        if [ ! -z $ZSH_PERSONAL_DIR ]; then
-                echo "--- Pulling Personal ZSH repo"
-                git -C $ZSH_PERSONAL_DIR pull
-        fi
-
-        # Update repos
-	repos update
-	
-        # Reload scripts
-        echo "--- Type rld to reload zshbop"
-}
-
-# -- repos - Install popular github.com Repositories
-help_core[repos]='Install popular github.com repositories.'
-
-repos () {
-	# debug
-	_debug_all $@
-
-	# list of repositories
-        declare -A GIT_REPOS
-        GIT_REPOS[jordantrizz/gp-tools]="GridPane Tools by @Jordantrizz"
-        GIT_REPOS[jordantrizz/github-markdown-toc]="Add markdown table of contents to README.md"
-        GIT_REPOS[jordantrizz/cloudflare-cli]="Interface with Cloudflares API"
-        GIT_REPOS[lmtca/site24x7-custom-install]="Custom Site24x7 install"
-        
-        if [[ $1 == 'install' ]] && [[ -n "$2" ]]; then
-		_debug "Checking if $2 is in \$GIT_REPO"
-        	_if_marray "$2" GIT_REPOS
-        	contains=$?
-        	_debug "contains = $contains"
-		if [[ $valid == "0" ]]; then
-			repoparts=("${(@s|/|)2}") # @ modifier
-			repodir=${repoparts[2]}
-	                echo "-- Installing repository $2 into $ZSHBOP_ROOT/repos/$repodir"
-			if [[ ! -d "$ZSHBOP_ROOT/repos/$repodir" ]]; then
-				git -C $ZSHBOP_ROOT/repos clone https://github.com/$2
-			else
-				_error "Repo already installed or $ZSHBOP_ROOT/repos/$repodir folder exists..exiting"
-			fi
-		else
-			echo "No such repository $2"
-		fi
-		return
-        elif [[ $1 == 'update' ]]; then
-        	echo "-- Updating repos "
-		if [ "$(ls -A $ZSHBOP_ROOT/repos)" ]; then
-			_debug "Found repositories"
-			for name in $ZSHBOP_ROOT/repos/*; do
-		                _debug "Found $name"
-	        	        if [[ -d $name ]]; then
-	        	                echo "  -- Updating repo $name"
-	                	        git -C $name pull
-		                else
-		                        echo "  -- No repos to update"
-	       		        fi
-		        done
-		else
-			echo "  -- No repos to update"
-		fi
-        else
-                echo "Usage: repos <install|update>"
-                echo ""
-                echo "This command pulls down popular Github repositories."
-                echo ""
-                echo "To pull down a repo, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
-                echo ""
-                echo "Repositories"
-                echo ""
-                for key value in ${(kv)GIT_REPOS}; do
-                        printf '%s\n' "  ${(r:40:)key} - $value"
-                done
-                echo ""
-	fi
 }
 
 # -- help-template

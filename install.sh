@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # -- zshbop Install script
 
 # ------------
@@ -9,18 +9,24 @@
 CMD=$1
 
 # -- required tools
-required_tools=('jq' 'curl' 'zsh' 'git')
+required_tools=('jq' 'curl' 'zsh' 'git' 'md5sum')
 
-#--------------------
-# Functions
-#--------------------
+# -----------------
+# -- Core Functions
+# -----------------
+
+
+
+#-------------
+# -- Functions
+#-------------
 
 flight_check() {
         # Checking if zsh is installed
         echo "-- Checking if required tools are installed"
 	for tool in ${required_tools[@]}; do
         	if ! [ -x "$(command -v $tool)" ]; then
-                	echo -e "	-- Error: $tool is not installed, trying to install."
+                	echo -e "	-- Error: $tool is not installed."
                 	pkg_install $tool
 	        else
         	        TOOL_PATH=`which $tool`
@@ -28,6 +34,9 @@ flight_check() {
 	        fi
 	done
 	return        
+}
+
+check_zsh_default () {
         # Check if zsh is the default shell
         echo -n "-- Checking if zsh is the default shell...."
         if ! [[ $SHELL == *"zsh" ]]; then
@@ -41,7 +50,7 @@ flight_check() {
 pkg_install() {
         # Checking what package manager we have
         echo -n "-- Checking what package manager we have...."
-        if [ -x "$(command -v apt)" ]; then
+        if [ -x "$(command -v apt-get)" ]; then
                 echo " - We have apt!"
                 sudo apt install $@
                 if [ $? -eq 1 ]; then 
@@ -59,6 +68,8 @@ pkg_install() {
 		else
 			echo "- $@ installed successfully"
 		fi
+	else
+		_error "Can't detect package manager :("
         fi
 }
 
@@ -153,8 +164,13 @@ if [[ $CMD == "clean" ]]; then
 	fi
 fi
 
-echo -e "-- Pre-flight Check"
-flight_check
+if [[ $CMD == "skipdep" ]]; then
+	echo -e "-- Skipping pre-flight check"
+else
+	echo -e "-- Pre-flight Check"
+	flight_check
+fi
+
 echo -e "-- Begin Install"
 
 if [[ $CMD == "default" ]]; then

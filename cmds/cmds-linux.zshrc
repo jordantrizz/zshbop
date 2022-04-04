@@ -26,7 +26,24 @@ dir-filecount () {
 
 # -- vhwinfo - Run vhwinfo.
 help_linux[vhwinfo]='Temporarily downloads vhwinfo and displays system information.'
-software_vhwinfo () {
+vhwinfo () {
         echo " -- Downloading vhwinfo.sh via wget and running"
         wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
 }
+
+# -- needrestart - check if system needs a restart
+help_linux[needrestart]='Check if system needs a restart'
+if [[ ! $(_cexists needrestart) ]]; then
+	needrestart () {
+		_debug "needrestart not installed"
+		_notice "needrestart not installed"
+		echo 'Press any key to install broot...'; read -k1 -s
+		sudo apt-get install needrestart
+	}
+fi
+
+# -- broot -
+help_linux[broot]='Get an overview of a directory, even a big one'
+if [[ ! $(_cexists broot) ]]; then
+	echo "broot not installed"
+fi
