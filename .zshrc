@@ -1,15 +1,6 @@
 # ---------------------------
 # -- DO NOT MODIFY THIS FILE.
 # ---------------------------
-#
-# If you need to set specific overrides, then create a file in $HOME/.zshbop and add overrides.
-#
-if [[ -f $HOME/.zshbop ]]; then
-	source $HOME/.zshbop
-fi
-
-# -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
-ZDOTDIR=$HOME
 
 # -- Potential zshbop paths, including old zsh path
 ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
@@ -31,3 +22,4 @@ fi
 # - Initilize zshbop
 echo "-- Initilizing zshbop"
 source $ZSHBOP_ROOT/zshbop.zsh
+init_zshbop

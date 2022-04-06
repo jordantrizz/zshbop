@@ -7,3 +7,4 @@ zsh-personal
 .development
 .zshbop
 repos/*
+zshbop.code-workspace

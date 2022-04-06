@@ -1,94 +1,24 @@
-# --------------
-# -- zshbop Init
-# --------------
-# This is the initilization for zsbhop
+#!/usr/bin/env zsh
+# -------------------
+# -- zshbop functions
+# -------------------
+# This file contains all the functions for initializing zshbop
 
-# Use colors, but only if connected to a terminal
-# and that terminal supports them.
-
-# ------------------------
-# -- Environment Variables
-# ------------------------
-
-# - Set umask
-umask 022
-
-# -- zsh and environment settings
-if [[ $(_cexists nala ) ]]; then
-	_debug "nala installed - running zsh completions"
-	source /usr/share/bash-completion/completions/nala
-fi
-
-
-# -- environment variables
-export TERM="xterm-256color"
-export LANG="C.UTF-8"
-export HISTSIZE=5000
-export PAGER='less -Q -j16'
-export EDITOR='joe'
-export BLOCKSIZE='K'
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-export LANGUAGE=en_US.UTF-8
-export TERM="xterm-256color"
-export LANG="C.UTF-8"
-
-# -- zshbop debugging
-if [ -f $ZSHBOP_ROOT/.debug ]; then
-        export ZSH_DEBUG=1
-elif [ ! -f $ZSHBOP_ROOT/.debug ]; then
-        export ZSH_DEBUG=0
-fi
-
-# -- ohmyzsh specific environment variables
-export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify
-
-# ------------
-# -- Variables
-# ------------
-
-# -- colors
-# $fg[blue]
-# $fg[red]
-# $fg[yellow]
-# $fg[green]
-# $reset_color
-autoload colors
-if [[ "$terminfo[colors]" -gt 8 ]]; then
-    colors
-fi
-
-# -- Unsorted stuff.
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' 'keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
-extra_tools=('pip' 'npm' 'golang-go')
-pip_install=('ngxtop' 'apt-select')
-
-# -- fzf keybindings
-# Need to enable if fzf is available
-#[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
-####-- diff-so-fancy
-git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
-
-# -- Take $EDITOR run it through alias and strip it down
-EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
-
-# ------------
-# -- Functions
-# ------------
+_debug "Loading mypath=${0:a}"
 
 # -- init_path - setup all the required paths.
 init_path () {
-	_debug_function
-	# Default paths to look for
+		_debug_function
+		# Default paths to look for
         export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
         export PATH=$PATH:$HOME/.local/bin
         
-        # Extra software
-        export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
+    	# Extra software
+    	export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
+		export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
+		export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
+		export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
+		export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
 	if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
@@ -126,6 +56,7 @@ init_antigen () {
 
 # -- Load default zsh scripts
 init_defaults () {
+	_debug_function
 	# Include OS Specific configuration
 	if [[ $MACHINE_OS == "Mac" ]] then
         	echo "- Loading cmds/os-mac.zshrc"
@@ -194,7 +125,9 @@ init_pkg_manager () {
 			if [[ $(_cexists apt-get ) ]]; then
 				_debug "Found apt-get setting \$PKG_MANAGER to apt-get"
 				PKG_MANAGER="sudo apt-get"
-			fi				
+			else
+				_debug "Didn't find apt-get"
+			fi
 	elif [[ $MACHINE_OS == "Mac" ]]; then
 		_debug "Checking for Mac package manager"
 			if [[ $(_cexists brew) ]]; then
@@ -204,13 +137,43 @@ init_pkg_manager () {
 	fi
 }
 
+# -- init_motd - initial scripts to run on login
+init_motd () {
+		# -- Start motd
+		_debug_function
+		
+		# -- set .joe location
+		_joe_ftyperc
+        
+		# -- run neofetch
+		neofetch
+		
+		# -- check for old instances
+        zshbop_check-migrate
+        zshbop_previous-version-check
+        
+		# -- Show screen sessions
+		echo "-- Screen Sessions --"
+		if _cexists screen; then
+			screen -list
+		else
+			echo "** Screen not installed"
+		fi
+        
+		# -- General message
+		echo "---- Run checkenv to make sure you have all the right tools! ----"
+        echo ""
+}
+
 # -- Init
-init () {
-        _echo "-- Starting init"
+init_zshbop () {
+		# -- Start init
+		_debug_function
+		_echo "-- Starting init"
         _debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
         
-	_echo "-- Detecting Operating System"
         # -- Detect operating system
+		_echo "-- Detecting Operating System"
         export UNAME=$(uname -s)
         case "${UNAME}" in
             Linux*)     MACHINE_OS=Linux;;
@@ -220,28 +183,24 @@ init () {
             *)          MACHINE_OS="UNKNOWN:${unameOut}"
         esac
 
+		# -- Check for WSL and set as MACHINE_OS
         if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
         	MACHINE_OS="WSL"
         fi
-        
         echo "	-- Running in ${MACHINE_OS}"
 
-	# -- Init paths
-        init_path
-	source $ZSHBOP_ROOT/help.zshrc # help command
+		# -- Set paths
+    	init_path
 
-	# -- Init package manager
-	init_pkg_manager
+		# -- Init package manager
+		init_pkg_manager
 	
         # -- Include commands
         for file in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
-		source $file
+			source $file
         done
 
-	# -- Include aliases @@ISSUE
-        source $ZSHBOP_ROOT/aliases.zshrc
-
-	# -- Init OhMyZSH plugins
+		# -- Init OhMyZSH plugins
         init_omz_plugins
         
         # -- Init antigen
@@ -250,32 +209,17 @@ init () {
         # -- Init defaults @@ISSUE
         init_defaults
 
-	# -- Skip when running rld
-	_debug "\$funcstack = $funcstack"
-	if [[ $funcstack[4] != "zshbop_reload" ]]; then
-		init_sshkeys
-		startup_motd
-	else
-		echo " -- Skipped some scripts due to running rld"
-	fi
+		# -- Skip when running rld
+		_debug "\$funcstack = $funcstack"
+		if [[ $funcstack[3] != "zshbop_reload" ]]; then
+			init_sshkeys
+			init_motd
+		else
+			echo " -- Skipped some scripts due to running rld"
+		fi
+
+		# -- Print zshbop version information
+		zshbop_version
+		echo ""
 }
 
-# -- startup_motd - initial scripts to run on login
-startup_motd () {
-	_debug_function
-	echo ""
-	_joe_ftyperc
-        neofetch
-        zshbop
-        zshbop_check-migrate
-        zshbop_previous-version-check
-        echo "-- Screen Sessions --"
-	if _cexists screen; then
-		screen -list
-	else
-		echo "** Screen not installed"
-	fi
-        echo "---- Run checkenv to make sure you have all the right tools! ----"
-        echo ""
-        echo ""
-}

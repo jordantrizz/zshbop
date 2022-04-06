@@ -9,9 +9,9 @@
 # 	help_mysql[maxmysqlmem]='Calculate maximum MySQL memory'
 #
 
-echo "-- Loading help.zshrc"
+_debug "Loading mypath=${0:a}"
 
-# Set Arrays
+# -- Arrays
 typeset -gA help_files
 help_topics=()
 
@@ -79,7 +79,7 @@ help_intro () {
         
 	
         for key in ${(kon)help_zshbop}; do
-                printf '%s\n' "  zshbop ${(r:25:)key} - help_zshbop[$key]"
+                printf '%s\n' "  zshbop ${(r:25:)key} - ${help_zshbop[$key]}"
         done
 
 	echo ""
