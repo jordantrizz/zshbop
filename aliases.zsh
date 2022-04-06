@@ -1,11 +1,15 @@
-# ----------
-# -- Aliases
-# ----------
-#
-# Common aliases
-#
+#!/usr/bin/env zsh
+# ------------------------
+# -- zshbop aliases file
+# -------------------------
+# This file contains all the aliases for zshbop
 
-# - General Aliases
+_debug "Loading mypath=${0:a}"
+
+# -----------------
+# -- Common aliases
+# -----------------
+
 alias joe="joe --wordwrap -nobackups"
 alias sbin="cd /usr/local/sbin"
 alias cpu="lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('"
