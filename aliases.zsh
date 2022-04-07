@@ -57,3 +57,4 @@ alias screens="screen -list"
 
 # - ssh
 alias sshc="ssh-connect"
+function sshr { ssh root@$1 }
