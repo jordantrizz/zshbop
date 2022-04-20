@@ -36,12 +36,11 @@ get_category_commands () {
                     	output_all+="\n"
 		done
 		echo $output_all | less
-	elif [[ -z ${(P)help_cat} ]];then
+	elif [[ -z ${(P)help_cat} ]]; then
         	echo "No command category $HCMD, try running kb $HCMD"
                 echo ""
 		return
 	else
-		echo ""
 		echo $help_files[$1_description]
 		echo " -- $1 ------------------------------------------------------------"
 		for key in ${(kon)${(P)help_cat}}; do
@@ -59,7 +58,7 @@ help () {
         	help_intro | less
         else
         	help_cat=(help_${1})
-		get_category_commands $1
+			get_category_commands $1
         fi
 }
 

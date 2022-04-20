@@ -12,7 +12,6 @@ _debug "Loading mypath=${0:a}"
 
 alias joe="joe --wordwrap -nobackups"
 alias sbin="cd /usr/local/sbin"
-alias cpu="lscpu | grep -E '^Thread|^Core|^Socket|^CPU\('"
 alias which="which -a"
 alias randpass="pwgen -s 5 1;pwgen -s 15 1;pwgen -s 20 1;pwgen -sy 20 1"
 alias zcc="rm ~/.zcompdump*"
@@ -26,7 +25,6 @@ alias fdcount="tree | grep directories"
 alias whatismyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 alias listen='netstat -anp | grep LISTEN'
 alias lessn="less -N"
-alias highcpu="ps aux | sort -nrk 3,3 | head -n 5"
 
 # - Shell Aliases
 #alias mtime="find . -type f -printf "\n%TD %TT %p" | sort -k1.8n -k1.1nr -k1 | less"
