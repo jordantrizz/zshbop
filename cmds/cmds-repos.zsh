@@ -16,7 +16,7 @@ repos () {
 	# list of repositories
         declare -A GIT_REPOS GIT_REPOS_URL
         GIT_REPOS[gp-tools]="GridPane Tools by @Jordantrizz"
-        GIT_REPOS_URL[gp-tools]="https://github.com/jordantrizz/gp-tools]"
+        GIT_REPOS_URL[gp-tools]="https://github.com/jordantrizz/gp-tools"
 	GIT_REPOS[github-markdown-toc]="Add markdown table of contents to README.md"
         GIT_REPOS_URL[github-markdown-toc]="https://github.com/jordantrizz/github-markdown-toc"
 	GIT_REPOS[cloudflare-cli]="Interface with Cloudflares API"
