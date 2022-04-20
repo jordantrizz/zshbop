@@ -12,6 +12,8 @@ _error () { echo  "$fg[red]** $@ $reset_color" }
 _warning () { echo "$fg[yellow]** $@ $reset_color" }
 _success () { echo "$fg[green]** $@ $reset_color" }
 _notice () { echo "$fg[magenta]** $@ $reset_color" }
+_banner_red () { echo "$bg[red]$fg[white]          $@          $reset_color" }
+_banner_green () { echo "$bg[green]$fg[white]          $@          $reset_color" }
 
 # -- debugging
 _debug () {
@@ -30,7 +32,7 @@ _debug_all () {
 }
 
 _debug_function () {
-	_debug "~~~~ function $funcstack[2] ~~~~"
+	_debug "$bg[cyan]$fg[black]~~~~ function $funcstack[2] ~~~~$reset_color"
 }
 
 # -- Colors
@@ -82,7 +84,10 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 # -- zsh sepcific
 ZDOTDIR=$HOME # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 
-# -- Script specific variables
+# -- zsbop exports
+export ZSHBOP_ZSHRC_MD5="cd0a568e262f60df01c0f45b9cd6b5fe" # -- the md5 of .zshrc
+
+# -- zshbop variables
 SCRIPT_NAME="zshbop" # -- Current zshbop branch
 SCRIPT_DIR=${0:a:h} # -- Current working directory
 ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version) # -- Current version installed
@@ -91,7 +96,6 @@ ZBR=$ZSHBOP_ROOT # -- Short hand $ZSHBOP_ROOT
 ZSHBOP_BRANCH=$(git -C $ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
 ZSHBOP_COMMIT=$(git -C $ZSHBOP_ROOT rev-parse HEAD) # -- current commit
 ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
-ZSHBOP_ZSHRC_MD5="cd0a568e262f60df01c0f45b9cd6b5fe" # -- the md5 of .zshrc
 ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
 ZSHBOP_CURRENT_ZSHRC_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5
 
@@ -101,8 +105,8 @@ typeset -gA help_custom # -- Set help_custom for custom help files
 # -- Default tools.
 default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
 default_tools+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
-extra_tools=('pip' 'npm' 'golang-go')
-pip_install=('ngxtop' 'apt-select')
+extra_tools=('pip' 'npm' 'golang-go' 'net-tools')
+pip_install=('ngxtop' 'apt-select' 'semgrep')
 
 # -- Take $EDITOR run it through alias and strip it down
 EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}

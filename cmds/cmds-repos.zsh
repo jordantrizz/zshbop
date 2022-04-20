@@ -29,11 +29,9 @@ repos () {
         if [[ $1 == 'install' ]] && [[ -n "$2" ]]; then
 		_debug "Checking if $2 is in \$GIT_REPO"
         	_if_marray "$2" GIT_REPOS
-        	contains=$?
         	REPODIR=$2
-               	_debug "contains = $contains"
         	
-		if [[ $valid == "0" ]]; then
+		if [[ $MARRAY_VALID == "0" ]]; then
 			_debug "Found repository - installing via url ${GIT_REPOS_URL[$2]}"
 	                echo "-- Installing repository $2 into $ZSHBOP_ROOT/repos/$REPODIR"
 			if [[ ! -d "$ZSHBOP_ROOT/repos/$REPODIR" ]]; then

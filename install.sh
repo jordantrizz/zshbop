@@ -83,7 +83,7 @@ install_method() {
 	elif [ $INSTALL == "c" ]; then
 	        echo "Do you want to install system wide or home only? (s/h)"
 	        read INSTALL_LOCATION
-	        echo "(d)evelop or (m)aster Branch? (d/m)"
+	        echo "(d)ev or (m)ain Branch? (d/m)"
 	        read BRANCH
 	fi
 }
@@ -92,7 +92,7 @@ clone_repository() {
         if ! [ -d $1 ];then
                 echo -e "- Start Cloning repository into $1..."
                 if [[ $BRANCH == "d" ]]; then
-                        git clone --branch develop https://github.com/jordantrizz/zshbop.git $1
+                        git clone --branch dev https://github.com/jordantrizz/zshbop.git $1
                 elif [[ $BRANCH == "m" ]]; then
                         git clone https://github.com/jordantrizz/zshbop.git $1
 		fi		

@@ -11,6 +11,7 @@ _debug "Loading mypath=${0:a}"
 # -----------
 alias update="zshbop_update"
 alias rld="zshbop_reload"
+alias urld="zshbop_update;zshbop_reload"
 alias zb=zshbop
 
 # ---------------------
@@ -42,21 +43,24 @@ _checkroot () {
 	fi
 }
 
+# -- _if_marray - if in array.
+# -- _if_marray "$NEEDLE" HAYSTACK 
+# -- must use quotes, second argument is array without $
 _if_marray () {
 	_debug_function
-        valid=1
+        MARRAY_VALID=1
         _debug "$funcstack[1] - find value = $1 in array = $2"
         for value in ${(k)${(P)2[@]}}; do
                 _debug "$funcstack[2] - array=$2 \$value = $value"
                 if [[ $value == "$1" ]]; then
                         _debug "$funcstack[1] - array $2 does contain $1"
-                        valid="0"
+                        MARRAY_VALID="0"
                 else
                         _debug "$funcstack[1] - array $2 doesn't contain $1"
                 fi
         done
-        _debug "valid = $valid"
-        if [[ valid == "1" ]]; return 0
+        _debug "MARRAY_VALID = $MARRAY_VALID"
+        if [[ MARRAY_VALID == "1" ]]; return 0
 }
 
 # -- _joe_ftyperc - setting up .joe folder
@@ -78,10 +82,19 @@ _joe_ftyperc () {
 # -- help_zshbop array
 typeset -gA help_zshbop # -- Set help_zshbop
 
+# -- cc - clear cache for various tools
+help_zshbop[cc]='Clear cache for antigen + more'
+alias cc="zshbop_cc"
+zshbop_cc () {
+        antigen reset; rm -f ~/.zshrc.zwc
+}
+
 # -- rld / reload
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
         _debug_function
+        _debug "Clearing cache"
+        zshbop_cc
 	source $HOME/.zshrc
 	_warning "You may have to close your shell and restart it to see changes"
         echo ""
@@ -92,26 +105,6 @@ help_zshbop[startup]='Run zshbop startup'
 zshbop_startup () {
 	_debug_function
 	startup_motd
-}
-
-# -- migrate
-help_zshbop[migrate]='Migrate old zshbop to new zshbop'
-zshbop_migrate () {
-	_debug_function
-        echo " -- Check Migrating legacy zshbop"
-        FOUND="0"
-        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
-                if [ -d "$ZBPATH_MIGRATE" ]; then
-                        echo " -- Moving $ZBPATH_MIGRATE to ${ZBPATH_MIGRATE}bop"
-                        sudo mv $ZBPATH_MIGRATE ${ZBPATH_MIGRATE}bop
-                        echo " -- Copying ${ZBPATH_MIGRATE}bop/.zshrc to your $HOME/.zshrc"
-                        cp ${ZBPATH_MIGRATE}bop/.zshrc $HOME/.zshrc
-                        FOUND="1"
-                fi
-        done
-        if [[ "$FOUND" == "0" ]]; then
-                echo " -- Don't need to migrate legacy zshbop"
-        fi
 }
 
 # -- branch
@@ -183,10 +176,24 @@ zshbop_check-updates () {
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
 	_debug_function
+        _banner_green "               "
+        _banner_green "UPDATING ZSHBOP"
+        _banner_green "               "
+        
+        # -- print out zshbop version
         zshbop_version
-        # Pull zshbop
+        
+        # -- Pull zshbop down from git using current branch
         echo "-- Pulling zshbop updates"
-        git -C $ZSHBOP_ROOT pull
+
+        # -- Changed branch from develop to dev
+        if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
+                _debug "Detected old branch name develop"
+                git -C $ZSHBOP_ROOT checkout dev
+                git -C $ZSHBOP_ROOT pull
+        else
+                git -C $ZSHBOP_ROOT pull
+        fi
 
 	# Check if .zshrc is out of date.
 	# Called from script directly versus cached functions
@@ -224,9 +231,9 @@ zshbop_previous-version-check () {
         fi
 }
 
-# -- check-migrate
-help_zshbop[check-migrate]='Check if running old zshbop.'
-zshbop_check-migrate () {
+# -- migrate-check
+help_zshbop[migrate-check]='Check if running old zshbop.'
+zshbop_migrate-check () {
 	_debug_function
         _debug " -- Checking for legacy zshbop"
         FOUND="0"
@@ -238,6 +245,59 @@ zshbop_check-migrate () {
         done
         if [[ "$FOUND" == "0" ]]; then
                 _debug " -- Don't need to migrate legacy zshbop"
+        fi
+
+        echo "-- Checking for github modules"
+        if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
+                _debug "Found old ultimate-linux-tool-box"
+                _warning "-- Found ultimate-linux-tool-box run 'zshbop migrate'"
+        else
+                echo "  -- Didn't find ultimate-linux-tool-box"
+        fi
+
+        if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
+                _debug "Found old ultimate-wordpress-tools"
+                _warning "-- Found ultimate-wordpress-tools run 'zshbop migrate'"
+        else
+                echo "  -- Didn't find ultimate-wordpress-tools"
+        fi
+        
+}
+
+# -- migrate
+help_zshbop[migrate]='Migrate old zshbop to new zshbop'
+zshbop_migrate () {
+	_debug_function
+        echo " -- Check Migrating legacy zshbop"
+        FOUND="0"
+        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
+                if [ -d "$ZBPATH_MIGRATE" ]; then
+                        echo " -- Moving $ZBPATH_MIGRATE to ${ZBPATH_MIGRATE}bop"
+                        sudo mv $ZBPATH_MIGRATE ${ZBPATH_MIGRATE}bop
+                        echo " -- Copying ${ZBPATH_MIGRATE}bop/.zshrc to your $HOME/.zshrc"
+                        cp ${ZBPATH_MIGRATE}bop/.zshrc $HOME/.zshrc
+                        FOUND="1"
+                fi
+        done
+        if [[ "$FOUND" == "0" ]]; then
+                echo " -- Don't need to migrate legacy zshbop"
+        fi
+        
+        echo "-- Checking for github modules"
+        if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
+                _debug "Found old ultimate-linux-tool-box"
+                _warning "  -- Found ultimate-linux-tool-box, removing folder"
+                rm -r $ZSHBOP_ROOT/ultimate-linux-tool-box
+        else
+                echo "  -- Didn't find ultimate-linux-tool-box"
+        fi
+
+        if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
+                _debug "Found old ultimate-wordpress-tools"
+                _warning "  -- Found ultimate-wordpress-tools, removing folder."
+                rm -r $ZSHBOP_ROOT/ultimate-wordpress-tools
+        else
+                echo "  -- Didn't find ultimate-wordpress-tools"
         fi
 }
 

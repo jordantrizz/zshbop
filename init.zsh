@@ -59,14 +59,14 @@ init_defaults () {
 	_debug_function
 	# Include OS Specific configuration
 	if [[ $MACHINE_OS == "Mac" ]] then
-        	echo "- Loading cmds/os-mac.zshrc"
-	        source $ZSHBOP_ROOT/cmds/os-mac.zshrc
+        	echo "- Loading cmds/os-mac.zsh"
+	        source $ZSHBOP_ROOT/cmds/os-mac.zsh
 	elif [[ $MACHINE_OS = "Linux" ]] then
-                        source $ZSHBOP_ROOT/cmds/os-linux.zshrc
-                        echo "- Loading cmds/os-linux.zshrc"
+                        source $ZSHBOP_ROOT/cmds/os-linux.zsh
+                        echo "- Loading cmds/os-linux.zsh"
 	elif [[ $MACHINE_OS = "WSL" ]]; then
-                	echo "- Loading cmds/os-wsl.zshrc"
-	                source $ZSHBOP_ROOT/cmds/os-wsl.zshrc
+                	echo "- Loading cmds/os-wsl.zsh"
+	                source $ZSHBOP_ROOT/cmds/os-wsl.zsh
 	fi
 
 	# --- Include custom configuration
@@ -149,7 +149,7 @@ init_motd () {
 		neofetch
 		
 		# -- check for old instances
-        zshbop_check-migrate
+        zshbop_migrate-check
         zshbop_previous-version-check
         
 		# -- Show screen sessions

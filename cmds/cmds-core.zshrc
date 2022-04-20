@@ -15,12 +15,6 @@ typeset -gA help_core
 # - Don't know what cmd was for?
 cmd () { }; help_core[cmd]='broken and needs to be fixed'
 
-# -- cc - clear cache for various tools
-help_core[cc]='Clear cache for antigen + more'
-cc () {
-        antigen reset; rm ~/.zshrc.zwc
-}
-
 # -- paths
 help_core[paths]='print out \$PATH on new lines'
 paths () {
@@ -30,8 +24,13 @@ paths () {
 # -- kb - A built in knowledge base.
 help_core[kb]='knowledge base'
 kb () {
-	# Check if mdv exists if not use cat
-        if _cexists mdv; then mdv_reader=less; else mdv_reader=mdv fi
+	_debug_function
+        #-- Check if mdv exists if not use cat
+        if [[ $(_cexists mdv) ]]; then
+                mdv_reader=mdv
+        else
+                mdv_reader=less
+        fi
         _debug "mdv_reader: $mdv_reader"
 
         if [[ -a $ZSH_ROOT/kb/$1.md ]]; then
@@ -109,10 +108,10 @@ install-pkg () {
 	# List of packages.
 	typeset -gA pkg
 	typeset -gA pkg_info
-	
+
 	pkg[dt]='go install github.com/42wim/dt'
 	pkg_info[dt]='DNS tool that displays information about your domain.'
-	
+
 	pkg[broot]="$PKG_MANAGER broot"
 	pkg_info[broot]='Get an overview of a directory, even a big one'
 
@@ -123,7 +122,7 @@ install-pkg () {
         _debug "First command: $INSTALL_CMD[1]"
         _debug "Checking if $INSTALL_CMD[1] exist?"
         _cexists $INSTALL_CMD[1]
-        
+
         # If using go.
         if [[ $INSTALL_CMD[1] == "go" ]]; then
         	_debug "Using go, checking version"
@@ -139,7 +138,7 @@ install-pkg () {
 		fi
 	fi
 	# Main
-	if [[ $1 ]]; then		
+	if [[ $1 ]]; then
 		if [[ $CMD_EXISTS == "0" ]]; then
 			_debug "$INSTALL_CMD[1] exists"
 			echo "-- Installing using command: $INSTALL_CMD"
@@ -154,7 +153,7 @@ install-pkg () {
 		echo "Packages available"
 	        for key in ${(kon)pkg}; do
         	        printf '%s\n' "  ${(r:25:)key} - $pkg_info[$key]"
-	        done	
+	        done
 	        echo ""
 	fi
 
@@ -206,14 +205,14 @@ kbe () {
 help_core[cmde]='Edit a cmd file with $EDITOR'
 cmde () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
-        if [[ $1 ]]; then        
+        if [[ $1 ]]; then
                 ${=EDITOR_RUN} $ZSHBOP_ROOT/cmds/cmds-$1.zshrc
         else
                 echo "Usage: $funcstack[1] <name of command file>"
         fi
 }
 
-# -- he
+# -- ce
 help_core[ce]='Edit core files'
 ce () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
@@ -221,5 +220,19 @@ ce () {
                 ${=EDITOR_RUN} $ZSHBOP_ROOT/$1.zshrc
         else
                 echo "Usage: $funcstack[1] <name of core file>"
+        fi
+}
+
+
+# -- rename-ext
+help_core[rename-ext]='Rename file extensions'
+rename-ext () {
+        if [[ ! $1 ]] || [[ ! $2 ]]; then
+        echo "Usage: rename-ext <old extension> <new extension>"
+        else
+                for f in *.$1; do
+                        #echo "mv -- \"$f\" \"${f%.$1}.$2\""
+                        mv -- "$f" "${f%.$1}.$2"
+                done
         fi
 }
