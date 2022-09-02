@@ -27,7 +27,7 @@ MySQLTuner needs you:
 * Please join us on issue track at [GitHub tracker](https://github.com/major/MySQLTuner-perl/issues).
 * Contribution guide is available following [MySQLTuner contributing guide](https://github.com/major/MySQLTuner-perl/blob/master/CONTRIBUTING.md)
 * Star **MySQLTuner project** at [MySQLTuner Git Hub Project](https://github.com/major/MySQLTuner-perl)
-* Paid support for Releem available here: [Releem App](https://app.releem.com/)
+* Paid support for Releem available here: [Releem App](https://releem.com/)
 
 ## Stargazers over time
 
@@ -37,29 +37,44 @@ Compatibility
 ====
 Test result are available here: [Travis CI/MySQLTuner-perl](https://travis-ci.org/major/MySQLTuner-perl)
 * MySQL 8.0 (partial support, password checks don't work)
+* Percona Server 8.0 (partial support, password checks don't work)
 * MySQL 5.7 (full support)
-* MySQL 5.6 (full support, no more MySQL support)
-* MySQL 5.5 (full support, no more MySQL support)
+* Percona Server 5.7 (full support)
+* MariaDB 10.6 (full support)
 * MariaDB 10.5 (full support)
 * MariaDB 10.4 (full support)
 * MariaDB 10.3 (full support)
-* MariaDB 10.2 (full support)
-* MariaDB 10.1 (full support, no more MariaDB support)
-* MariaDB 10.0 (full support, no more MariaDB support)
-* MariaDB 5.5 (full support, no more MariaDB support)
-* Percona Server 8.0 (partial support, password checks don't work)
-* Percona Server 5.7 (full support)
-* Percona Server 5.6 (full support)
-
-* Percona XtraDB cluster (partial support, no test environment)
+* Galera replication (full support)
+* Percona XtraDB cluster (full support)
 * Mysql Replications (partial support, no test environment)
-* Galera replication (partial support, no test environment)
 
-* MySQL 3.23, 4.0, 4.1, 5.0, 5.1 (partial support - deprecated version)
+* MySQL 5.6 (no support, deprecated version)
+* Percona Server 5.6 (no support, deprecated version)
+* MySQL 5.5 (no support, deprecated version)
+* MariaDB 5.5 (no support, deprecated version)
+* MariaDB 10.2 (no support, deprecated version)
+* MariaDB 10.1 (no support, deprecated version)
+* MariaDB 10.0 (no support, deprecated version)
+* MySQL 3.23, 4.0, 4.1, 5.0, 5.1 (no support - deprecated version)
+
+*** Windows Support is partial ***
+* Windows is now supported at this time 
+* Successfully run MySQLtuner across WSL2 (Windows Subsystem Linux )
+* [https://docs.microsoft.com/en-us/windows/wsl/](https://docs.microsoft.com/en-us/windows/wsl/)
 
 *** UNSUPPORTED ENVIRONMENTS - NEED HELP FOR THAT :) ***
-* Windows is not supported at this time (Help wanted !!!!!)
-* Cloud based is not supported at this time (Help wanted !!!!!)
+* Cloud based is not supported at this time (Help wanted !!!!! GCP, AWS, Azure support asked)
+
+*** Unsupported storage engines: PRs welcome ***
+* NDB is not supported feel free to Pull Request code :)
+* MyISAM is to old is no longer active
+* RockDB
+* Archive
+* Spider
+* ColummStore
+* TokuDB
+* XtraDB
+* Connect
 
 * CVE vulnerabilities detection support from [https://cve.mitre.org](https://cve.mitre.org)
 
@@ -116,7 +131,7 @@ Optional Sysschema installation for MySQL 5.6
 
 Sysschema is installed by default under MySQL 5.7 and MySQL 8 from Oracle.
 By default, on MySQL 5.6/5.7/8, performance schema is enabled by default.
-For previous 5.6 version, you can follow this command to create a new database sys containing very useful view on Performance schema:
+For previous MySQL 5.6 version, you can follow this command to create a new database sys containing very useful view on Performance schema:
 
 	curl "https://codeload.github.com/mysql/mysql-sys/zip/master" > sysschema.zip
 	# check zip file
@@ -128,7 +143,7 @@ For previous 5.6 version, you can follow this command to create a new database s
 Optional Performance schema and Sysschema installation for MariaDB 10.x
 --
 
-Sysschema is not installed by default under MariaDB 10.x.
+Sysschema is not installed by default under MariaDB prior to 10.6
 By default, on MariaDB, performance schema is disabled by default. consider activating performance schema across your my.cnf configuration file:
 
 	[mysqld]
@@ -197,6 +212,63 @@ __Usage:__ Enable debugging information
 __Usage:__ Update MySQLTuner and data files (password and cve) if needed
 
     perl mysqltuner.pl --checkversion --updateversion
+
+HTML reports based on  Python Jinja2
+--
+
+HTML generation is based on Python/Jinja2
+
+**HTML generation Procedure**
+
+ - Generate mysqltuner.pl report using JSON format (--json)
+ - Generate HTML report using j2 python tools
+
+**Jinja2 Templates are located under templates sub directory**
+
+A basic example is called basic.html.j2
+
+**Installation Python j2**
+
+    python -mvenv j2
+    source ./j2/bin/activate
+    (j2) pip install j2
+
+**Using Html report generation**
+
+	perl mysqltuner.pl --verbose --json > reports.json
+	cat reports.json  j2 -f json MySQLTuner-perl/templates/basic.html.j2 > variables.html
+
+or
+
+	perl mysqltuner.pl --verbose --json | j2 -f json MySQLTuner-perl/templates/basic.html.j2 > variables.html
+
+
+HTML reports based on AHA
+--
+
+HTML generation is based on AHA
+
+**HTML generation Procedure**
+
+ - Generate mysqltuner.pl report using standard text reports
+ - Generate HTML report using aha 
+
+**Installation Aha**
+
+Follow instructions from Github repo
+
+[GitHub AHA main repository](https://github.com/theZiz/aha)
+
+
+**Using AHA Html report generation**
+
+	perl mysqltuner.pl --verbose --color > reports.txt
+	aha --black --title "MySQLTuner" -f "reports.txt" > "reports.html"
+
+or
+
+	perl mysqltuner.pl --verbose --color | aha --black --title "MySQLTuner" > reports.html
+
 
 FAQ
 --

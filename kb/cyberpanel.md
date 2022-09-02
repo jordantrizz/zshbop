@@ -3,6 +3,7 @@
 
 # SSL Renewals
 * /root/.acme
+* /root/.acme.sh/acme.sh.log
 
 # Setup Cloudflare Real Visitor IP
 * https://openlitespeed.org/kb/show-real-visitor-ip-instead-of-cloudflare-ips/

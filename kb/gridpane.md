@@ -1,5 +1,5 @@
 # Popular Links
-*[wpinfo.net - Gridpane Cheatsheet CLI](https://wpinfo.net/2021/05/13/gridpane-cli-cheatsheet/)
+* [Gridpane Cheatsheet CLI](https://managingwp.io/2021/05/13/gridpane-cli-cheatsheet/)
 
 # GridPane CLI Commands
 
@@ -28,8 +28,12 @@
 * gp site phpma -ssl-renewal
 
 ## Monit
+### Run Monit Check for SSL Renewals
 * gp site monit -ssl-renewal
-* gpmonit mysql 
+### Run Monit Check for MySQL
+* gpmonit mysql
+### Change GridPane Monit Alert and Restart
+* gpmonit mysql -mem-high-mb 900 -mem-restart-mb 1024 
 
 # MySQL
 ## MySQL Service Control
@@ -94,11 +98,19 @@ MySQL slow query log output can be viewed in the following log: /var/log/mysql/s
 
 # Backups
 ## Local Backup Commands
-* /usr/local/bin/gpbup domain.com -get-available-backups
+* ```/usr/local/bin/gpbup domain.com -get-available-backups```
+
+## List local backup snapshots for sites.
+* find /opt/gridpane/backups/duplications/snapshots -type f | awk -F’/’ ‘{print $7}’ | sort | uniq | sed “s/gridpane-$(cat /root/gridcreds/gridpane.uuid)-//g” | sed “s/-/./g”
+
 ## Remote Backups
-* /usr/local/bin/gpbup2 domain.com -get-available-backups
+* ```/usr/local/bin/gpbup2 domain.com -get-available-backups```
+
 ## Backup Configuration
 * /var/www/site.url/logs/backups.env
+
+## Backup Storage
+* /opt/gridpane/backups/
 
 ## Backup Logs
 * /var/www/site.url/logs/backups.env
@@ -117,6 +129,8 @@ Enable server wide
 *
 
 # Maldet
+## Installing
+* gp stack maldet -install
 ## Log files
 * /opt/gridpane/maldet-all-sites-report.ids
 * /opt/gridpane/maldet-all-sites-scan.log
@@ -132,3 +146,9 @@ Enable server wide
 # Nginx
 ## Regenerate Nginx Config
 * gp site domain.com -regenerate-nginx-configs --force
+
+# Enable Debug Mode
+* /usr/local/bin/gp site store.vitalbody.ca wp-debug-on
+
+# Create Vanilla Nginx Config
+* gp conf nginx generate https-vanilla site.com

@@ -12,6 +12,9 @@ help_files[core]='Core commands'
 # - Init help array
 typeset -gA help_core
 
+# -- kb
+help_core[kb]='knowledge base'
+
 # - Don't know what cmd was for?
 cmd () { }; help_core[cmd]='broken and needs to be fixed'
 
@@ -21,31 +24,15 @@ paths () {
 	echo ${PATH:gs/:/\\n}
 }
 
-# -- kb - A built in knowledge base.
-help_core[kb]='knowledge base'
-kb () {
-	_debug_function
-        #-- Check if mdv exists if not use cat
-        if [[ $(_cexists mdv) ]]; then
-                mdv_reader=mdv
-        else
-                mdv_reader=less
-        fi
-        _debug "mdv_reader: $mdv_reader"
-
-        if [[ -a $ZSH_ROOT/kb/$1.md ]]; then
-                echo "Opening $ZSH_ROOT/kb/$1.md"
-                $mdv_reader $ZSH_ROOT/kb/$1.md
-        else
-                ls -l $ZSH_ROOT/kb
-        fi
-        if [[ $mdv_reader == cat ]]; then
-                echo "\n\n"
-                echo "---------------------------------------"
-                echo "mdv not avaialble failing back to cat"
-                echo "trying installing mdv by typing"
-                echo "---------------------------------------"
-        fi
+# -- add-path
+help_core[add-path]='Add to $PATH'
+add-path () {
+	if [[ -z $1 ]]; then
+		echo "Usage: add-path <path>"
+		return 1
+	else
+		export PATH=$PATH:$@
+	fi
 }
 
 # -- checkenv - Check Environment for installed software
@@ -56,7 +43,8 @@ env-check () {
         echo "---------------------------"
         echo ""
         for i in $default_tools; do
-                if _cexists $i; then
+				_cexists $i
+                if $? == "0"; then
                         echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
                 else
                         echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
@@ -67,7 +55,8 @@ env-check () {
         echo "---------------------------"
         echo ""
         for i in $extra_tools; do
-        if _cexists $i; then
+        _cexists $i
+        if $? == "0"; then
                         echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
                 else
                         echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
@@ -120,7 +109,7 @@ install-pkg () {
         # Get install command and confirm it's available
         INSTALL_CMD=(${=pkg[$1]})
         _debug "First command: $INSTALL_CMD[1]"
-        _debug "Checking if $INSTALL_CMD[1] exist?"
+        _debug "Checking if $INSTALL_CMD[1] exist?"		
         _cexists $INSTALL_CMD[1]
 
         # If using go.
@@ -138,7 +127,8 @@ install-pkg () {
 		fi
 	fi
 	# Main
-	if [[ $1 ]]; then
+
+	if [[ -n $1 ]]; then
 		if [[ $CMD_EXISTS == "0" ]]; then
 			_debug "$INSTALL_CMD[1] exists"
 			echo "-- Installing using command: $INSTALL_CMD"
@@ -194,7 +184,7 @@ TEMPLATE
 help_core[kbe]='Edit a KB with $EDITOR'
 kbe () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
-	if [[ $1 ]]; then
+	if [[ -n $1 ]]; then
 		${=EDITOR_RUN} $ZSHBOP_ROOT/kb/$1.md
 	else
 		echo "Usage: $funcstack <name of KB>"
@@ -205,7 +195,7 @@ kbe () {
 help_core[cmde]='Edit a cmd file with $EDITOR'
 cmde () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
-        if [[ $1 ]]; then
+        if [[ -z $1 ]]; then
                 ${=EDITOR_RUN} $ZSHBOP_ROOT/cmds/cmds-$1.zshrc
         else
                 echo "Usage: $funcstack[1] <name of command file>"
@@ -216,7 +206,7 @@ cmde () {
 help_core[ce]='Edit core files'
 ce () {
         _debug "\$EDITOR is $EDITOR and \$EDITOR_RUN is $EDITOR_RUN"
-        if [[ $1 ]]; then
+        if [[ -z $1 ]]; then
                 ${=EDITOR_RUN} $ZSHBOP_ROOT/$1.zshrc
         else
                 echo "Usage: $funcstack[1] <name of core file>"
@@ -227,12 +217,18 @@ ce () {
 # -- rename-ext
 help_core[rename-ext]='Rename file extensions'
 rename-ext () {
-        if [[ ! $1 ]] || [[ ! $2 ]]; then
-        echo "Usage: rename-ext <old extension> <new extension>"
+        if [[ -z $1 ]] || [[ -z $2 ]]; then
+	        echo "Usage: rename-ext <old extension> <new extension>"
         else
                 for f in *.$1; do
                         #echo "mv -- \"$f\" \"${f%.$1}.$2\""
                         mv -- "$f" "${f%.$1}.$2"
                 done
         fi
+}
+
+# -- zshbop install
+help_core[zshbop-install]='zshbop install command'
+zshbop-install () {
+	echo "bash <(curl -sL https://zshrc.pl)"
 }

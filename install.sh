@@ -1,26 +1,11 @@
 #!/usr/bin/env bash
 # -- zshbop Install script
 
-# ------------
 # -- Variables
-# ------------
-
-# -- first arguement
 CMD=$1
+required_tools=('jq' 'curl' 'zsh' 'git' 'md5sum') 
 
-# -- required tools
-required_tools=('jq' 'curl' 'zsh' 'git' 'md5sum')
-
-# -----------------
-# -- Core Functions
-# -----------------
-
-
-
-#-------------
-# -- Functions
-#-------------
-
+# -- flight_check
 flight_check() {
         # Checking if zsh is installed
         echo "-- Checking if required tools are installed"
@@ -36,6 +21,7 @@ flight_check() {
 	return        
 }
 
+# -- check_zsh_default
 check_zsh_default () {
         # Check if zsh is the default shell
         echo -n "-- Checking if zsh is the default shell...."
@@ -47,12 +33,13 @@ check_zsh_default () {
 
 }
 
+# -- pkg_install - install packafges.
 pkg_install() {
         # Checking what package manager we have
         echo -n "-- Checking what package manager we have...."
         if [ -x "$(command -v apt-get)" ]; then
                 echo " - We have apt!"
-                sudo apt install $@
+                sudo apt install -f $@
                 if [ $? -eq 1 ]; then 
                 	echo " - $@ install failed...."
                 	exit 1
@@ -73,6 +60,7 @@ pkg_install() {
         fi
 }
 
+# -- install_method - how do you want to install zshbop?
 install_method() {
 	echo "Install (d)efaults or (c)ustomize? (d/c)?"
 	read INSTALL
@@ -88,6 +76,7 @@ install_method() {
 	fi
 }
 
+# -- clone_repository
 clone_repository() {
         if ! [ -d $1 ];then
                 echo -e "- Start Cloning repository into $1..."
@@ -102,6 +91,7 @@ clone_repository() {
         fi
 }
 
+# -- setup_home
 setup_home() {
 	if ! [ -f $HOME/.zshrc ]; then
 		if [[ $1 == "git" ]]; then
@@ -120,6 +110,7 @@ setup_home() {
 	fi
 }
 
+# -- setup_system
 setup_system() {
 	# Confirm that /usr/local/sbin exists
 	echo -e "Setting up system based .zshrc..."
@@ -143,10 +134,7 @@ setup_system() {
 
 }		
 
-#--------------------
-# Main Code
-#--------------------
-
+# -- Main loop
 if [[ $CMD == "clean" ]]; then
 	echo "### REMOVING jtZSH ###"
 	echo "Continue (y/n)?"

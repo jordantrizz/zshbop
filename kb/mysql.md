@@ -1,11 +1,11 @@
 # MySQL
 
-# MySQL Tools
+## MySQL Tools
 * Mytop - https://www.digitalocean.com/community/tutorials/how-to-use-mytop-to-monitor-mysql-performance
 
-# MySQL .my.cnf Formatting
+## MySQL .my.cnf Formatting
 ```
-[client]
+[client] # important for mysqltuner.pl
 user=root
 password="qweqwe"
 
@@ -18,9 +18,26 @@ user=root
 password="qweqwe"
 ```
 
-# MySQL Commands
+# Common MySQL Commands
 ## Check System Variables
 * SHOW VARIABLES LIKE '%max_connect_errors%';
+
+## Databases
+* ```create database <database>```
+* ```drop database <database>```
+
+## Tables SELECT, INSERT, DELETE and UPDATE
+### SELECT
+### INSERT
+* ```INSERT INTO table_name (column1, column2, column3, ...) VALUES (value1, value2, value3, ...);```
+* ```INSERT INTO table_name VALUES (value1, value2, value3, ...);```
+* ```INSERT INTO Customers (CustomerName, ContactName, Address, City, PostalCode, Country) VALUES ('Cardinal', 'Tom B. Erichsen', 'Skagen 21', 'Stavanger', '4006', 'Norway');```
+
+### DELETE
+*
+
+### UPDATE
+*
 
 # Tuning
 ## Guides
@@ -31,4 +48,8 @@ password="qweqwe"
 
 # Settings
 ## innodb_flush_method
-If you want to use OS caching for some storage engines. With InnoDB, we recommend innodb_flush_method=O_DIRECT  in most cases, which won’t use Operating System File Cache. However, there have been cases when using buffered IO with InnoDB made sense. If you’re still running MyISAM, you will need OS cache for the “data” part of your tables.
+* If you want to use OS caching for some storage engines. 
+* With InnoDB, we recommend innodb_flush_method=O_DIRECT
+* In most cases, which won’t use Operating System File Cache. 
+* However, there have been cases when using buffered IO with InnoDB made sense. 
+* If you’re still running MyISAM, you will need OS cache for the “data” part of your tables.

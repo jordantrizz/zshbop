@@ -98,3 +98,9 @@ wp-autoload () {
 	fi
 }
 
+# -- wp-login
+help_wordpress[wp-login]='Install login module'
+wp-login () {
+	wp package install aaemnnosttv/wp-cli-login-command
+	wp login install --activate
+}

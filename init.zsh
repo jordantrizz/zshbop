@@ -8,43 +8,69 @@ _debug "Loading mypath=${0:a}"
 
 # -- init_path - setup all the required paths.
 init_path () {
-		_debug_function
-		# Default paths to look for
-        export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
-        export PATH=$PATH:$HOME/.local/bin
+	_debug_function
+
+	# Default paths to look for
+    export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
+    export PATH=$PATH:$HOME/.local/bin
+    export PATH=$PATH:$HOME/.cargo/bin
         
-    	# Extra software
-    	export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
-		export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
-		export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
-		export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
-		export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
+    # Extra software
+    export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
+	export PATH=$PATH:$HOME/bin/aws-cli # aws-cli https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
+	export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
-	if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
-		_debug "Found repos, adding to \$PATH"
-		for name in $ZSHBOP_ROOT/repos/*; do
-			_debug "$funcstack[1] - found repo $name, adding to \$PATH"
-			export PATH=$PATH:$name
-		done
-	fi
-	
-	export PATH=$PATH:$ZSHBOP_ROOT/repos/gp-tools
+	_loading "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
+	#init_add_path $ZSHBOP_ROOT/repos
+	init_add_path $HOME/bin
+	init_add_path $HOME/git
+	init_add_path $ZSHBOP_ROOT/repos
 	
 	# Golang Path?
 	export PATH=$PATH:$HOME/go/bin
+	
+	# Creating $HOME/tmp
+	_debug "Creating \$HOME/tmp folder"
+	if [[ ! -d $HOME/tmp ]]; then
+		mkdir $HOME/tmp
+	fi	
+}
+
+# -- init_add_path
+init_add_path () {
+	DIR="$@"
+	if [[ -d $DIR ]]; then
+		if [ "$(find "$DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+	    _debug "Adding $DIR to \$PATH"
+	        i=0
+	        for NAME in $DIR/*; do
+	            _debug "$funcstack[1] - found $NAME, adding to \$PATH"
+	                export PATH=$PATH:$NAME
+	            i=$((i+1))
+	        done
+	        _success " Found $i folders and added them to \$PATH"
+		fi
+	else
+		_debug "Can't find $DIR"
+	fi
 }
 
 # -- Initialize oh-my-zsh plugins
 init_omz_plugins () {
-	_echo "-- Loading OMZ plugins"
+	_loading "Loading OMZ plugins"
 	plugins=( git z )
-	_echo " - $plugins"
+	_loading_grey "OMZ - $plugins"
 }
 
 # -- Initialize Antigen
 init_antigen () {
-	_echo "-- Loading Antigen"
+	_loading "Loading Antigen"
         if [[ -a $ZSHBOP_ROOT/antigen.zsh ]]; then
                 _debug "- Loading antigen from $ZSHBOP_ROOT/antigen.zsh";
 		source $ZSHBOP_ROOT/antigen.zsh > /dev/null 2>&1
@@ -54,35 +80,39 @@ init_antigen () {
         fi
 }
 
-# -- Load default zsh scripts
-init_defaults () {
+# -- Load os zsh scripts
+init_os () {
 	_debug_function
-	# Include OS Specific configuration
-	if [[ $MACHINE_OS == "Mac" ]] then
-        	echo "- Loading cmds/os-mac.zsh"
-	        source $ZSHBOP_ROOT/cmds/os-mac.zsh
-	elif [[ $MACHINE_OS = "Linux" ]] then
-                        source $ZSHBOP_ROOT/cmds/os-linux.zsh
-                        echo "- Loading cmds/os-linux.zsh"
-	elif [[ $MACHINE_OS = "WSL" ]]; then
-                	echo "- Loading cmds/os-wsl.zsh"
-	                source $ZSHBOP_ROOT/cmds/os-wsl.zsh
-	fi
+	# -- Loading os defaults
+	_loading "Loading OS configuration"
 
-	# --- Include custom configuration
-	_debug "Detecting custom .zshbop configuration"
-	if [ -f $HOME/.zshbop.zshrc ]; then
-        	echo " -- Loading custom configuration $HOME/.zshbop.zshrc"
-	        source $HOME/.zshbop.zshrc
-	else
-		echo " -- No custom configuration found"
+	# -- Include common OS configuration
+	_loading2 "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
+	source $ZSHBOP_ROOT/cmds/os-common.zsh
+
+	# Include OS Specific configuration
+	
+	# -- Mac
+	if [[ $MACHINE_OS == "mac" ]] then
+        	_loading2 "Loading cmds/os-mac.zsh"
+	        source $ZSHBOP_ROOT/cmds/os-mac.zsh
+	# -- Linux
+	elif [[ $MACHINE_OS = "linux" ]] then
+		_loading2 "Loading cmds/os-linux.zsh"
+    	source $ZSHBOP_ROOT/cmds/os-linux.zsh
+	# -- WSL Linux
+	elif [[ $MACHINE_OS = "wsl" ]]; then				
+	    _loading2 "Loading cmds/os-linux.zsh"
+        source $ZSHBOP_ROOT/cmds/os-linux.zsh
+       	_loading2 "Loading cmds/os-wsl.zsh"
+	    source $ZSHBOP_ROOT/cmds/os-wsl.zsh
 	fi
 }
 
 # -- Load default SSH keys into keychain
 init_sshkeys () {
 		_debug_function
-		_echo "-- Loading SSH keys into keychain"
+		_loading "Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
 		        # Load default SSH key
 		        _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
@@ -111,7 +141,7 @@ init_sshkeys () {
                         	eval `keychain -q --eval --agents ssh $HOME/.ssh/clients*`
                 	fi
 		else
-			_echo " - Command keychain doesn't exist, please install for SSH keys to work"
+			_error "Command keychain doesn't exist, please install for SSH keys to work"
 		fi
 }
 
@@ -120,77 +150,56 @@ init_pkg_manager () {
 	_debug_function
 	_debug "Running on $MACHINE_OS"
 	
-	if [[ $MACHINE_OS == "Linux" ]] || [[ $MACHINE_OS == "WSL" ]]; then
+	if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
 		_debug "Checking for Linux package manager"
-			if [[ $(_cexists apt-get ) ]]; then
+			_cexists apt-get
+			if [[ $? == "0" ]]; then
 				_debug "Found apt-get setting \$PKG_MANAGER to apt-get"
 				PKG_MANAGER="sudo apt-get"
 			else
 				_debug "Didn't find apt-get"
 			fi
-	elif [[ $MACHINE_OS == "Mac" ]]; then
+	elif [[ $MACHINE_OS == "mac" ]]; then
 		_debug "Checking for Mac package manager"
-			if [[ $(_cexists brew) ]]; then
+			_cexists brew
+			if [[ $? == "0" ]]; then
 				_debug "Found brew setting \$PKG_MANAGER to apt-get"
 				PKG_MANAGER="brew"
 			fi		
-	fi
+	fi	
 }
 
-# -- init_motd - initial scripts to run on login
-init_motd () {
-		# -- Start motd
-		_debug_function
-		
-		# -- set .joe location
-		_joe_ftyperc
-        
-		# -- run neofetch
-		neofetch
-		
-		# -- check for old instances
-        zshbop_migrate-check
-        zshbop_previous-version-check
-        
-		# -- Show screen sessions
-		echo "-- Screen Sessions --"
-		if _cexists screen; then
-			screen -list
-		else
-			echo "** Screen not installed"
-		fi
-        
-		# -- General message
-		echo "---- Run checkenv to make sure you have all the right tools! ----"
-        echo ""
+init_detectos () {
+        # -- Detect operating system
+        _loading "Detecting Operating System"
+        export UNAME=$(uname -s)
+        case "${UNAME}" in
+            Linux*)     MACHINE_OS=linux;;
+            Darwin*)    MACHINE_OS=mac;;
+            CYGWIN*)    MACHINE_OS=cygwin;;
+            MINGW*)     MACHINE_OS=mingw;;
+            *)          MACHINE_OS="UNKNOWN:${unameOut}"
+        esac
+
+        # -- Check for WSL and set as MACHINE_OS
+        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
+            MACHINE_OS="wsl"
+        fi
+        _loading_grey "Running in ${MACHINE_OS}"
 }
 
 # -- Init
 init_zshbop () {
 		# -- Start init
 		_debug_function
-		_echo "-- Starting init"
+		_loading "Starting init"
         _debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
+
+        # -- Set paths
+        init_path
         
         # -- Detect operating system
-		_echo "-- Detecting Operating System"
-        export UNAME=$(uname -s)
-        case "${UNAME}" in
-            Linux*)     MACHINE_OS=Linux;;
-            Darwin*)    MACHINE_OS=Mac;;
-            CYGWIN*)    MACHINE_OS=Cygwin;;
-            MINGW*)     MACHINE_OS=MinGw;;
-            *)          MACHINE_OS="UNKNOWN:${unameOut}"
-        esac
-
-		# -- Check for WSL and set as MACHINE_OS
-        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
-        	MACHINE_OS="WSL"
-        fi
-        echo "	-- Running in ${MACHINE_OS}"
-
-		# -- Set paths
-    	init_path
+		init_detectos
 
 		# -- Init package manager
 		init_pkg_manager
@@ -207,19 +216,66 @@ init_zshbop () {
         init_antigen
         
         # -- Init defaults @@ISSUE
-        init_defaults
+        init_os
+        
+        # -- Init custom
+        zshbop_load_custom
 
 		# -- Skip when running rld
 		_debug "\$funcstack = $funcstack"
 		if [[ $funcstack[3] != "zshbop_reload" ]]; then
 			init_sshkeys
 			init_motd
+	        # -- Print zshbop version information
+	        zshbop_version
+    	    echo ""
 		else
-			echo " -- Skipped some scripts due to running rld"
+			_loading_grey "Skipped some scripts due to running rld"
 		fi
 
-		# -- Print zshbop version information
-		zshbop_version
-		echo ""
 }
 
+# -- init_motd - initial scripts to run on login
+init_motd () {
+	# -- Start motd
+    _debug_function
+
+    # -- set .joe location
+    _joe_ftyperc
+
+    # -- check for old instances
+    _loading "Old Instance Check"
+    zshbop_migrate-check
+    zshbop_previous-version-check
+
+    # --- system details
+    _loading "System details"
+	sysfetch
+
+    # -- Show screen sessions
+    _loading "Screen Sessions"
+    _cexists screen
+    if [[ $? == "0" ]]; then
+    	_success $(screen -list)
+    else
+    	_error "** Screen not installed"
+    fi
+
+        # -- Checking system
+        _banner_yellow "-- Checking System --"
+        _success "Run checkenv to make sure you have all the right tools!"
+        _cexists atop
+        if [[ $? == "1" ]]; then
+            _error "atop not installed, if this is a server install it"
+        else
+            _success "atop installed"
+            # @ISSUE check if atop is running
+        fi
+        check_broot
+
+        # -- load custom zshbop config
+        zshbop_load_custom
+
+        # -- last echo to keep motd clean
+        echo ""
+}
