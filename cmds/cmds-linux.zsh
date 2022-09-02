@@ -33,17 +33,79 @@ vhwinfo () {
 
 # -- needrestart - check if system needs a restart
 help_linux[needrestart]='Check if system needs a restart'
-if [[ ! $(_cexists needrestart) ]]; then
+_cexists needrestart
+if [[ $? == "1" ]]; then
 	needrestart () {
 		_debug "needrestart not installed"
 		_notice "needrestart not installed"
-		echo 'Press any key to install broot...'; read -k1 -s
+		echo 'Press any key to install needrestart...'; read -k1 -s
 		sudo apt-get install needrestart
 	}
 fi
 
 # -- broot -
 help_linux[broot]='Get an overview of a directory, even a big one'
-if [[ ! $(_cexists broot) ]]; then
-	echo "broot not installed"
+_cexists broot
+if [[ $? == "1" ]]; then
+	broot () {
+		check_broot
+	}
+	check_broot () {
+		_error "broot not installed"
+	}
 fi
+
+# -- backup
+help_linux[backup]='Backup a folder in a tar file'
+backup () {
+	if [[ -z $1 ]]; then
+		echo "Usage: backup <folder>"
+		return
+	fi
+	if [[ ! -d $1 ]]; then
+		_error "Folder $1 doesn't exist...exiting"
+		return
+	else
+		TAR_BACKUP_DATE=`date +%m-%d-%Y`
+		echo "Backing up folder $1 to $1-${TAR_BACKUP_DATE}.tar"
+		echo ""
+		tar -cvf $1-${TAR_BACKUP_DATE}.tar $1
+		echo ""
+		echo "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar"
+	fi
+}		
+
+# -- ps2
+help_linux[ps2]='Show long usernames in ps :)'
+ps2() {
+    if [[ $@ =~ .u* ]] || [[ *u ]]; then
+        command getent passwd |\
+        awk -F':' ' \
+        !len || length($1) > len {len=length($1);s=$1}\
+        END{print s, len; system("ps axo user:"len",pid,pcpu,pmem,vsz,rss,tty,stat,start,time,comm");}'
+    else
+        command ps "$@"
+    fi
+}
+
+# -- fork
+help_linux[fork]='Fork command into background'
+fork() { 
+	(setsid "$@" &); 
+}
+
+# -- sysr
+help_linux[sysr]='Systemctl restart shortcut'
+sysr() {
+	if [[ -z $@ ]]; then
+		echo "systemctl restart - Usage: sysr [service]"
+		return 1
+	fi
+	systemctl restart $@
+}
+
+# -- ps-cpu
+help_linux[ps-cpu]='Show top 5 CPU applications'
+ps-cpu() {
+    ps aux --sort -pcpu | head -5
+}

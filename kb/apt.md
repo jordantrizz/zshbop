@@ -3,3 +3,7 @@
 ```
 apt-get update --allow-releaseinfo-change
 ```
+
+# Common Commands
+## To see all possible upgrades, run a upgrade in verbose mode and (to be safe) with simulation
+* apt-get -V -s upgrade

@@ -18,6 +18,22 @@ cd /tmp/zsh
 sudo make -j 20 install
 ```
 
+## Ubuntu 14
+```
+apt-get install libncurses5-dev
+git clone -b zsh-5.7.1 https://github.com/zsh-users/zsh.git /tmp/zsh
+cd /tmp/zsh
+./Util/preconfig
+./configure
+sudo make -j 20 install
+```
+
+# Debug ZSH
+## ZSH Trace
+```zsh -xv```
+## ZSH Trace + Log
+```zsh -xv 2> debug.err.txt``
+
 # ZSH Expansion + Pattern Matching
 * https://thevaluable.dev/zsh-expansion-guide-example/
 
@@ -128,3 +144,51 @@ ARRAY=()
 ARRAY+=('foo')
 ARRAY+=('bar')
 ```
+
+# Colors
+* PS1=$'\e[0;31m$ \e[0m'
+* https://en.wikipedia.org/wiki/ANSI_escape_code
+
+# Positional Arguments Command Line
+* https://xpmo.gitlab.io/post/using-zparseopts/
+
+Well, -D removes all the matched options from the parameter list, (supporting requirement 7) and -E tells zparseopts to expect options and parameters to be mixed in (supporting requirement 1; without it, it will stop like getopts does).
+
+What I find nice about zparseopts is that semantics like overriding vs stacking flags can be defined in the command, rather than managed after parsing.
+
+Here is a stacking example: -v increases verbosity, and -q decreases it:
+
+zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
+(( verbosity = $#flag_v - $#flag_q ))
+
+```
+# -- Variables
+zparseopts -D -E h=help -help=help t+:=title o+:=opts r=result -result=result a=arrow -arrow=arrow
+
+title=$title[2]
+opts=$opts[2]
+result=$result[2]
+arrow=$arrow[2]
+
+IFS=$'\n' opts=($(echo "$opts" | tr "|" "\n"))
+
+# -- Functions
+usage () {
+        echo "Usage: listbox [options]"
+        echo "Example:"
+        echo "  listbox -t \"title\" -o \"option 1|option 2|option 3\" -r resultVariable -a '>'"
+        echo "Options:"
+        echo "  -h, --help                         help"
+        echo "  -t, --title                        list title"
+        echo "  -o, --options \"option 1|option 2\"  listbox options"
+        echo "  -r, --result <var>                 result variable"
+        echo "  -a, --arrow <symbol>               selected option symbol"
+        echo ""
+}
+```
+
+# Color
+* https://en.wikipedia.org/wiki/ANSI_escape_code
+
+# Uppercase Variable
+* ```${var:u}```

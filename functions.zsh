@@ -7,18 +7,70 @@
 _debug "Loading mypath=${0:a}"
 
 # -----------
-# -- ZSH Aliases
+# -- ZSHBOP Aliases
 # -----------
 alias update="zshbop_update"
 alias rld="zshbop_reload"
 alias urld="zshbop_update;zshbop_reload"
-alias zb=zshbop
+alias zb="zshbop"
+alias init=init_zshbop
 
 # ---------------------
 # -- Internal Functions
 # ---------------------
 
 #-- Check to see if command exists and then return true or false
+_require_pkg () {
+        _debug_function
+        _debug "Running _requires_pkg on $1"
+        _debug "array: ${(P)${array_name}}"
+        
+                local array_name=$1
+        PKG=""
+        
+        for PKG in ${(P)${array_name}}; do
+		if [[ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 1 ]]; then
+                        if [[ $ZSH_DEBUG == 1 ]]; then
+                                _debug "$PKG is installed";
+                                REQUIRES_PKG=0
+                        fi
+                else
+                        if [[ $ZSH_DEBUG == 1 ]]; then
+                                _debug "$PKG not installed";
+                        fi
+                        echo "$PKG not installed, installing"
+                        sudo apt-get install $PKG
+                        REQUIRES_PKG=1
+                fi
+        done
+        
+}
+_requires_cmd () {
+	_debug_function
+	_debug "Running _requires on $1"
+	_debug "array: ${(P)${array_name}}"
+
+	local array_name=$1
+	CMD=""
+	
+	for CMD in ${(P)${array_name}}; do
+	        if (( $+commands[$CMD] )); then
+			_debug $(which $CMD)
+	              	if [[ $ZSH_DEBUG == 1 ]]; then
+	                        _debug "$CMD is installed";
+	                        REQUIRES_CMD=0
+        	        fi
+	        else
+	                if [[ $ZSH_DEBUG == 1 ]]; then
+                	        _debug "$CMD not installed";
+        	        fi
+	                echo "$CMD not installed"
+	                REQUIRES_CMD=1
+	        fi
+        done
+}
+
+# -- _cexists -- Returns 0 if command exists or 1 if command doesn't exist
 _cexists () {
         if (( $+commands[$@] )); then
         	_debug $(which $1)
@@ -31,6 +83,7 @@ _cexists () {
                         _debug "$@ not installed";
                 fi
                 CMD_EXISTS="1"
+                
         fi
         return $CMD_EXISTS
 }
@@ -80,31 +133,34 @@ _joe_ftyperc () {
 # -------------------
 
 # -- help_zshbop array
-typeset -gA help_zshbop # -- Set help_zshbop
+typeset -gA help_zshbop 
 
 # -- cc - clear cache for various tools
 help_zshbop[cc]='Clear cache for antigen + more'
 alias cc="zshbop_cc"
 zshbop_cc () {
-        antigen reset; rm -f ~/.zshrc.zwc
+		_loading "Clearing zshbop cache"
+        _loading_grey $(antigen reset; rm -f ~/.zshrc.zwc)
 }
 
 # -- rld / reload
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
-        _debug_function
-        _debug "Clearing cache"
-        zshbop_cc
+    _debug_function
+    _debug "Clearing cache"
+    zshbop_cc
 	source $HOME/.zshrc
+	zshbop_version-check
+	echo ""
 	_warning "You may have to close your shell and restart it to see changes"
-        echo ""
+    echo ""
 }
 
 # -- zshbop_startup
 help_zshbop[startup]='Run zshbop startup'
 zshbop_startup () {
 	_debug_function
-	startup_motd
+	init_motd
 }
 
 # -- branch
@@ -113,10 +169,10 @@ zshbop_branch  () {
         _debug_function
         if [ "$2" = "dev" ]; then
                 echo "	-- Switching to dev branch"
-                git -C $ZSHBOP_ROOT checkout dev
+                git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
         elif [ "$2" = "main" ]; then
                 echo "	-- Switching to main branch"
-                git -C $ZSHBOP_ROOT checkout main
+                 git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout main
         elif [ -z $2 ]; then
                 echo "	-- zshbop: $ZSHBOP_ROOT branch: $ZSHBOP_BRANCH ----"
                 echo "	-- To switch branch type 'zshbop branch dev' or 'zshbop branch main'"
@@ -176,40 +232,41 @@ zshbop_check-updates () {
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
 	_debug_function
-        _banner_green "               "
-        _banner_green "UPDATING ZSHBOP"
-        _banner_green "               "
+    _loading "UPDATING ZSHBOP"
         
-        # -- print out zshbop version
-        zshbop_version
+    # -- print out zshbop version
+    zshbop_version
         
-        # -- Pull zshbop down from git using current branch
-        echo "-- Pulling zshbop updates"
+    # -- Pull zshbop down from git using current branch
+    _loading2 "Pulling zshbop updates"
 
-        # -- Changed branch from develop to dev
-        if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
-                _debug "Detected old branch name develop"
-                git -C $ZSHBOP_ROOT checkout dev
-                git -C $ZSHBOP_ROOT pull
-        else
-                git -C $ZSHBOP_ROOT pull
-        fi
+    # -- Changed branch from develop to dev
+    if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
+    	_debug "Detected old branch name develop"
+        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
+        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
+    else
+        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
+    fi
 
 	# Check if .zshrc is out of date.
 	# Called from script directly versus cached functions
 	$ZSHBOP_ROOT/zshbop.zsh previous-version-check
 
-        # Update Personal ZSH
-        if [ ! -z $ZSH_PERSONAL_DIR ]; then
-                echo "-- Pulling Personal ZSH repo"
-                git -C $ZSH_PERSONAL_DIR pull
-        fi
-
-        # Update repos
+    # Update repos
 	repos update
+	
+	# Update zsh-custom
+	_loading "Updating zshbop custom"
+	if [[ $ZBC ]]; then
+		_loading2 "Found zshbop custom"
+		git --git-dir=${ZBC}/.git --work-tree=${ZBC} pull
+	else
+		_loading2 "No zshbop-custom to update"
+	fi
 
-        # Reload scripts
-        _warning "Type zb reload to reload zshbop, or restart your shell."
+    # Reload scripts
+    _warning "Type zb reload to reload zshbop, or restart your shell."
 }
 
 # -- zshbop_pervious-version-check
@@ -223,8 +280,8 @@ zshbop_previous-version-check () {
         _debug " -- Current $HOME/.zshrc md5 is - $CURRENT_ZSHRC_MD5"
         _debug " -- zshbop .zshrc md5 is - $ZSHBOP_ZSHRC_MD5"
         if [[ "$CURRENT_ZSHRC_MD5" != "$ZSHBOP_ZSHRC_MD5" ]]; then
-                echo "-- Found old .zshrc"
-                echo "-- Replacing $HOME/.zshrc"
+                _error "-- Found old .zshrc"
+                _notice "-- Replacing $HOME/.zshrc"
                 cp $ZSHBOP_ROOT/.zshrc $HOME/.zshrc
         else
         	_debug " -- No need to fix .zshrc"
@@ -235,7 +292,7 @@ zshbop_previous-version-check () {
 help_zshbop[migrate-check]='Check if running old zshbop.'
 zshbop_migrate-check () {
 	_debug_function
-        _debug " -- Checking for legacy zshbop"
+        _loading2 "Checking for legacy zshbop"        
         FOUND="0"
         for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
                 if [ -d "$ZBPATH_MIGRATE" ]; then
@@ -244,22 +301,22 @@ zshbop_migrate-check () {
                 fi
         done
         if [[ "$FOUND" == "0" ]]; then
-                _debug " -- Don't need to migrate legacy zshbop"
+                _loading2 "Don't need to migrate legacy zshbop"
         fi
 
-        echo "-- Checking for github modules"
+        _banner_yellow "-- Checking for github modules"
         if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
                 _debug "Found old ultimate-linux-tool-box"
-                _warning "-- Found ultimate-linux-tool-box run 'zshbop migrate'"
+                _warning "Found ultimate-linux-tool-box run 'zshbop migrate'"
         else
-                echo "  -- Didn't find ultimate-linux-tool-box"
+                _success "Didn't find ultimate-linux-tool-box"
         fi
 
         if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
                 _debug "Found old ultimate-wordpress-tools"
-                _warning "-- Found ultimate-wordpress-tools run 'zshbop migrate'"
+                _warning "Found ultimate-wordpress-tools run 'zshbop migrate'"
         else
-                echo "  -- Didn't find ultimate-wordpress-tools"
+                _success "Didn't find ultimate-wordpress-tools"
         fi
         
 }
@@ -268,10 +325,11 @@ zshbop_migrate-check () {
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
 	_debug_function
-        echo " -- Check Migrating legacy zshbop"
+        _debug " -- Migrate old zshbop to legacy zshbop"
         FOUND="0"
         for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
                 if [ -d "$ZBPATH_MIGRATE" ]; then
+                		_success "Found legacy zshbop...migrating"
                         echo " -- Moving $ZBPATH_MIGRATE to ${ZBPATH_MIGRATE}bop"
                         sudo mv $ZBPATH_MIGRATE ${ZBPATH_MIGRATE}bop
                         echo " -- Copying ${ZBPATH_MIGRATE}bop/.zshrc to your $HOME/.zshrc"
@@ -280,24 +338,24 @@ zshbop_migrate () {
                 fi
         done
         if [[ "$FOUND" == "0" ]]; then
-                echo " -- Don't need to migrate legacy zshbop"
+                _debug " -- Don't need to migrate legacy zshbop"
         fi
         
-        echo "-- Checking for github modules"
+        _debug "-- Checking for github modules"
         if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
                 _debug "Found old ultimate-linux-tool-box"
-                _warning "  -- Found ultimate-linux-tool-box, removing folder"
+                _warning "Found ultimate-linux-tool-box, removing folder"
                 rm -r $ZSHBOP_ROOT/ultimate-linux-tool-box
         else
-                echo "  -- Didn't find ultimate-linux-tool-box"
+                _debug "Didn't find ultimate-linux-tool-box"
         fi
 
         if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
                 _debug "Found old ultimate-wordpress-tools"
-                _warning "  -- Found ultimate-wordpress-tools, removing folder."
+                _warning "Found ultimate-wordpress-tools, removing folder."
                 rm -r $ZSHBOP_ROOT/ultimate-wordpress-tools
         else
-                echo "  -- Didn't find ultimate-wordpress-tools"
+                _debug "Didn't find ultimate-wordpress-tools"
         fi
 }
 
@@ -305,16 +363,106 @@ zshbop_migrate () {
 help_zshbop[version]='Get version information'
 zshbop_version () {
         _debug_function
-        echo "-- Version: $fg[green]$ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT$reset_color .zshrc MD5: $fg[green]$ZSHBOP_CURRENT_ZSHRC_MD5$reset_color --"
+        echo "-- Version: $fg[green]$ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT$reset_color .zshrc MD5: $fg[green]$ZSHBOP_ZSHRC_HOME_MD5$reset_color --"
+}
+
+# -- zshbop_version_check
+help_zshbop[version-check]='Check version'
+zshbop_version-check () {
+        _debug_function
+		zshbop_version
+        echo "-- .zshrc: \$ZSHBOP_ZSHRC_MD5 $fg[green]$ZSHBOP_ZSHRC_MD5$reset_color - \$ZSHBOP/.zshrc MD5: $fg[green]$ZSHBOP_ZSHRC_HOME_MD5$reset_color - \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_ZSHRC_ZSHBOP_MD5$reset_color"
+        
+         _debug "Checking if $HOME/.zshrc is the same as $ZSHBOP/.zshrc"
+        if [[ $ZSHBOP_ZSHRC_HOME_MD5 == $ZSHBOP_ZSHRC_ZSHBOP_MD5 ]]; then
+                _success "  \$HOME/.zshrc and  \$ZSHBOP/.zshrc are the same."
+        else
+                _error "  \$HOME/.zshrc and \$ZSHBOP/.zshrc are the different."
+        fi
+        
+        if [[ $ZSH_DEBUG == "1" ]]; then
+                _debug "Checking if $ZSHBOP/.zshrc is the same as \$ZSHBOP_ZSHRC_MD5"
+                if [[ $ZSHBOP_ZSHRC_ZSHBOP_MD5 == $ZSHBOP_ZSHRC_MD5 ]]; then
+                        _success "  \$ZSHBOP/.zshrc and  \$ZSHBOP_ZSHRC_MD5 are the same."
+                else
+                        _error "  \$ZSHBOP/.zshrc and \$ZSHBOP_ZSHRC_MD5 are the different."
+                fi
+        fi
+}
+
+# -- zshbop_debug
+help_zshbop[debug]='Turn debug on and off'
+alias debug=zshbop_debug
+zshbop_debug () {
+        _debug_function        
+        echo "test $@"
+        if [[ $1 == "on" ]] || [[ $2 == "on" ]]; then
+                echo "Turning debug on"
+                _debug "Turning debug on"
+                touch $ZSHBOP_ROOT/.debug
+                echo "Reloading to enable debug"
+                rld
+        elif [[ $1 == "off" ]] || [[ $2 == "off" ]]; then
+                echo "Turning debug off"
+                _debug "Turning debug off"
+                if [[ -f $ZSHBOP_ROOT/.debug ]]; then
+	                rm $ZSHBOP_ROOT/.debug
+    	            echo "Reloading to disable debug"
+    	        else
+    	        	_error "$ZSHBOP_ROOT/.debug doesn't exist"
+	                rld
+	            fi
+        else
+				_error "nothing passed"
+                echo "Usage: debug <on|off>"
+                echo "Debug is $ZSH_DEBUG"
+        fi
 }
 
 # -- zshbop_color
 help_zshbop[colors]='List variables for using color'
 zshbop_colors () {
         _debug_function
-	for k in ${color}; do
+        echo "-- Color names"
+        for k in ${color}; do
 	   print -- key: $k
 	done
+
+        echo "-- How to use color"
+        echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
+        echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
+        echo "  Reset Color: \$reset_color"
+
+        echo "-- Color Options"
+        _banner_red "  -- _banner_red"
+        _banner_green "  -- _banner_green"
+        _banner_yellow "  -- _banner_yellow"
+        _error "  -- _error"
+        _warning "  -- _warning"
+        _success "  -- _success"
+        _notice "  -- _notice"
+}
+
+# -- zshbop_custom
+help_zshbop[custom]='Custom zshbop configuration'
+zshbop_custom () {
+	_banner_green "Instructions on how to utilize custom zshbop configuration."
+	echo " - Create a file called .zshbop.custom in your /$HOME directory"
+	echo " - Done!"
+	echo " - You can also copy the .zshbop.custom file within this repository as a template"
+}
+
+# -- zshbop_load_custom
+zshbop_load_custom () {
+	# -- Check for $HOME/.zshbop.custom, load last to allow overwritten core functions
+	_loading "Checking for $HOME/.zshbop.custom"
+    if [[ -f $HOME/.zshbop.custom ]]; then
+    	ZSHBOP_CUSTOM="$HOME/.zshbop.custom"
+        _loading_grey "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
+        source $ZSHBOP_CUSTOM
+    else
+    	_error "No custom zshbop config found. Type zshbop custom for more information"
+    fi
 }
 
 # -- zshbop_help
@@ -324,15 +472,17 @@ zshbop_help () {
         echo "-- zshbop help ------------"
         echo ""
         for key in ${(kon)help_zshbop}; do
-        	printf '%s\n' "  ${(r:25:)key} - ${help_zshbop[$key]}"
+            printf '%s\n' "  ${(r:25:)key} - ${help_zshbop[$key]}"
         done
         echo ""
 }
 
+# -- check if nala is installed
 check_nala () {
         _debug_function
         _debug "Checking if nala is installed"
-        if [[ $(_cexists nala ) ]]; then
+        _cexists nala
+        if [[ $? == "0" ]]; then
 	        _debug "nala installed - running zsh completions"
 	        source /usr/share/bash-completion/completions/nala
         fi
@@ -343,11 +493,14 @@ check_nala () {
 # --------------
 
 zshbop () {
-        if [[ $1 == "help" ]] || [[ ! $1 ]]; then
-                zshbop_help
-        elif [[ $1 ]]; then
-	        _debug "-- Running zshbop $1"
-                zshbop_cmd=(zshbop_${1})
-                $zshbop_cmd $@
-        fi
+	_debug_function 
+    if [[ -z $1 ]]; then
+		zshbop_help
+    elif [[ $1 == "help" ]]; then    
+		zshbop_help        	
+    elif [[ -n $1 ]]; then
+		_debug "-- Running zshbop $1"
+        zshbop_cmd=(zshbop_${1})
+        $zshbop_cmd $@
+    fi
 }

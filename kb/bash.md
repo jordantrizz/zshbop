@@ -43,6 +43,18 @@
 [ ARG1 OP ARG2 ]	"OP" is one of -eq, -ne, -lt, -le, -gt or -ge. These arithmetic binary operators return true if "ARG1" is equal to, not equal to, less than, less than or equal to, greater than, or greater than or equal to "ARG2", respectively. "ARG1" and "ARG2" are integers.
 ```
 
+# Integer Comparison
+* -eq is equal to if [ "$a" -eq "$b" ]
+* -ne is not equal to if [ "$a" -ne "$b" ]
+* -gt is greater than if [ "$a" -gt "$b" ]
+* -ge is greater than or equal to if [ "$a" -ge "$b" ]
+* -lt is less than if [ "$a" -lt "$b" ]
+* -le is less than or equal to if [ "$a" -le "$b" ]
+* < is less than (within double parentheses) (("$a" < "$b"))
+* <= is less than or equal to (within double parentheses) (("$a" <= "$b"))
+* > is greater than (within double parentheses) (("$a" > "$b"))
+* >= is greater than or equal to (within double parentheses) (("$a" >= "$b"))
+
 # Dealing with Command Arguments
 https://readforlearn.com/how-do-i-parse-command-line-arguments-in-bash/
 ```
@@ -113,3 +125,12 @@ fi
 
 # Get function name
 ```${FUNCNAME[0]```
+
+# Run command outside of an alias
+* https://unix.stackexchange.com/questions/39291/run-a-command-that-is-shadowed-by-an-alias
+* You can also prefix a back slash to disable the alias: \ls
+* Edit: Other ways of doing the same include:
+* Use "command": command ls as per Mikel.
+* Use the full path: /bin/ls as per uther.
+* Quote the command: "ls" or 'ls' as per Mikel comment.
+* You can remove the alias temporarily for that terminal session with unalias command_name.

@@ -1,4 +1,7 @@
 # Ubuntu 18
+
+## Convert Timezone
+* date -d '5pm BST'
 ## List timezone
 * timedatectl list-timezones 
 ## Set Timezone
