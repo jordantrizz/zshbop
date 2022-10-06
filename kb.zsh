@@ -1,21 +1,27 @@
 # -----------
 # kb function
 # -----------
+
 # -- kb - A built in knowledge base.
 kb () {
-        _debug_function
-        
+        _debug_function        
         KB=$1
        
         # -- Check if mdv exists if not use cat
         _debug "Checking if mdv exists"
+        _cexists glow
+		CE_GLOW=$?
 		_cexists mdv
-        if [[ $? == "0" ]]; then
-                _debug "mdv exists!"
-                MD_READER=mdv
+		CE_MDV=$?
+        if [[ $CE_GLOW == "0" ]]; then
+                _debug "glow exists!"
+                MD_READER="glow"
+        elif [[ $CE_MDV == "0" ]]; then
+        		_debug "mdv exists!"
+        		MD_READER="mdv"
         else
                 _debug "mdv doesn't exist using cat"
-                MD_READER=cat
+                MD_READER="cat"
         fi
         _debug "MD_READER: $MD_READER"
 
@@ -31,14 +37,14 @@ kb () {
 				KB_COMBINED+="\n"
 				KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
 				_debug "$KB_COMBINED"
-				echo $KB_COMBINED | $MD_READER - | less
+				md-reader $KB_COMBINED
         elif [[ -a $ZSHBOP_ROOT/kb/$1.md ]]; then
 				_banner_yellow "Found zshbop KB file $ZSH_ROOT/kb/$1.md, showing both via $MD_READER"
-                $MD_READER $ZSH_ROOT/kb/$1.md | less
+                md-reader $ZSH_ROOT/kb/$1.md
         elif [[ -a $ZBC/kb/$1.md ]]; then
         		_banner_yellow "Found zshbop custom KB file $ZBC/kb/$1.md, showing both via $MD_READER"
-        		$MD_READER $ZBC/kb/$1.md | less
-		else
+        		md-reader $ZBC/kb/$1.md
+        else
 				_error "Couldn't find $KB in KB"
 				_banner_yellow "Current KB Articles"
                 \ls $ZSH_ROOT/kb
@@ -58,4 +64,15 @@ kb () {
                 echo "trying installing mdv by typing"
                 echo "---------------------------------------"
         fi
+}
+
+md-reader () {
+	MD_FILE="$1"
+	if [[ $MD_READER == "glow" ]]; then
+		eval $MD_READER -p $MD_FILE
+	elif [[ $MD_READER == "mdv" ]]; then
+		eval $MD_READER $MD_FILE | less
+	else
+		less $MD_FILE
+	fi
 }

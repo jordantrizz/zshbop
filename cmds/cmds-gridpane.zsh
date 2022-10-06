@@ -57,3 +57,22 @@ help_gridpane[certbot-logs]="Certbot and Acme logs"
 gridpane_certbot-logs () {
 	tail -n 100 /opt/gridpane/certbot.monitoring.log /opt/gridpane/acme.monitoring.log;echo "Tailing 100 lines of /opt/gridpane/certbot.monitoring.log & /opt/gridpane/acme.monitoring.log"
 }
+
+# -- gph check-fsl
+help_gridpane[check-fsl]="Check duplicacy .fsl files"
+check-fsl () { 
+	echo "\n** Checking duplicacy storage **";
+    echo "----"
+	echo -n "Total size of backup chunks: ";du --max-depth=0 -h /opt/gridpane/backups/duplications/chunks
+	echo "----"
+	echo -n "Total .fsl files: ";find /opt/gridpane/backups/duplications/chunks -name "*.fsl" | wc -l
+	echo -n "Total .fsl file size: ";find /opt/gridpane/backups/duplications/chunks -type f -name "*.fsl" -print0 | du --files0-from=- -hc | tail -n1
+	echo "----"
+	echo -n "Total normal chunk files: "; find /opt/gridpane/backups/duplications/chunks -type f ! -name "*.fsl" | wc -l; \
+	echo -n "Total normal chunk file size: "; find /opt/gridpane/backups/duplications/chunks -type f ! -name "*.fsl" -print0 | du --files0-from=- -hc | tail -n1; \
+    echo "----"
+	echo -n "Duplicacy reporting totals: "
+	REPOSITORY=$(dirname "$(find /var/www/ -name ".duplicacy" | tail -n 1)")
+	cd $REPOSITORY >> /dev/null
+	duplicacy check -tabular | grep Total
+}

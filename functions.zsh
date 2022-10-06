@@ -1,10 +1,75 @@
 #!/usr/bin/env zsh
 # ------------------------
 # -- zshbop functions file
+# -- This file contains all the required functions for the main .zshrc script.
 # -------------------------
-# This file contains all the required functions for the main .zshrc script.
+echo "\e[43;30m * Loading ${0:a} \e[0m"
 
-_debug "Loading mypath=${0:a}"
+# ------------
+# -- Variables
+# ------------
+
+# -- zsh sepcific
+export ZDOTDIR="${HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
+
+# -- zshbop specific
+export SCRIPT_NAME="zshbop" # -- Current zshbop branch
+export SCRIPT_DIR=${0:a:h} # -- Current working directory
+export ZSHBOP_CACHE_DIR="${HOME}/.zshbop_cache"
+export ZSHBOP_PLUGIN_MANAGER="init_antidote"
+export ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version) # -- Current version installed
+export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
+export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
+export KB="${ZSHBOP_ROOT}/kb"
+
+# -- zshbop git
+export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
+export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
+export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
+export ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
+
+# -- zshbop md5sum
+export ZSHBOP_MD5="46c094ff2b56af2af23c5b848d46f997" # -- the md5 of .zshrc
+export ZSHBOP_HOME_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $HOME
+export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $ZSHBOPROOT
+
+# -- Associative Arrays
+typeset -gA help_custom # -- Set help_custom for custom help files
+
+# -- Default tools.
+default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
+default_tools+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
+extra_tools=('pip' 'npm' 'golang-go' 'net-tools')
+pip_install=('ngxtop' 'apt-select' 'semgrep')
+
+# -- Take $EDITOR run it through alias and strip it down
+EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
+
+# -- fzf keybindings, enable if fzf is available @@ISSUE
+#[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
+####-- diff-so-fancy
+# git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
+
+# ------------------------
+# -- Environment variables
+# ------------------------
+
+# - Set umask
+umask 022
+export TERM="xterm-256color"
+export LANG="C.UTF-8"
+export HISTSIZE=5000
+export PAGER='less -Q -j16'
+export EDITOR='joe'
+export BLOCKSIZE='K'
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export TERM="xterm-256color"
+export LANG="C.UTF-8"
+export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify # -- ohmyzsh specific environment variables
+export SSHK="$HOME/.ssh"
+export TMP="$HOME/tmp"
 
 # -----------
 # -- ZSHBOP Aliases
@@ -13,11 +78,65 @@ alias update="zshbop_update"
 alias rld="zshbop_reload"
 alias urld="zshbop_update;zshbop_reload"
 alias zb="zshbop"
-alias init=init_zshbop
+alias init="init_zshbop"
+alias _debug_function="_debug_all"
+alias zbr="cd $ZBR"
 
 # ---------------------
 # -- Internal Functions
 # ---------------------
+
+# -- Different colored messages
+_echo () { echo "$@" }
+_error () { echo  "$fg[red] * $@ $reset_color" }
+_warning () { echo "$fg[yellow] * $@ $reset_color" }
+_success () { echo "$fg[green] * $@ $reset_color" }
+_notice () { echo "$fg[magenta] * $@ $reset_color" }
+
+# -- Banners
+_banner_red () { echo "$bg[red]$fg[white] $@ $reset_color" }
+_banner_green () { echo "$bg[green]$fg[white] $@ $reset_color" }
+_banner_yellow () { echo "$bg[yellow]$fg[black] $@ $reset_color" }
+_banner_grey () { echo "$bg[bright-grey]$fg[black] $@ $reset_color" }
+_loading () { echo "$bg[yellow]$fg[black] * $@ $reset_color" }
+_loading2 () { echo "  $bg[bright-grey]$fg[black] $@ $reset_color" }
+alias _loading_grey=_loading2
+
+# -- Text Colors
+_grey () { echo "$bg[bright-gray]$fg[black] $@ $reset_color" }
+
+# ------------
+# -- Debugging
+# ------------
+ZSH_DEBUG="0"
+
+# -- zshbop debugging
+if [ -f $ZSHBOP_ROOT/.debug ]; then
+        export ZSH_DEBUG=1
+elif [ ! -f $ZSHBOP_ROOT/.debug ]; then
+        export ZSH_DEBUG=0
+fi
+
+# -- _debug
+_debug () {
+    if [[ $ZSH_DEBUG == 1 ]]; then
+        echo "$fg[cyan]** DEBUG: $@$reset_color";
+    fi
+}
+
+# -- _debug_all
+_debug_all () {
+        _debug "--------------------------"
+        _debug "arguments - $@"
+        _debug "funcstack - $funcstack"
+        _debug "ZSH_ARGZERO - $ZSH_ARGZERO"
+        _debug "SCRIPT_DIR - $SCRIPT_DIR"
+        _debug "--------------------------"
+}
+
+# -----------------
+# -- Core Functions
+# -----------------
 
 #-- Check to see if command exists and then return true or false
 _require_pkg () {
@@ -72,20 +191,28 @@ _requires_cmd () {
 
 # -- _cexists -- Returns 0 if command exists or 1 if command doesn't exist
 _cexists () {
-        if (( $+commands[$@] )); then
-        	_debug $(which $1)
-                if [[ $ZSH_DEBUG == 1 ]]; then
-                        _debug "$@ is installed";
-                fi
-                CMD_EXISTS="0"
-        else
-                if [[ $ZSH_DEBUG == 1 ]]; then
-                        _debug "$@ not installed";
-                fi
-                CMD_EXISTS="1"
-                
+	unset CMD_EXISTS CMD CMD_PATH
+	CMD="$1"
+	
+	# Check if command exists
+	CE_PATH=$(which $CMD)
+	CE_EXIT_CODE=$?
+    if [[ $CE_EXIT_CODE == "0" ]]; then
+		CMD_PATH=$(which $CMD)
+		_debug "CMD_PATH: $CMD_PATH"
+        if [[ $ZSH_DEBUG == 1 ]]; then
+        	_debug "$CMD is installed";
         fi
-        return $CMD_EXISTS
+        	CMD_EXISTS="0"
+    else
+    	if [[ $ZSH_DEBUG == 1 ]]; then
+        	_debug "$CMD not installed";
+        fi
+        	CMD_EXISTS="1"
+    fi
+    
+    # Check if alias exists
+    return $CMD_EXISTS
 }
 
 _checkroot () {
@@ -139,8 +266,20 @@ typeset -gA help_zshbop
 help_zshbop[cc]='Clear cache for antigen + more'
 alias cc="zshbop_cc"
 zshbop_cc () {
-		_loading "Clearing zshbop cache"
-        _loading_grey $(antigen reset; rm -f ~/.zshrc.zwc)
+	_loading "Clearing plugin manager cache"
+	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
+      _loading_grey $(antigen reset)
+	elif [[ $ZSHBOP_PLUGIN_MANAGER == "init_antidote" ]]; then
+	    if [[ -a ${ANTIDOTE_STATIC} ]]; then
+	      _loading_grey "Removing antidote static file cache"
+	      rm "${ANTIDOTE_STATIC}"
+	    else
+	      _loading_grey "${ANTIDOTE_STATIC} doesn't exist"
+	    fi
+	fi
+
+	_loading "Clearing zshrc.zwc file"
+	rm -f ~/.zshrc.zwc
 }
 
 # -- rld / reload
@@ -256,10 +395,10 @@ zshbop_update () {
     # Update repos
 	repos update
 	
-	# Update zsh-custom
-	_loading "Updating zshbop custom"
+	# Update $ZBC aka custom zshbop directory
+	_loading "Updating custom zshbop directory $ZBC"
 	if [[ $ZBC ]]; then
-		_loading2 "Found zshbop custom"
+		_loading2 "Found zshbop custom, running git pull if a git repostiory"
 		git --git-dir=${ZBC}/.git --work-tree=${ZBC} pull
 	else
 		_loading2 "No zshbop-custom to update"
@@ -275,11 +414,9 @@ zshbop_previous-version-check () {
         _debug_function
 
         # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
-        _debug " -- Checking if $HOME/.zshrc is pre v1.1.3"
-        CURRENT_ZSHRC_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '})
-        _debug " -- Current $HOME/.zshrc md5 is - $CURRENT_ZSHRC_MD5"
-        _debug " -- zshbop .zshrc md5 is - $ZSHBOP_ZSHRC_MD5"
-        if [[ "$CURRENT_ZSHRC_MD5" != "$ZSHBOP_ZSHRC_MD5" ]]; then
+        _debug " -- Current $HOME/.zshrc md5 is - $ZSHBOP_HOME_MD5"
+        _debug " -- zshbop .zshrc md5 is - $ZSHBOP_MD5"
+        if [[ "$ZSHBOP_HOME_MD5" != "$ZSHBOP_MD5" ]]; then
                 _error "-- Found old .zshrc"
                 _notice "-- Replacing $HOME/.zshrc"
                 cp $ZSHBOP_ROOT/.zshrc $HOME/.zshrc
@@ -363,31 +500,27 @@ zshbop_migrate () {
 help_zshbop[version]='Get version information'
 zshbop_version () {
         _debug_function
-        echo "-- Version: $fg[green]$ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT$reset_color .zshrc MD5: $fg[green]$ZSHBOP_ZSHRC_HOME_MD5$reset_color --"
+        _loading "zshbop Version"
+        echo "Version: $fg[green]$ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT$reset_color"
+        echo "Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color --"
 }
 
 # -- zshbop_version_check
 help_zshbop[version-check]='Check version'
 zshbop_version-check () {
-        _debug_function
-		zshbop_version
-        echo "-- .zshrc: \$ZSHBOP_ZSHRC_MD5 $fg[green]$ZSHBOP_ZSHRC_MD5$reset_color - \$ZSHBOP/.zshrc MD5: $fg[green]$ZSHBOP_ZSHRC_HOME_MD5$reset_color - \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_ZSHRC_ZSHBOP_MD5$reset_color"
+  _debug_function
+	zshbop_version
+	_loading "zshbop Version Check"
+    echo "-- Script: $fg[green]$ZSHBOP_MD5$reset_color"
+    echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5$reset_color"
+    echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color"
         
-         _debug "Checking if $HOME/.zshrc is the same as $ZSHBOP/.zshrc"
-        if [[ $ZSHBOP_ZSHRC_HOME_MD5 == $ZSHBOP_ZSHRC_ZSHBOP_MD5 ]]; then
-                _success "  \$HOME/.zshrc and  \$ZSHBOP/.zshrc are the same."
-        else
-                _error "  \$HOME/.zshrc and \$ZSHBOP/.zshrc are the different."
-        fi
-        
-        if [[ $ZSH_DEBUG == "1" ]]; then
-                _debug "Checking if $ZSHBOP/.zshrc is the same as \$ZSHBOP_ZSHRC_MD5"
-                if [[ $ZSHBOP_ZSHRC_ZSHBOP_MD5 == $ZSHBOP_ZSHRC_MD5 ]]; then
-                        _success "  \$ZSHBOP/.zshrc and  \$ZSHBOP_ZSHRC_MD5 are the same."
-                else
-                        _error "  \$ZSHBOP/.zshrc and \$ZSHBOP_ZSHRC_MD5 are the different."
-                fi
-        fi
+    _loading2 "Checking if $HOME/.zshrc is the same as $ZSHBOP/.zshrc"
+    if [[ $ZSHBOP_HOME_MD5 == $ZSHBOP_INSTALL_MD5 ]]; then
+      _success "  \$HOME/.zshrc and  \$ZSHBOP/.zshrc are the same."
+    else
+      _error "  \$HOME/.zshrc and \$ZSHBOP/.zshrc are the different."
+    fi
 }
 
 # -- zshbop_debug
@@ -454,10 +587,10 @@ zshbop_custom () {
 
 # -- zshbop_load_custom
 zshbop_load_custom () {
-	# -- Check for $HOME/.zshbop.custom, load last to allow overwritten core functions
-	_loading "Checking for $HOME/.zshbop.custom"
-    if [[ -f $HOME/.zshbop.custom ]]; then
-    	ZSHBOP_CUSTOM="$HOME/.zshbop.custom"
+	# -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
+	_loading "Checking for $HOME/.zshbop.config"
+    if [[ -f $HOME/.zshbop.config ]]; then
+    	ZSHBOP_CUSTOM="$HOME/.zshbop.config"
         _loading_grey "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
         source $ZSHBOP_CUSTOM
     else

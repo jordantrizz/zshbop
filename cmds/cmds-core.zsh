@@ -232,3 +232,35 @@ help_core[zshbop-install]='zshbop install command'
 zshbop-install () {
 	echo "bash <(curl -sL https://zshrc.pl)"
 }
+
+# -- os-alias - return alias if binary exists for os
+os-binary () {
+    BINARY="$1"
+	unset LC_CHECK NULL OS_BINARY
+	_debug "Running $MACHINE_OS"
+	
+	if [[ $MACHINE_OS == "wsl" ||  $MACHINE_OS == "linux" ]]; then
+		_debug "Detected OS wsl || linux"
+		OS_BINARY_TAG="linux_x86_64"
+	elif [[ $MACHINE_OS == "mac" ]]; then
+		_debug "Detected OS mac"
+		OS_BINARY_TAG="mac_x86_64"
+	else
+		_debug "Can't detect OS \$MACHINE_OS = $MACHINE_OS"
+		_error "No binary available for $BINARY on $MACHINE_OS"
+		return 1
+	fi	
+	
+	OS_BINARY="${BINARY}-${OS_BINARY_TAG}"
+	_debug "OS_BINARY: $OS_BINARY"	
+	_cexists ${OS_BINARY}
+	
+	if [[ $? == "1" ]]; then
+		_debug "$OS_BINARY not installed"
+		return 1
+	else
+	    _loading2 "Using created alias ${BINARY} ${OS_BINARY}"
+	    alias ${BINARY}="${OS_BINARY}"
+	    return 0
+	fi
+}

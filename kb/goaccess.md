@@ -1,5 +1,5 @@
 # Realtime Run
-* goaccess /home/runcloud/logs/jtt-live-v3_access.log -o report.html --log-format='"%v %h - - %^[%d:%t %^] "%r" %s %^"' --date-format=%d/%b/%Y --time-format=%T --real-time-html
+* goaccess /home/runcloud/logs/access.log -o report.html --log-format='"%v %h - - %^[%d:%t %^] "%r" %s %^"' --date-format=%d/%b/%Y --time-format=%T --real-time-html
 
 # Custom Log Formats
 ## Runcloud Access Log Openlightspeed

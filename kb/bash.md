@@ -6,9 +6,7 @@
 ## bash -x
 * https://tldp.org/LDP/Bash-Beginners-Guide/html/sect_02_03.html
 # Expressions
-
-```python
-""" TEST """
+```
 [ -a FILE ]	True if FILE exists.
 [ -b FILE ]	True if FILE exists and is a block-special file.
 [ -c FILE ]	True if FILE exists and is a character-special file.
@@ -55,7 +53,76 @@
 * > is greater than (within double parentheses) (("$a" > "$b"))
 * >= is greater than or equal to (within double parentheses) (("$a" >= "$b"))
 
-# Dealing with Command Arguments
+# Howto's
+## Run command outside of an alias
+* https://unix.stackexchange.com/questions/39291/run-a-command-that-is-shadowed-by-an-alias
+* You can also prefix a back slash to disable the alias: \ls
+* Edit: Other ways of doing the same include:
+* Use "command": command ls as per Mikel.
+* Use the full path: /bin/ls as per uther.
+* Quote the command: "ls" or 'ls' as per Mikel comment.
+* You can remove the alias temporarily for that terminal session with unalias command_name.
+
+## Using SED with bash
+* https://linuxhint.com/bash_sed_examples/
+
+# Capturing Output
+## stderr and stdout
+* Pipe stderr and stdout to different files.
+```command 2> error.txt 1> output.txt```
+
+* File redirect the stdout to file, and 2>&1 redirect the stderr to the current location of stdout.
+```command > file 2>&1```
+
+* Another way to redirect stderr to stdout is to use the &> construct. In Bash &> has the same meaning as 2>&1:
+```command &> file```
+
+## Other tricks
+* Capture output from find
+```
+{ OUTPUT=$(find /home/user/files -mtime +${1} -type d -exec echo {} \; 2>&1 1>&3-) ;} 3>&1
+OUTPUT=$((find /home/user/files -mtime +${1} -type d -exec echo {} \;) 2>&1)
+
+echo -e "$OUTPUT"
+echo "$OUTPUT" >> $CURDIR/tasks.log
+```
+# Quick Snippets
+## Check if command exists
+```
+if ! command -v <the_command> &> /dev/null
+then
+    echo "<the_command> could not be found"
+    exit
+fi
+```
+## Get Script Dir
+```
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+```
+## Date and Time!
+```
+enddate=$(date "+%d/%m/%Y %H:%M:%S +%Z");
+```
+# Pid File Snippet
+* https://gist.github.com/darth-veitcher/f47eb0a52ae42a1c5e9a65adca460723
+
+# String Matching in Substring
+https://linuxize.com/post/how-to-check-if-string-contains-substring-in-bash/
+```
+#!/bin/bash
+
+STR='GNU/Linux is an operating system'
+SUB='Linux'
+if [[ "$STR" == *"$SUB"* ]]; then
+  echo "It's there."
+fi
+```
+
+# Get function name
+```${FUNCNAME[0]```
+
+# Large Code Snippets
+## Dealing with Command Arguments
 https://readforlearn.com/how-do-i-parse-command-line-arguments-in-bash/
 ```
 POSITIONAL=()
@@ -102,35 +169,3 @@ if [[ -n $1 ]]; then
 fi
 EOF
 ```
-
-# Date and Time!
-```
-enddate=$(date "+%d/%m/%Y %H:%M:%S +%Z");
-```
-
-# Pid File Snippet
-* https://gist.github.com/darth-veitcher/f47eb0a52ae42a1c5e9a65adca460723
-
-# String Matching in Substring
-https://linuxize.com/post/how-to-check-if-string-contains-substring-in-bash/
-```
-#!/bin/bash
-
-STR='GNU/Linux is an operating system'
-SUB='Linux'
-if [[ "$STR" == *"$SUB"* ]]; then
-  echo "It's there."
-fi
-```
-
-# Get function name
-```${FUNCNAME[0]```
-
-# Run command outside of an alias
-* https://unix.stackexchange.com/questions/39291/run-a-command-that-is-shadowed-by-an-alias
-* You can also prefix a back slash to disable the alias: \ls
-* Edit: Other ways of doing the same include:
-* Use "command": command ls as per Mikel.
-* Use the full path: /bin/ls as per uther.
-* Quote the command: "ls" or 'ls' as per Mikel comment.
-* You can remove the alias temporarily for that terminal session with unalias command_name.

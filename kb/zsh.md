@@ -50,14 +50,31 @@ sudo make -j 20 install
 
 # Conditionals
 ## Strings
-* string = pattern
+* string = pattern = true if string matches pattern. The two forms are exactly equivalent. The ‘=’ form is the traditional shell syntax (and hence the only one generally used with the test and [ builtins); the ‘==’ form provides compatibility with other sorts of computer language.
 * string == pattern
-* true if string matches pattern. The two forms are exactly equivalent. The ‘=’ form is the traditional shell syntax (and hence the only one generally used with the test and [ builtins); the ‘==’ form provides compatibility with other sorts of computer language.
-
-* string != pattern
-* true if string does not match pattern.
+* string != pattern = true if string does not match pattern.
 * string =~ regexp
+```
+true if string matches the regular expression regexp. If the option RE_MATCH_PCRE is set regexp is tested as a PCRE regular expression using the zsh/pcre module, else it is tested as a POSIX extended regular expression using the zsh/regex module. Upon successful match, some variables will be updated; no variables are changed if the matching fails.
+
+If the option BASH_REMATCH is not set the scalar parameter MATCH is set to the substring that matched the pattern and the integer parameters MBEGIN and MEND to the index of the start and end, respectively, of the match in string, such that if string is contained in variable var the expression ‘${var[$MBEGIN,$MEND]}’ is identical to ‘$MATCH’. The setting of the option KSH_ARRAYS is respected. Likewise, the array match is set to the substrings that matched parenthesised subexpressions and the arrays mbegin and mend to the indices of the start and end positions, respectively, of the substrings within string. The arrays are not set if there were no parenthesised subexpressions. For example, if the string ‘a short string’ is matched against the regular expression ‘s(...)t’, then (assuming the option KSH_ARRAYS is not set) MATCH, MBEGIN and MEND are ‘short’, 3 and 7, respectively, while match, mbegin and mend are single entry arrays containing the strings ‘hor’, ‘4’ and ‘6’, respectively.
+
+If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring that matched the pattern followed by the substrings that matched parenthesised subexpressions within the pattern.
+```
 * string -eq string
+* string1 < string2
+* string1 > string2
+* exp1 -eq exp2 = true if exp1 is numerically equal to exp2. Note that for purely numeric comparisons use of the ((...)) builtin described in Arithmetic Evaluation is more convenient than conditional expressions.
+* exp1 -ne exp2 = true if exp1 is numerically not equal to exp2.
+* exp1 -lt exp2 = true if exp1 is numerically less than exp2.
+* exp1 -gt exp2 =true if exp1 is numerically greater than exp2.
+* exp1 -le exp2 = true if exp1 is numerically less than or equal to exp2.
+* exp1 -ge exp2 = true if exp1 is numerically greater than or equal to exp2.
+* ( exp ) = true if exp is true.
+* ! exp = true if exp is false.
+* exp1 && exp2 = true if exp1 and exp2 are both true.
+* exp1 || exp2 = true if either exp1 or exp2 is true.
+
 
 ## Switches
 * -a file = true if file exists.
@@ -85,6 +102,9 @@ sudo make -j 20 install
 * -G file = true if file exists and its group matches the effective group ID of this process.
 * -S file = true if file exists and is a socket.
 * -N file = true if file exists and its access time is not newer than its modification time.
+* file1 -nt file2 = true if file1 exists and is newer than file2.
+* file1 -ot file2 = true if file1 exists and is older than file2.
+* file1 -ef file2 = true if file1 and file2 exist and refer to the same file.
 
 # Associatve Arrays
 * See https://scriptingosx.com/2019/11/associative-arrays-in-zsh/
@@ -118,14 +138,17 @@ foo () {
 zsh$
 ```
 
-# Ask question and read input
+# Code Snippets Large
+
+# Code Snippets Small
+## Ask question and read input
 ```
 _warning "*** WARNING: This will re-install WordPress core files ***"
 _warning "*** Please make sure this is the correct directory $1 ***"
 read -q "REPLY?Continue? (y/n)"
 ```
 
-# Run a command stored in a variable
+## Run a command stored in a variable
 * https://stackoverflow.com/questions/13665172/zsh-run-a-command-stored-in-a-variable
 ```
 I believe you have two problems here - the first is that your install_cmd is being interpreted as a single string, instead of a command (sudo) with 3 arguments.
@@ -138,18 +161,18 @@ You have to be the one to decide whether you want install_cmd to allow full shel
 
 ```
 
-# Add to array
+## Add to array
 ```
 ARRAY=()
 ARRAY+=('foo')
 ARRAY+=('bar')
 ```
 
-# Colors
+## Colors
 * PS1=$'\e[0;31m$ \e[0m'
 * https://en.wikipedia.org/wiki/ANSI_escape_code
 
-# Positional Arguments Command Line
+## Positional Arguments Command Line
 * https://xpmo.gitlab.io/post/using-zparseopts/
 
 Well, -D removes all the matched options from the parameter list, (supporting requirement 7) and -E tells zparseopts to expect options and parameters to be mixed in (supporting requirement 1; without it, it will stop like getopts does).
@@ -187,8 +210,13 @@ usage () {
 }
 ```
 
-# Color
+## Color
 * https://en.wikipedia.org/wiki/ANSI_escape_code
 
-# Uppercase Variable
+## Uppercase Variable
 * ```${var:u}```
+
+## Output of Command to Arry
+```
+array_of_lines=("${(@f)$(my_command)}")
+```

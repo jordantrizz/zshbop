@@ -8,3 +8,4 @@ zsh-personal
 .zshbop
 repos/*
 zshbop.code-workspace
+.idea

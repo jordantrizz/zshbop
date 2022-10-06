@@ -1,0 +1,40 @@
+# --------------------------------------------------------
+# -- Example .zshbop.conf
+# * Override zshbop functions, settings and variables
+# * Create own custom functions, variables and zsh scripts
+# * Move to $HOME/.zshbop.custom and uncomment as needed
+# --------------------------------------------------------
+
+# -------------------
+# -- ZSHBOP OVERRIDES
+# -------------------
+#export $ZSHBOP_ROOT="" # -- Override ZSHBOP Installation directory
+#export CUSTOM_SSHKEY="" # -- Set a custom SSH key to be loaded
+#export PLUGIN_MANAGER="init_antidote" # -- Override plugin manager, can be init_antidote or init_antigen
+
+# -- Exbin
+export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting
+export EXBIN_HOST="" # Exbin host, for netcat just the hostname and for api the full URL
+export EXBIN_PORT="" # If you don't use the standard 9999 port for exbin.
+export EXBIN
+
+# -----------------------------------------------------------
+# -- Customizations - Add your customizations below
+# * It's suggested you create a customer directory using $ZBC
+# * If you create a kb dir in $ZBC it will be included in kb
+# -----------------------------------------------------------
+
+# -- Custom zshbop directory
+# * Setup custom directory for scripts and other configuration, source any files you require.
+# * If you use $ZBC, then zshbop will check if it's a git repository and update it when you 'update' zshbop
+# --
+ZBC="$HOME/git/zshbop-custom"
+source $CUSTOM_DIR/init.zsh
+
+# -- Add more paths
+export PATH=$PATH:$HOME/git/sitecachecheck
+
+_debug "###########################################################"
+_debug "################ Loading .zshbop.custom ###################"
+_debug "###########################################################"
+

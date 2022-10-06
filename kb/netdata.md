@@ -16,7 +16,35 @@
 ## Editing Confg
 * ```./edit-config go.d/web_log.conf```
 
-# Issues
+# Alarms
+
+## Disable Email (Doesn't Work for Cloud"
+1. Edit health_alarm_notify.conf
+```
+/etc/netdata/edit-config health_alarm_notify.conf
+```
+2. Change SEND_EMAIL="YES" to "NO"
+
+## Disable Health Checks
+1. Edit netdata.conf and add
+```
+[health]
+enabled=no
+```
+
+## Silence Specific Alarms
+1. Locate the Alarm
+```
+grep 'web_log_' /usr/lib/netdata -R
+```
+2. Edit the alarm configuration
+```
+./edit-config health.d/web_log.conf
+```
+3. Set the to: line to silent
+```
+to: slient
+```
 
 ## 1m_tcp_syn_queue_cookies
 ```
@@ -28,3 +56,10 @@ Overflows are usually caused by SYN flood DoS attacks (i.e. someone sends
 lots of SYN packets and never completes the handshakes).
 ```
 * Edit /etc/sysctl.conf and updated net.ipv4.tcp_syncookies to equal 1 and run sysctl -p
+
+## web_log_1m_redirects
+* Details: ratio of redirection HTTP requests over the last minute (3xx except 304)
+* This can occur and be normal, so suggest disabling this alarm.
+```
+./edit-config health.d/web_log.conf
+```

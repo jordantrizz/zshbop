@@ -173,6 +173,15 @@ aws-cli () {
 	./install -i $HOME/bin/aws-cli -b $HOME/bin --update
 }
 
+# -- vt
+help_software[vt]="Virus Total CLI"
+if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
+	_cexists vt-linux64
+	if [[ $? -ge "1" ]]; then alias vt=vt-linux64; fi
+elif [[ $MACHINE_OS == "mac" ]]; then
+	_cexists vt-macos
+	if [[ $? -ge "1" ]]; then alias vt=vt-macos; fi
+fi
 # -- b2
 help_software[b2]="Backblaze CLI"
 if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
@@ -190,7 +199,7 @@ elif [[ $MACHINE_OS == "mac" ]]; then
         alias b2=b2-darwin
     fi
 fi
-
+# -- b2_download
 b2_download () {
 	_debug_all
 	echo "b2 not found, downloading"
