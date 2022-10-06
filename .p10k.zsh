@@ -637,12 +637,16 @@
   typeset -g POWERLEVEL9K_CONTEXT_BACKGROUND=0
 
   # Fix for %M not providing a fully qualified hostname
-  if [[ $(hostname -af) == "localhost" ]]; then
-  	HOSTNAME=$(hostname)
-  else 
-	HOSTNAME=$(hostname -f)
+  if [[ $MACHINE_OS == "Linux" ]]; then
+  	if [[ $(hostname -af) == "localhost" ]]; then
+    	HOSTNAME=$(hostname)
+    else
+    	HOSTNAME=$(hostname -af)
+    fi
+  else
+  		HOSTNAME=$(hostname -f)
   fi
-
+  
   # Context format when running with privileges: user@hostname.
   typeset -g POWERLEVEL9K_CONTEXT_ROOT_TEMPLATE="%n@$HOSTNAME"
   # Context format when in SSH without privileges: user@hostname.

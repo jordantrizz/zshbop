@@ -1,52 +1,54 @@
 # zshbop
-This is my custom ZSH configuration. It uses antigen to install ZSH plugins.
+This is my custom ZSH configuration. It uses antidote ~~antigen~~ to install ZSH plugins.
 
 <a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 <!--ts-->
+Table of Contents
+=================
+
 * [zshbop](#zshbop)
 * [Installation](#installation)
-   * [Quick Installation](#quick-installation)
-   * [Quick Install Development](#quick-install-development)
-   * [Advanced Install](#advanced-install)
+    * [Advanced Install](#advanced-install)
 * [Custom Configuration File](#custom-configuration-file)
-   * [Custom Configuration Examples](#custom-configuration-examples)
+    * [Custom Configuration Examples](#custom-configuration-examples)
+        * [zshbop Overrides](#zshbop-overrides)
+        * [Exbin](#exbin)
 * [Commands/Aliases](#commandsaliases)
 * [Installation Notes](#installation-notes)
-   * [macOS Installation Notes](#macos-installation-notes)
-   * [Windows Installation Notes](#windows-installation-notes)
-      * [WSL 1 vs WSL 2](#wsl-1-vs-wsl-2)
-      * [Upgrade WSL 1 to WSL 2](#upgrade-wsl-1-to-wsl-2)
-      * [WSL Subsystem](#wsl-subsystem)
-      * [Windows Terminal](#windows-terminal)
-      * [VcXsrv (WSL Gui)](#vcxsrv-wsl-gui)
-   * [Font Installation Notes](#font-installation-notes)
-      * [Automatic Font Install](#automatic-font-install)
-      * [Manual Font Install](#manual-font-install)
-      * [macOS](#macos)
-      * [Windows](#windows)
-   * [Windows Terminal](#windows-terminal-1)
-      * [Script Install - Broken](#script-install---broken)
-   * [ZSH Installation Issues](#zsh-installation-issues)
-      * [CentOS 7 + zsh 5.1.1](#centos-7--zsh-511)
+    * [macOS Installation Notes](#macos-installation-notes)
+    * [Windows Installation Notes](#windows-installation-notes)
+        * [WSL 1 vs WSL 2](#wsl-1-vs-wsl-2)
+        * [Upgrade WSL 1 to WSL 2](#upgrade-wsl-1-to-wsl-2)
+        * [WSL Subsystem](#wsl-subsystem)
+        * [Windows Terminal](#windows-terminal)
+        * [VcXsrv (WSL Gui)](#vcxsrv-wsl-gui)
+* [Font Installation Notes](#font-installation-notes)
+    * [Automatic Font Install](#automatic-font-install)
+    * [Manual Font Install](#manual-font-install)
+        * [macOS](#macos)
+        * [Windows](#windows)
+            * [Windows Terminal](#windows-terminal-1)
+            * [WSL Script Install - Broken](#wsl-script-install---broken)
+* [ZSH Installation Issues](#zsh-installation-issues)
+    * [CentOS 7 + zsh 5.1.1](#centos-7--zsh-511)
+* [Issues](#issues)
 * [ToDo](#todo)
-   * [Current Todo](#current-todo)
-   * [Random Notes](#random-notes)
+  Found markers
 
-<!-- Added by: jtrask, at: Thu 18 Nov 2021 09:40:38 AM EST -->
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
+<!-- Added by: jtrask, at: Thu 06 Oct 2022 11:54:52 AM EDT -->
 
 <!--te-->
 
 # Installation
-## Quick Installation
-```
-bash <(curl -sL https://zshrc.pl)
-```
 
-## Quick Install Development
-```
-bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install)
-```
+| Install Method      | Command       |
+|---------------------|---------------|
+| Quick Install       | ```bash <(curl -sL https://zshrc.pl)``` |
+| Fallback Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/master/install.sh)```  |
+| Development Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install.sh)``` | 
 
 ## Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
@@ -66,24 +68,30 @@ If you don't want to have zsh within your home directory, then use the following
 </details>
 
 # Custom Configuration File
-If you have any custom variables, functions or zshbop specific configuration. You can add it to the .zshbop
+* Override zshbop functions, settings and variables
+* Create own custom functions, variables and zsh scripts
+* Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as needed.
 
 ## Custom Configuration Examples
-There is a wrapper for exbin, if you specify the following variables in onof the custom configuration files.
+### zshbop Overrides
+| Variable        	| Description                                                | Values                     	| Default     	 |
+|----------------	|------------------------------------------------------------|-------	|---------------|
+| `ZSHBOP_ROOT`| Location of zshbop installation                            | String | Detected      |
+| `CUSTOM_SSHKEY`| Load custom SSH key into Keychian                          | String | Detected      |
+| `PLUGIN_MANAGER`| Choose plugin manager either init_antidote or init_anitgen | String | init_antidote |
 
-| Variable        	| Description                                                                                           | Values                     	| Default     	|
-|-----------------	|------------------------------------------------------------------------------------------------------ |----------------------------	|-------------	|
-| `EXBIN_TYPE`          | Choose either `netcat` or `api` for exbin posting.                                            | String                     	| `netcat`      	|
-| `EXBIN_HOST`        	| Exbin host, for netcat just the hostname and for api the full URL.                                    | String                  	| `exbin.call-cc.be` 	|
-| `EXBIN_PORT`		| If you don't use the standard 9999 port for exbin.							| Number			| `9999`		|
+### Exbin
+* Exbin https://exbin.call-cc.be
 
-```
-EXBIN="https://exbin.call-cc.be/"
-```
+| Variable | Description                                                      | Values                     	| Default     	|
+|-----------------	|------------------------------------------------------------------|---------------------	|---------	|
+| `EXBIN_TYPE`| Choose either `netcat` or `api` for exbin posting.| String | `netcat`|
+| `EXBIN_HOST`| Exbin host, for netcat just the hostname and for api the full URL.| String| `exbin.call-cc.be`|
+| `EXBIN_PORT`|  If you don't use the standard 9999 port for exbin.| Number| `9999`|
 
 # Commands/Aliases
 You can start by typeing ```help``` which will give you some top level commands.
-You can also review [help/commands.md](Commands)
+You can also review [help/commands.md](Commands) @@ISSUE needs updating
 
 # Installation Notes
 ## macOS Installation Notes
@@ -131,19 +139,19 @@ If you want to run Xserver for a GUI under WSL, this guide will help.
 
 * https://medium.com/@dhanar.santika/installing-wsl-with-gui-using-vcxsrv-6f307e96fac0
 
-## Font Installation Notes
+# Font Installation Notes
 So if you've used Powerlevel9k, you'd need the powerline fonts. With Powerline10k you need patched font files. The patch font files are "MesloLGS NF" and are located on the following Github repository.
 
 * https://github.com/romkatv/powerlevel10k/blob/master/font.md
 
-### Automatic Font Install
+## Automatic Font Install
 As per the font.md file above.
 
 >Automatic font installation
 >If you are using iTerm2 or Termux, `p10k configure` can install the recommended font for you. Simply answer Yes when asked whether to install Meslo Nerd Font.
 
 
-### Manual Font Install
+## Manual Font Install
 
 ### macOS
 ```
@@ -151,14 +159,12 @@ cp fonts/* ~/Library/fonts
 ```
 
 ### Windows
-Todo
-```
-```
+N/A
 
-## Windows Terminal
+#### Windows Terminal
 Then use the ```windows_terminal.json``` in this repository.
 
-### Script Install - Broken
+#### WSL Script Install - Broken
 There is an issue with some of the Powerline fonts I downloaded and installed in windows. So I opted for this set of fonts using a script in a GIST https://gist.github.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b
 
 You can simply run this command within WSL
@@ -167,8 +173,8 @@ You can simply run this command within WSL
 bash -c "$(curl -fsSL https://gist.githubusercontent.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b/raw/install_meslo_wsl.sh)"
 ```
 
-## ZSH Installation Issues
-### CentOS 7 + zsh 5.1.1
+# ZSH Installation Issues
+## CentOS 7 + zsh 5.1.1
 ```
 sudo yum update -y
 sudo yum install -y git make ncurses-devel gcc autoconf man yodl
@@ -183,26 +189,18 @@ sudo make -j 20 install
 All issues are makred with ```@@ISSUE``` and need to be addressed.
 
 # ToDo
-## Add
-* https://github.com/picatz/hunter
-* https://github.com/ExplainDev/kmdr-cli
-* https://github.com/daveearley/cli.fyi
-* https://github.com/tldr-pages/tldr
-* https://github.com/isacikgoz/tldr
 
-## Current Todo
 * Place all included files into directory inc
 * Check for ssh-key id_rsa if chmod 600 and if not ask to do it.
 * If any packages aren't installed ask to install them.
 * Flight check command to confirm what's setup and isn't, check packacges installed.
 * Borrow or steal https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/upgrade.sh
 * Install jq and md5sum via brew for macos
-
-## Random Notes
-- Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
-- Look into diff so fancy wget https://raw.githubusercontent.com/so-fancy/diff-so-fancy/master/third_party/build_fatpack/diff-so-fancy
-- git submodule add https://github.com/skx/sysadmin-util.git
-
+* Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
+* Look into diff so fancy wget https://raw.githubusercontent.com/so-fancy/diff-so-fancy/master/third_party/build_fatpack/diff-so-fancy
+* Add https://github.com/skx/sysadmin-util.git
+* Devise method to override antidote and antigen plugins.
+* Look into these plugins
 ```
 antigen bundle wfxr/forgit
 antigen bundle djui/alias-tips
@@ -210,10 +208,11 @@ antigen bundle desyncr/auto-ls
 antigen bundle MikeDacre/careful_rm
 antigen bundle viasite-ansible/zsh-ansible-server
 antigen bundle micha/resty
-
-cd $ZSH_CUSTOM/; git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-cp .fzf/shell/key-bindings.zsh $ZSH_CUSTOM//.fzf-key-bindings.zsh
-cd /usr/local/sbin; wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
-cd $ZSH_CUSTOM/plugins; git clone https://github.com/horosgrisa/mysql-colorize
-cd $ZSH_CSUTOM/plguins; git clone https://github.com/thetic/extract.git
+https://github.com/horosgrisa/mysql-colorize
+https://github.com/thetic/extract.git
+https://github.com/picatz/hunter
+https://github.com/ExplainDev/kmdr-cli
+https://github.com/daveearley/cli.fyi
+https://github.com/tldr-pages/tldr
+https://github.com/isacikgoz/tldr
 ```

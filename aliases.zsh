@@ -20,7 +20,6 @@ alias rm_error_log="find . | grep error_log | xargs -pl rm"
 alias cg="clustergit"
 alias toc="gh-md-toc --insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
-#alias pk="ls -1 ~/.ssh/*.pub | xargs -L 1 -I {} sh -c 'cat {};echo "\n-----------------------------"'"
 alias fdcount="tree | grep directories"
 alias whatismyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
 alias listen='netstat -anp | grep LISTEN'

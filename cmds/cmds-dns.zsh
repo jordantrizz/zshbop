@@ -37,4 +37,16 @@ mx () {
 	dig $1 mx
 }
 
-
+# -- dig wrapper
+help_dns[digw]="Dig wrapper to turn urls into domains"
+digw () {
+	if [[ -z $@ ]]; then
+		dig
+	else
+		_loading "digw - $URL"
+		URL=$@
+		DOMAIN=$(echo "$URL" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+		_loading2 "Domain --> $DOMAIN"
+		dig $DOMAIN
+	fi
+}

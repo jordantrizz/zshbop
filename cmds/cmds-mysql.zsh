@@ -276,8 +276,24 @@ mysqlt () {
 	mysqltuner.pl --noinfo --nogood
 }
 
+# -- mysqlt-html
 help_mysql[mysqlt-html]="Run mysqltuner.pl --verbose --json | j2 -f json basic.html.j2 > mysql.html"
 mysqlt-html () {
 	# might need apt-get install libjson-perl
 	mysqltuner.pl --verbose --json | j2 -f json $ZBR/bin/MySQLTuner-perl/templates/basic.html.j2 > mysql.html
+}
+
+# -- mysql-createuser
+help_mysql[mysql-createuser]="Create MySQL 8.0 user, provide username as first argument and a random password will be generated"
+mysql-createuser () {
+	MYSQL_USER="$1"
+	if [[ -z $MYSQL_USER ]]; then
+		echo "Usage: mysql-createuser <user>"
+		return 1
+	else
+		RND_PASS=$(genpass-monkey)
+		_loading "Creating user $1 with password ${RND_PASS}"
+		OUTPUT=$(mysql -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${RND_PASS}';")
+		echo $OUTPUT
+	fi
 }

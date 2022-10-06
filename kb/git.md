@@ -46,3 +46,27 @@ git merge dev --squash
 # Guides
 * How to Remove a Bad GIT commit local and remote - https://ncona.com/2011/07/how-to-delete-a-commit-in-git-local-and-remote/\
 
+# Git Errors
+## Unable to Read Tree
+* https://stackoverflow.com/questions/18678853/how-can-i-fix-a-corrupted-git-repository
+```
+mv -v .git .git_old &&            # Remove old Git files
+git init &&                       # Initialise new repository
+git remote add origin "${url}" && # Link to old repository
+git fetch &&                      # Get old history
+# Note that some repositories use 'master' in place of 'main'. Change the following line if your remote uses 'master'.
+git reset origin/main --mixed     # Force update to old history.
+```
+
+# Git Repository Transfer Keeping All History
+```
+git clone --mirror old-repo-url new-repo
+cd new-repo
+git remote remove origin
+git remote add origin new-repo-url
+git push --all
+git push --tags
+cd ..
+rm -rf new-repo
+git clone new-repo-url new-repo
+```

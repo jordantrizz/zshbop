@@ -14,3 +14,13 @@ INSERT INTO `databasename`.`wp_usermeta` (`umeta_id`, `user_id`, `meta_key`, `me
 * wp login install
 * wp login create 1
 
+# WordPress Debug
+```
+define( 'WP_DEBUG', true )
+if ( WP_DEBUG ) {
+    define( 'WP_DEBUG_LOG', false );
+    define( 'WP_DEBUG_DISPLAY', false);
+    @ini_set( 'log_errors', true );
+    @ini_set( 'error_log', dirname(__FILE__) . '/debug.log' );
+};
+```

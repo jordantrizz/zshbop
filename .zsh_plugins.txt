@@ -1,0 +1,10 @@
+romkatv/powerlevel10k
+ohmyzsh/ohmyzsh
+# zsh-users/zsh-autosuggestions
+zsh-users/zsh-syntax-highlighting
+# desyncr/auto-ls
+desyncr/auto-ls
+zpm-zsh/mysql-colorize
+zsh-users/zsh-syntax-highlighting
+# marlonrichert/zsh-autocomplete
+zsh-users/zsh-autosuggestions
