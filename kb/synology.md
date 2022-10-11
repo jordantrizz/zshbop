@@ -35,3 +35,9 @@ server {
 ```
 synoservicecfg --restart nginx
 ```
+
+# Restarting Services
+```
+synoservicecfg --list
+synoservicecfg --restart service
+```

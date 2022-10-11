@@ -588,9 +588,9 @@ zshbop_custom () {
 # -- zshbop_load_custom
 zshbop_load_custom () {
 	# -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
-	_loading "Checking for $HOME/.zshbop.config"
-    if [[ -f $HOME/.zshbop.config ]]; then
-    	ZSHBOP_CUSTOM="$HOME/.zshbop.config"
+	_loading "Checking for $HOME/.zshbop.conf"
+    if [[ -f $HOME/.zshbop.conf ]]; then
+    	ZSHBOP_CUSTOM="$HOME/.zshbop.conf"
         _loading_grey "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
         source $ZSHBOP_CUSTOM
     else

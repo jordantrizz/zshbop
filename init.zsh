@@ -140,11 +140,11 @@ init_fzf () {
 
 # -- Initialize plugins
 init_plugins () {
-	_loading "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
-	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
+	_loading "Loading Plugin Manager, \$ZB_PLUGIN_MANAGER = $ZB_PLUGIN_MANAGER"
+	if [[ -z ${ZB_PLUGIN_MANAGER} ]]; then
 		init_antigen	
 	else
-		eval ${ZSHBOP_PLUGIN_MANAGER}
+		eval ${ZB_PLUGIN_MANAGER}
 	fi
 }
 
@@ -336,6 +336,9 @@ init_zshbop () {
 	# -- Init OhMyZSH plugins
   init_omz_plugins
   init_p10k
+
+  # -- Init custom zshbop
+  zshbop_load_custom
         
   # -- Init antigen
 	if [[ $funcstack[3] != "zshbop_reload" ]]; then
@@ -343,12 +346,9 @@ init_zshbop () {
 	else
 	  _loading_grey "Not loading Plugin Manager on Reload"
 	fi
-        
+
   # -- Init os defaults @@ISSUE
   init_os
-
-  # -- Init custom zshbop
-  zshbop_load_custom
 
 	# -- Skip when running rld
 	_debug "\$funcstack = $funcstack"
