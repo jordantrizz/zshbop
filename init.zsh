@@ -140,11 +140,11 @@ init_fzf () {
 
 # -- Initialize plugins
 init_plugins () {
-	_loading "Loading Plugin Manager, \$ZB_PLUGIN_MANAGER = $ZB_PLUGIN_MANAGER"
-	if [[ -z ${ZB_PLUGIN_MANAGER} ]]; then
+	_loading "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
+	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
 		init_antigen	
 	else
-		eval ${ZB_PLUGIN_MANAGER}
+		eval ${ZSHBOP_PLUGIN_MANAGER}
 	fi
 }
 
