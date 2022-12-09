@@ -67,7 +67,7 @@ usage () {
 do_curl (){
     _running "Running: curl --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} ${EXTRA_ARGS} -k 2>&1 ${GREP_ARGS}"
 	echo ""
-	eval "curl --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} ${EXTRA_ARGS} -k 2>&1 ${GREP_ARGS}"
+	eval "curl --resolve \"${URL}:${PORT}:${SERVERIP}\" ${URL} ${EXTRA_ARGS} -k 2>&1 ${GREP_ARGS}"
 }
 
 # -- Gather options
@@ -83,7 +83,11 @@ EXTRA_ARGS=""
 
 # -- IP
 if [[ -z $O_IP ]]; then
+	_debug "No IP provided using 127.0.0.1"
 	SERVERIP="127.0.0.1"
+elif [[ $O_IP == "" ]]; then
+	usage
+	_error "-ip specified but no IP provided"
 else
 	SERVERIP=$O_IP[2]
 fi

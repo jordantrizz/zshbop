@@ -367,6 +367,47 @@ init_zshbop () {
 	typeset -U PATH
 }
 
+# -- init_checklist
+init_check_software () {
+	# -- Check services and software
+	_banner_yellow "-- Checking Software"
+    _cexists atop
+    if [[ $? == "1" ]]; then
+        _error "atop not installed, if this is a server install it"
+    else
+        _success "atop installed"
+        # @@ISSUE check if atop is running
+    fi
+    check_broot
+}
+
+# -- init_check_services
+init_check_services () {
+    # -- Check system software versions
+    _banner_yellow "-- Checking Service Versions"
+
+	# - mysql	    
+	if (( $+commands[mysqld] )); then
+		_success $(mysqld --version)
+	else
+		_error "MySQL Server not installed"
+	fi
+	
+	# - nginx
+	if (( $+commands[nginx] )); then
+		_success $(nginx --version)
+	else
+		_error "Nginx not installed"
+	fi
+	
+	# - Openlitespeed
+	if (( $+commands[openlitespeed] )); then
+		_success $(openlitespeed -v)
+	else
+		_error "Openlitespeed not installed"
+	fi        
+}
+
 # -- init_motd - initial scripts to run on login
 init_motd () {
 	# -- Start motd
@@ -393,17 +434,11 @@ init_motd () {
     	_error "** Screen not installed"
     fi
 
-    # -- Checking system
-    _banner_yellow "-- Checking System --"
-    _success "Run checkenv to make sure you have all the right tools!"
-    _cexists atop
-    if [[ $? == "1" ]]; then
-	    _error "atop not installed, if this is a server install it"
-    else
-        _success "atop installed"
-    	# @@ISSUE check if atop is running
-    fi
-    check_broot
+    # -- Running system checklist
+	init_check_software
+	
+	# -- Check service software versions        
+	init_check_services
 
     # -- last echo to keep motd clean
     echo ""

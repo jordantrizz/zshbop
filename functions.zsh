@@ -81,6 +81,7 @@ alias zb="zshbop"
 alias init="init_zshbop"
 alias _debug_function="_debug_all"
 alias zbr="cd $ZBR"
+alias motd="init_motd"
 
 # ---------------------
 # -- Internal Functions
@@ -265,7 +266,7 @@ typeset -gA help_zshbop
 # -- cc - clear cache for various tools
 help_zshbop[cc]='Clear cache for antigen + more'
 alias cc="zshbop_cc"
-zshbop_cc () {
+zshbop_cacheclear () {
 	_loading "Clearing plugin manager cache"
 	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
       _loading_grey $(antigen reset)
@@ -287,7 +288,7 @@ help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _debug_function
     _debug "Clearing cache"
-    zshbop_cc
+    zshbop_cacheclear
 	source $HOME/.zshrc
 	zshbop_version-check
 	echo ""

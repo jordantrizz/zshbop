@@ -14,3 +14,5 @@ typeset -gA help_curl
 # ------------
 alias vh-curl="curl-vh"
 alias curl-vh="curl-vh.sh"
+help_curl[curlh]="Use GET to show headers"
+alias curlh="curl -sD - -o /dev/null $1"

@@ -6,6 +6,8 @@
 VERSION=0.0.1
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DEBUG="0"
+DATE=`date +"%Y-%m-%d %T"`
+DATE=`date +"%Y-%m-%d-%H_%M_%S"`
 
 # -- Colors
 RED="\033[0;31m"
