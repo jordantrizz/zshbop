@@ -82,7 +82,7 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * joe /etc/postfix/main.cf
 ```
 smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
-``
+```
 * systemctl restart postfix
 
 # Advanced Actions
