@@ -30,7 +30,8 @@ software () {
 
 # -- csf-install - Install csf.
 help_software[csf-install]='Installs CSF. Config Server Firewall'
-software_csf-install () {
+csf-install () {
+	apt-get install libwww-perl -y
 	cd /usr/src; rm -fv csf.tgz
 	wget https://download.configserver.com/csf.tgz
 	tar -xzf csf.tgz

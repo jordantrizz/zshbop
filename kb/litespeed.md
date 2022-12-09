@@ -1,4 +1,7 @@
 # Litespeed
+## Server Control
+* ```lswsctrl```
+
 ## Server Status
 * /tmp/lshttpd/.rtreport
 

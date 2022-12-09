@@ -8,7 +8,6 @@ DEFAULT_LS="ls -al --color=tty"
 
 # -- aliases
 alias less="less -X"
-alias dig="digw"
 
 # -- ls/exa
 alias ls="${DEFAULT_LS}"

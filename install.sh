@@ -6,8 +6,10 @@
 # ------------
 # -- Variables
 # ------------
-CMD=$1
-required_tools=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo')
+VERSION="0.0.2"
+SKIPDEP="0"
+HELP="0"
+required_tools=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe')
 
 # -- Colors
 RED="\033[0;31m"
@@ -46,6 +48,30 @@ _running () {
 # -- Functions
 # ------------
 
+# -- usage
+usage () {
+USAGE=\
+"Usage: install -h|-s (clean|skipdeps|default|home|git|custom <branch> <location>)
+
+  Options
+    -h       - This help screen
+    -s       - Skip dependencies
+  
+  Commands
+    
+    clean                            - Remove zshbop
+    default                          - Default install
+    home                             - Install in home directory
+    git                              - Install in ~/git with dev branch
+    custom <branch> <location>		 - Custom install
+                                            branch   - m=main d=dev
+                                            location - h=home s=system g=~/git
+                   
+Version: ${VERSION}
+"
+echo "$USAGE"
+}
+
 # -- flight_check
 flight_check() {
    # Checking if zsh is installed
@@ -79,25 +105,24 @@ pkg_install() {
 	# Checking what package manager we have
     _running "Checking what package manager we have...."
     if [ -x "$(command -v apt-get)" ]; then
-    	echo " - We have apt!"
-        sudo apt install -f $@
-        	if [ $? -eq 1 ]; then 
-            	_error "$@ install failed...."
-                exit 1
-            else
-	            _success "$@ installed successfully"
-            fi
+        echo " - We have apt!"
+        PKG_MANAGER="sudo apt install $@"
 	elif [ -x "$(command -v yum)" ]; then
-    	echo " - We have yum!"
-        sudo yum install $@
-		if [ $? -eq 1 ]; then 
-			_error "$@ install failed...."
-			exit 1
-		else
-			_success "$@ installed successfully"
-		fi
-	else
-		_error "Can't detect package manager :("
+        echo " - We have yum!"
+        PKG_MANAGER="sudo yum install $@"
+    elif [ -x "$(command -v brew)" ]; then
+        echo " - We have brew!"
+        PKG_MANAGER="brew install $@"
+    else
+    	_error "Can't detect package manager :("
+    fi
+    
+    $(${PKG_MANAGER})
+    if [ $? -eq 1 ]; then 
+    	_error "$@ install failed...."
+        exit 1
+    else
+	    _success "$@ installed successfully"
     fi
 }
 
@@ -125,7 +150,13 @@ clone_repository() {
                         git clone --branch dev https://github.com/jordantrizz/zshbop.git $1
                 elif [[ $BRANCH == "m" ]]; then
                         git clone https://github.com/jordantrizz/zshbop.git $1
-		fi		
+				fi
+				if [[ $? -ge "1" ]]; then
+					_error "Cloning failed"
+					exit 1
+				else
+					_succes "Cloning completed"
+				fi
         else
                 _error "Directory $1 exists...exiting."
                 exit 1
@@ -157,7 +188,7 @@ setup_system() {
 	_running "Setting up system based .zshrc..."
 	SYSTEM=/usr/local/sbin
 	if ! [ -d "$SYSTEM/zshbop" ]; then
-		echo -e " - Cloning into $SYSTEM/zshbop\n"
+		echo " - Cloning into $SYSTEM/zshbop\n"
 		clone_repository "$SYSTEM/zshbop"
 	else
 		_error " - $SYSTEM/zshbop already exists\n"
@@ -170,19 +201,62 @@ setup_system() {
 	#fi
 	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zshbop?"
 	
-	_success -e "Copied $SYSTEM/zshbop/.zshrc to ~/.zshrc"
+	_running "Copying $SYSTEM/zshbop/.zshrc into ~/"
 	cp $SYSTEM/zshbop/.zshrc ~/.zshrc
-
+	if [[ $? -ge "1" ]]; then
+		_error "Failed to copy $SYSTEM/zshbop/.zshrc into ~/"
+		exit 1
+	else
+		_success "Copied $SYSTEM/zshbop/.zshrc to ~/.zshrc"
+	fi
 }		
 
 # -------
 # -- Main
 # -------
-if [[ $CMD == "clean" ]]; then
+
+    POSITIONAL=()
+    while [[ $# -gt 0 ]]
+    do
+    key="$1"
+
+    case $key in
+		-h|--help)
+        HELP="1"
+        shift # past argument
+        ;;
+        -s|--skipdep)
+        SKIPDEP="1"
+        shift # past argument
+        ;;
+        *)    # unknown option
+        POSITIONAL+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
+    done
+    set -- "${POSITIONAL[@]}" # restore positional parameters
+
+# -- set $CMD
+CMD="$1"
+
+# -- Pre-flight Check
+if [[ $SKIPDEP == "0" ]]; then
+    _running "Running pre-flight Check"
+    flight_check
+else
+    _running "Skipping pre-flight check"
+fi
+
+# -- help
+if [[ $HELP == "1" ]];then
+    usage
+    exit
+# -- clean
+elif [[ $CMD == "clean" ]]; then
 	_running "Removing zshbop ###"
 	echo "Continue (y/n)?"
-	read CLEAN
-	
+	read CLEAN	
 	if [ $CLEAN == "y" ]; then
 		_running "Cleaning up!"		
 		rm ~/.zshrc
@@ -193,38 +267,44 @@ if [[ $CMD == "clean" ]]; then
 		loading "Aboring....Goodbye!"
 		exit
 	fi
-fi
-
-if [[ $CMD == "skipdep" ]]; then
-	_running -e "Skipping pre-flight check"
-else
-	_running "Pre-flight Check"
-	flight_check
-fi
-
-_running "Begin Install"
-
-if [[ $CMD == "default" ]]; then
-        INSTALL=d
+# -- default
+elif [[ $CMD == "default" ]]; then
+	INSTALL=d
+# -- home
 elif [[ $CMD == "home" ]]; then
-        INSTALL=c
-        BRANCH=m
-        INSTALL_LOCATION=h
+    INSTALL=c
+    BRANCH=m
+    INSTALL_LOCATION=h
+# -- git
 elif [[ $CMD == "git" ]]; then
 	INSTALL=c
 	BRANCH=d
 	INSTALL_LOCATION=g
+elif [[ $CMD == "custom" ]]; then
+	_running "Doing a custom install"
+	if [[ -z $2 ]] || [[ -z $3 ]]; then
+		usage
+		exit 1
+	else
+		INSTALL=c
+		BRANCH="$2"
+		INSTALL_LOCATION="$3"
+	fi
 else
 	install_method
 fi
+
+# -- install start
+_running "Begin Install - $INSTALL/$BRANCH/$INSTALL_LOCATION"
+
 
 if [[ $INSTALL == "d" ]]; then
 	setup_system
 elif [[ $INSTALL == "c" ]]; then
 	if [ $INSTALL_LOCATION == "s" ]; then
-	        setup_system
+	    setup_system
 	elif [ $INSTALL_LOCATION == "h" ]; then
-	        setup_home
+	    setup_home
 	elif [ $INSTALL_LOCATION == "g" ]; then
 		setup_home git
 	fi

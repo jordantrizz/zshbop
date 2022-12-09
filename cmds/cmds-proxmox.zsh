@@ -213,3 +213,6 @@ pmox_info () {
     _banner_green " -- Network"
     lshw -class network -short | egrep -v 'tap|fwln|fwpr|fwbr'
 }
+
+# -- proxmox-backup.sh
+help_pmox[proxmox-backup.sh]='Backup proxmox database'

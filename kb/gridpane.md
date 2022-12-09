@@ -50,7 +50,7 @@
 * gp mysql -login {site.url} - login as site db user
 
 ## MySQL Configuration
-The default values are specified
+The default values are specified below, however the full list is at https://gridpane.com/kb/configure-mysql/
 
 * gp stack mysql -binlog-expire-logs-seconds 2592000
 * gp stack mysql -innodb-autoinc-lock-mode 1
@@ -116,6 +116,9 @@ MySQL slow query log output can be viewed in the following log: /var/log/mysql/s
 * /var/www/site.url/logs/backups.env
 * /var/log/gridpane.log
 * /var/opt/gridpane/backups.log - Seems Empty.
+* /opt/gridpane/last-restore.log
+* /opt/gridpane/gridpane.log
+* /opt/gridpane/restore.log
 
 # Security
 ## fail2ban

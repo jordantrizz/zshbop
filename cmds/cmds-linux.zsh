@@ -77,12 +77,12 @@ backup () {
 
 # -- ps2
 help_linux[ps2]='Show long usernames in ps :)'
-ps2() {
+ps2 () {
     if [[ $@ =~ .u* ]] || [[ *u ]]; then
         command getent passwd |\
         awk -F':' ' \
         !len || length($1) > len {len=length($1);s=$1}\
-        END{print s, len; system("ps axo user:"len",pid,pcpu,pmem,vsz,rss,tty,stat,start,time,comm");}'
+        END{print s, len; system("ps awwfxo user:"len",pid,pcpu,pmem,vsz,rss,tty,stat,start,time,args");}'
     else
         command ps "$@"
     fi
@@ -90,13 +90,13 @@ ps2() {
 
 # -- fork
 help_linux[fork]='Fork command into background'
-fork() { 
+fork () { 
 	(setsid "$@" &); 
 }
 
 # -- sysr
 help_linux[sysr]='Systemctl restart shortcut'
-sysr() {
+sysr () {
 	if [[ -z $@ ]]; then
 		echo "systemctl restart - Usage: sysr [service]"
 		return 1
@@ -106,6 +106,12 @@ sysr() {
 
 # -- ps-cpu
 help_linux[ps-cpu]='Show top 5 CPU applications'
-ps-cpu() {
+ps-cpu () {
     ps aux --sort -pcpu | head -5
+}
+
+# -- usedspace
+help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
+usedspace () {
+	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
 }
