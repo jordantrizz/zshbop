@@ -78,12 +78,14 @@ check-fsl () {
 }
 
 # -- gp-mysql
+help_gridpane[gp-mysql]="Gridpane MYSQL command"
 gp-mysql () {
 	mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
 	mysql --user root --password="${mysqlrootpw}"
 }
 
 # -- gp-mysqltuner.pl
+help_gridpane[gp-mysqltuner.pl]="GridPane mysqltuner.pl command"
 gp-mysqltuner.pl () {
 	mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
 	mysqltuner.pl --user root --pass $mysqlrootpw
