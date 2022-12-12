@@ -90,3 +90,9 @@ gp-mysqltuner.pl () {
 	mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
 	mysqltuner.pl --user root --pass $mysqlrootpw
 }
+
+# -- gp-mysqlpass
+help_gridpane[gp-mysqlpass]="Get GridPane root MySQL Password"
+gp-mysqlpass () {
+	grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt
+}
