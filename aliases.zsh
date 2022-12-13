@@ -51,6 +51,7 @@ alias screen="screen -c $ZSHBOP_ROOT/.screenrc"
 alias screens="screen -list"
 alias scrl="screen -list"
 alias scra="screen -r $@"
+alias scrc="screen -dmS $@"
 
 # - ssh
 alias sshc="ssh-connect"
