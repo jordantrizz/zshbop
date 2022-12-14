@@ -96,3 +96,9 @@ help_gridpane[gp-mysqlpass]="Get GridPane root MySQL Password"
 gp-mysqlpass () {
 	grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt
 }
+
+# -- gp-duplicacy-audit
+help_gridpane[gp-duplicacy-audit]="Audit Duplicacy backups"
+gp-duplicacy-audit () {
+    duplicacy check -tabular | grep 'all' | awk {' print $1 " "$10 '} | sed 's/gridpane-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-//' | column -t
+}
