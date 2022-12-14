@@ -311,7 +311,7 @@ zshbop_branch  () {
 	        echo "	-- Switching to $2 branch"
     		GIT_CHECKOUT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2)
     		if [[ $? -ge "1" ]]; then
-    			_error "Branch doesn't seem to exist - $GIT_CHECKOUT"
+    			_error "Branch doesn't seem to exist"
     		fi
         elif [ -z $2 ]; then
                 echo "	-- zshbop: $ZSHBOP_ROOT branch: $ZSHBOP_BRANCH ----"
