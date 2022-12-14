@@ -307,12 +307,9 @@ zshbop_startup () {
 help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
         _debug_function
-        if [ "$2" = "dev" ]; then
-                echo "	-- Switching to dev branch"
-                git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
-        elif [ "$2" = "main" ]; then
-                echo "	-- Switching to main branch"
-                 git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout main
+		if [[ -n $2 ]]; then
+	        echo "	-- Switching to $2 branch"
+    		git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2
         elif [ -z $2 ]; then
                 echo "	-- zshbop: $ZSHBOP_ROOT branch: $ZSHBOP_BRANCH ----"
                 echo "	-- To switch branch type 'zshbop branch dev' or 'zshbop branch main'"
