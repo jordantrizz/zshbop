@@ -76,12 +76,12 @@ mysql-currentmem () {
 	mysql
 	if [[ $? -ge 1 ]]; then
 		vared -p 'MySQL Password: ' -c MYSQL_PASS
-		MYSQL_CMD="mysql --password=${MYSQL_PASS}"
+		MYSQL_CMD="--password=${MYSQL_PASS}"
 	else
-		MYSQL_CMD="mysql"
+		MYSQL_CMD=""
 	fi
 	
-	TEST=$(eval ${MYSQL_CMD} -e 'show processlist')
+	TEST=$(mysql ${MYSQL_CMD} -e 'show processlist')
 	TMP_TABLE_SIZE=$(eval ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.tmp_table_size)/1024/1024')
 	KEY_BUFFER_SIZE=$(${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from@@global.key_buffer_size)/1024/1024')
 	INNODB_BUFFER_POOL_SIZE=$(${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.innodb_buffer_pool_size)/1024/1024')
