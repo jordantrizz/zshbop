@@ -82,6 +82,7 @@ mysql-currentmem () {
 			_error " -- Percona: apt-get install libperconaserverclient20-dev"
 		else
 			mysql_config_editor set --login-path=local --host=localhost --user=root --password
+			MYSQL_CMD="--login-path=local"
 		fi			
 	fi
 	
