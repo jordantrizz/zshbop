@@ -74,7 +74,7 @@ help_mysql[mysql-currentmem]="Current maximum memory usage"
 mysql-currentmem () {
 	MYSQL_CMD=""
 	# -- check if we can connect to mysql
-	mysql
+	MYSQL_TEST=$(mysql -e 'show processlist')
 	if [[ $? -ge 1 ]]; then
 		_cexists mysql_config_editor
 		if [[ $? -ge 1 ]]; then
