@@ -309,7 +309,10 @@ zshbop_branch  () {
         _debug_function
 		if [[ -n $2 ]]; then
 	        echo "	-- Switching to $2 branch"
-    		git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2
+    		GIT_CHECKOUT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2)
+    		if [[ $? -ge "1" ]]; then
+    			_error "Branch doesn't seem to exist - $GIT_CHECKOUT"
+    		fi
         elif [ -z $2 ]; then
                 echo "	-- zshbop: $ZSHBOP_ROOT branch: $ZSHBOP_BRANCH ----"
                 echo "	-- To switch branch type 'zshbop branch dev' or 'zshbop branch main'"
