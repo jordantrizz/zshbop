@@ -72,13 +72,17 @@ mysql-maxmem() {
 # -- mysql-currentmem
 help_mysql[mysql-currentmem]="Current maximum memory usage"
 mysql-currentmem () {
+	MYSQL_CMD=""
 	# -- check if we can connect to mysql
 	mysql
 	if [[ $? -ge 1 ]]; then
-		vared -p 'MySQL Password: ' -c MYSQL_PASS
-		MYSQL_CMD="--password=${MYSQL_PASS}"
-	else
-		MYSQL_CMD=""
+		_cexists mysql_config_editor
+		if [[ $? -ge 1 ]]; then
+			_error "Install mysql_config_editor"
+			_error " -- Percona: apt-get install libperconaserverclient20-dev"
+		else
+			mysql_config_editor set --login-path=local --host=localhost --user=root --password
+		fi			
 	fi
 	
 	TMP_TABLE_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.tmp_table_size)/1024/1024')
