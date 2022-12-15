@@ -156,6 +156,8 @@ php-install () {
 	echo "yum install php74-{php-recode,php-snmp,php-pecl-apcu,php-ldap,php-pecl-memcached,php-imap,php-odbc,php-xmlrpc,php-intl,php-process,php-pecl-igbinary,php-pear,php-pecl-imagick,php-tidy,php-pspell,php-pdo,php-pecl-mcrypt,php-soap,php-mbstring,php-mysqli}"
 	_banner_green "For Ubuntu"
 	echo "apt-get install php74-{mbstring,mysql}"
+	_banner_green "For Ubuntu and Litespeed"
+	echo "apt-get install lsphp81-{recode,snmp,pecl-apcu,ldap,pecl-memcached,imap,odbc,xmlrpc,intl,process,pecl-igbinary,pear,pecl-imagick,tidy,pspell,pdo,pecl-mcrypt,soap,mbstring,mysqli}"
 }
 
 # -- aws-cli
