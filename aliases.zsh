@@ -56,3 +56,7 @@ alias scrc="screen -dmS $@"
 # - ssh
 alias sshc="ssh-connect"
 function sshr { ssh root@$1 }
+
+# - Litespeed
+alias lsphp74="/usr/local/lsws/lsphp74/bin/php"
+alias lsphp81="/usr/local/lsws/lsphp81/bin/php"
