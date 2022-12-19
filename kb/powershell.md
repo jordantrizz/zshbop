@@ -3,6 +3,10 @@
 ## Exchange Online
 ### Install Exchange Online Management Module
 * ```Install-Module -Name ExchangeOnlineManagement```
+
+### Login to Exchnage Online
+```Connect-ExchangeOnline -UserPrincipalName```
+
 ### Fix Wacky WSMAN
 * https://www.bloggingforlogging.com/2020/08/21/wacky-wsman-on-linux/
 * ```sudo pwsh -Command 'Install-Module -Name PSWSMan -Scope AllUsers'```
