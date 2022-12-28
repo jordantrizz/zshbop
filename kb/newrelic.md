@@ -31,3 +31,9 @@ Modify
 ```
 newrelic.appname = "{sitename};{servername}"
 ```
+
+
+# Disable Browser Monitoring
+```
+newrelic.browser_monitoring.auto_instrument = false
+```
