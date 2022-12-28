@@ -99,4 +99,11 @@ DECRYPTION_PIPE = ['tee']
 ```python mutt_oauth2.py TOKEN_FILENAME2 --verbose --authorize --authflow authcode```
 
 ### Step 4 - Open URL and Copy and Paste Code
-Click on the URL and then when it errors out, copy the URL and extract the code= data.
+* Click on the URL and then when it errors out, copy the URL and extract the code= data.
+
+### Step 5 - Provide Admin Account Access to Mailbox
+```
+Connect-ExchangeOnline'
+Get-Mailbox user1@domain2.com | Add-MailboxPermission -User mail_syncer@domain2.com -AccessRights FullAccess -InheritanceType All
+Get-Mailbox -ResultSize unlimited -Filter {(RecipientTypeDetails -eq 'UserMailbox') -and (Alias -ne 'Admin')} | Add-MailboxPermission -User admin@org.onmicrosoft.com -AccessRights fullaccess -InheritanceType all
+```
