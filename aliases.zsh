@@ -50,8 +50,11 @@ alias yabs='yabs.sh'
 alias screen="screen -c $ZSHBOP_ROOT/.screenrc"
 alias screens="screen -list"
 alias scrl="screen -list"
-alias scra="screen -r $@"
-alias scrc="screen -dmS $@"
+alias scra="screen -r $1"
+function scrc {
+	screen -dmS ${1}
+	screen -rd ${1}
+}
 
 # - ssh
 alias sshc="ssh-connect"
