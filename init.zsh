@@ -429,7 +429,7 @@ init_motd () {
     _loading "Screen Sessions"
     _cexists screen
     if [[ $? == "0" ]]; then
-    	_success $(screen -list)
+    	_success "$(screen -list)"
     else
     	_error "** Screen not installed"
     fi
