@@ -240,7 +240,7 @@ b2_download () {
 }	
 
 # -- powershell
-help_software[b2]="Powershell for Linux"
+help_software[powershell]="Powershell for Linux"
 _cexists pwsh
 if [[ $? -ge "1" ]]; then
 	alias pwsh=powershell_download
@@ -261,4 +261,13 @@ powershell_download () {
 	sudo apt-get update
 	# Install PowerShell
 	sudo apt-get install -y powershell
+}
+
+# -- maldet
+help_software[maldet]="Maldet malware scanner from https://www.rfxn.com"
+software_maldet () {
+	wget -q -O $TMP/maldetect-current.tar.gz https://www.rfxn.com/downloads/maldetect-current.tar.gz
+	tar -zxvf $TMP/maldetect-current.tar.gz
+	cd $TMP/maldetect-*
+	./install.sh
 }
