@@ -111,7 +111,7 @@ gp-logs () {
 	else
 		for log in $gridpane_logs; do
 			if [[ -f $log ]]; then
-				echo "---- tail -n ${1} ${log}"
+				_notice "---- tail -n ${1} ${log}"
 				tail -n ${1} ${log}
 			else
 				_error "Can't find $log"
