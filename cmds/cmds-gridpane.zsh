@@ -16,24 +16,13 @@ typeset -gA help_gridpane
 _debug " -- Loading ${(%):-%N}"
 
 # -- gridpane command
+alias gpd="gridpane"
 gridpane () {
 	if [[ -z $@ ]] || [[ $1 == "help" ]]; then
         echo "Usage: gridpane <cmd>"
         help gridpane
         return 1
 	else
-        echo "Running ${1}"
-        gridpane_${1} $@
-    fi
-}
-
-# -- gph command
-gph () {
-    if [[ -z $@ ]]; then
-        echo "Usage: gph <cmd>"
-		help gridpane
-        return 1
-    else
         echo "Running ${1}"
         gridpane_${1} $@
     fi
