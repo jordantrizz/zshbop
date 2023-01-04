@@ -92,7 +92,7 @@ _echo () { echo "$@" }
 _error () { echo  "$fg[red] * $@ $reset_color" }
 _warning () { echo "$fg[yellow] * $@ $reset_color" }
 _success () { echo "$fg[green] * $@ $reset_color" }
-_notice () { echo "$fg[magenta] * $@ $reset_color" }
+_notice () { echo "$bg[magenta]$fg[white] * $@ $reset_color" }
 
 # -- Banners
 _banner_red () { echo "$bg[red]$fg[white] $@ $reset_color" }
