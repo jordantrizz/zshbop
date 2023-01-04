@@ -32,8 +32,18 @@
 * gp site monit -ssl-renewal
 ### Run Monit Check for MySQL
 * gpmonit mysql
-### Change GridPane Monit Alert and Restart
-* gpmonit mysql -mem-high-mb 900 -mem-restart-mb 1024 
+### Change monit Alert and Restart for MySQL
+```
+gpmonit mysql -mem-high-mb 900 -mem-restart-mb 1024
+```
+### Change monit Alert and Restart for Redis
+```
+gpmonit redis \
+-cpu-warning-percent 120 -cpu-warning-cycles 10 \
+-cpu-restart-percent 160 -cpu-restart-cycles 5 \
+-mem-high-mb 907 -mem-high-cycles 10 \
+-mem-restart-mb 1207 -mem-restart-cycles 10
+```
 
 # MySQL
 ## MySQL Service Control
