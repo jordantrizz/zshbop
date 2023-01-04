@@ -102,3 +102,21 @@ help_gridpane[gp-duplicacy-audit]="Audit Duplicacy backups"
 gp-duplicacy-audit () {
     duplicacy check -tabular | grep 'all' | awk {' print $1 " "$10 '} | sed 's/gridpane-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-//' | column -t
 }
+
+help_gridpane[gp-logs]="Tail GridPane Logs"
+gp-logs () {
+	gridpane-logs=('/var/log/monit.log')
+	if [[ -z $1 ]]; then
+		_error "usage: gp-logs <# of lines>"
+	else
+		for log in $gridpane-logs; do
+			echo "---- ${log}"
+			tail -${1} ${log}
+		done
+	fi
+}
+
+help_gridpane[gp-motd]="GridPane MOTD"
+gp-motd () {
+	gp-logs
+}

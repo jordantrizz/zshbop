@@ -439,6 +439,12 @@ init_motd () {
 	
 	# -- Check service software versions        
 	init_check_services
+	
+	# -- Check if GridPane Server
+	if [[ -f /root/grid.id ]]; then
+		_loading "Running GridPane CP"
+		gp-logs
+	fi
 
     # -- last echo to keep motd clean
     echo ""
