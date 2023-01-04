@@ -137,6 +137,17 @@ foo () {
 }
 zsh$
 ```
+# do
+```
+for <item> in <list of items>
+do
+    <command to run>
+done
+```
+
+--------------------- 
+CODE SNIPPETS
+---------------------
 
 # Code Snippets Large
 
@@ -185,7 +196,8 @@ zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
 (( verbosity = $#flag_v - $#flag_q ))
 
 ```
-# -- Variables
+## -- Variables
+```
 zparseopts -D -E h=help -help=help t+:=title o+:=opts r=result -result=result a=arrow -arrow=arrow
 
 title=$title[2]
@@ -194,8 +206,9 @@ result=$result[2]
 arrow=$arrow[2]
 
 IFS=$'\n' opts=($(echo "$opts" | tr "|" "\n"))
-
-# -- Functions
+```
+## -- Functions
+```
 usage () {
         echo "Usage: listbox [options]"
         echo "Example:"

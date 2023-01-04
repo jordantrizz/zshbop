@@ -388,21 +388,21 @@ init_check_services () {
 
 	# - mysql	    
 	if (( $+commands[mysqld] )); then
-		_success $(mysqld --version)
+		_success "$(mysqld --version)"
 	else
 		_error "MySQL Server not installed"
 	fi
 	
 	# - nginx
 	if (( $+commands[nginx] )); then
-		_success $(nginx --version)
+		_success "$(nginx -version)"
 	else
 		_error "Nginx not installed"
 	fi
 	
 	# - Openlitespeed
 	if (( $+commands[openlitespeed] )); then
-		_success $(openlitespeed -v)
+		_success "$(openlitespeed -v)"
 	else
 		_error "Openlitespeed not installed"
 	fi        
