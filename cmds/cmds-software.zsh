@@ -266,8 +266,9 @@ powershell_download () {
 # -- maldet
 help_software[maldet]="Maldet malware scanner from https://www.rfxn.com"
 software_maldet () {
+	mkdir -p $TMP/maldetect-current
 	wget -q -O $TMP/maldetect-current.tar.gz https://www.rfxn.com/downloads/maldetect-current.tar.gz
-	tar -zxvf $TMP/maldetect-current.tar.gz
-	cd $TMP/maldetect-*
+	tar -zxvf $TMP/maldetect-current.tar.gz --directory maldetect-current --strip-components 1
+	cd $TMP/maldetect-current
 	./install.sh
 }
