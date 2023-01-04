@@ -28,6 +28,7 @@
 * gp site phpma -ssl-renewal
 
 ## Monit
+Change all monit settings via gpmonit https://gridpane.com/kb/configure-monit-with-gp-cli/
 ### Run Monit Check for SSL Renewals
 * gp site monit -ssl-renewal
 ### Run Monit Check for MySQL
