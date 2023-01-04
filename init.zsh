@@ -412,8 +412,16 @@ init_check_services () {
         _success "Redis: $(redis-server --version)"
     else
         _error "Redis not installed"
-    fi	
+    fi
 }
+
+# -- system_check - check usualy system stuff
+system_check () {
+	# -- start
+	_debug_function
+	_banner_yellow "System check"
+	echo "/proc/sys/vm/swappiness: $(/proc/sys/vm/swappiness)"
+}	
 
 # -- init_motd - initial scripts to run on login
 init_motd () {
@@ -447,6 +455,9 @@ init_motd () {
 	
 	# -- Check service software versions        
 	init_check_services
+	
+	# -- System check
+	system_check
 	
 	# -- Check if GridPane Server
 	if [[ -f /root/grid.id ]]; then
