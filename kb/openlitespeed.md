@@ -12,3 +12,12 @@ phpIniOverride  {
  php_flag display_errors on
 }
 ```
+* Edit PHP Worker Configuration
+
+```
+PHPRC=/home/domain.com/public_html
+```
+* Restart openlitespeed and kill lsphp
+```
+lswsctrl fullrestart;skill -9 lsphp
+```
