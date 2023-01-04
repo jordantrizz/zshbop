@@ -406,6 +406,13 @@ init_check_services () {
 	else
 		_error "Openlitespeed not installed"
 	fi        
+	
+	# - Redis
+	if (( $+commands[redis-server] )); then
+        _success "Redis: $(redis-server --version)"
+    else
+        _error "Redis not installed"
+    fi	
 }
 
 # -- init_motd - initial scripts to run on login
