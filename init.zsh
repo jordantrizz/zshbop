@@ -436,6 +436,7 @@ init_motd () {
 
     # -- Running system checklist
 	init_check_software
+	echo ""
 	
 	# -- Check service software versions        
 	init_check_services
