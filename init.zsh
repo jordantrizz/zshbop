@@ -443,7 +443,8 @@ init_motd () {
 	
 	# -- Check if GridPane Server
 	if [[ -f /root/grid.id ]]; then
-		_loading "Running GridPane CP"
+		_loading "Running GridPane CP - type help gridpane for more commands"
+		_success "Running gp-logs 10"
 		gp-logs 10
 	fi
 
