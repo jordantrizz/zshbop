@@ -105,13 +105,17 @@ gp-duplicacy-audit () {
 
 help_gridpane[gp-logs]="Tail GridPane Logs"
 gp-logs () {
-	gridpane-logs=('/var/log/monit.log')
+	gridpane_logs=("/var/log/monit.log" "/var/log/gridpane.log")
 	if [[ -z $1 ]]; then
 		_error "usage: gp-logs <# of lines>"
 	else
-		for log in $gridpane-logs; do
-			echo "---- ${log}"
-			tail -${1} ${log}
+		for log in $gridpane_logs; do
+			if [[ -f $log ]]; then
+				echo "---- tail -n ${1} ${log}"
+				tail -n ${1} ${log}
+			else
+				_error "Can't find $log"
+			fi				
 		done
 	fi
 }
