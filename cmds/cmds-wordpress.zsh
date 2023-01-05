@@ -106,7 +106,7 @@ wp-login () {
 }
 
 # -- wp-doctor
-help_wordpres[wp-doctor]='Install wp-doctor module'
+help_wordpress[wp-doctor]='Install wp-doctor module'
 wp-doctor () {
 	wp package install wp-cli/doctor-command:@stable
 }
