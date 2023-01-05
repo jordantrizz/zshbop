@@ -455,9 +455,11 @@ init_motd () {
 	
 	# -- Check service software versions        
 	init_check_services
+	echo ""
 	
 	# -- System check
 	system_check
+	echo ""
 	
 	# -- Check if GridPane Server
 	if [[ -f /root/grid.id ]]; then
@@ -465,7 +467,16 @@ init_motd () {
 		_success "Running gp-logs 10"
 		gp-logs 10
 	fi
-
+	
+	# -- Host MOTD
+	_cexists host_motd
+	if [[ $? == "0" ]]; then
+		_loading "Found host motd"
+		host_motd
+	else
+		_notice "No host motd"
+	fi
+	
     # -- last echo to keep motd clean
     echo ""
 }
