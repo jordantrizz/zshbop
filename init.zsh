@@ -395,7 +395,7 @@ init_check_services () {
 	
 	# - nginx
 	if (( $+commands[nginx] )); then
-		_success "Nginx: $(nginx -version 2>&1 >/dev/null)"
+		_success "Nginx: $(nginx -v 2>&1 >/dev/null)"
 	else
 		_error "Nginx not installed"
 	fi
