@@ -94,7 +94,7 @@ _warning () { echo "$fg[yellow] * $@ $reset_color" }
 _success () { echo "$fg[green] * $@ $reset_color" }
 _noticefg () { echo "$bg[magenta]$fg[white] * $@ $reset_color" }
 _noticebg () { echo "$fg[magenta] * $@ $reset_color" }
-alias notice="noticefg"
+alias _notice="noticefg"
 
 # -- Banners
 _banner_red () { echo "$bg[red]$fg[white] $@ $reset_color" }
