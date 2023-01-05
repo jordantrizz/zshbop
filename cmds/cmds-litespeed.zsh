@@ -13,8 +13,9 @@ help_files[litespeed]='Litespeed and Openlitespeed commands'
 typeset -gA help_litespeed
 
 # - lsw-restart
-help_litespeed[lsw-restart]='Restart LSW/OLS and kill lsphp'
-lsw-restart () {
-	systemctl restart lsws
-	killall lsphp
+help_litespeed[lsws-fullrestart]='Restart LSW/OLS and kill lsphp'
+lsw-fullrestart () {
+	lswsctrl fullrestart
+	skill -9 lsphp
 }
+
