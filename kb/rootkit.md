@@ -1,0 +1,3 @@
+# Rootkiet Detection
+* rkhunter
+* chkrootkit
