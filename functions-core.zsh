@@ -3,15 +3,65 @@
 # --
 # -- Core functions for scripts
 # -----------------------------
-_debug "Loading core functions for scripts functions-core.zsh"
 
-###############################
-
-# --------------------
-# -- help_corefunc array
-# --------------------
-typeset -gA help_corefunc
+# -- Help category
 help_files[corefunc]='Core functions for scripts'
+
+# ---------------------
+# -- Internal Functions
+# ---------------------
+
+# -- Different colored messages
+_echo () { echo "$@" }
+_error () { echo  "$fg[red] * $@ $reset_color" }
+_warning () { echo "$fg[yellow] * $@ $reset_color" }
+_success () { echo "$fg[green] * $@ $reset_color" }
+_noticebg () { echo "$bg[magenta]$fg[white] * $@ $reset_color" }
+_noticefg () { echo "$fg[magenta] * $@ $reset_color" }
+alias _notice="_noticefg"
+
+# -- Banners
+_banner_red () { echo "$bg[red]$fg[white] $@ $reset_color" }
+_banner_green () { echo "$bg[green]$fg[white] $@ $reset_color" }
+_banner_yellow () { echo "$bg[yellow]$fg[black] $@ $reset_color" }
+_banner_grey () { echo "$bg[bright-grey]$fg[black] $@ $reset_color" }
+_loading () { echo "$bg[yellow]$fg[black] * $@ $reset_color" }
+_loading2 () { echo "  $bg[bright-grey]$fg[black] $@ $reset_color" }
+alias _loading_grey=_loading2
+
+# -- Text Colors
+_grey () { echo "$bg[bright-gray]$fg[black] $@ $reset_color" }
+
+_loading "Loading functions-core.zsh"
+
+# ------------
+# -- Debugging
+# ------------
+ZSH_DEBUG="0"
+
+# -- zshbop debugging
+if [ -f $ZSHBOP_ROOT/.debug ]; then
+        export ZSH_DEBUG=1
+elif [ ! -f $ZSHBOP_ROOT/.debug ]; then
+        export ZSH_DEBUG=0
+fi
+
+# -- _debug
+_debug () {
+    if [[ $ZSH_DEBUG == 1 ]]; then
+        echo "$fg[cyan]** DEBUG: $@$reset_color";
+    fi
+}
+
+# -- _debug_all
+_debug_all () {
+        _debug "--------------------------"
+        _debug "arguments - $@"
+        _debug "funcstack - $funcstack"
+        _debug "ZSH_ARGZERO - $ZSH_ARGZERO"
+        _debug "SCRIPT_DIR - $SCRIPT_DIR"
+        _debug "--------------------------"
+}
 
 # ---------------------------------------------------------------
 # -- _require_pkg ($package)

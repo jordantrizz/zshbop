@@ -1,75 +1,10 @@
-#!/usr/bin/env zsh
-# ------------------------
-# -- zshbop functions file
-# -- This file contains all the required functions for the main .zshrc script.
-# -------------------------
+# -----------------------------------------------------------------------------------
+# -- functions.zsh
+# -- This file contains all the required zshbop functions for the main .zshrc script.
+# -----------------------------------------------------------------------------------
+
+#######################################
 echo "\e[43;30m * Loading ${0:a} \e[0m"
-
-# ------------
-# -- Variables
-# ------------
-
-# -- zsh sepcific
-export ZDOTDIR="${HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
-
-# -- zshbop specific
-export SCRIPT_NAME="zshbop" # -- Current zshbop branch
-export SCRIPT_DIR=${0:a:h} # -- Current working directory
-export ZSHBOP_CACHE_DIR="${HOME}/.zshbop_cache"
-export ZSHBOP_PLUGIN_MANAGER="init_antidote"
-export ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version) # -- Current version installed
-export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
-export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
-export KB="${ZSHBOP_ROOT}/kb"
-
-# -- zshbop git
-export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
-export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
-export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
-export ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
-
-# -- zshbop md5sum
-export ZSHBOP_LATEST_MD5="46c094ff2b56af2af23c5b848d46f997" # -- the md5 of .zshrc
-export ZSHBOP_HOME_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $HOME
-export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $ZSHBOPROOT
-
-# -- Associative Arrays
-typeset -gA help_custom # -- Set help_custom for custom help files
-
-# -- Default tools.
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
-default_tools+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
-extra_tools=('pip' 'npm' 'golang-go' 'net-tools')
-pip_install=('ngxtop' 'apt-select' 'semgrep')
-
-# -- Take $EDITOR run it through alias and strip it down
-EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
-
-# -- fzf keybindings, enable if fzf is available @@ISSUE
-#[ -f $ZSH_CUSTOM/.fzf-key-bindings.zsh ] && source $ZSH_CUSTOM/.fzf-key-bindings.zsh;echo "Enabled FZF keybindgs"
-####-- diff-so-fancy
-# git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
-
-# ------------------------
-# -- Environment variables
-# ------------------------
-
-# - Set umask
-umask 022
-export TERM="xterm-256color"
-export LANG="C.UTF-8"
-export HISTSIZE=5000
-export PAGER='less -Q -j16'
-export EDITOR='joe'
-export BLOCKSIZE='K'
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-export LANGUAGE=en_US.UTF-8
-export TERM="xterm-256color"
-export LANG="C.UTF-8"
-export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify # -- ohmyzsh specific environment variables
-export SSHK="$HOME/.ssh"
-export TMP="$HOME/tmp"
 
 # -----------
 # -- ZSHBOP Aliases
@@ -83,89 +18,11 @@ alias _debug_function="_debug_all"
 alias zbr="cd $ZBR"
 alias motd="init_motd"
 
-# ---------------------
-# -- Internal Functions
-# ---------------------
-
-# -- Different colored messages
-_echo () { echo "$@" }
-_error () { echo  "$fg[red] * $@ $reset_color" }
-_warning () { echo "$fg[yellow] * $@ $reset_color" }
-_success () { echo "$fg[green] * $@ $reset_color" }
-_noticebg () { echo "$bg[magenta]$fg[white] * $@ $reset_color" }
-_noticefg () { echo "$fg[magenta] * $@ $reset_color" }
-alias _notice="_noticefg"
-
-# -- Banners
-_banner_red () { echo "$bg[red]$fg[white] $@ $reset_color" }
-_banner_green () { echo "$bg[green]$fg[white] $@ $reset_color" }
-_banner_yellow () { echo "$bg[yellow]$fg[black] $@ $reset_color" }
-_banner_grey () { echo "$bg[bright-grey]$fg[black] $@ $reset_color" }
-_loading () { echo "$bg[yellow]$fg[black] * $@ $reset_color" }
-_loading2 () { echo "  $bg[bright-grey]$fg[black] $@ $reset_color" }
-alias _loading_grey=_loading2
-
-# -- Text Colors
-_grey () { echo "$bg[bright-gray]$fg[black] $@ $reset_color" }
-
-# ------------
-# -- Debugging
-# ------------
-ZSH_DEBUG="0"
-
-# -- zshbop debugging
-if [ -f $ZSHBOP_ROOT/.debug ]; then
-        export ZSH_DEBUG=1
-elif [ ! -f $ZSHBOP_ROOT/.debug ]; then
-        export ZSH_DEBUG=0
-fi
-
-# -- _debug
-_debug () {
-    if [[ $ZSH_DEBUG == 1 ]]; then
-        echo "$fg[cyan]** DEBUG: $@$reset_color";
-    fi
-}
-
-# -- _debug_all
-_debug_all () {
-        _debug "--------------------------"
-        _debug "arguments - $@"
-        _debug "funcstack - $funcstack"
-        _debug "ZSH_ARGZERO - $ZSH_ARGZERO"
-        _debug "SCRIPT_DIR - $SCRIPT_DIR"
-        _debug "--------------------------"
-}
-
-# -----------------
-# -- Core Functions
-# -----------------
-source ${ZBR}/functions-core.zsh
-
-# ----------------------------------------
-# -- _joe_ftyperc - setting up .joe folder @ISSUE needs to be moved
-# ----------------------------------------
-_joe_ftyperc () {
-	_debug_function
-        _debug "Checking for ~/.joe folder"
-	[[ ! -d ~/.joe ]] && mkdir ~/.joe
-	_debug "Checking for joe ftyperc"
-        if [[ ! -f ~/.joe/ftyperc ]]; then
-                _debug "Missing ~/.joe/ftyperc, copying"
-                cp $ZSHBOP_ROOT/custom/ftyperc ~/.joe/ftyperc
-        fi
-}
-
-#######################################################################
+##########################################
 # -------------------
 # -- zshbop functions
 # -------------------
-#######################################################################
-
-# --------------------
-# -- help_zshbop array
-# --------------------
-typeset -gA help_zshbop 
+##########################################
 
 # -------------------------------------
 # -- cc ()
@@ -504,8 +361,8 @@ zshbop_colors () {
         _debug_function
         echo "-- Color names"
         for k in ${color}; do
-	   print -- key: $k
-	done
+		   print -- key: $k
+		done
 
         echo "-- How to use color"
         echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
