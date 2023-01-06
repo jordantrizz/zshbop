@@ -423,9 +423,9 @@ system_check () {
 
 	# -- check swappiness
 	if [[ -f /proc/sys/vm/swappiness ]]; then
-		_notice "  /proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+		_notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
 	else
-		_error "   Can't find swap"
+		_error "Can't find swap"
 	fi
 	
 	# -- check disk space
