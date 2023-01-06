@@ -124,7 +124,7 @@ check_diskspace () {
 	# /run = not requires
 	# wsl = wsl stuffs
 	# /init = wsl stuffs
-	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init' | awk '{ print $5 " " $1 }' )
+	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|/dev' | awk '{ print $5 " " $1 }' )
 	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
 	DISKUSAGE=("${(@f)${DF_COMMAND}}")
 	for OUT in ${DISKUSAGE[@]}; do
