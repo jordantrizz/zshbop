@@ -7,3 +7,6 @@
 ```
 ERROR=$(./useless.sh 2>&1 >/dev/null)
 ```
+
+# Line Numbers on Output
+``nl``
