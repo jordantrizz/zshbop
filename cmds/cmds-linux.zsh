@@ -115,3 +115,27 @@ help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
 usedspace () {
 	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
 }
+
+# -- check_diskspace
+help_linux[check_diskspace]="Check diskspace and warn if full"
+check_diskspace () {
+	ALERT="98" # alert level 
+	# :\\ = wsl drive letters
+	# /run = not requires
+	# wsl = wsl stuffs
+	# /init = wsl stuffs
+	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init' | awk '{ print $5 " " $1 }' )
+	IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
+	
+	for OUT in ${DISKUSAGE[@]}; do
+		echo "loop: $OUT"
+		PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
+		PARTITION=$(echo "$OUT" | awk '{ print $2 }' )
+		_notice "Checking $PARTITION with $PERCENTAGE"
+		if [[ $PERCENTAGE -ge $ALERT ]]; then
+    		_error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
+		else
+			_success "Disk space at $usep"
+		fi
+	done
+}

@@ -120,7 +120,7 @@ no value
 ```
 typeset -gA help_files
 help_files[kb]='knowledge base'
-``
+```
 
 # Execute Function in a Variable
 ```
@@ -137,11 +137,24 @@ foo () {
 }
 zsh$
 ```
-# do
+# for/do loop
 ```
 for <item> in <list of items>
 do
     <command to run>
+done
+```
+# while/do loop
+```
+
+
+#!/bin/bash
+
+# This generates a file every 5 minutes
+
+while true; do
+touch pic-`date +%s`.jpg
+sleep 300
 done
 ```
 
