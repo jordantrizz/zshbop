@@ -420,9 +420,16 @@ system_check () {
 	# -- start
 	_debug_function
 	_banner_yellow "System check"
+
+	# -- check swappiness
 	if [[ -f /proc/sys/vm/swappiness ]]; then
-		echo "  /proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+		_notice "  /proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+	else
+		_error "   Can't find swap"
 	fi
+	
+	# -- check disk space
+	check_diskspace		
 }	
 
 # -- init_motd - initial scripts to run on login
