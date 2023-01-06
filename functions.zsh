@@ -29,7 +29,7 @@ export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
 export ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
 
 # -- zshbop md5sum
-export ZSHBOP_MD5="46c094ff2b56af2af23c5b848d46f997" # -- the md5 of .zshrc
+export ZSHBOP_LATEST_MD5="46c094ff2b56af2af23c5b848d46f997" # -- the md5 of .zshrc
 export ZSHBOP_HOME_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $HOME
 export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $ZSHBOPROOT
 
@@ -141,7 +141,11 @@ _debug_all () {
 # -- Core Functions
 # -----------------
 
-#-- Check to see if command exists and then return true or false
+# ---------------------------------------------------------------
+# -- _require_pkg ($package)
+# --
+# -- Check to see if command exists and if not install
+# ---------------------------------------------------------------
 _require_pkg () {
         _debug_function
         _debug "Running _requires_pkg on $1"
@@ -167,6 +171,12 @@ _require_pkg () {
         done
         
 }
+
+# ----------------------------------------
+# -- _requires_cmd ($command)
+# --
+# -- Check to see if $command is installed
+# ----------------------------------------
 _requires_cmd () {
 	_debug_function
 	_debug "Running _requires on $1"
@@ -192,7 +202,11 @@ _requires_cmd () {
         done
 }
 
-# -- _cexists -- Returns 0 if command exists or 1 if command doesn't exist
+# ------------------------------------------------------------------------
+# -- _cexists 
+# --
+# -- Returns 0 if command exists or 1 if command doesn't exist
+# ------------------------------------------------------------------------
 _cexists () {
 	unset CMD_EXISTS CMD CMD_PATH
 	CMD="$1"
@@ -218,6 +232,11 @@ _cexists () {
     return $CMD_EXISTS
 }
 
+# ---------------------------------------
+# -- checkroot()
+# --
+# -- checkroot - check if running as root
+# ---------------------------------------
 _checkroot () {
         _debug_function
 	if [[ $EUID -ne 0 ]]; then
@@ -226,9 +245,11 @@ _checkroot () {
 	fi
 }
 
+# ------------------------------------------------------
 # -- _if_marray - if in array.
 # -- _if_marray "$NEEDLE" HAYSTACK 
 # -- must use quotes, second argument is array without $
+# ------------------------------------------------------
 _if_marray () {
 	_debug_function
         MARRAY_VALID=1
@@ -258,14 +279,22 @@ _joe_ftyperc () {
         fi
 }
 
+#######################################################################
 # -------------------
 # -- zshbop functions
 # -------------------
+#######################################################################
 
+# --------------------
 # -- help_zshbop array
+# --------------------
 typeset -gA help_zshbop 
 
-# -- cc - clear cache for various tools
+# -------------------------------------
+# -- cc ()
+# --
+# -- clear cache for various tools
+# -------------------------------------
 help_zshbop[cc]='Clear cache for antigen + more'
 alias cc="zshbop_cc"
 zshbop_cacheclear () {
@@ -285,7 +314,11 @@ zshbop_cacheclear () {
 	rm -f ~/.zshrc.zwc
 }
 
-# -- rld / reload
+# -------------------
+# -- zshbop_reload ()
+# --
+# -- reload zshbop
+# -------------------
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _debug_function
@@ -298,14 +331,22 @@ zshbop_reload () {
     echo ""
 }
 
-# -- zshbop_startup
+# ---------------------
+# -- zshbop_startup ()
+# --
+# -- Run zshbop startup
+# ---------------------
 help_zshbop[startup]='Run zshbop startup'
 zshbop_startup () {
 	_debug_function
 	init_motd
 }
 
-# -- branch
+# --------------------------
+# -- zshbop_branch ($branch)
+# --
+# -- Change branch of zshbop
+# --------------------------
 help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
         _debug_function
@@ -323,54 +364,60 @@ zshbop_branch  () {
         fi
 }
 
-# -- check-updates - Check for zshbop updates.
+# ----------------------------
+# -- zshbop_check-updates ()
+# --
+# -- Check for zshbop updates.
+# ----------------------------
 help_zshbop[check-updates]='Check for zshbop update, not completed yet'
 zshbop_check-updates () {
-        _debug_function
+	_debug_function
 
-        # Sources for version check
+    # Sources for version check
 	MAIN_UPDATE="https://raw.githubusercontent.com/$ZSHBOP_REPO/main/version"
 	DEV_UPDATE="https://raw.githubusercontent.com/$ZSHBOP_REPO/dev/version"
 
-        _notice "-- Running $ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT checking $ZSHBOP_BRANCH for updates."
-        if [[ "$ZSHBOP_BRANCH" = "main" ]]; then
-        	echo "-- Checking version on $MAIN_UPDATE"
-        	NEW_MAIN_VERSION=$(curl -s $MAIN_UPDATE)
-        	if [[ $NEW_MAIN_VERSION != $ZSHBOP_VERSION ]]; then
-        		_warning "Update available $NEW_MAIN_VERSION"
-
-                else
-                        _success "Running current version $NEW_MAIN_VERSION"
-                fi
-        elif [[ "$ZSHBOP_BRANCH" = "dev" ]]; then
+    _notice "-- Running $ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT checking $ZSHBOP_BRANCH for updates."
+    if [[ "$ZSHBOP_BRANCH" = "main" ]]; then
+		echo "-- Checking version on $MAIN_UPDATE"
+        NEW_MAIN_VERSION=$(curl -s $MAIN_UPDATE)
+        if [[ $NEW_MAIN_VERSION != $ZSHBOP_VERSION ]]; then
+        	_warning "Update available $NEW_MAIN_VERSION"
+		else
+        	_success "Running current version $NEW_MAIN_VERSION"
+        fi
+     elif [[ "$ZSHBOP_BRANCH" = "dev" ]]; then
 		# Get repository dev commit.
-        	ZSHBOP_REMOTE_COMMIT=$(curl -s https://api.github.com/repos/jordantrizz/zshbop/branches/dev | jq -r '.commit.sha')
+        ZSHBOP_REMOTE_COMMIT=$(curl -s https://api.github.com/repos/jordantrizz/zshbop/branches/dev | jq -r '.commit.sha')
 
 		# Check remote github.com repository
-        	echo "-- Checking version on $DEV_UPDATE"
-        	NEW_DEV_VERSION=$(curl -s $DEV_UPDATE)
+        echo "-- Checking version on $DEV_UPDATE"
+        NEW_DEV_VERSION=$(curl -s $DEV_UPDATE)
 
-                # Compare versions
-        	if [[ $NEW_DEV_VERSION != $ZSHBOP_VERSION ]]; then
-	        	_warning "Update available $NEW_DEV_VERSION"
-	        else
-	        	_success "Running current version $NEW_DEV_VERSION"
-	        fi
+        # Compare versions
+        if [[ $NEW_DEV_VERSION != $ZSHBOP_VERSION ]]; then
+	    	_warning "Update available $NEW_DEV_VERSION"
+	    else
+	    	_success "Running current version $NEW_DEV_VERSION"
+	    fi
 
-	        # Compare commits
-	        echo "-- Checking commit on branch $ZSHBOP_BRANCH "
-                if [[ $ZSHBOP_COMMIT != $ZSHBOP_REMOTE_COMMIT ]]; then
-	        	_warning "Not on $ZSHBOP_BRANCH latest commit - Local: $ZSHBOP_COMMIT / Remote: $ZSHBOP_REMOTE_COMMIT"
-	        else
-                        _success "On $ZSHBOP_BRANCH latest commit - Local: $ZSHBOP_COMMIT / Remote: $ZSHBOP_REMOTE_COMMIT"
-                fi
-
-        else
-        	_error "Don't know what branch zshbop is on"
+	    # Compare commits
+	    echo "-- Checking commit on branch $ZSHBOP_BRANCH "
+        if [[ $ZSHBOP_COMMIT != $ZSHBOP_REMOTE_COMMIT ]]; then
+	    	_warning "Not on $ZSHBOP_BRANCH latest commit - Local: $ZSHBOP_COMMIT / Remote: $ZSHBOP_REMOTE_COMMIT"
+	    else
+        	_success "On $ZSHBOP_BRANCH latest commit - Local: $ZSHBOP_COMMIT / Remote: $ZSHBOP_REMOTE_COMMIT"
         fi
+	else
+    	_error "Don't know what branch zshbop is on"
+    fi
 }
 
-# -- update - Update ZSHBOP
+# -------------------
+# -- zshbop_update ()
+# --
+# -- Update ZSHBOP
+# -------------------
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
 	_debug_function
@@ -410,16 +457,17 @@ zshbop_update () {
     # Reload scripts
     _warning "Type zb reload to reload zshbop, or restart your shell."
 }
-
-# -- zshbop_pervious-version-check
+# -----------------------------------
+# -- zshbop_pervious-version-check ()
+# -----------------------------------
 help_zshbop[previous-version-check]='Checking if \$HOME/.zshrc is pre v1.1.3 and replacing.'
 zshbop_previous-version-check () {
         _debug_function
 
         # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
         _debug " -- Current $HOME/.zshrc md5 is - $ZSHBOP_HOME_MD5"
-        _debug " -- zshbop .zshrc md5 is - $ZSHBOP_MD5"
-        if [[ "$ZSHBOP_HOME_MD5" != "$ZSHBOP_MD5" ]]; then
+        _debug " -- zshbop .zshrc md5 is - $ZSHBOP_LATEST_MD5"
+        if [[ "$ZSHBOP_HOME_MD5" != "$ZSHBOP_LATEST_MD5" ]]; then
                 _error "-- Found old .zshrc"
                 _notice "-- Replacing $HOME/.zshrc"
                 cp $ZSHBOP_ROOT/.zshrc $HOME/.zshrc
@@ -428,7 +476,9 @@ zshbop_previous-version-check () {
         fi
 }
 
-# -- migrate-check
+# -----------------------
+# -- zshbop_migrate-check
+# -----------------------
 help_zshbop[migrate-check]='Check if running old zshbop.'
 zshbop_migrate-check () {
 	_debug_function
@@ -460,8 +510,9 @@ zshbop_migrate-check () {
         fi
         
 }
-
-# -- migrate
+# --------------------
+# -- zshbop_migrate ()
+# --------------------
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
 	_debug_function
@@ -499,22 +550,28 @@ zshbop_migrate () {
         fi
 }
 
-# -- zshbop_version
+# --------------------
+# -- zshbop_version ()
+# --------------------
 help_zshbop[version]='Get version information'
 zshbop_version () {
         _debug_function
         _loading "zshbop Version"
-        echo "Version: $fg[green]$ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT$reset_color"
+        echo "Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT$reset_color"
         echo "Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color --"
 }
 
-# -- zshbop_version_check
-help_zshbop[version-check]='Check version'
+# --------------------------
+# -- zshbop_version_check ()
+# --------------------------
+help_zshbop[version-check]='Check zshbop version'
 zshbop_version-check () {
   _debug_function
 	zshbop_version
+	
+	# -- check .zshrc
 	_loading "zshbop Version Check"
-    echo "-- Script: $fg[green]$ZSHBOP_MD5$reset_color"
+    echo "-- Latest zshbop .zshrc: $fg[green]$ZSHBOP_LATEST_MD5$reset_color"
     echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5$reset_color"
     echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color"
         
@@ -524,9 +581,16 @@ zshbop_version-check () {
     else
       _error "  \$HOME/.zshrc and \$ZSHBOP/.zshrc are the different."
     fi
+    
+    # -- checking branch git commit versus current commit
+    _loading "Checking for branch updates"
+    echo "-- Current Commit : $fg[green]"
+    
 }
 
-# -- zshbop_debug
+# ------------------
+# -- zshbop_debug ()
+# ------------------
 help_zshbop[debug]='Turn debug on and off'
 alias debug=zshbop_debug
 zshbop_debug () {
@@ -555,7 +619,9 @@ zshbop_debug () {
         fi
 }
 
-# -- zshbop_color
+# ------------------
+# -- zshbop_color ()
+# ------------------
 help_zshbop[colors]='List variables for using color'
 zshbop_colors () {
         _debug_function
