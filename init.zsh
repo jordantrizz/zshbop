@@ -420,7 +420,9 @@ system_check () {
 	# -- start
 	_debug_function
 	_banner_yellow "System check"
-	echo "  /proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+	if [[ -f /proc/sys/vm/swappiness ]]; then
+		echo "  /proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+	fi
 }	
 
 # -- init_motd - initial scripts to run on login
