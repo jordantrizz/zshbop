@@ -88,12 +88,21 @@ The default values are specified below, however the full list is at https://grid
 MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
 * gp mysql restart
 
-# Redis
+# Redis Page Cache
 ## Redis Cache Expiry
 * gp stack nginx redis -site-cache-valid {accepted.value} {site.url}
 
 ## Clear Site Redis Full Page Cache
 * gp fix cache cached site.com
+
+# Redis Object Cache
+## Change Redis maxmemory
+* https://gridpane.com/kb/configure-redis/
+The below example will set the redis maxmemory to 300MB
+```
+gp stack redis -max-memory 300
+
+```
 
 # PHP
 ## Change PHP Settings
@@ -166,3 +175,4 @@ Enable server wide
 
 # Create Vanilla Nginx Config
 * gp conf nginx generate https-vanilla site.com
+

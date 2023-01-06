@@ -15,6 +15,10 @@ typeset -gA help_redis
 
 _debug " -- Loading ${(%):-%N}"
 
+# ---------------
+# -- redis-memory
+# ---------------
+help_redis[redis-memory]="Grab redis maxmemory and statistics"
 redis-memory () {
 	if [[ -f /etc/redis/redis.conf ]]; then
 		_notice "Redis 'maxmemory' setting from /etc/redis/redis.conf"
@@ -26,4 +30,13 @@ redis-memory () {
 	fi
 	_notice "Getting redis-cli info memory"
 	redis-cli info memory
+}
+
+# -------------------
+# -- redis-clearstats
+# -------------------
+help_redis[redis-clearstats]="Clear redis stats"
+redis-clearstats () {
+	_notice "Clearing redis stats"
+	redis-cli config resetstat
 }
