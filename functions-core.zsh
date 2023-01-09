@@ -190,13 +190,3 @@ _if_marray () {
         if [[ MARRAY_VALID == "1" ]]; return 0
 }
 
-# ---------------
-# -- _lines2array
-# ---------------
-_lines2array() {
-  local IFS=$'\n\n' ret
-  array_of_lines=($("$@"; ret=$?; echo .; exit $ret))
-  ret=$?
-  unset 'array_of_lines[-1]'
-  return $ret
-}

@@ -145,13 +145,39 @@ check_diskspace () {
 # -- ps-mem
 help_linux[ps-mem]="List processes with human readable memory"
 ps-mem () {
-	PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
-	PS_HEADER=$(echo "$PS_OUTPUT" | head -1)
+	# PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
+	PS_OUTPUT=$(ps -afu)
+	PS_AWK=$(echo $PS_OUTPUT | awk 'BEGIN{ORS=""} NR>1 {$5=int($5/1024)"M"; $6=int($6/1024)"M"; print $1"\t\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t";out="";for(i=11;i<=NF;i++){out=out" "$i};print out;print "\n"}')
+	#PS_AWK=$(echo $PS_OUTPUT | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
+	#PS_HEADER=$(echo "$PS_OUTPUT" | head -1)
+	PS_HEAD="USER\t\tPID\t%CPU\t%MEM\tVSZ\tRSS\tTTY\tSTAT\tSTART\tTIME\tCOMMAND"
+	PS_SEPARATOR="-----------------------------------------------------------------------------------------------"
+	PS_HEADER="$PS_SEPARATOR\n$PS_HEAD\n$PS_SEPARATOR"
+	# - add header
+	i=0
+	#PS_FINAL="$PS_AWK"
+	PS_AWK2=(${(@f)PS_AWK})
+	#PS_FINAL=$PS_AWK2
+	#PS_AWK2=(${(s:\n:)PS_AWK})
+	#PS_AWK2=$(echo $PS_AWK | tr '\n' '\n')
+	#read -A PS_AWK2 <<< "$PS_AWK"
+	unset PS_FINAL
+	for LINE in ${PS_AWK2[@]}; do
+		PS_FINAL+="$LINE\n"
+		if [[ $i == "15" ]]; then
+			PS_FINAL+="$PS_HEADER\n"
+			i=0
+		fi
+		i=$((i+1))
+	done;
+
+	# - print results
 	if [[ -n $1 ]]; then
 		_notice "Grep'ing for $1"
 		echo "$PS_HEADER"
-		echo "$PS_OUTPUT" | \grep -a ${1}
+		echo "$PS_FINAL" | \grep -a ${1}
 	else
-		echo "$PS_OUTPUT"
+		echo "$PS_HEADER"
+		echo "$PS_FINAL"
 	fi
 }

@@ -106,22 +106,6 @@ If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring
 * file1 -ot file2 = true if file1 exists and is older than file2.
 * file1 -ef file2 = true if file1 and file2 exist and refer to the same file.
 
-# Associatve Arrays
-* See https://scriptingosx.com/2019/11/associative-arrays-in-zsh/
-## Example 1
-```
-userinfo=( name armin shell zsh website scriptingosx.com )
-userinfo=( [name]=armin [shell]=zsh [website]="scriptingosx.com" )
-% userinfo=( [name]=beth [shell]=zsh )
-% if [[ -z $userinfo[website] ]]; then echo no value; fi
-no value
-```
-## Example 2
-```
-typeset -gA help_files
-help_files[kb]='knowledge base'
-```
-
 # Execute Function in a Variable
 ```
 ARGS="-auwxxf"
@@ -158,6 +142,42 @@ sleep 300
 done
 ```
 
+# Dealing with Arrays
+## Add to array
+```
+ARRAY=()
+ARRAY+=('foo')
+ARRAY+=('bar')
+
+### Iterate through Array
+```
+array=(a b c d)
+
+for element in "${array[@]}"; do
+  echo $element
+done
+```
+
+## String to Array
+```
+${(@f)SOME_VARIABLE}
+```
+
+## Associatve Arrays
+* See https://scriptingosx.com/2019/11/associative-arrays-in-zsh/
+### Example 1
+```
+userinfo=( name armin shell zsh website scriptingosx.com )
+userinfo=( [name]=armin [shell]=zsh [website]="scriptingosx.com" )
+% userinfo=( [name]=beth [shell]=zsh )
+% if [[ -z $userinfo[website] ]]; then echo no value; fi
+no value
+```
+### Example 2
+```
+typeset -gA help_files
+help_files[kb]='knowledge base'
+
 --------------------- 
 CODE SNIPPETS
 ---------------------
@@ -183,13 +203,6 @@ That's also why it worked to do eval ${install_cmd} - because that's literally t
 
 You have to be the one to decide whether you want install_cmd to allow full shell semantics, including variable interpolation, path expansion, multiple commands, etc. or whether it should just expand the words out and run them as a single command.
 
-```
-
-## Add to array
-```
-ARRAY=()
-ARRAY+=('foo')
-ARRAY+=('bar')
 ```
 
 ## Colors
