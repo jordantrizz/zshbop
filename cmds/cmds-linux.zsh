@@ -145,14 +145,12 @@ check_diskspace () {
 # -- ps-mem
 help_linux[ps-mem]="List processes with human readable memory"
 ps-mem () {
-	PS_OUTPUT=""
-	PS_HEADER=""
 	PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";}{$6=int($5/1024)"M";}{ print;}')
 	PS_HEADER=$(echo "$PS_OUTPUT" | head -1)
 	if [[ -n $1 ]]; then
 		_notice "Grep'ing for $1"
 		echo "$PS_HEADER"
-		echo "$PS_OUTPUT" | grep ${1}
+		echo "$PS_OUTPUT" | \grep -a ${1}
 	else
 		echo "$PS_OUTPUT"
 	fi
