@@ -150,7 +150,7 @@ ps-mem () {
 	if [[ -n $1 ]]; then
 		_notice "Grep'ing for $1"
 		echo "$PS_HEADER"
-		echo "$PS_OUTPUT" | grep $1
+		echo "$PS_OUTPUT" | grep ${1}
 	else
 		echo "$PS_OUTPUT"
 	fi
