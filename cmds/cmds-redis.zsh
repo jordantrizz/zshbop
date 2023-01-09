@@ -20,6 +20,8 @@ _debug " -- Loading ${(%):-%N}"
 # ---------------
 help_redis[redis-memory]="Grab redis maxmemory and statistics"
 redis-memory () {
+    _notice "Getting redis-cli info memory"
+    redis-cli info memory
 	if [[ -f /etc/redis/redis.conf ]]; then
 		_notice "Redis 'maxmemory' setting from /etc/redis/redis.conf"
 		egrep -e '^maxmemory |^maxmemory-policy ' /etc/redis/redis.conf
@@ -28,8 +30,6 @@ redis-memory () {
 	else
 		_error "No /etc/redis/redis.conf file"
 	fi
-	_notice "Getting redis-cli info memory"
-	redis-cli info memory
 }
 
 # -------------------
