@@ -25,8 +25,10 @@ redis-memory () {
 	if [[ -f /etc/redis/redis.conf ]]; then
 		_notice "Redis 'maxmemory' setting from /etc/redis/redis.conf"
 		egrep -e '^maxmemory |^maxmemory-policy ' /etc/redis/redis.conf
-		_notice "Redis 'evicted_keys' from redis-cli info"
+		_notice "Redis 'evicted_keys' from redis-cli info"		
 		redis-cli info | grep evict
+		_notice "Redis save from /etc/redis/redis.conf"
+		egrep -e '^save ' /etc/redis/redis.conf
 	else
 		_error "No /etc/redis/redis.conf file"
 	fi
