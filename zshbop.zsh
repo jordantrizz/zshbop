@@ -7,6 +7,10 @@
 # -- Variables
 # ------------
 
+# -- autoload
+autoload -Uz compinit 
+autoload -Uz compdef
+
 # -- Help arrays
 typeset -gA help_files
 typeset -gA help_files_description
