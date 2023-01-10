@@ -359,24 +359,29 @@ zshbop_debug () {
 help_zshbop[colors]='List variables for using color'
 zshbop_colors () {
         _debug_function
-        echo "-- Color names"
+        _loading "Color names"
         for k in ${color}; do
 		   print -- key: $k
 		done
 
-        echo "-- How to use color"
+        _loading "How to use color"
         echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
         echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
         echo "  Reset Color: \$reset_color"
 
-        echo "-- Color Options"
-        _banner_red "  -- _banner_red"
-        _banner_green "  -- _banner_green"
-        _banner_yellow "  -- _banner_yellow"
-        _error "  -- _error"
-        _warning "  -- _warning"
-        _success "  -- _success"
-        _notice "  -- _notice"
+        _loading "-- Color Options"
+        _banner_red "_banner_red"
+        _banner_green "_banner_green"
+        _banner_yellow "_banner_yellow"
+        _banner_grey "_banner_grey"
+        _error "_error"
+        _warning "_warning"
+        _success "_success"
+        _notice "_notice"
+		_noticebg "_noticebg" 
+		_noticefg "_noticefg"
+		_loading "_loading"
+		_loading2 "_loading"
 }
 
 # ----------------
