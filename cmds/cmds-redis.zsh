@@ -20,15 +20,21 @@ _debug " -- Loading ${(%):-%N}"
 # ---------------
 help_redis[redis-memory]="Grab redis maxmemory and statistics"
 redis-memory () {
-    _notice "Getting redis-cli info memory"
+    _loading "Running redis-cli info memory"
     redis-cli info memory
+    _loading "Retrieving 'evicted_keys' from redis-cli info"
+    redis-cli info | grep evict
+	_loading "Checking for /etc/redis/redis.conf"
 	if [[ -f /etc/redis/redis.conf ]]; then
-		_notice "Redis 'maxmemory' setting from /etc/redis/redis.conf"
+		_success "Found /etc/redis/redis.conf"
+		_notice "Redis 'maxmemory' setting"
 		egrep -e '^maxmemory |^maxmemory-policy ' /etc/redis/redis.conf
-		_notice "Redis 'evicted_keys' from redis-cli info"		
-		redis-cli info | grep evict
-		_notice "Redis save from /etc/redis/redis.conf"
-		egrep -e '^save ' /etc/redis/redis.conf
+		_notice "Redis save setting - # save <seconds> <changes>"
+		grep '^save ' /etc/redis/redis.conf
+		_notice "Redis rdb settings"
+		grep 'rdb' /etc/redis/redis.conf | grep -v "^#"
+		_notice "Redis append-only setting"
+		grep -e '^appendonly ' /etc/redis/redis.conf		
 	else
 		_error "No /etc/redis/redis.conf file"
 	fi
