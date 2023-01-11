@@ -4,6 +4,7 @@
 
 # Cloud Init Setup
 ## Ubuntu 20 Template Setup
+* local-lvm is your lvm storage in proxmox
 ```
 wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
 qm create 9000 --memory 2048 --net0 virtio,bridge=vmbr0
