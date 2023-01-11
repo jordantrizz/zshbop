@@ -1,0 +1,4 @@
+check system $HOST
+    if cpu steal > 1% for 1 cylces
+        then exec "/usr/local/sbin/zshbop/extra/gridpane 'Monit CPU Steal!' 'CPU Steal is occurring.'"
+        AND repeat every 30 cycles
