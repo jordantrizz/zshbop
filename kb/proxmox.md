@@ -5,11 +5,12 @@
 # Cloud Init Setup
 ## Ubuntu 20 Template Setup
 * local-lvm is your lvm storage in proxmox
+* list vm config ```qm config 9000```
 ```
 wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
 qm create 9000 --memory 2048 --net0 virtio,bridge=vmbr0
 qm importdisk 9000 focal-server-cloudimg-amd64.img local-lvm
-qm set 9000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-9000-disk-1
+qm set 9000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-9000-disk-0
 qm set 9000 --ide2 local-lvm:cloudinit
 qm set 9000 --boot c --bootdisk scsi0
 qm set 9000 --serial0 socket --vga serial0
