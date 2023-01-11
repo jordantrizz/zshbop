@@ -27,17 +27,26 @@
 ## PHPMyAdmin SSL
 * gp site phpma -ssl-renewal
 
-## Monit
+## Unlock Renewal Failures
+Below is an example using gridpane.com
+```
+cd cd /var/www/gridpane.com/logs
+rm examplewebsite.com-ssl_fail-1.date
+rm examplewebsite.com-ssl_fail-2.date
+examplewebsite.com-ssl_fail-3.date
+```
+
+# Monit
 Change all monit settings via gpmonit https://gridpane.com/kb/configure-monit-with-gp-cli/
-### Run Monit Check for SSL Renewals
+## Run Monit Check for SSL Renewals
 * gp site monit -ssl-renewal
-### Run Monit Check for MySQL
+## Run Monit Check for MySQL
 * gpmonit mysql
-### Change monit Alert and Restart for MySQL
+## Change monit Alert and Restart for MySQL
 ```
 gpmonit mysql -mem-high-mb 900 -mem-restart-mb 1024
 ```
-### Change monit Alert and Restart for Redis
+## Change monit Alert and Restart for Redis
 ```
 gpmonit redis \
 -cpu-warning-percent 120 -cpu-warning-cycles 10 \
