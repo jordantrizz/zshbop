@@ -10,7 +10,7 @@ gridpane::setglobals # - Needed for gridpane::notify:slack
 # - Slack message
 slack_type="error" # can be warning or error and maybe success?
 title="$1" # slack title
-details="Server Name: ${host}{{newline}}Server IP: ${serverIP}{{newline}} $MONIT_EVENT" # full details for slack message
+details="Server Name: ${host}{{newline}}Server IP: ${serverIP}{{newline}} $MONIT_EVENT - $MONIT_DESCRIPTION" # full details for slack message
 event_type="sys_load_avg" # Used because the API won't accept anything but specific event_types
 slack_details="${details//{{newline\}\}/ \\n}" # GP Did this, for some reason
 
