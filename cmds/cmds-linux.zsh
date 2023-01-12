@@ -101,7 +101,7 @@ sysr () {
 		echo "systemctl restart - Usage: sysr [service]"
 		return 1
 	fi
-	_running "systemctl restart $@"
+	_noticebg "systemctl restart $@"
 }
 
 # -- sysrld
@@ -111,7 +111,7 @@ sysrld () {
         echo "systemctl reload - Usage: sysrld [service]"
         return 1
     fi
-    _running "systemctl reload $@"
+    _noticebg "systemctl reload $@"
     systemctl reload $@
 }
 
