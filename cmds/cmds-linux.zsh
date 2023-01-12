@@ -106,7 +106,7 @@ sysr () {
 
 # -- sysrld
 help_linux[sysrld]='Systemctl reload shortcut'
-sysr () {
+sysrld () {
     if [[ -z $@ ]]; then
         echo "systemctl reload - Usage: sysrld [service]"
         return 1
