@@ -121,3 +121,14 @@ gp-motd () {
     # -- inform
     _notice "View more GridPane logs with the command gp-logs"
 }
+
+# -- gp-monit527
+help_gridpane[gp-monit527]="Upgrade monit to 5.27 on aGridPane server"
+gp-monit527 () {
+    systemctl stop monit
+    cd /opt/gridpane/
+    wget https://mmonit.com/monit/dist/binary/5.27.0/monit-5.27.0-linux-x64.tar.gz
+    tar zxvf /opt/gridpane/monit-5.27.0-linux-x64.tar.gz
+    rm /opt/gridpane/monit-5.27.0-linux-x64.tar.gz
+    cp /opt/gridpane/monit-5.27.0/bin/monit /usr/local/bin/
+}
