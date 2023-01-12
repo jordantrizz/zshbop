@@ -92,15 +92,18 @@ gp-duplicacy-audit () {
     duplicacy check -tabular | grep 'all' | awk {' print $1 " "$10 '} | sed 's/gridpane-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-//' | column -t
 }
 
+# gp-logs
 help_gridpane[gp-logs]="Tail GridPane Logs"
 gp-logs () {
-	gridpane_logs=("/var/log/monit.log" "/var/log/gridpane.log")
+	gridpane_logs=("/var/log/gridpane.log" "/var/log/monit.log" "/usr/local/maldetect/logs/event_log" "/var/log/mysql/error.log")
 	if [[ -z $1 ]]; then
 		_error "usage: gp-logs <# of lines>"
+		lines="20"
 	else
+		lines="${1}"
 		for log in $gridpane_logs; do
 			if [[ -f $log ]]; then
-				_notice "---- tail -n ${1} ${log}"
+				_notice "---- tail -n ${lines} ${log}"
 				tail -n ${1} ${log}
 			else
 				_error "Can't find $log"
@@ -109,7 +112,12 @@ gp-logs () {
 	fi
 }
 
+# -- gp-motd
 help_gridpane[gp-motd]="GridPane MOTD"
 gp-motd () {
-	gp-logs
+    # -- monit logs, grab last 10 warnings and errors
+    egrep -i ' warning | error ' /var/log/monit.log | tail -10
+    
+    # -- inform
+    _notice "View more GridPane logs with the command gp-logs"
 }
