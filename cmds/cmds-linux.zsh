@@ -101,7 +101,18 @@ sysr () {
 		echo "systemctl restart - Usage: sysr [service]"
 		return 1
 	fi
-	systemctl restart $@
+	_running "systemctl restart $@"
+}
+
+# -- sysrld
+help_linux[sysrld]='Systemctl reload shortcut'
+sysr () {
+    if [[ -z $@ ]]; then
+        echo "systemctl reload - Usage: sysrld [service]"
+        return 1
+    fi
+    _running "systemctl reload $@"
+    systemctl reload $@
 }
 
 # -- ps-cpu
