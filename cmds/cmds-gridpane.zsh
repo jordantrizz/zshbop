@@ -131,4 +131,6 @@ gp-monit527 () {
     tar zxvf /opt/gridpane/monit-5.27.0-linux-x64.tar.gz
     rm /opt/gridpane/monit-5.27.0-linux-x64.tar.gz
     cp /opt/gridpane/monit-5.27.0/bin/monit /usr/local/bin/
+    systemctl start monit
+    tail -20 /var/log/monit.log
 }
