@@ -275,7 +275,7 @@ software_maldet () {
 
 # -- software_speedtest-cli
 help_software[speedtest-cli]="Speedtest-cli from https://github.com/sivel/speedtest-cli"
-speedtest-cli () {
+software_speedtest-cli () {
 	apt-get install python-pip git
 	pip install speedtest-cli	
 }
