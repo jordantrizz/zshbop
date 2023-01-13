@@ -279,5 +279,3 @@ speedtest-cli () {
 	apt-get install python-pip git
 	pip install speedtest-cli	
 }
-
-apt-get install python-pip git
