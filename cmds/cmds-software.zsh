@@ -284,5 +284,5 @@ software_speedtest-cli () {
 	fi
     wget -O speedtest-cli https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
     chmod +x speedtest-cli
-    sed -i 's/env python/env python3/g' $HOME/bin/speedtest-cli
+    sed -i 's/env python$/env python3/g' $HOME/bin/speedtest-cli
 }
