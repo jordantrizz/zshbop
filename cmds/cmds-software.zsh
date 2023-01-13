@@ -40,8 +40,8 @@ csf-install () {
 }
 
 # -- github-cli - Installs github.com CLI
-help_software[gh-cli]='Installs github.com cli, aka gh'
-software_gh-cli () {
+help_software[gh-cli-deb]='Installs github.com cli, aka gh'
+software_gh-cli-deb () {
 	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
 	sudo apt-add-repository https://cli.github.com/packages
 	sudo apt update
@@ -285,4 +285,24 @@ software_speedtest-cli () {
     wget -O speedtest-cli https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
     chmod +x speedtest-cli
     sed -i 's/env python$/env python3/g' $HOME/bin/speedtest-cli
+}
+
+# -- software_gh-cli-curl
+software_gh-cli-curl () {
+	VERSION=`curl  "https://api.github.com/repos/cli/cli/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-`
+	if [[ ! -f $HOME/tmp ]]; then
+    	mkdir -p $HOME/bin
+	fi
+
+	curl -sSL https://github.com/cli/cli/releases/download/v${VERSION}/gh_${VERSION}_linux_amd64.tar.gz -o $HOME/tmp/gh_${VERSION}_linux_amd64.tar.gz
+	cd $HOME/tmp
+	tar xvf gh_${VERSION}_linux_amd64.tar.gz
+
+	if [[ -f $HOME/bin ]]; then
+	    cd $HOME/bin
+	else
+	    mkdir -p $HOME/bin
+	    cd $HOME/bin
+	fi
+	cp $HOME/tmp/gh_${VERSION}_linux_amd64/bin/gh $HOME/bin
 }
