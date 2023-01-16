@@ -430,7 +430,9 @@ system_check () {
 	
 	# -- check disk space
 	_loading2 "Checking disk space"
-	check_diskspace		
+	check_diskspace
+	_loading2 "Checking block devices"
+	check_diskspace2
 }	
 
 # -- init_motd - initial scripts to run on login

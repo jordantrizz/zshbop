@@ -135,7 +135,6 @@ check_diskspace () {
 	# /run = not requires
 	# wsl = wsl stuffs
 	# /init = wsl stuffs
-	DEVICES=($(lsblk -d -o NAME | grep -v "^loop"))
 	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none' | awk '{ print $5 " " $1 }' )
 	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
 	DISKUSAGE=("${(@f)${DF_COMMAND}}")
@@ -155,7 +154,7 @@ check_diskspace () {
 }
 
 # -- check_diskspace
-help_linux[check_diskspace2]="Check diskspace and warn if full"
+help_linux[check_blockdevices]="Check block devices"
 check_diskspace2 () {
 	OUTPUT=""
     ALERT="98" # alert level
