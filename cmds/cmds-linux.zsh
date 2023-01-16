@@ -197,22 +197,22 @@ ps-mem () {
 help_linux[interfaces]="List interfaces ip, mac and link"
 interfaces () {
 	# Get a list of all network interfaces
-	interfaces=($(ifconfig | cut -d ' ' -f1 | tr ':' '\n' | awk NF))
+	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'| egrep -v 'tunl|sit'))
 
 	# Loop through each interface
 	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
 	for interface in $interfaces; do
 	    # Get IP address
-	    ip=$(ifconfig $interface | grep 'inet ' | awk '{print $2}')
+	    ip=$(ip -4 addr show $interface | grep 'inet ' | awk '{print $2}')
 
 	    # Get MAC address
-	    mac=$(ifconfig $interface | grep 'ether ' | awk '{print $2}')
+	    mac=$(ip -o link show $interface | awk '{print $17}')
 
 	    # Get link speed
-	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
+	    speed=$(ip -o link show $interface | awk '{print $9}')
 
 	    # Print interface information
-	    OUTPUT+="\n$interface $ip $mac $speed"
+		OUTPUT+="\n$interface $ip $mac $speed"
 	done
 	echo -e "$OUTPUT" | column -t
 }
@@ -220,32 +220,33 @@ interfaces () {
 # -- speed-convert
 help_linux[speed-convert]="Convert data speeds"
 speed-convert () {
-	if [[ -z $1 ]] || [ -z $2 ]]; then
-		echo "Usage: speedconvert <unit> <number>"
+	VALUE="$1"
+	UNIT="$2"
+	if [[ -z $VALUE || -z $UNIT ]]; then
+		echo "Usage: speedconvert <speed> <unit>"
 		echo ""
-		echo "  units Mb/s, MB/s, Gb/s, GB/s"
-		echo ""
-		echo "  Example,   ./speedconvert mb/s 1000"
+		echo "  Example,   ./speedconvert 1123 MB/s"
 		echo ""
 	else 
-	# Convert value to bytes/second
-	case $unit in
-		"MB/s") value=$(echo "$value * 1048576" | bc) ;;
-		"MBit/s") value=$(echo "$value * 131072" | bc) ;;
-		"GB/s") value=$(echo "$value * 1073741824" | bc) ;;
-		"GBit/s") value=$(echo "$value * 134217728" | bc) ;;
-	*) echo "Invalid unit" && exit 1
-	esac
+		# Convert value to bytes/second
+		case $UNIT in
+			"MB/s") VALUE=$(echo "$VALUE * 1048576" | bc) ;;
+			"MBit/s") VALUE=$(echo "$VALUE * 131072" | bc) ;;
+			"GB/s") VALUE=$(echo "$VALUE * 1073741824" | bc -l) ;;
+			"GBit/s") VALUE=$(echo "$VALUE * 134217728" | bc -l) ;;
+		*) echo "Invalid unit $UNIT" && return 1
+		esac
 	
-	# Convert value to other units
-	mb_s=$(echo "$value / 1048576" | bc)
-	mbit_s=$(echo "$value / 131072" | bc)
-	gb_s=$(echo "$value / 1073741824" | bc)
-	gbit_s=$(echo "$value / 134217728" | bc)
+		# Convert value to other units
+		mb_s=$(echo "$VALUE / 1048576" | bc)
+		mbit_s=$(echo "$VALUE / 131072" | bc)
+		gb_s=$(echo "scale=4;$VALUE / 1073741824" | bc -l)
+		gbit_s=$(echo "scale=4;$VALUE / 134217728" | bc -l)
 
-	# Print results
-	echo "$mb_s MB/s"
-	echo "$mbit_s MBit/s"
-	echo "$gb_s GB/s"
-	echo "$gbit_s GBit/s"
+		# Print results
+		echo "$mb_s MB/s"
+		echo "$mbit_s MBit/s"
+		echo "$gb_s GB/s"
+		echo "$gbit_s GBit/s"
+	fi
 }
