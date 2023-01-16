@@ -192,3 +192,27 @@ ps-mem () {
 		echo "$PS_FINAL"
 	fi
 }
+
+# -- interfaces
+help_linux[interfaces]="List interfaces ip, mac and link"
+interfaces () {
+	# Get a list of all network interfaces
+	interfaces=($(ifconfig | cut -d ' ' -f1 | tr ':' '\n' | awk NF))
+
+	# Loop through each interface
+	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
+	for interface in $interfaces; do
+	    # Get IP address
+	    ip=$(ifconfig $interface | grep 'inet ' | awk '{print $2}')
+
+	    # Get MAC address
+	    mac=$(ifconfig $interface | grep 'ether ' | awk '{print $2}')
+
+	    # Get link speed
+	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
+
+	    # Print interface information
+	    OUTPUT+="\n$interface $ip $mac $speed"
+	done
+	echo -e "$OUTPUT" | column -t
+}

@@ -451,7 +451,7 @@ init_motd () {
 
 	# -- network interfaces
 	_loading "Network interfaces"
-	ip -br -c addr show
+	interfaces
 
     # -- Show screen sessions
     _loading "Screen Sessions"
