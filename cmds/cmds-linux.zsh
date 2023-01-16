@@ -135,6 +135,7 @@ check_diskspace () {
 	# /run = not requires
 	# wsl = wsl stuffs
 	# /init = wsl stuffs
+	DEVICES=($(lsblk -d -o NAME | grep -v "^loop"))
 	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none' | awk '{ print $5 " " $1 }' )
 	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
 	DISKUSAGE=("${(@f)${DF_COMMAND}}")
@@ -151,6 +152,36 @@ check_diskspace () {
 			_notice "$FIRSTMSG.. - no issue."
 		fi
 	done
+}
+
+# -- check_diskspace
+help_linux[check_diskspace2]="Check diskspace and warn if full"
+check_diskspace2 () {
+	OUTPUT=""
+    ALERT="98" # alert level
+	# Get a list of storage devices
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
+
+	# Loop through each device
+	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
+	for DEVICE in $DEVICES; do
+	    # Get device type
+	    TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
+
+	    # Get device size
+	    SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
+
+	    # Get mount point
+	    MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
+
+	    # Get used percentage
+	  	USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
+
+	    # Print device information
+	    OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
+	done
+	echo -e "$OUTPUT" | column -t
+
 }
 
 # -- ps-mem
