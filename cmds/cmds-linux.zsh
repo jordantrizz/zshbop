@@ -260,23 +260,23 @@ speed-convert () {
 	else 
 		# Convert value to bytes/second
 		case $UNIT in
+			"Mbit/s") VALUE=$(echo "$VALUE * 131072" | bc) ;;
 			"MB/s") VALUE=$(echo "$VALUE * 1048576" | bc) ;;
-			"MBit/s") VALUE=$(echo "$VALUE * 131072" | bc) ;;
+			"Gbit/s") VALUE=$(echo "$VALUE * 134217728" | bc -l) ;;
 			"GB/s") VALUE=$(echo "$VALUE * 1073741824" | bc -l) ;;
-			"GBit/s") VALUE=$(echo "$VALUE * 134217728" | bc -l) ;;
 		*) echo "Invalid unit $UNIT" && return 1
 		esac
 	
 		# Convert value to other units
-		mb_s=$(echo "$VALUE / 1048576" | bc)
 		mbit_s=$(echo "$VALUE / 131072" | bc)
+		mb_s=$(echo "$VALUE / 1048576" | bc)
+        gbit_s=$(echo "scale=4;$VALUE / 134217728" | bc -l)
 		gb_s=$(echo "scale=4;$VALUE / 1073741824" | bc -l)
-		gbit_s=$(echo "scale=4;$VALUE / 134217728" | bc -l)
 
 		# Print results
-		echo "$mb_s MB/s"
 		echo "$mbit_s MBit/s"
-		echo "$gb_s GB/s"
+		echo "$mb_s MB/s"
 		echo "$gbit_s GBit/s"
+		echo "$gb_s GB/s"
 	fi
 }
