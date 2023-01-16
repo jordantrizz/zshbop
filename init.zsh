@@ -420,6 +420,10 @@ system_check () {
 	# -- start
 	_debug_function
 	_banner_yellow "System check"
+	
+    # -- network interfaces
+    _loading "Network interfaces"
+    interfaces
 
 	# -- check swappiness
 	_loading2 "Checking swappiness"
@@ -453,9 +457,9 @@ init_motd () {
     _loading "System details"
 	sysfetch
 
-	# -- network interfaces
-	_loading "Network interfaces"
-	interfaces
+    # -- System check
+    system_check
+    echo ""
 
     # -- Show screen sessions
     _loading "Screen Sessions"
@@ -472,10 +476,6 @@ init_motd () {
 	
 	# -- Check service software versions        
 	init_check_services
-	echo ""
-	
-	# -- System check
-	system_check
 	echo ""
 	
 	# -- Check if GridPane Server
