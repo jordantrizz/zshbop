@@ -216,3 +216,36 @@ interfaces () {
 	done
 	echo -e "$OUTPUT" | column -t
 }
+
+# -- speed-convert
+help_linux[speed-convert]="Convert data speeds"
+speed-convert () {
+	if [[ -z $1 ]] || [ -z $2 ]]; then
+		echo "Usage: speedconvert <unit> <number>"
+		echo ""
+		echo "  units Mb/s, MB/s, Gb/s, GB/s"
+		echo ""
+		echo "  Example,   ./speedconvert mb/s 1000"
+		echo ""
+	else 
+	# Convert value to bytes/second
+	case $unit in
+		"MB/s") value=$(echo "$value * 1048576" | bc) ;;
+		"MBit/s") value=$(echo "$value * 131072" | bc) ;;
+		"GB/s") value=$(echo "$value * 1073741824" | bc) ;;
+		"GBit/s") value=$(echo "$value * 134217728" | bc) ;;
+	*) echo "Invalid unit" && exit 1
+	esac
+	
+	# Convert value to other units
+	mb_s=$(echo "$value / 1048576" | bc)
+	mbit_s=$(echo "$value / 131072" | bc)
+	gb_s=$(echo "$value / 1073741824" | bc)
+	gbit_s=$(echo "$value / 134217728" | bc)
+
+	# Print results
+	echo "$mb_s MB/s"
+	echo "$mbit_s MBit/s"
+	echo "$gb_s GB/s"
+	echo "$gbit_s GBit/s"
+}
