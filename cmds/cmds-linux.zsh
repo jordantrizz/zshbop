@@ -197,7 +197,7 @@ ps-mem () {
 help_linux[interfaces]="List interfaces ip, mac and link"
 interfaces () {
 	# Get a list of all network interfaces
-	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'| egrep -v 'tunl|sit'))
+	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'| egrep -v 'tunl|sit|veth'))
 
 	# Loop through each interface
 	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
