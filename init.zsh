@@ -445,9 +445,13 @@ init_motd () {
     zshbop_migrate-check
     zshbop_previous-version-check
 
-    # --- system details
+    # -- system details
     _loading "System details"
 	sysfetch
+
+	# -- network interfaces
+	_loading "Network interfaces"
+	ip -br -c addr show
 
     # -- Show screen sessions
     _loading "Screen Sessions"
