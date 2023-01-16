@@ -422,6 +422,7 @@ system_check () {
 	_banner_yellow "System check"
 
 	# -- check swappiness
+	_loading2 "Checking swappiness"
 	if [[ -f /proc/sys/vm/swappiness ]]; then
 		_notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
 	else
