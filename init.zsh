@@ -429,6 +429,7 @@ system_check () {
 	fi
 	
 	# -- check disk space
+	_loading2 "Checking disk space"
 	check_diskspace		
 }	
 
