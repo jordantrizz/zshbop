@@ -26,7 +26,7 @@ _banner_green () { echo "$bg[green]$fg[white]${@}${reset_color}" }
 _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${reset_color}" }
 _banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${reset_color}" }
 _loading () { echo "$bg[yellow]$fg[black] * ${@}${reset_color}" }
-_loading2 () { echo "  $bg[bright-grey]$fg[black] ${@} ${reset_color}" }
+_loading2 () { echo "$bg[bright-grey]$fg[black]${@}${reset_color}" }
 alias _loading_grey=_loading2
 
 # -- Text Colors
