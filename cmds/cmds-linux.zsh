@@ -155,11 +155,11 @@ check_diskspace () {
 
 # -- check_diskspace
 help_linux[check_blockdevices]="Check block devices"
-check_diskspace2 () {
+check_blockdevices () {
 	OUTPUT=""
     ALERT="98" # alert level
 	# Get a list of storage devices
-	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop*"))
+	DEVICES=($(lsblk -n -d -o NAME ))
 
 	# Loop through each device
 	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
