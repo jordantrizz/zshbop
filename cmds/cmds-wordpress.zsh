@@ -110,3 +110,7 @@ help_wordpress[wp-doctor]='Install wp-doctor module'
 wp-doctor () {
 	wp package install wp-cli/doctor-command:@stable
 }
+
+# -- wp-skip
+help_wordpress[wp-skip]='wp-cli but skip themes and plugins'
+alias wp-skip="wp --skip-themes --skip-plugins"
