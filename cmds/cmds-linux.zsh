@@ -159,7 +159,7 @@ check_diskspace2 () {
 	OUTPUT=""
     ALERT="98" # alert level
 	# Get a list of storage devices
-	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop*"))
 
 	# Loop through each device
 	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
@@ -227,22 +227,22 @@ ps-mem () {
 help_linux[interfaces]="List interfaces ip, mac and link"
 interfaces () {
 	# Get a list of all network interfaces
-	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'| egrep -v 'tunl|sit|veth'))
+	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'))
 
 	# Loop through each interface
 	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
 	for interface in $interfaces; do
 	    # Get IP address
-	    ip=$(ip -4 addr show $interface | grep 'inet ' | awk '{print $2}')
-
+	    ip=$(ip -o addr show $interface | awk '{print $4}')
+	
 	    # Get MAC address
-	    mac=$(ip -o link show $interface | awk '{print $17}')
+	    mac=$(ip -o link show $interface | awk '{print $6}')
 
 	    # Get link speed
-	    speed=$(ip -o link show $interface | awk '{print $9}')
+	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
 
 	    # Print interface information
-		OUTPUT+="\n$interface $ip $mac $speed"
+	    OUTPUT+="\n$interface $ip $mac $speed"
 	done
 	echo -e "$OUTPUT" | column -t
 }
