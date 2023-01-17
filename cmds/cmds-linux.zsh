@@ -162,7 +162,7 @@ check_blockdevices () {
 	DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
 
 	# Loop through each device
-	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
+	OUTPUT="$fg[cyan]Device Type Size Used% MountPoint${reset_color}"
 	for DEVICE in $DEVICES; do
 	    # Get device type
 	    TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)

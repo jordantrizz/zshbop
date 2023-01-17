@@ -358,30 +358,25 @@ zshbop_debug () {
 # ------------------
 help_zshbop[colors]='List variables for using color'
 zshbop_colors () {
-        _debug_function
-        _loading "Color names"
-        for k in ${color}; do
-		   print -- key: $k
-		done
+    _debug_function
+    _loading "Color names"
+    MAIN_COLORS=""
+    MAIN_COLORS=($(echo ${color[@]} | tr ' ' '\n' | grep -Ev '[0-9]{2}|bg-'))
+	for color in ${MAIN_COLORS[@]}; do
+		echo "$fg[$color] $color $bg[$color] bg_$color $reset_color"
+	done
+	echo ""
+	
+    _loading "How to use color"
+    echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
+    echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
+    echo "  Reset Color: \$reset_color"
+    echo ""
 
-        _loading "How to use color"
-        echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
-        echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
-        echo "  Reset Color: \$reset_color"
-
-        _loading "-- Color Options"
-        _banner_red "_banner_red"
-        _banner_green "_banner_green"
-        _banner_yellow "_banner_yellow"
-        _banner_grey "_banner_grey"
-        _error "_error"
-        _warning "_warning"
-        _success "_success"
-        _notice "_notice"
-		_noticebg "_noticebg" 
-		_noticefg "_noticefg"
-		_loading "_loading"
-		_loading2 "_loading"
+	_loading "Listing all color functions"
+	for func in ${COLOR_FUNCTIONS[@]}; do
+		${=func} "$func"
+	done
 }
 
 # ----------------
