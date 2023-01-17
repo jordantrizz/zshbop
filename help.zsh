@@ -11,11 +11,6 @@
 
 _debug "Loading mypath=${0:a}"
 
-# -- Arrays
-typeset -gA help_files
-typeset -gA help_files_description
-help_categories=()
-
 # -- Help header
 help_sub_header () {
 		echo "----------------------"

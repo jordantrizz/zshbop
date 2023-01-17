@@ -72,10 +72,24 @@ mysql-maxmem() {
 # -- mysql-currentmem
 help_mysql[mysql-currentmem]="Current maximum memory usage"
 mysql-currentmem () {
-	TMP_TABLE_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.tmp_table_size)/1024/1024')
-	KEY_BUFFER_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from@@global.key_buffer_size)/1024/1024')
-	INNODB_BUFFER_POOL_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.innodb_buffer_pool_size)/1024/1024')
-	INNODB_LOG_BUFFER_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.innodb_log_buffer_size)/1024/1024')
+	MYSQL_CMD=""
+	# -- check if we can connect to mysql
+	MYSQL_TEST=$(mysql -e 'show processlist')
+	if [[ $? -ge 1 ]]; then
+		_cexists mysql_config_editor
+		if [[ $? -ge 1 ]]; then
+			_error "Install mysql_config_editor"
+			_error " -- Percona: apt-get install libperconaserverclient20-dev"
+		else
+			mysql_config_editor set --login-path=local --host=localhost --user=root --password
+			MYSQL_CMD="--login-path=local"
+		fi			
+	fi
+	
+	TMP_TABLE_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.tmp_table_size)/1024/1024')
+	KEY_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from@@global.key_buffer_size)/1024/1024')
+	INNODB_BUFFER_POOL_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.innodb_buffer_pool_size)/1024/1024')
+	INNODB_LOG_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.innodb_log_buffer_size)/1024/1024')
 
 	_notice "Not for running on older versions of MySQL"
 	_notice " - innodb_additional_mem_pool_size depreciated in later versions"
@@ -91,15 +105,15 @@ mysql-currentmem () {
 	echo "  aria_pagecache_buffer_size - Usually not enabled so not checked"
 	echo ""
 
-	READ_BUFFER_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@read_buffer_size)/1024')
-	READ_RND_BUFFER_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@read_rnd_buffer_size)/1024')
-	SORT_BUFFER_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@sort_buffer_size)/1024')
-	THREAD_STACK=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@thread_stack)/1024')
-	MYISAM_SORT_BUFFER_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@myisam_sort_buffer_size)/1024')
-	MAX_ALLOWED_PACKET=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@max_allowed_packet)/1024/1024')
-	JOIN_BUFFER_SIZE=$(mysql --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@join_buffer_size)/1024')
-	MAX_CONNECTIONS=$(mysql --skip-column-names --silent --raw -e 'select @@max_connections')
-	MAX_USED_CONNECTIONS=$(mysql --skip-column-names --silent --raw -e 'show global status like "Max_used_connections"'| awk {'print $2'})
+	READ_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@read_buffer_size)/1024')
+	READ_RND_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@read_rnd_buffer_size)/1024')
+	SORT_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@sort_buffer_size)/1024')
+	THREAD_STACK=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@thread_stack)/1024')
+	MYISAM_SORT_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@myisam_sort_buffer_size)/1024')
+	MAX_ALLOWED_PACKET=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@max_allowed_packet)/1024/1024')
+	JOIN_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@join_buffer_size)/1024')
+	MAX_CONNECTIONS=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select @@max_connections')
+	MAX_USED_CONNECTIONS=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'show global status like "Max_used_connections"'| awk {'print $2'})
 
 
 	_loading2 "Per thread * max_connections = ${MAX_CONNECTIONS} & max_used_connections = ${MAX_USED_CONNECTIONS}"
@@ -112,7 +126,7 @@ mysql-currentmem () {
 	echo "  join_buffer_size          = ${JOIN_BUFFER_SIZE} K"
 	echo ""
 
-	mysql -e "select 
+	mysql ${MYSQL_CMD} -e "select 
         # -- GLOBAL_BUFFER_SIZE
         (@@GLOBAL.TMP_TABLE_SIZE + \
         @@GLOBAL.KEY_BUFFER_SIZE + \
@@ -176,10 +190,10 @@ mysql-currentmem () {
         echo ""
         
     _loading2 "Total connection counts"
-    mysql -e 'show global status like "%Max_used%"'
+    mysql ${MYSQL_CMD} -e 'show global status like "%Max_used%"'
 
-    INNODB_IO_CAPACITY=$(mysql --skip-column-names --silent --raw -e 'select @@INNODB_IO_CAPACITY')
-    INNODB_IO_CAPACITY_MAX=$(mysql --skip-column-names --silent --raw -e 'select @@INNODB_IO_CAPACITY_MAX')
+    INNODB_IO_CAPACITY=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select @@INNODB_IO_CAPACITY')
+    INNODB_IO_CAPACITY_MAX=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select @@INNODB_IO_CAPACITY_MAX')
 
     _loading2 "Innodb IO"
     echo " - https://dba.stackexchange.com/a/258935"

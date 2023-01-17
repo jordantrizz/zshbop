@@ -12,12 +12,12 @@ init_path () {
 	_debug_function
 
 	# Default paths to look for
-  export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
-  export PATH=$PATH:$HOME/.local/bin
-  export PATH=$PATH:$HOME/.cargo/bin
+	export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
+	export PATH=$PATH:$HOME/.local/bin
+	export PATH=$PATH:$HOME/.cargo/bin
         
-  # Extra software
-  export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
+	# Extra software
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
@@ -388,25 +388,57 @@ init_check_services () {
 
 	# - mysql	    
 	if (( $+commands[mysqld] )); then
-		_success $(mysqld --version)
+		_success "MySQL: $(mysqld --version)"
 	else
 		_error "MySQL Server not installed"
 	fi
 	
 	# - nginx
 	if (( $+commands[nginx] )); then
-		_success $(nginx --version)
+		_success "Nginx: $(nginx -v 2>&1 >/dev/null)"
 	else
 		_error "Nginx not installed"
 	fi
 	
 	# - Openlitespeed
 	if (( $+commands[openlitespeed] )); then
-		_success $(openlitespeed -v)
+		_success "OLS: $(openlitespeed -v)"
 	else
 		_error "Openlitespeed not installed"
 	fi        
+	
+	# - Redis
+	if (( $+commands[redis-server] )); then
+        _success "Redis: $(redis-server --version)"
+    else
+        _error "Redis not installed"
+    fi
 }
+
+# -- system_check - check usualy system stuff
+system_check () {
+	# -- start
+	_debug_function
+	_banner_yellow "System check"
+	
+    # -- network interfaces
+    _loading "Network interfaces"
+    interfaces
+
+	# -- check swappiness
+	_loading2 "Checking swappiness"
+	if [[ -f /proc/sys/vm/swappiness ]]; then
+		_notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+	else
+		_error "Can't find swap"
+	fi
+	
+	# -- check disk space
+	_loading2 "Checking disk space"
+	check_diskspace
+	_loading2 "Checking block devices"
+	check_diskspace2
+}	
 
 # -- init_motd - initial scripts to run on login
 init_motd () {
@@ -421,25 +453,46 @@ init_motd () {
     zshbop_migrate-check
     zshbop_previous-version-check
 
-    # --- system details
+    # -- system details
     _loading "System details"
 	sysfetch
+
+    # -- System check
+    system_check
+    echo ""
 
     # -- Show screen sessions
     _loading "Screen Sessions"
     _cexists screen
     if [[ $? == "0" ]]; then
-    	_success $(screen -list)
+    	_success "$(screen -list)"
     else
     	_error "** Screen not installed"
     fi
 
     # -- Running system checklist
 	init_check_software
+	echo ""
 	
 	# -- Check service software versions        
 	init_check_services
-
+	echo ""
+	
+	# -- Check if GridPane Server
+	if [[ -f /root/grid.id ]]; then
+		_loading "Running GridPane CP - type help gridpane for more commands"
+		gp-motd
+	fi
+	
+	# -- Host MOTD
+	_cexists host_motd
+	if [[ $? == "0" ]]; then
+		_loading "Found host motd"
+		host_motd
+	else
+		_notice "No host motd"
+	fi
+	
     # -- last echo to keep motd clean
     echo ""
 }

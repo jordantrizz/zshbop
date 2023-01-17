@@ -4,6 +4,8 @@
 
 # Cloud Init Setup
 ## Ubuntu 20 Template Setup
+* local-lvm is your lvm storage in proxmox
+* list vm config ```qm config 9000```
 ```
 wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
 qm create 9000 --memory 2048 --net0 virtio,bridge=vmbr0
@@ -82,7 +84,7 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * joe /etc/postfix/main.cf
 ```
 smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
-``
+```
 * systemctl restart postfix
 
 # Advanced Actions

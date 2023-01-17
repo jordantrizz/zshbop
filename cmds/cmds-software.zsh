@@ -40,8 +40,8 @@ csf-install () {
 }
 
 # -- github-cli - Installs github.com CLI
-help_software[gh-cli]='Installs github.com cli, aka gh'
-software_gh-cli () {
+help_software[gh-cli-deb]='Installs github.com cli, aka gh'
+software_gh-cli-deb () {
 	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
 	sudo apt-add-repository https://cli.github.com/packages
 	sudo apt update
@@ -156,6 +156,8 @@ php-install () {
 	echo "yum install php74-{php-recode,php-snmp,php-pecl-apcu,php-ldap,php-pecl-memcached,php-imap,php-odbc,php-xmlrpc,php-intl,php-process,php-pecl-igbinary,php-pear,php-pecl-imagick,php-tidy,php-pspell,php-pdo,php-pecl-mcrypt,php-soap,php-mbstring,php-mysqli}"
 	_banner_green "For Ubuntu"
 	echo "apt-get install php74-{mbstring,mysql}"
+	_banner_green "For Ubuntu and Litespeed"
+	echo "apt-get install lsphp81-{recode,snmp,pecl-apcu,ldap,pecl-memcached,imap,odbc,xmlrpc,intl,process,pecl-igbinary,pear,pecl-imagick,tidy,pspell,pdo,pecl-mcrypt,soap,mbstring,mysqli}"
 }
 
 # -- aws-cli
@@ -238,7 +240,7 @@ b2_download () {
 }	
 
 # -- powershell
-help_software[b2]="Powershell for Linux"
+help_software[powershell]="Powershell for Linux"
 _cexists pwsh
 if [[ $? -ge "1" ]]; then
 	alias pwsh=powershell_download
@@ -259,4 +261,48 @@ powershell_download () {
 	sudo apt-get update
 	# Install PowerShell
 	sudo apt-get install -y powershell
+}
+
+# -- maldet
+help_software[maldet]="Maldet malware scanner from https://www.rfxn.com"
+software_maldet () {
+	mkdir -p $TMP/maldetect-current
+	wget -q -O $TMP/maldetect-current.tar.gz https://www.rfxn.com/downloads/maldetect-current.tar.gz
+	tar -zxvf $TMP/maldetect-current.tar.gz --directory maldetect-current --strip-components 1
+	cd $TMP/maldetect-current
+	./install.sh
+}
+
+# -- software_speedtest-cli
+help_software[speedtest-cli]="Speedtest-cli from https://github.com/sivel/speedtest-cli"
+software_speedtest-cli () {
+	if [[ -f $HOME/bin ]]; then
+		cd $HOME/bin
+	else
+		mkdir $HOME/bin
+		cd $HOME/bin
+	fi
+    wget -O speedtest-cli https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
+    chmod +x speedtest-cli
+    sed -i 's/env python$/env python3/g' $HOME/bin/speedtest-cli
+}
+
+# -- software_gh-cli-curl
+software_gh-cli-curl () {
+	VERSION=`curl  "https://api.github.com/repos/cli/cli/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-`
+	if [[ ! -f $HOME/tmp ]]; then
+    	mkdir -p $HOME/bin
+	fi
+
+	curl -sSL https://github.com/cli/cli/releases/download/v${VERSION}/gh_${VERSION}_linux_amd64.tar.gz -o $HOME/tmp/gh_${VERSION}_linux_amd64.tar.gz
+	cd $HOME/tmp
+	tar xvf gh_${VERSION}_linux_amd64.tar.gz
+
+	if [[ -f $HOME/bin ]]; then
+	    cd $HOME/bin
+	else
+	    mkdir -p $HOME/bin
+	    cd $HOME/bin
+	fi
+	cp $HOME/tmp/gh_${VERSION}_linux_amd64/bin/gh $HOME/bin
 }

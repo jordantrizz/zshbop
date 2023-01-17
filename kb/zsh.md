@@ -106,22 +106,6 @@ If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring
 * file1 -ot file2 = true if file1 exists and is older than file2.
 * file1 -ef file2 = true if file1 and file2 exist and refer to the same file.
 
-# Associatve Arrays
-* See https://scriptingosx.com/2019/11/associative-arrays-in-zsh/
-## Example 1
-```
-userinfo=( name armin shell zsh website scriptingosx.com )
-userinfo=( [name]=armin [shell]=zsh [website]="scriptingosx.com" )
-% userinfo=( [name]=beth [shell]=zsh )
-% if [[ -z $userinfo[website] ]]; then echo no value; fi
-no value
-```
-## Example 2
-```
-typeset -gA help_files
-help_files[kb]='knowledge base'
-``
-
 # Execute Function in a Variable
 ```
 ARGS="-auwxxf"
@@ -137,6 +121,66 @@ foo () {
 }
 zsh$
 ```
+# for/do loop
+```
+for <item> in <list of items>
+do
+    <command to run>
+done
+```
+# while/do loop
+```
+
+
+#!/bin/bash
+
+# This generates a file every 5 minutes
+
+while true; do
+touch pic-`date +%s`.jpg
+sleep 300
+done
+```
+
+# Dealing with Arrays
+## Add to array
+```
+ARRAY=()
+ARRAY+=('foo')
+ARRAY+=('bar')
+
+### Iterate through Array
+```
+array=(a b c d)
+
+for element in "${array[@]}"; do
+  echo $element
+done
+```
+
+## String to Array
+```
+${(@f)SOME_VARIABLE}
+```
+
+## Associatve Arrays
+* See https://scriptingosx.com/2019/11/associative-arrays-in-zsh/
+### Example 1
+```
+userinfo=( name armin shell zsh website scriptingosx.com )
+userinfo=( [name]=armin [shell]=zsh [website]="scriptingosx.com" )
+% userinfo=( [name]=beth [shell]=zsh )
+% if [[ -z $userinfo[website] ]]; then echo no value; fi
+no value
+```
+### Example 2
+```
+typeset -gA help_files
+help_files[kb]='knowledge base'
+
+--------------------- 
+CODE SNIPPETS
+---------------------
 
 # Code Snippets Large
 
@@ -161,13 +205,6 @@ You have to be the one to decide whether you want install_cmd to allow full shel
 
 ```
 
-## Add to array
-```
-ARRAY=()
-ARRAY+=('foo')
-ARRAY+=('bar')
-```
-
 ## Colors
 * PS1=$'\e[0;31m$ \e[0m'
 * https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -185,7 +222,8 @@ zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
 (( verbosity = $#flag_v - $#flag_q ))
 
 ```
-# -- Variables
+## -- Variables
+```
 zparseopts -D -E h=help -help=help t+:=title o+:=opts r=result -result=result a=arrow -arrow=arrow
 
 title=$title[2]
@@ -194,8 +232,9 @@ result=$result[2]
 arrow=$arrow[2]
 
 IFS=$'\n' opts=($(echo "$opts" | tr "|" "\n"))
-
-# -- Functions
+```
+## -- Functions
+```
 usage () {
         echo "Usage: listbox [options]"
         echo "Example:"

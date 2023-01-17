@@ -27,13 +27,33 @@
 ## PHPMyAdmin SSL
 * gp site phpma -ssl-renewal
 
-## Monit
-### Run Monit Check for SSL Renewals
+## Unlock Renewal Failures
+Below is an example using gridpane.com
+```
+cd cd /var/www/gridpane.com/logs
+rm examplewebsite.com-ssl_fail-1.date
+rm examplewebsite.com-ssl_fail-2.date
+examplewebsite.com-ssl_fail-3.date
+```
+
+# Monit
+Change all monit settings via gpmonit https://gridpane.com/kb/configure-monit-with-gp-cli/
+## Run Monit Check for SSL Renewals
 * gp site monit -ssl-renewal
-### Run Monit Check for MySQL
+## Run Monit Check for MySQL
 * gpmonit mysql
-### Change GridPane Monit Alert and Restart
-* gpmonit mysql -mem-high-mb 900 -mem-restart-mb 1024 
+## Change monit Alert and Restart for MySQL
+```
+gpmonit mysql -mem-high-mb 900 -mem-restart-mb 1024
+```
+## Change monit Alert and Restart for Redis
+```
+gpmonit redis \
+-cpu-warning-percent 120 -cpu-warning-cycles 10 \
+-cpu-restart-percent 160 -cpu-restart-cycles 5 \
+-mem-high-mb 907 -mem-high-cycles 10 \
+-mem-restart-mb 1207 -mem-restart-cycles 10
+```
 
 # MySQL
 ## MySQL Service Control
@@ -77,12 +97,21 @@ The default values are specified below, however the full list is at https://grid
 MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
 * gp mysql restart
 
-# Redis
+# Redis Page Cache
 ## Redis Cache Expiry
 * gp stack nginx redis -site-cache-valid {accepted.value} {site.url}
 
 ## Clear Site Redis Full Page Cache
 * gp fix cache cached site.com
+
+# Redis Object Cache
+## Change Redis maxmemory
+* https://gridpane.com/kb/configure-redis/
+The below example will set the redis maxmemory to 300MB
+```
+gp stack redis -max-memory 300
+
+```
 
 # PHP
 ## Change PHP Settings
@@ -155,3 +184,4 @@ Enable server wide
 
 # Create Vanilla Nginx Config
 * gp conf nginx generate https-vanilla site.com
+

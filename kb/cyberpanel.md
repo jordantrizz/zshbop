@@ -26,3 +26,6 @@
 12. Enter the given user:hash into the htpasswd file then save and close
 13. Set permissions to the file by typing "chmod +rwx htpasswd"
 14. Done
+
+# Change PHP Settings per Site
+* See openlitespeed KB
