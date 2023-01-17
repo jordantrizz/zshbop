@@ -159,7 +159,7 @@ check_blockdevices () {
 	OUTPUT=""
     ALERT="98" # alert level
 	# Get a list of storage devices
-	DEVICES=($(lsblk -n -d -o NAME ))
+	DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
 
 	# Loop through each device
 	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
