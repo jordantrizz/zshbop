@@ -64,7 +64,7 @@ USAGE=\
     home                             - Install in home directory
     git                              - Install in ~/git with dev branch
     custom <branch> <location>		 - Custom install
-                                            branch   - m=main d=dev
+                                            branch   - m=main d=dev b=bleeding
                                             location - h=home s=system g=~/git
                    
 Version: ${VERSION}
@@ -137,7 +137,7 @@ install_method() {
 	elif [ $INSTALL == "c" ]; then
 	        echo "Do you want to install system wide or home only? (s/h)"
 	        read INSTALL_LOCATION
-	        echo "(d)ev or (m)ain Branch? (d/m)"
+	        echo "Branch (m)ain, (d)ev, (b)leeding Branch? (d/m/b)"
 	        read BRANCH
 	fi
 }
@@ -147,9 +147,11 @@ clone_repository() {
         if ! [ -d $1 ];then
                 _running "Start Cloning repository into $1..."
                 if [[ $BRANCH == "d" ]]; then
-                        git clone --branch dev https://github.com/jordantrizz/zshbop.git $1
+                    git clone --branch dev https://github.com/jordantrizz/zshbop.git $1
                 elif [[ $BRANCH == "m" ]]; then
-                        git clone https://github.com/jordantrizz/zshbop.git $1
+                    git clone https://github.com/jordantrizz/zshbop.git $1
+                elif [[ $BRANCH == "b" ]]; then
+                	git clone --branch bleeding https://github.com/jordantrizz/zshbop.git $1
 				fi
 				if [[ $? -ge "1" ]]; then
 					_error "Cloning failed"

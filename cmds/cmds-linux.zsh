@@ -101,7 +101,18 @@ sysr () {
 		echo "systemctl restart - Usage: sysr [service]"
 		return 1
 	fi
-	systemctl restart $@
+	_noticebg "systemctl restart $@"
+}
+
+# -- sysrld
+help_linux[sysrld]='Systemctl reload shortcut'
+sysrld () {
+    if [[ -z $@ ]]; then
+        echo "systemctl reload - Usage: sysrld [service]"
+        return 1
+    fi
+    _noticebg "systemctl reload $@"
+    systemctl reload $@
 }
 
 # -- ps-cpu
@@ -114,4 +125,158 @@ ps-cpu () {
 help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
 usedspace () {
 	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
+}
+
+# -- check_diskspace
+help_linux[check_diskspace]="Check diskspace and warn if full"
+check_diskspace () {
+	ALERT="98" # alert level 
+	# :\\ = wsl drive letters
+	# /run = not requires
+	# wsl = wsl stuffs
+	# /init = wsl stuffs
+	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none' | awk '{ print $5 " " $1 }' )
+	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
+	DISKUSAGE=("${(@f)${DF_COMMAND}}")
+	for OUT in ${DISKUSAGE[@]}; do
+		PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
+		PARTITION=$(echo "$OUT" | awk '{ print $2 }' )
+		FIRSTMSG="Checking $PARTITION with $PERCENTAGE%"
+		
+		# - Check percentage and then alert.
+		if [[ $PERCENTAGE -ge $ALERT ]]; then
+			_notice "$FIRSTMSG.."
+    		_error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
+		else
+			_notice "$FIRSTMSG.. - no issue."
+		fi
+	done
+}
+
+# -- check_diskspace
+help_linux[check_blockdevices]="Check block devices"
+check_diskspace2 () {
+	OUTPUT=""
+    ALERT="98" # alert level
+	# Get a list of storage devices
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
+
+	# Loop through each device
+	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
+	for DEVICE in $DEVICES; do
+	    # Get device type
+	    TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
+
+	    # Get device size
+	    SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
+
+	    # Get mount point
+	    MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
+
+	    # Get used percentage
+	  	USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
+
+	    # Print device information
+	    OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
+	done
+	echo -e "$OUTPUT" | column -t
+
+}
+
+# -- ps-mem
+help_linux[ps-mem]="List processes with human readable memory"
+ps-mem () {
+	# PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
+	PS_OUTPUT=$(ps -afu)
+	PS_AWK=$(echo $PS_OUTPUT | awk 'BEGIN{ORS=""} NR>1 {$5=int($5/1024)"M"; $6=int($6/1024)"M"; print $1"\t\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t";out="";for(i=11;i<=NF;i++){out=out" "$i};print out;print "\n"}')
+	#PS_AWK=$(echo $PS_OUTPUT | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
+	#PS_HEADER=$(echo "$PS_OUTPUT" | head -1)
+	PS_HEAD="USER\t\tPID\t%CPU\t%MEM\tVSZ\tRSS\tTTY\tSTAT\tSTART\tTIME\tCOMMAND"
+	PS_SEPARATOR="-----------------------------------------------------------------------------------------------"
+	PS_HEADER="$PS_SEPARATOR\n$PS_HEAD\n$PS_SEPARATOR"
+	# - add header
+	i=0
+	#PS_FINAL="$PS_AWK"
+	PS_AWK2=(${(@f)PS_AWK})
+	#PS_FINAL=$PS_AWK2
+	#PS_AWK2=(${(s:\n:)PS_AWK})
+	#PS_AWK2=$(echo $PS_AWK | tr '\n' '\n')
+	#read -A PS_AWK2 <<< "$PS_AWK"
+	unset PS_FINAL
+	for LINE in ${PS_AWK2[@]}; do
+		PS_FINAL+="$LINE\n"
+		if [[ $i == "15" ]]; then
+			PS_FINAL+="$PS_HEADER\n"
+			i=0
+		fi
+		i=$((i+1))
+	done;
+
+	# - print results
+	if [[ -n $1 ]]; then
+		_notice "Grep'ing for $1"
+		echo "$PS_HEADER"
+		echo "$PS_FINAL" | \grep -a ${1}
+	else
+		echo "$PS_HEADER"
+		echo "$PS_FINAL"
+	fi
+}
+
+# -- interfaces
+help_linux[interfaces]="List interfaces ip, mac and link"
+interfaces () {
+	# Get a list of all network interfaces
+	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'| egrep -v 'tunl|sit|veth'))
+
+	# Loop through each interface
+	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
+	for interface in $interfaces; do
+	    # Get IP address
+	    ip=$(ip -4 addr show $interface | grep 'inet ' | awk '{print $2}')
+
+	    # Get MAC address
+	    mac=$(ip -o link show $interface | awk '{print $17}')
+
+	    # Get link speed
+	    speed=$(ip -o link show $interface | awk '{print $9}')
+
+	    # Print interface information
+		OUTPUT+="\n$interface $ip $mac $speed"
+	done
+	echo -e "$OUTPUT" | column -t
+}
+
+# -- speed-convert
+help_linux[speed-convert]="Convert data speeds"
+speed-convert () {
+	VALUE="$1"
+	UNIT="$2"
+	if [[ -z $VALUE || -z $UNIT ]]; then
+		echo "Usage: speedconvert <speed> <unit>"
+		echo ""
+		echo "  Example,   ./speedconvert 1123 MB/s"
+		echo ""
+	else 
+		# Convert value to bytes/second
+		case $UNIT in
+			"Mbit/s") VALUE=$(echo "$VALUE * 131072" | bc) ;;
+			"MB/s") VALUE=$(echo "$VALUE * 1048576" | bc) ;;
+			"Gbit/s") VALUE=$(echo "$VALUE * 134217728" | bc -l) ;;
+			"GB/s") VALUE=$(echo "$VALUE * 1073741824" | bc -l) ;;
+		*) echo "Invalid unit $UNIT" && return 1
+		esac
+	
+		# Convert value to other units
+		mbit_s=$(echo "$VALUE / 131072" | bc)
+		mb_s=$(echo "$VALUE / 1048576" | bc)
+        gbit_s=$(echo "scale=4;$VALUE / 134217728" | bc -l)
+		gb_s=$(echo "scale=4;$VALUE / 1073741824" | bc -l)
+
+		# Print results
+		echo "$mbit_s MBit/s"
+		echo "$mb_s MB/s"
+		echo "$gbit_s GBit/s"
+		echo "$gb_s GB/s"
+	fi
 }

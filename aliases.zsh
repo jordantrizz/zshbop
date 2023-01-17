@@ -49,7 +49,17 @@ alias yabs='yabs.sh'
 # -- Screen
 alias screen="screen -c $ZSHBOP_ROOT/.screenrc"
 alias screens="screen -list"
+alias scrl="screen -list"
+alias scra="screen -r $1"
+function scrc {
+	screen -dmS ${1}
+	screen -rd ${1}
+}
 
 # - ssh
 alias sshc="ssh-connect"
 function sshr { ssh root@$1 }
+
+# - Litespeed
+alias lsphp74="/usr/local/lsws/lsphp74/bin/php"
+alias lsphp81="/usr/local/lsws/lsphp81/bin/php"
