@@ -116,8 +116,12 @@ gp-logs () {
 help_gridpane[gp-motd]="GridPane MOTD"
 gp-motd () {
     # -- monit logs, grab last 10 warnings and errors
+    _loading2 "Last 10 monit warnings and errors"
     egrep -i ' warning | error ' /var/log/monit.log | tail -10
-    
+
+    _loading2 "Last 5 Maldet scans"
+    gp-maldet-scans | tail -5
+
     # -- inform
     _notice "View more GridPane logs with the command gp-logs"
 }
@@ -133,4 +137,13 @@ gp-monit527 () {
     cp /opt/gridpane/monit-5.27.0/bin/monit /usr/local/bin/
     systemctl start monit
     tail -20 /var/log/monit.log
+}
+
+# -- gp-maldet-scans
+help_gridpane[gp-maldet-scans]="Grab maldet scans from GridPane log."
+gp-maldet-scans () {
+    if [[ -f /opt/gridpane/maldet-all-sites-scan.log ]]; then
+        MALDET_LOG_FILE="/opt/gridpane/maldet-all-sites-scan.log"
+        awk '/HOST:/ { host=$2 } /STARTED:/ { started=$2 } /ELAPSED:/ { elapsed=$2 } /TOTAL HITS:/ { hits=$3 }  { print " Host: "host " Started: " started " Elapsed: " elapsed " Hits: " hits }' ${MALDET_LOG_FILE}
+    fi
 }

@@ -17,7 +17,10 @@ _debug " -- Loading ${(%):-%N}"
 # -- maldet-log
 help_logs[maldet-log]='Print out maldet scans from log file in a single line.'
 maldet-scans () {
-    awk '/HOST:/ { host=$2 } /STARTED:/ { started=$2 } /ELAPSED:/ { elapsed=$2 } /TOTAL HITS:/ { hits=$3 }  { print " Host: "host " Started: " started " Elapsed: " elapsed " Hits: " hits }' /opt/gridpane/maldet-all-sites-scan.log | tail -10
+    if [[ -f /usr/local/maldetect/logs/event_log ]]; then
+        MALDET_LOG_FILE="/usr/local/maldetect/logs/event_log"
+    elseif [[ -f /]]        
+    grep 'scan completed on :' ${MALDET_LOG_FILE}
 }
 
 
