@@ -13,6 +13,9 @@ git push
 
 ```git config core.sshCommand "ssh -i ~/.ssh/id_rsa_example -F /dev/null"```
 
+# How To
+# Remove last git commit
+```git reset --hard HEAD^ ```
 # How to Ammened a commit
 * https://www.burntfen.com/2015-10-30/how-to-amend-a-commit-on-a-github-pull-request
 ```
