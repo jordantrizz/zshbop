@@ -19,8 +19,6 @@ help_logs[maldet-log]='Print out maldet scans from log file in a single line.'
 maldet-scans () {
     if [[ -f /usr/local/maldetect/logs/event_log ]]; then
         MALDET_LOG_FILE="/usr/local/maldetect/logs/event_log"
-    elseif [[ -f /]]        
+    fi     
     grep 'scan completed on :' ${MALDET_LOG_FILE}
 }
-
-
