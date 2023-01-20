@@ -146,7 +146,7 @@ check_diskspace () {
 		# - Check percentage and then alert.
 		if [[ $PERCENTAGE -ge $ALERT ]]; then
 			_notice "$FIRSTMSG.."
-    		_error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
+    		echo "$fg[white]$bg[red]Space issue on ${PARTITION} (${PERCENTAGE}%)${reset_color}"
 		else
 			_notice "$FIRSTMSG.. - no issue."
 		fi
