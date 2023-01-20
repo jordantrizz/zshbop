@@ -135,18 +135,19 @@ check_diskspace () {
 	# /run = not requires
 	# wsl = wsl stuffs
 	# /init = wsl stuffs
-	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|udev' | awk '{ print $5 " " $1 }' )
+	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|udev' | awk '{ print $5 " " $1 " " $6}' )
 	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
 	DISKUSAGE=("${(@f)${DF_COMMAND}}")
 	for OUT in ${DISKUSAGE[@]}; do
 		PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
 		PARTITION=$(echo "$OUT" | awk '{ print $2 }' )
+        MOUNT=$(echo "$OUT" | awk '{ print $3 }' )
 		FIRSTMSG="Checking $PARTITION with $PERCENTAGE%"
 		
 		# - Check percentage and then alert.
 		if [[ $PERCENTAGE -ge $ALERT ]]; then
 			_notice "$FIRSTMSG.."
-    		echo "$fg[white]$bg[red]Space issue on ${PARTITION} (${PERCENTAGE}%)${reset_color}"
+    		echo "$fg[white]$bg[red]Space issue on ${PARTITION} (${PERCENTAGE}%) mounted as ${MOUNT}${reset_color}"
 		else
 			_notice "$FIRSTMSG.. - no issue."
 		fi
