@@ -9,7 +9,7 @@
 VERSION="0.0.2"
 SKIPDEP="0"
 HELP="0"
-required_tools=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe')
+REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe')
 
 # -- Colors
 RED="\033[0;31m"
@@ -27,21 +27,10 @@ ECOL="\033[0;0m"
 # ------------
 
 # -- _error
-_error () {
-    echo -e "${RED}** ERROR ** - $@ ${ECOL}"
-}
-
-_warning () {
-    echo -e "${YELLOW}** ERROR ** - $@ ${ECOL}"
-}
-
-_success () {
-    echo -e "${GREEN}** SUCCESS ** - $@ ${ECOL}"
-}
-
-_running () {
-    echo -e "${BLUEBG}${@}${ECOL}"
-}
+_error () { echo -e "${RED}** ERROR ** - $@ ${ECOL}"; }
+_warning () { echo -e "${YELLOW}** ERROR ** - $@ ${ECOL}"; }
+_success () { echo -e "${GREEN}** SUCCESS ** - $@ ${ECOL}"; }
+_running () { echo -e "${BLUEBG}${@}${ECOL}"; }
 
 
 # ------------
@@ -75,17 +64,22 @@ echo "$USAGE"
 # -- flight_check
 flight_check() {
    # Checking if zsh is installed
-   _running "Checking if required tools are installed"
-	for tool in ${required_tools[@]}; do
+   _running "Checking if required software are installed"
+	for tool in ${REQUIRE_SOFTWARE[@]}; do
         	if ! [ -x "$(command -v $tool)" ]; then
                 	_error "$tool is not installed."
-                	pkg_install $tool
+                	TOOLS_INSTALL+="$tool"
 	        else
         	        TOOL_PATH=`which $tool`
 	                _success "$tool is installed in $TOOL_PATH"
 	        fi
 	done
-	return        
+	if [[ -z TOOLS_INSTALL ]]; then
+		_success "Not need to install any software"
+	else
+		_loading "Installing required tools."
+		apt-get install -y --no-install-recommends $TOOLS_INSTALL
+	return
 }
 
 # -- check_zsh_default
@@ -196,12 +190,6 @@ setup_system() {
 		_error " - $SYSTEM/zshbop already exists\n"
 		exit 1
 	fi
-	# Uncommented for now, need to review
-	#echo -e " - Detecting OS and installing for all system users"
-	#if [ -f /etc/debian_version ]; then
-	#	echo -e " -- Detected Debian/Ubuntu OS"		
-	#fi
-	#echo "This is broken and needs to be fixed! and should probably be in /usr/share/zshbop?"
 	
 	_running "Copying $SYSTEM/zshbop/.zshrc into ~/"
 	cp $SYSTEM/zshbop/.zshrc ~/.zshrc
