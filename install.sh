@@ -64,11 +64,12 @@ echo "$USAGE"
 # -- flight_check
 flight_check() {
    # Checking if zsh is installed
+   TOOLS_INSTALL=('')
    _running "Checking if required software are installed"
-	for tool in ${REQUIRE_SOFTWARE[@]}; do
+	for tool in ${REQUIRED_SOFTWARE[@]}; do
         	if ! [ -x "$(command -v $tool)" ]; then
                 	_error "$tool is not installed."
-                	TOOLS_INSTALL+="$tool"
+                	TOOLS_INSTALL+=("$tool")
 	        else
         	        TOOL_PATH=`which $tool`
 	                _success "$tool is installed in $TOOL_PATH"
@@ -77,8 +78,10 @@ flight_check() {
 	if [[ -z TOOLS_INSTALL ]]; then
 		_success "Not need to install any software"
 	else
-		_loading "Installing required tools."
-		apt-get install -y --no-install-recommends $TOOLS_INSTALL
+		_running "Installing required tools...${TOOLS_INSTALL[@]}"
+		apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"
+		
+	fi
 	return
 }
 
