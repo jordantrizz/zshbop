@@ -1,4 +1,4 @@
-71# --
+# --
 # Ubuntu commands
 #
 # Example help: help_wordpress[wp]='Generate phpinfo() file'
