@@ -48,6 +48,14 @@ zshbop_cacheclear () {
 	rm -f ~/.zshrc.zwc
 }
 
+# -- zshbop_scc
+alias scc="zshbop_scc"
+help_zshbop[zshbop_scc]='Clear everything, including zsh autocompletion'
+zshbop_scc () {
+    _loading "Clearing rm ~/.zcompdump*"
+    rm -f ~/.zcompdump*
+}
+
 # -------------------
 # -- zshbop_reload ()
 # --

@@ -135,19 +135,18 @@ check_diskspace () {
 	# /run = not requires
 	# wsl = wsl stuffs
 	# /init = wsl stuffs
-	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|udev' | awk '{ print $5 " " $1 " " $6}' )
+	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none' | awk '{ print $5 " " $1 }' )
 	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
 	DISKUSAGE=("${(@f)${DF_COMMAND}}")
 	for OUT in ${DISKUSAGE[@]}; do
 		PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
 		PARTITION=$(echo "$OUT" | awk '{ print $2 }' )
-        MOUNT=$(echo "$OUT" | awk '{ print $3 }' )
 		FIRSTMSG="Checking $PARTITION with $PERCENTAGE%"
 		
 		# - Check percentage and then alert.
 		if [[ $PERCENTAGE -ge $ALERT ]]; then
 			_notice "$FIRSTMSG.."
-    		echo "$fg[white]$bg[red]Space issue on ${PARTITION} (${PERCENTAGE}%) mounted as ${MOUNT}${reset_color}"
+    		_error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
 		else
 			_notice "$FIRSTMSG.. - no issue."
 		fi
@@ -156,14 +155,14 @@ check_diskspace () {
 
 # -- check_diskspace
 help_linux[check_blockdevices]="Check block devices"
-check_blockdevices () {
+check_diskspace2 () {
 	OUTPUT=""
     ALERT="98" # alert level
 	# Get a list of storage devices
-	DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
 
 	# Loop through each device
-	OUTPUT="$fg[cyan]Device Type Size Used% MountPoint${reset_color}"
+	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
 	for DEVICE in $DEVICES; do
 	    # Get device type
 	    TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
@@ -222,30 +221,6 @@ ps-mem () {
 		echo "$PS_HEADER"
 		echo "$PS_FINAL"
 	fi
-}
-
-# -- interfaces
-help_linux[interfaces]="List interfaces ip, mac and link"
-interfaces () {
-	# Get a list of all network interfaces
-	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'))
-
-	# Loop through each interface
-	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
-	for interface in $interfaces; do
-	    # Get IP address
-	    ip=$(ip -o addr show $interface | awk '{print $4}')
-	
-	    # Get MAC address
-	    mac=$(ip -o link show $interface | awk '{print $6}')
-
-	    # Get link speed
-	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
-
-	    # Print interface information
-	    OUTPUT+="\n$interface $ip $mac $speed"
-	done
-	echo -e "$OUTPUT" | column -t
 }
 
 # -- speed-convert
