@@ -436,7 +436,6 @@ system_check () {
 	# -- check disk space
 	_loading2 "Checking disk space on $MACHINE_OS"
 	check_diskspace
-	echo $MACHINE_OS
 
 	# -- check block devices
 	_loading2 "Checking block devices"
