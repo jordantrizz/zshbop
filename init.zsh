@@ -434,8 +434,10 @@ system_check () {
 	fi
 	
 	# -- check disk space
-	_loading2 "Checking disk space"
+	_loading2 "Checking disk space on $MACHINE_OS"
 	check_diskspace
+
+	# -- check block devices
 	_loading2 "Checking block devices"
 	check_blockdevices
 }	

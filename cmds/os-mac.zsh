@@ -32,6 +32,11 @@ auto-ls-ls () {
 	echo ""
 }
 
+# -- check_diskspace
+check_diskspace_mac () {
+	check_diskspace_linux
+}
+
 # -- interfaces
 interfaces_mac () {
     # Get a list of all network interfaces
