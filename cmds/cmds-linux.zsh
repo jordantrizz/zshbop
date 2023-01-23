@@ -154,7 +154,7 @@ check_diskspace () {
 }
 
 # -- check_diskspace
-help_linux[check_blockdevices]="Check block devices"
+help_linux[check_diskspace2]="Check diskspace2"
 check_diskspace2 () {
 	OUTPUT=""
     ALERT="98" # alert level
