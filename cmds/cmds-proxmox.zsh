@@ -35,7 +35,7 @@ pmox_help () {
     echo "  createvm <name> <memory> <network> <storage> <disksize> <os> [dhcpnet] [tempdir]"
 	echo ""
 	echo "  <name>              - Name of the VM"
-	echo "  <memory>            - Memory of VM"
+	echo "  <memory>            - Memory of VM in MB"
 	echo "  <network>           - Network bridge to use"
     echo "  <storage>           - Network bridge to use"
 	echo "  <disksize>          - Disk size in MB"
