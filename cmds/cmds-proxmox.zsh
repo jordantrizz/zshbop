@@ -14,7 +14,7 @@ typeset -gA help_pmox
 
 # -- register pmox
 pmox () {
-        if [[ $1 == "help" ]] || [[ -n $1 ]]; then
+        if [[ $1 == "help" ]] || [[ -z $1 ]]; then
                 pmox_help
         elif [[ -n $1 ]]; then
 	        _debug "-- Running pmox $1"
