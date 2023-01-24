@@ -128,29 +128,26 @@ usedspace () {
 }
 
 # -- check_diskspace
-help_linux[check_diskspace]="Check diskspace and warn if full"
+help_linux[check_diskspace2]="Check diskspace based on OS"
 check_diskspace () {
-	ALERT="98" # alert level 
-	# :\\ = wsl drive letters
-	# /run = not requires
-	# wsl = wsl stuffs
-	# /init = wsl stuffs
-	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*' | awk '{ print $5 " " $1 }' )
-	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
-	DISKUSAGE=("${(@f)${DF_COMMAND}}")
-	for OUT in ${DISKUSAGE[@]}; do
-		PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
-		PARTITION=$(echo "$OUT" | awk '{ print $2 }' )
-		FIRSTMSG="Checking $PARTITION with $PERCENTAGE%"
-		
-		# - Check percentage and then alert.
-		if [[ $PERCENTAGE -ge $ALERT ]]; then
-			_notice "$FIRSTMSG.."
-    		_error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
-		else
-			_notice "$FIRSTMSG.. - no issue."
-		fi
-	done
+	check_diskspace_${MACHINE_OS}
+}
+
+# -- check_blockdevices
+check_blockdevices () {
+        OUTPUT=""
+        ALERT="98"
+        DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
+        OUTPUT="$fg[cyan]Device Type Size Used% MountPoint${reset_color}"
+        for DEVICE in $DEVICES
+        do
+                TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
+                SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
+                MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
+                USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
+                OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
+        done
+        echo -e "$OUTPUT" | column -t
 }
 
 # -- check_diskspace

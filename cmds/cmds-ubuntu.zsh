@@ -14,7 +14,7 @@ typeset -gA help_ubuntu
 
 # -- ubuntu-netselect
 help_ubuntu[ubuntu-netselect]='Install netselect to find the fastest ubuntu mirror.'
-ubuntu-netselect () {
+function ubuntu-netselect () {
 	_cexists netselect
 	if [[ $? == "0" ]]; then
 		echo "netselect installed, type 'sudo netselect'"
@@ -25,4 +25,6 @@ ubuntu-netselect () {
 	        sudo dpkg -i ~/tmp/netselect_0.3.ds1-28+b1_amd64.deb
 	fi
 }
-alias netselect='sudo netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
+
+# -- netselect-fastest
+alias netselect-fastest='sudo netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
