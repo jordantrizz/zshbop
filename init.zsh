@@ -228,12 +228,13 @@ init_sshkeys () {
         		fi
 
 		        # Check and load custom SSH key
-        		_debug " - Check for custom SSH key via $CUSTOM_SSHKEY and load keychain"
-		        if [ ! -z "${CUSTOM_SSHKEY+1}" ]; then
-        		        _debug " - FOUND: $CUSTOM_SSHKEY"
-                		eval `keychain -q --eval --agents ssh $CUSTOM_SSHKEY`
+        		_debug " - Check for custom SSH key via $CUSTOM_SSH_KEY and load keychain"
+				echo "$CUSTOM_SSH_KEYS"
+		        if [ ! -z "${CUSTOM_SSH_KEYS[@]}" ]; then
+        		        _debug " - FOUND: $CUSTOM_SSH_KEYS"
+                		eval `keychain -q --eval --agents ssh $CUSTOM_SSH_KEYS`
 		        else
-        		        _debug " - NOTFOUND: $CUSTOM_SSHKEY not set."
+        		        _debug " - NOTFOUND: $CUSTOM_SSH_KEYS not set."
 		        fi
 
 			# Load any id_rsa* keys @@ISSUE
@@ -242,7 +243,7 @@ init_sshkeys () {
 			fi
 			# Load any client-* keys
 			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
-                        	eval `keychain -q --eval --agents ssh $HOME/.ssh/clients*`
+                        	eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
                 	fi
 		else
 			_error "Command keychain doesn't exist, please install for SSH keys to work"
@@ -302,61 +303,61 @@ init-app-config () {
 
 # -- init_zshbop -- initialize zshbop
 init_zshbop () {
-  # -- Start init
+	# -- Start init
 	_debug_function
 	_loading "Starting init"
-  _debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
+	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
-  # -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
-  _loading "Running ZSH $ZSH_VERSION"
-  autoload is-at-least
-  if ! is-at-least 5.7 $ZSH_VERSION; then
-    _warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
-  else
-    _success "Running close to latest ZSH"
-  fi
+	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
+	_loading "Running ZSH $ZSH_VERSION"
+	autoload is-at-least
+	if ! is-at-least 5.7 $ZSH_VERSION; then
+		_warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
+	else
+    	_success "Running close to latest ZSH"
+	fi
 
-  # -- Set paths
-  init_path
+	# -- Set paths
+	init_path
         
-  # -- Detect operating system
+	# -- Detect operating system
 	init_detectos
 
 	# -- Init package manager
 	init_pkg_manager
 	
-  # -- Include commands
-  for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
+	# -- Include commands
+	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
 	  source $CMD_FILE
-  done
+	done
         
-  # -- Common application configuration
-  init-app-config
+	# -- Common application configuration
+  	init-app-config
 
 	# -- Init OhMyZSH plugins
-  init_omz_plugins
-  init_p10k
+  	init_omz_plugins
+  	init_p10k
 
-  # -- Init custom zshbop
-  zshbop_load_custom
+  	# -- Init custom zshbop
+  	zshbop_load_custom
         
-  # -- Init antigen
+  	# -- Init antigen
 	if [[ $funcstack[3] != "zshbop_reload" ]]; then
 	  init_plugins
 	else
 	  _loading_grey "Not loading Plugin Manager on Reload"
 	fi
 
-  # -- Init os defaults @@ISSUE
-  init_os
+  	# -- Init os defaults @@ISSUE
+  	init_os
 
 	# -- Skip when running rld
 	_debug "\$funcstack = $funcstack"
 	if [[ $funcstack[3] != "zshbop_reload" ]]; then
-	  init_sshkeys
+		init_sshkeys
 		init_motd
-	  # -- Print zshbop version information
-	  zshbop_version
+		# -- Print zshbop version information
+	  	zshbop_version
     echo ""
 	else
 	  _loading_grey "Skipped some scripts due to running rld"
