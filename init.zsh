@@ -229,12 +229,12 @@ init_sshkeys () {
 
 		        # Check and load custom SSH key
         		_debug " - Check for custom SSH key via $CUSTOM_SSH_KEY and load keychain"
-				echo "$CUSTOM_SSH_KEY"
-		        if [ ! -z "${CUSTOM_SSH_KEY[@]}" ]; then
-        		        _debug " - FOUND: $CUSTOM_SSH_KEY"
-                		eval `keychain -q --eval --agents ssh $CUSTOM_SSH_KEY`
+				echo "$CUSTOM_SSH_KEYS"
+		        if [ ! -z "${CUSTOM_SSH_KEYS[@]}" ]; then
+        		        _debug " - FOUND: $CUSTOM_SSH_KEYS"
+                		eval `keychain -q --eval --agents ssh $CUSTOM_SSH_KEYS`
 		        else
-        		        _debug " - NOTFOUND: $CUSTOM_SSH_KEY not set."
+        		        _debug " - NOTFOUND: $CUSTOM_SSH_KEYS not set."
 		        fi
 
 			# Load any id_rsa* keys @@ISSUE
