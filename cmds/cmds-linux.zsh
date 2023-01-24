@@ -253,3 +253,9 @@ speed-convert () {
 		echo "$gb_s GB/s"
 	fi
 }
+
+# -- utc
+help_linux[utc]="Display UTC time"
+function utc () {
+	date -u
+}
