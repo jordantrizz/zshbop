@@ -288,6 +288,7 @@ software_speedtest-cli () {
 }
 
 # -- software_gh-cli-curl
+help_software[gh-cli-curl]="Install github cli"
 software_gh-cli-curl () {
 	VERSION=`curl  "https://api.github.com/repos/cli/cli/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-`
 	if [[ ! -f $HOME/tmp ]]; then
@@ -305,4 +306,18 @@ software_gh-cli-curl () {
 	    cd $HOME/bin
 	fi
 	cp $HOME/tmp/gh_${VERSION}_linux_amd64/bin/gh $HOME/bin
+}
+
+# -- ubuntu-netselect
+help_software[ubuntu-netselect]='Install netselect to find the fastest ubuntu mirror.'
+function ubuntu-netselect () {
+    _cexists netselect
+    if [[ $? == "0" ]]; then
+        echo "netselect installed, type 'sudo netselect'"
+    elif [[ $? == "1" ]]; then
+        _checkroot
+            mkdir ~/tmp
+            wget http://ftp.us.debian.org/debian/pool/main/n/netselect/netselect_0.3.ds1-28+b1_amd64.deb -P ~/tmp
+            sudo dpkg -i ~/tmp/netselect_0.3.ds1-28+b1_amd64.deb
+    fi
 }
