@@ -75,7 +75,6 @@ init_detectos () {
         _loading "Detecting Operating System"
         export UNAME=$(uname -s)
         case "${UNAME}" in
-			*synology*) MACHINE_OS=synology;; # above linux as it would trigger linux
             Linux*)     MACHINE_OS=linux;;
             Darwin*)    MACHINE_OS=mac;;
             CYGWIN*)    MACHINE_OS=cygwin;;
@@ -86,6 +85,12 @@ init_detectos () {
         # -- Check for WSL and set as MACHINE_OS
         if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
             MACHINE_OS="wsl"
+
+        # -- Check for synology and set as MACHINE_OS
+        if [[ $(uname -a) =~ "synology" ]]; then
+            MACHINE_OS="synology"
+        fi
+
         fi
         _loading_grey "Running in ${MACHINE_OS}"
 }
