@@ -87,7 +87,7 @@ init_detectos () {
             MACHINE_OS="wsl"
 
         # -- Check for synology and set as MACHINE_OS
-        if [[ $(uname -a) =~ "synology" ]]; then
+        if [[ $(uname -r) =~ "synology" ]]; then
             MACHINE_OS="synology"
         fi
 
