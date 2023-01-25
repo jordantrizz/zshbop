@@ -51,14 +51,15 @@ while $running; do
   			"max_tokens": 1000,
   			"temperature": 0.7
 			}')
-		if [[ $response_curl == *"error"* ]]; then
+
+		if echo "$response_curl" | jq -e '.error' >/dev/null; then
 			echo "Something went wrong"
 			echo $response_curl
 			exit 1
 		else
 			echo "Response:"
 			response=$(echo $response_curl | jq -r '.choices[].text' | sed '1,2d')
-			echo -e "\n\033[36mchatgpt \033[0m${response}"
+			echo -e "\n\033[36mchatgpt \033[0m\n${response}"
 		fi
 
 		timestamp=$(date +"%d/%m/%Y %H:%M")
