@@ -69,6 +69,27 @@ init_add_path () {
 	fi
 }
 
+# -- init_detectos -- detect the OS running
+init_detectos () {
+        # -- Detect operating system
+        _loading "Detecting Operating System"
+        export UNAME=$(uname -s)
+        case "${UNAME}" in
+			*synology*) MACHINE_OS=synology;; # above linux as it would trigger linux
+            Linux*)     MACHINE_OS=linux;;
+            Darwin*)    MACHINE_OS=mac;;
+            CYGWIN*)    MACHINE_OS=cygwin;;
+            MINGW*)     MACHINE_OS=mingw;;
+            *)          MACHINE_OS="UNKNOWN:${UNAME}"
+        esac
+
+        # -- Check for WSL and set as MACHINE_OS
+        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
+            MACHINE_OS="wsl"
+        fi
+        _loading_grey "Running in ${MACHINE_OS}"
+}
+
 # -- Initialize oh-my-zsh plugins
 init_omz_plugins () {
 	_loading "Loading OMZ plugins"
@@ -272,26 +293,6 @@ init_pkg_manager () {
 				export PKG_MANAGER="brew"
 			fi		
 	fi	
-}
-
-# -- init_detectos -- detect the OS running
-init_detectos () {
-        # -- Detect operating system
-        _loading "Detecting Operating System"
-        export UNAME=$(uname -s)
-        case "${UNAME}" in
-            Linux*)     MACHINE_OS=linux;;
-            Darwin*)    MACHINE_OS=mac;;
-            CYGWIN*)    MACHINE_OS=cygwin;;
-            MINGW*)     MACHINE_OS=mingw;;
-            *)          MACHINE_OS="UNKNOWN:${UNAME}"
-        esac
-
-        # -- Check for WSL and set as MACHINE_OS
-        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
-            MACHINE_OS="wsl"
-        fi
-        _loading_grey "Running in ${MACHINE_OS}"
 }
 
 # -- init-app-config - set some application configuration
