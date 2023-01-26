@@ -50,6 +50,7 @@ mkdir -p /run/openrc && \
     touch /run/openrc/softlevel && \
     rc-update add sshd default
 ssh-keygen -A
+rc-service sshd start
 ```
 * Exit and commit
 ```
