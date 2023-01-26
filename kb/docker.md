@@ -37,3 +37,22 @@ docker volume create portainer_data
 docker volume inspect portainer_data
 docker run -d -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
 ```
+
+# Alpine
+## Adding SSH for AWS EKR
+* Start Docker Image
+```docker run -it --entrypoint /bin/sh aab84910c0be```
+* Add SSH
+```
+docker run -it --entrypoint /bin/sh aab84910c0be
+apk add --no-cache sudo bash openrc openssh
+mkdir -p /run/openrc && \
+    touch /run/openrc/softlevel && \
+    rc-update add sshd default
+ssh-keygen -A
+```
+* Exit and commit
+```
+docker ps -a
+docker commit 6d79a83d645b aab84910c0be
+```
