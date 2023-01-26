@@ -167,7 +167,7 @@ aws-cli () {
 		mkdir $HOME/downloads
 	fi
 	cd $HOME/downloads
-	curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o
+	curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o $HOME/downloads
 	unzip awscli-exe-linux-x86_64.zip
 	cd $HOME/downloads/aws
 	if [[ -d $HOME/bin ]]; then
