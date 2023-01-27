@@ -25,6 +25,7 @@ repos () {
     GIT_REPOS_URL[site24x7-custom-install]="https://github.com/lmtca/site24x7-custom-install"
     GIT_REPOS[forwardemail-api-bash]="forwardemail.net api bash script"
     GIT_REPOS_URL[forwardemail-api-bash]="https://github.com/jordantrizz/forwardemail-api-bash"
+    GIT_REPOS_URL[chatgpt-cli]="https://github.com/0xacx/chatGPT-shell-cli"
         
 	# repos install
     if [[ $1 == 'install' ]] && [[ -n "$2" ]]; then
