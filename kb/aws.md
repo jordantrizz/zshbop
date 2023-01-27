@@ -18,8 +18,12 @@ docker pull <aws_account_id>.dkr.ecr.us-west-2.amazonaws.com/<repo_name>:<tag>
 
 # ECS
 ## SSH Into Container
+* https://medium.com/ci-t/9-steps-to-ssh-into-an-aws-fargate-managed-container-46c1d5f834e2
+* https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-exec.html
+* https://aws.amazon.com/premiumsupport/knowledge-center/ecs-unable-to-pull-secrets/
+* https://aws.amazon.com/premiumsupport/knowledge-center/ecs-data-security-container-task/
 
-## Check ECS Script
+## Check ECS Exec Script
 ```
 bash <( curl -Ls https://raw.githubusercontent.com/aws-containers/amazon-ecs-exec-checker/main/check-ecs-exec.sh ) Rx2Me e972e370bb0840159828ee6dd4ee36ae
 ```
