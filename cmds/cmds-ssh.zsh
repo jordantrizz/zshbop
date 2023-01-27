@@ -16,7 +16,7 @@ typeset -gA help_ssh
 help_ssh[pk]='List public ssh-keys'
 pk () { 
 	#SSH_PUBLIC_KEYS=$(ls -1 ~/.ssh/*.pub)
-	SSH_PUBLIC_KEYS=("${(@f)$(ls -1 ~/.ssh/*.pub)}")
+	SSH_PUBLIC_KEYS=("${(@f)$(\ls -1 ~/.ssh/*.pub)}")
 	_loading "Listing all public keys in /$HOME/.ssh"
 	for PUBKEY in ${SSH_PUBLIC_KEYS}; do
 		 _banner_grey "-- $PUBKEY --"
