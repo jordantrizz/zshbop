@@ -59,6 +59,7 @@ function scrc {
 # - ssh
 alias sshc="ssh-connect"
 function sshr { ssh root@$1 }
+alias ssh-keygen="ssh-keygen -t ed25519"
 
 # - Litespeed
 alias lsphp74="/usr/local/lsws/lsphp74/bin/php"

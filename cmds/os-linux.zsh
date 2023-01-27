@@ -26,3 +26,27 @@ alias tran="tran_linux_amd64"
 # -- macchina
 alias macchine="macchina-linux-x86_64"
 alias os="macchine"
+
+# -- interfaces
+help_linux[interfaces]="List interfaces ip, mac and link"
+interfaces_linux () {
+	# Get a list of all network interfaces
+	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'))
+
+	# Loop through each interface
+	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
+	for interface in $interfaces; do
+	    # Get IP address
+	    ip=$(ip -o addr show $interface | awk '{print $4}')
+	
+	    # Get MAC address
+	    mac=$(ip -o link show $interface | awk '{print $6}')
+
+	    # Get link speed
+	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
+
+	    # Print interface information
+	    OUTPUT+="\n$interface $ip $mac $speed"
+	done
+	echo -e "$OUTPUT" | column -t
+}

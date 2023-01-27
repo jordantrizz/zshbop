@@ -18,5 +18,9 @@ _debug " -- Loading ${(%):-%N}"
 # -- paths
 help_network[interfaces]='Print out network interfaces'
 interfaces () {
-	# see os-<ostype>.zsh for each specific interfaces cmd.
+	if [[ $MACHINE_OS == "mac" ]]; then
+		interfaces_mac
+	else
+		interfaces_linux
+	fi
 }
