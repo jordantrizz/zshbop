@@ -321,3 +321,19 @@ function ubuntu-netselect () {
             sudo dpkg -i ~/tmp/netselect_0.3.ds1-28+b1_amd64.deb
     fi
 }
+
+# -- jiq
+help_software[jiq]='Install jiq a visual cli jq processor'
+function software_jiq () {
+	if [[ ! -f $HOME/bin ]]; then
+		mkdir $HOME/bin
+	fi
+
+	if [[ $MACHINE_OS == "mac" ]]; then
+		wget "https://github.com/fiatjaf/jiq/releases/download/v0.7.2/jiq_darwin_amd64" -O $HOME/bin/jiq
+		chmod u+x $HOME/bin/jiq
+	elif [[ $MACHINE_OS == "linux" ]]; then
+		wget "https://github.com/fiatjaf/jiq/releases/download/v0.7.2/jiq_linux_amd64" -O $HOME/bin/jiq
+		chmod u+x $HOME/bin/jiq
+	fi
+}
