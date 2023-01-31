@@ -32,7 +32,7 @@ ssl-check () {
 
 # -- gen-ss-cert
 help_ssl[gen-ss-cert]='Generate a self signed certificate'
-gen-ss-cert () {
+gen-ssl-cert () {
 	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout cert.key -out cert.crt
 	openssl x509 -in cert.crt -out cert.pem
 	openssl rsa -in cert.key -out key.pem
