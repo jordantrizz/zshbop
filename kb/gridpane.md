@@ -12,10 +12,6 @@
 * gp site {site.url} -suspend
 * Utilizes /var/www/holding.html so update this file if needed.
 
-## Clear site cache
-* gp fix cached eiexperience.com - Clear single site cache
-* gp fix clear-cache - Clear all site cache.
-
 # Advanced
 ## Setup System Cron for WordPress
 * gp site {site.url} -gpcron-on {minute.interval}
@@ -97,12 +93,14 @@ The default values are specified below, however the full list is at https://grid
 MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
 * gp mysql restart
 
+# GridPane Fix Commands
+* Reset file permissions ```gpfix perms site.com```
+* Clear single site cache ```gp fix cache site.com```
+* Clear all sites on server cache ``` gp fix cache```
+
 # Redis Page Cache
 ## Redis Cache Expiry
 * gp stack nginx redis -site-cache-valid {accepted.value} {site.url}
-
-## Clear Site Redis Full Page Cache
-* gp fix cache cached site.com
 
 # Redis Object Cache
 ## Change Redis maxmemory
