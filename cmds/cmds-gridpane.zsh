@@ -138,3 +138,29 @@ gp-monit527 () {
     systemctl start monit
     tail -20 /var/log/monit.log
 }
+
+# -- gp-ssl-ss
+help_gridpane[gp-ssl-ss]="Generate self-signed certificate for GridPane site"
+gp-ssl-ss () {
+	DOMAIN="$1"	
+	
+	if [[ -z $1 ]]; then
+		echo "./gp-ssl-ss <domain>"
+		if [[ -d /etc/nginx/ssl/${DOMAIN} ]]; then
+			_error "There's already an SSL directory, quiting"
+			exit 1
+		else
+			echo "No SSL directory...creating"
+			mkdir /etc/nginx/ssl/${DOMAIN}
+			cd /etc/nginx/ssl/${DOMAIN}
+		fi
+		echo "Generating self signed certificate"
+		
+	    openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout cert.key -out cert.crt
+	    openssl x509 -in cert.crt -out cert.pem
+	    openssl rsa -in cert.key -out key.pem	
+		
+		echo "Setting site to https + redis caching"
+		gp conf -ngx -generate https-root redis ${1}		
+	fi
+}
