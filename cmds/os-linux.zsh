@@ -50,3 +50,55 @@ interfaces_linux () {
 	done
 	echo -e "$OUTPUT" | column -t
 }
+
+# -- check_diskspace_linux
+check_diskspace_linux () {
+    ALERT="98" # alert level
+    # :\\ = wsl drive letters
+    # /run = not requires
+    # wsl = wsl stuffs
+    # /init = wsl stuffs
+    DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|devfs' | awk '{ print $5 " " $1 }' )
+    #IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
+    DISKUSAGE=("${(@f)${DF_COMMAND}}")
+    for OUT in ${DISKUSAGE[@]}; do
+        PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
+        PARTITION=$(echo "$OUT" | awk '{ print $2 }' )
+        FIRSTMSG="Checking $PARTITION with $PERCENTAGE%"
+
+        # - Check percentage and then alert.
+        if [[ $PERCENTAGE -ge $ALERT ]]; then
+            _notice "$FIRSTMSG.."
+            _error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
+        else
+            _notice "$FIRSTMSG.. - no issue."
+        fi
+    done
+}}
+
+# -- system_check - check usualy system stuff
+system_check () {
+    # -- start
+    _debug_function
+    _banner_yellow "System check on $MACHINE_OS"
+
+    # -- network interfaces
+    _loading "Network interfaces"
+    interfaces
+
+    # -- check swappiness
+    _loading2 "Checking swappiness"
+    if [[ -f /proc/sys/vm/swappiness ]]; then
+        _notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+    else
+        _error "Can't find swap"
+    fi
+
+    # -- check disk space
+    _loading2 "Checking disk space"
+    check_diskspace
+
+    # -- check block devices
+    _loading2 "Checking block devices"
+    check_blockdevices
+}
