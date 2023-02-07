@@ -501,7 +501,11 @@ init_motd () {
 	else
 		_notice "No host motd"
 	fi
+
+	# -- env-install
+	_loading "Run env-install to install default and extra tools"
 	
     # -- last echo to keep motd clean
     echo ""
+    
 }
