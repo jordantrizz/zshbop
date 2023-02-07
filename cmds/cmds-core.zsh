@@ -71,20 +71,31 @@ env-check () {
 # -- env-install - Install tools into environment.
 help_core[env-install]='Install tools into environment'
 env-install () {
+	sudo apt-get update
     echo "---------------------------"
     echo "Installing default tools.."
     echo "---------------------------"
-    _debug "default_tools: $default_tools"
-    sudo apt-get update
-    sudo apt-get install --no-install-recommends $default_tools
+    echo "default_tools: $default_tools"
+    
+    if read -q "Continue? (y/n)"; then
+	    sudo apt-get install --no-install-recommends postfix- $default_tools
+    else
+		echo "Skipping due to press 'n'"
+    fi
     echo ""
+    
     
     
     echo "---------------------------"
     echo "Installing extra tools.."
     echo "---------------------------"
-	_debug "extra_tools: $extra_tools"
-    sudo apt-get install --no-install-recommends $extra_tools
+	echo "extra_tools: $extra_tools"
+    
+        if read -q "Continue? (y/n)"; then
+		sudo apt-get install --no-install-recommends postfix- $extra_tools
+    else
+        echo "Skipping due to press 'n'"
+    fi
     echo ""
     
     echo "---------------------------"
