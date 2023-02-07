@@ -44,19 +44,19 @@ env-check () {
         echo ""
         for i in $default_tools; do
 				_cexists $i
-                if $? == "0"; then
+                if [[ $? == "0" ]]; then
                         echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
                 else
                         echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
                 fi
         done
         echo "---------------------------"
-        echo "Looking for default tools.."
+        echo "Looking for extra tools.."
         echo "---------------------------"
         echo ""
         for i in $extra_tools; do
         _cexists $i
-        if $? == "0"; then
+        if [[ $? == "0" ]]; then
                         echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
                 else
                         echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
@@ -71,24 +71,29 @@ env-check () {
 # -- env-install - Install tools into environment.
 help_core[env-install]='Install tools into environment'
 env-install () {
-        echo "---------------------------"
-        echo "Installing default tools.."
-        echo "---------------------------"
-        _debug "default_tools: $default_tools"
-        sudo apt-get update
-        sudo apt install $default_tools
-        echo "---------------------------"
-        echo "Installing extra tools.."
-        echo "---------------------------"
+    echo "---------------------------"
+    echo "Installing default tools.."
+    echo "---------------------------"
+    _debug "default_tools: $default_tools"
+    sudo apt-get update
+    sudo apt install --no-install-recommends $default_tools
+    echo ""
+    
+    
+    echo "---------------------------"
+    echo "Installing extra tools.."
+    echo "---------------------------"
 	_debug "extra_tools: $extra_tools"
-        sudo apt install $extra_tools
-        echo "---------------------------"
-        echo "Manual installs"
-        echo "---------------------------"
-        echo " mdv       - pip install mdv"
-        echo " gnomon    - via npm"
-        echo " lsd       - https://github.com/Peltoche/lsd"
-        echo ""
+    sudo apt install --no-install-recommends $extra_tools
+    echo ""
+    
+    echo "---------------------------"
+    echo "Manual installs"
+    echo "---------------------------"
+    echo " mdv       - pip install mdv"
+    echo " gnomon    - via npm"
+    echo " lsd       - https://github.com/Peltoche/lsd"
+    echo ""
 }
 
 # -- install-pkg - Install specific tool
