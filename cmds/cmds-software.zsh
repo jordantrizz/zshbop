@@ -51,14 +51,7 @@ software_gh-cli-deb () {
 # -- mdv - Installs github.com CLI
 help_software[mdv]='Installs github.com cli, aka gh'
 software_mdv () {
-        # Old method that is broken
-        #sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-        #sudo apt-add-repository https://cli.github.com/packages
-        #sudo apt update
-        #sudo apt install gh
-	repos terminal_markdown_viewer
-        cd $ZSHBOP_ROOT/repos/terminal_markdown_viewer
-        pip install .
+	pip install mdv
 }
 
 # -- asciinema - Installs asciinema
