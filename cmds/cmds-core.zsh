@@ -76,7 +76,7 @@ env-install () {
     echo "---------------------------"
     _debug "default_tools: $default_tools"
     sudo apt-get update
-    sudo apt install --no-install-recommends $default_tools
+    sudo apt-get install --no-install-recommends $default_tools
     echo ""
     
     
@@ -84,7 +84,7 @@ env-install () {
     echo "Installing extra tools.."
     echo "---------------------------"
 	_debug "extra_tools: $extra_tools"
-    sudo apt install --no-install-recommends $extra_tools
+    sudo apt-get install --no-install-recommends $extra_tools
     echo ""
     
     echo "---------------------------"
