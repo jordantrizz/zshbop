@@ -45,6 +45,7 @@ ssh-keygen-ed25519 () {
 	ssh-keygen -t ed25519
 }
 
+# -- ssh-key-audit
 help_ssh[ssh-key-audit]="Find all SSH Keys on System"
 ssh-key-audit () {
     $file=""
@@ -61,4 +62,10 @@ ssh-key-audit () {
         cat $file;
     done;
     _banner_yellow "** END User SSH Keys                      *"
+}
+
+# -- ak
+help_ssh[ak]="Display ~/.ssh/authorized_keys"
+ak () {
+	cat ~/.ssh/authorized_keys
 }
