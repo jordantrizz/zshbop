@@ -245,6 +245,7 @@ init_sshkeys () {
 		_loading "Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
 		        # Load default SSH key
+		        _loading2 "Load default SSH key"
 		        _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
         		if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
 		                _debug  " - FOUND: $HOME/.ssh/id_rsa"
@@ -254,23 +255,28 @@ init_sshkeys () {
         		fi
 
 		        # Check and load custom SSH key
+		        _loading2 "Loading custom SSH keys."
         		_debug " - Check for custom SSH key via $CUSTOM_SSH_KEY and load keychain"
-				echo "$CUSTOM_SSH_KEYS"
-		        if [ ! -z "${CUSTOM_SSH_KEYS[@]}" ]; then
-        		        _debug " - FOUND: $CUSTOM_SSH_KEYS"
-                		eval `keychain -q --eval --agents ssh $CUSTOM_SSH_KEYS`
+        						
+		        if [[ ! -z "${CUSTOM_SSH_KEYS[@]}" ]]; then
+			        _debug " - FOUND: $CUSTOM_SSH_KEYS"
+			        for key in ${CUSTOM_SSH_KEYS[@]}; do
+						_loading3 "Loading -- $key"
+                		eval `keychain -q --eval --agents ssh $key`
+                	done
 		        else
         		        _debug " - NOTFOUND: $CUSTOM_SSH_KEYS not set."
 		        fi
 
 			# Load any id_rsa* keys @@ISSUE
+			_loading2 "Load any id_rsa* keys"
 			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
 				eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
 			fi
 			# Load any client-* keys
 			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
-                        	eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
-                	fi
+            	eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
+            fi
 		else
 			_error "Command keychain doesn't exist, please install for SSH keys to work"
 		fi
