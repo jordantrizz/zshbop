@@ -74,7 +74,7 @@ check_diskspace_linux () {
             _notice "$FIRSTMSG.. - no issue."
         fi
     done
-}}
+}
 
 # -- system_check - check usualy system stuff
 system_check () {
