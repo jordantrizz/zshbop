@@ -15,16 +15,28 @@ repos () {
 
 	# list of repositories
 	declare -A GIT_REPOS GIT_REPOS_URL
-    GIT_REPOS[gp-tools]="GridPane Tools by @Jordantrizz"
-    GIT_REPOS_URL[gp-tools]="https://github.com/jordantrizz/gp-tools"
+    
+    # -- gp-tools
+    GIT_REPOS[gp-tools]="WordPress Shell Tools"
+    GIT_REPOS_URL[gp-tools]="https://github.com/managingwp/wp-shelltools"
+
+	# -- github-markdown-toc
 	GIT_REPOS[github-markdown-toc]="Add markdown table of contents to README.md"
-    GIT_REPOS_URL[github-markdown-toc]="https://github.com/jordantrizz/github-markdown-toc"
+	GIT_REPOS_URL[github-markdown-toc]="https://github.com/jordantrizz/github-markdown-toc"
+	
+	# -- cloudflare-cli
 	GIT_REPOS[cloudflare-cli]="Interface with Cloudflares API"
     GIT_REPOS_URL[cloudflare-cli]="https://github.com/jordantrizz/cloudflare-cli"
+    
+    # -- site24x7-custom-install
 	GIT_REPOS[site24x7-custom-install]="Custom Site24x7 install"
     GIT_REPOS_URL[site24x7-custom-install]="https://github.com/lmtca/site24x7-custom-install"
+    
+    # -- forwardemail-api-bash
     GIT_REPOS[forwardemail-api-bash]="forwardemail.net api bash script"
     GIT_REPOS_URL[forwardemail-api-bash]="https://github.com/jordantrizz/forwardemail-api-bash"
+
+	# -- chatgpt-cli
 	GIT_REPOS[chatgpt-cli]="A chatgpt implementation in CLI 0xacx/chatGPT-shell-cli"
     GIT_REPOS_URL[chatgpt-cli]="https://github.com/0xacx/chatGPT-shell-cli"
         
