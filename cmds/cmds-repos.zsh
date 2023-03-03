@@ -45,25 +45,42 @@ repos () {
     GIT_REPOS_URL[chatgpt-cli]="https://github.com/0xacx/chatGPT-shell-cli"
         
 	# repos install
-    if [[ $1 == 'install' ]] && [[ -n "$2" ]]; then
+    if [[ $1 == 'pull' ]] && [[ -n "$2" ]]; then
 		_debug "Checking if $2 is in \$GIT_REPO"
        	_if_marray "$2" GIT_REPOS
        	REPODIR=$2
        	
 		if [[ $MARRAY_VALID == "0" ]]; then
-			_debug "Found repository - installing via url ${GIT_REPOS_URL[$2]}"
-	        echo "-- Installing repository $2 into $ZSHBOP_ROOT/repos/$REPODIR"
+			_debug "Found repository - pulling via url ${GIT_REPOS_URL[$2]}"
+	        echo "-- Pulling repository $2 into $ZSHBOP_ROOT/repos/$REPODIR"
 	        REPO="$ZSHBOP_ROOT/repos/$REPODIR"
 			if [[ ! -d "$REPO" ]]; then
 				git clone ${GIT_REPOS_URL[$2]} ${REPO}
 				init_path
 			else
-				_error "Repo already installed or ${REPO} folder exists..exiting"
+				_error "Repo already pulled or ${REPO} folder exists..exiting"
 			fi
 		else
 			echo "No such repository $2"
 			return 1
 		fi		
+	# repos list		
+	elif [[ $1 == 'list' ]]; then
+		_loading "Listing repos pulled"
+		if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+            _debug "Found repositories"
+            for REPO in $ZSHBOP_ROOT/repos/*; do
+                _debug "Found $REPO"
+                if [[ -d $REPO ]]; then
+                    _success "$REPO"
+                else
+                    _error "No repos pulled"
+                fi
+            done
+        else
+            _error "No repos pulled"
+        fi
+        echo ""
 	# repos update
 	elif [[ $1 == 'update' ]]; then
     	_loading "Updating repos "
@@ -82,13 +99,18 @@ repos () {
 			_loading2 "No repos to update"
 		fi
 	else
-    	echo "Usage: repos <install|update>"
+    	echo "Usage: repos <pull <repo>|list|update>"
         echo ""
         echo "This command pulls down popular Github repositories."
+        echo "To pull down a repo, simply type 'repo <reponame>'"
+        echo "The repo will be pulled into \$ZSHBOP/repos"
         echo ""
-        echo "To pull down a repo, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
+		echo "Commands:"
+		echo "    pull <repo>        - Pull  repository"
+		echo "    list               - List pulled repositories"
+		echo "    update             - Update repositories"
         echo ""
-        echo "Repositories"
+        echo "Available Repositories"
         echo ""
         for key value in ${(kv)GIT_REPOS}; do
         	printf '%s\n' "  ${(r:60:)key} - $value"
