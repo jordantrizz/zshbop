@@ -17,8 +17,12 @@ repos () {
 	declare -A GIT_REPOS GIT_REPOS_URL
     
     # -- gp-tools
-    GIT_REPOS[gp-tools]="WordPress Shell Tools"
-    GIT_REPOS_URL[gp-tools]="https://github.com/managingwp/wp-shelltools"
+    GIT_REPOS[wp-shelltools]="WordPress Shell Tools"
+    GIT_REPOS_URL[wp-shelltools]="https://github.com/managingwp/wp-shelltools"
+    
+    # -- mwp-scan-malware
+    GIT_REPOS[mwp-scan-malware]="Scan malware with Yara using custom signatures"
+    GIT_REPOS_URL[mwp-scan-malware]="https://github.com/managingwp/mwp-scan-malware"
 
 	# -- github-markdown-toc
 	GIT_REPOS[github-markdown-toc]="Add markdown table of contents to README.md"
