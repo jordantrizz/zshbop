@@ -177,7 +177,6 @@ _checkroot () {
 # -- must use quotes, second argument is array without $
 # ------------------------------------------------------
 _if_marray () {
-    _debug_function
         MARRAY_VALID=1
         _debug "$funcstack[1] - find value = $1 in array = $2"
         for value in ${(k)${(P)2[@]}}; do

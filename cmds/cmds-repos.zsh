@@ -15,6 +15,10 @@ repos () {
 
 	# list of repositories
 	declare -A GIT_REPOS GIT_REPOS_URL
+	
+	# arguments
+	zparseopts -D -E - d+=DEBUG_FLAG
+	if [[ -n "$DEBUG_FLAG" ]]; then local ZSH_DEBUG="1";_debug "Debug enabled";fi
     
     # -- gp-tools
     GIT_REPOS[wp-shelltools]="WordPress Shell Tools"
@@ -50,13 +54,24 @@ repos () {
        	_if_marray "$2" GIT_REPOS
        	REPODIR=$2
        	
+       	if [[ -z $3 ]]; then BRANCH=$3; fi
+       	_debug "Installing branch $BRANCH"
+       	
 		if [[ $MARRAY_VALID == "0" ]]; then
 			_debug "Found repository - pulling via url ${GIT_REPOS_URL[$2]}"
 	        echo "-- Pulling repository $2 into $ZSHBOP_ROOT/repos/$REPODIR"
 	        REPO="$ZSHBOP_ROOT/repos/$REPODIR"
 			if [[ ! -d "$REPO" ]]; then
-				git clone ${GIT_REPOS_URL[$2]} ${REPO}
-				init_path
+				if [[ -z $BRANCH ]]; then
+					echo "branch specified, so pulling using branch $BRANCH"
+					git clone ${GIT_REPOS_URL[$2]} ${REPO} ${BRANCH}
+					init_path
+				else
+				    git clone ${GIT_REPOS_URL[$2]} ${REPO}
+                    init_path
+				fi
+				
+				
 			else
 				_error "Repo already pulled or ${REPO} folder exists..exiting"
 			fi
@@ -70,9 +85,10 @@ repos () {
 		if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
             _debug "Found repositories"
             for REPO in $ZSHBOP_ROOT/repos/*; do
-                _debug "Found $REPO"
+            	REPO_BRANCH=$(git -C $REPO rev-parse --abbrev-ref HEAD)
+                _debug "Found $REPO with $REPO_BRANCH"
                 if [[ -d $REPO ]]; then
-                    _success "$REPO"
+                    _success "$REPO - $REPO_BRANCH"
                 else
                     _error "No repos pulled"
                 fi
@@ -106,9 +122,10 @@ repos () {
         echo "The repo will be pulled into \$ZSHBOP/repos"
         echo ""
 		echo "Commands:"
-		echo "    pull <repo>        - Pull  repository"
-		echo "    list               - List pulled repositories"
-		echo "    update             - Update repositories"
+		echo "    pull <repo> (branch)     - Pull  repository"
+		echo "    list                     - List pulled repositories"
+		echo "    branch <repo> <branch>   - Change branch for repository"
+		echo "    update                   - Update repositories"
         echo ""
         echo "Available Repositories"
         echo ""
