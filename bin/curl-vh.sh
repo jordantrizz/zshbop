@@ -23,33 +23,34 @@ ECOL="\e[0m"
 
 # -- _error
 _error () {
-    echo -e "${RED}** ERROR ** - $@ ${ECOL}"
+    echo  "${RED}** ERROR ** - ${@} ${ECOL}"
 }
 
 _success () {
-    echo -e "${GREEN}** SUCCESS ** - $@ ${ECOL}"
+    echo  "${GREEN}** SUCCESS ** - ${@} ${ECOL}"
 }
 
 _running () {
-    echo -e "${BLUEBG}${@}${ECOL}"
+    echo  "${BLUEBG} ${@} ${ECOL}"
 }
 
 _creating () {
-    echo -e "${DARKGREYBG}${@}${ECOL}"
+    echo  "${DARKGREYBG} ${@} ${ECOL}"
 }
 
 _separator () {
-    echo -e "${YELLOWBG}****************${ECOL}"
+    echo  "${YELLOWBG}****************${ECOL}"
 }
 
 _debug () {
     if [[ $DEBUG == "1" ]]; then
-        echo -e "${CYAN}** DEBUG: $@${ECOL}"
+        echo "${CYAN}** DEBUG: ${@} ${ECOL}"
     fi
 }
 
 url_to_domain () {
-	echo "${1}" | sed -e 's|^[^/]*//||' -e 's|/.*$||'
+	_debug "\$1 = ${1}"
+	DOMAIN=$(echo "${1}" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
 }
 
 usage () {
@@ -71,9 +72,13 @@ do_curl (){
 }
 
 # -- Gather options
-zparseopts -D -E ip:=O_IP p:=O_PORT ssl=O_SSL v=O_VERBOSE f=O_FOLLOW c=O_CONTENT d=O_DEBUG
+zparseopts -D -E ip:=O_IP port:=O_PORT ssl=O_SSL v=O_VERBOSE f=O_FOLLOW c=O_CONTENT d=O_DEBUG
 
-echo $O_DEBUG
+# -- Debug
+if [[ -n $O_DEBUG ]]; then
+    DEBUG="1"
+    _success "Debug enabled"
+fi
 
 # -- Clear Variables
 IP=""
@@ -82,6 +87,7 @@ GREP_ARGS=""
 EXTRA_ARGS=""
 
 # -- IP
+_debug "\$O_IP = $O_IP"
 if [[ -z $O_IP ]]; then
 	_debug "No IP provided using 127.0.0.1"
 	SERVERIP="127.0.0.1"
@@ -89,17 +95,20 @@ elif [[ $O_IP == "" ]]; then
 	usage
 	_error "-ip specified but no IP provided"
 else
-	SERVERIP=$O_IP[2]
+	SERVERIP="$O_IP[2]"
 fi
 
 # -- Port
+_debug "\$O_PORT = $O_PORT"
 if [[ -z $O_PORT ]]; then
     PORT="443"
 else
 	PORT=$O_PORT[2]
+	_debug "PORT = $PORT was $O_PORT"
 fi
 
 # -- SSL
+_debug "\$O_SSL = $O_SSL"
 if [[ -n $O_SSL ]]; then
     GREP_ARGS="| grep -A10 'SSL connection'"
     EXTRA_ARGS=" -vvv"
@@ -107,6 +116,7 @@ if [[ -n $O_SSL ]]; then
 fi
 
 # -- Verbose
+_debug "\$O_VERBOSE = $O_VERBOSE"
 if [[ -n $O_VERBOSE ]]; then
 	EXTRA_ARGS=" -vvv"
 	VERBOSE="1"
@@ -122,19 +132,17 @@ if [[ -z $O_CONTENT ]]; then
 	EXTRA_ARGS+=" --head"
 fi
 
-# -- Debug
-if [[ -n $O_DEBUG ]]; then  
-    DEBUG="1"
-    _success "Debug enabled"
-fi
-
+# ------------
+# -- Main Loop
+# ------------
 if [[ -z $1 ]]; then
 	usage
     _error "Missing domain argument"
     exit 1
 else
+    _debug "\$@ = $@"
     URL="$1"
-    DOMAIN=$(url_to_domain $1)
+    url_to_domain ${1}
     _debug "vars - \$URL=$URL \$DOMAIN=$DOMAIN \$SERVERIP=$SERVERIP \$PORT=$PORT \$SSL=$SSL \$VERBOSE=$VERBOSE \$EXTRA_ARGS=$EXTRA_ARGS \$GREP_ARGS=$GREP_ARGS"	
     do_curl
 fi
