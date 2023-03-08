@@ -255,7 +255,16 @@ speed-convert () {
 }
 
 # -- utc
-help_linux[utc]="Display UTC time"
+help_linux[utc]="Display UTC date and time"
 function utc () {
 	date -u
+}
+
+# -- datetz
+help_linux[datetz]="Display specified timezone date and time"
+datetz () {
+	env TZ=":US/Pacific" date
+	env TZ=":US/Central" date	
+	env TZ=":US/Eastern" date
+	env TZ="UTC" date
 }
