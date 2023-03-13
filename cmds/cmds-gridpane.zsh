@@ -77,7 +77,7 @@ gp-mysql () {
 help_gridpane[gp-mysqlps]="Gridpane mysql 'show full processlist'"
 gp-mysqlps () {
     mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
-    mysql --user root --password="${mysqlrootpw}" "show full processlist"
+    mysql --user root --password="${mysqlrootpw}" -e "show full processlist"
 }
 
 # -- gp-mysqltuner.pl
