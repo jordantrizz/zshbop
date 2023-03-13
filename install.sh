@@ -103,13 +103,13 @@ pkg_install() {
     _running "Checking what package manager we have...."
     if [ -x "$(command -v apt-get)" ]; then
         echo " - We have apt!"
-        PKG_MANAGER="sudo apt install $@"
+        sudo apt install $@
 	elif [ -x "$(command -v yum)" ]; then
         echo " - We have yum!"
-        PKG_MANAGER="sudo yum install $@"
+        sudo yum install $@
     elif [ -x "$(command -v brew)" ]; then
         echo " - We have brew!"
-        PKG_MANAGER="brew install $@"
+        brew install $@
     else
     	_error "Can't detect package manager :("
     fi
