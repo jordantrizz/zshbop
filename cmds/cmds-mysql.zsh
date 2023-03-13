@@ -315,5 +315,5 @@ mysql-createuser () {
 # -- mysqlps
 help_mysql[mysqlps]="Show current mysql processes"
 mysqlps () {
-	mysql -e 'show processlist'
+	mysql -e 'show full processlist'
 }

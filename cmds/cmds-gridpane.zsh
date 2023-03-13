@@ -73,6 +73,13 @@ gp-mysql () {
 	mysql --user root --password="${mysqlrootpw}"
 }
 
+# -- gp-mysqlps
+help_gridpane[gp-mysqlps]="Gridpane mysql 'show full processlist'"
+gp-mysqlps () {
+    mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
+    mysql --user root --password="${mysqlrootpw}" "show full processlist"
+}
+
 # -- gp-mysqltuner.pl
 help_gridpane[gp-mysqltuner.pl]="GridPane mysqltuner.pl command"
 gp-mysqltuner.pl () {
