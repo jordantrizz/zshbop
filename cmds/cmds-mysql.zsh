@@ -16,7 +16,7 @@ typeset -gA help_mysql
 help_mysql[mysql-dbsize]='Get size of all databases in MySQL'
 mysql-dbsize () {
 		echo "Getting all database sizes"
-        mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY (data_length + index_length) DESC;'
+         mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY SUM(data_length + index_length) DESC;'
 }
 # - mysql-dbrowsize
 help_mysql[mysql-dbrowsize]='Get number of rows in a table'
