@@ -22,7 +22,7 @@ mysql-dbsize () {
 help_mysql[mysql-dbrowsize]='Get number of rows in a table'
 mysql-dbrowsize () { 
 	if [[ -n $1 ]]; then
-		mysql -e 'SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;'
+		mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
         echo "Usage: $0 <database name>"
         return 1
