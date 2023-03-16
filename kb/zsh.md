@@ -1,10 +1,21 @@
 # Install ZSH
-## Make CentOS 6 ZSH 5.1.1
+## Compile ZSH on CentOS 6 
+### ZSH 5.1.1
 ```
 wget https://www.zsh.org/pub/old/zsh-5.1.1.tar.xz
 tar --strip-components=1 -xvf zsh-5.1.1-doc.tar.xz
 ./Util/preconfig
 ./configure
+make
+make install
+```
+### ZSH 5.4.2
+```
+wget https://www.zsh.org/pub/old/zsh-5.4.2.tar.gz --no-check-certificate
+./Util/preconfig
+./configure
+make
+make install
 ```
 
 ## Make CentOS 7 ZSH 5.7
