@@ -25,6 +25,7 @@ init_path () {
 	export PATH=$PATH:$HOME/bin/aws-cli # aws-cli https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
 	export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
 	
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
