@@ -317,3 +317,24 @@ help_mysql[mysqlps]="Show current mysql processes"
 mysqlps () {
 	mysql -e 'show full processlist'
 }
+
+
+help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
+mysql-myisam2innodb () {
+	if [[ -z $1 ]]; then
+		return 1
+		_error "Please specify the database"
+	else
+		DB_NAME="$1"
+		echo "Upgrading MyISAM tables to InnoDB in database $DB_NAME..."
+		tables=$(mysql $DB_NAME -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" | awk '{print $1}')
+
+  		for table in $tables; do
+    		if [[ $table != "Name" ]]; then
+      			echo "Upgrading table $table to InnoDB..."
+      			mysql $DB_NAME -e "ALTER TABLE $table ENGINE=InnoDB;"
+      			echo "Table $table upgraded to InnoDB successfully."
+    		fi
+  		done
+	echo "All MyISAM tables have been upgraded to InnoDB."
+}
