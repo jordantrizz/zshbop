@@ -322,8 +322,8 @@ mysqlps () {
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
 mysql-myisam2innodb () {
 	if [[ -z $1 ]]; then
-		return 1
 		_error "Please specify the database"
+		return 1
 	else
 		DB_NAME="$1"
 		echo "Upgrading MyISAM tables to InnoDB in database $DB_NAME..."
