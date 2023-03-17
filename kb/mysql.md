@@ -59,3 +59,6 @@ password="qweqwe"
 ```
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'test';
 ```
+
+## Print Out Raw Data
+mysql -B or mysql --batch
