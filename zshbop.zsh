@@ -46,6 +46,7 @@ export ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version) # -- Current version installed
 export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
 export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
 export KB="${ZSHBOP_ROOT}/kb"
+export GIT_HOME="${HOME}/git"
 
 # -- zshbop git
 export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
