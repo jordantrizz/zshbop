@@ -318,7 +318,7 @@ mysqlps () {
 	mysql -e 'show full processlist'
 }
 
-
+# -- mysql-myisam2innodb
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
 mysql-myisam2innodb () {
 	if [[ -z $1 ]]; then
@@ -336,5 +336,6 @@ mysql-myisam2innodb () {
       			echo "Table $table upgraded to InnoDB successfully."
     		fi
   		done
-	echo "All MyISAM tables have been upgraded to InnoDB."
+		echo "All MyISAM tables have been upgraded to InnoDB."
+	fi
 }
