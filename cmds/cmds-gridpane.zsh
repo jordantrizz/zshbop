@@ -171,3 +171,13 @@ gp-ssl-ss () {
 		gp conf -ngx -generate https-root redis ${1}		
 	fi
 }
+
+# -- gp-topips
+help_gridpane[gp-topips]="Get the top requests by IP on <log>"
+gp-topips () {
+	if [[ -z $1 ]]; then
+		_error "Usage: gp-topips <log>"
+	else
+		cat ${1} | awk {' print $1 '} | uniq -c | sort -nr | head -50
+	fi
+}
