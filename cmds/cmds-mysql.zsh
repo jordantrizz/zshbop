@@ -322,7 +322,7 @@ mysql-myisam2innodb () {
 	else
 		DB_NAME="$1"
 		echo "Upgrading MyISAM tables to InnoDB in database $DB_NAME..."
-		tables=$(mysql $DB_NAME -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" | awk '{print $1}')
+		tables=$(mysql $DB_NAME -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
 
   		for table in $tables; do
     		if [[ $table != "Name" ]]; then
