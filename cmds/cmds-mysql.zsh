@@ -55,13 +55,7 @@ mysql-msds () {
 # - mysql-myisam
 help_mysql[mysql-myisam]='Locate myisam tables in MySQL'
 mysql-myisam () { 
-	MYISAM=$(mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';")
-	if [[ -z ${MYISAM} ]]; then
-		echo ${MYISAM}
-		_error "Found MyISAM tables"
-	else
-		_success "No MyISAM tables found"
-	fi
+	mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';"
 }
 
 # - mysql-maxmem
