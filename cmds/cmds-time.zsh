@@ -16,7 +16,7 @@ tzc () {
 	# Check if the required command 'date' is available
 	if ! command -v date &> /dev/null; then
 		echo "The 'date' command is required but not found. Please install it and try again."
-		exit 1
+		return 1
 	fi
 
 	# Check if the required number of arguments is passed
@@ -25,7 +25,7 @@ tzc () {
 		echo ""
 		echo "EST = EST5EDT"
 		echo "CST = CST6EDT"
-		exit 1
+		return 1
 	fi
 
     INPUT_DATE="${1}"
