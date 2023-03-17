@@ -24,3 +24,16 @@ interfaces () {
 		interfaces_linux
 	fi
 }
+
+# -- listen
+help_network[listen]="Show all tcp/tcp6 ports listening"
+listen () {
+	netstat -anp | grep 'LISTEN' | egrep 'tcp|tcp6'
+}
+
+# -- whatismyip
+help_network[whatismyip]="Get current machines internet facing IP Addres"
+whatismyip () {
+	dig @resolver1.opendns.com A myip.opendns.com +short -4
+	dig @resolver1.opendns.com AAAA myip.opendns.com +short -6
+}
