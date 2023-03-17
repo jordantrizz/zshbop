@@ -20,24 +20,28 @@ tzc () {
 	fi
 
 	# Check if the required number of arguments is passed
-	if [ $# -ne 3 ]; then
-		echo "Usage: ./tzc.sh <YYYY-MM-DD HH:MM:SS> <source_timezone> target_timezone"
+	if [ $# -ne 4 ]; then
+		echo "Usage: tzc <YYYY-MM-DD> <HH:MM:SS> <source_timezone> <target_timezone>"
 		echo ""
 		echo "EST = EST5EDT"
 		echo "CST = CST6EDT"
 		return 1
 	fi
 
-    INPUT_DATE="${1}"
-    STZ="${2}"
-    TTZ="${3}"
+    INPUT_D="${1}"
+    INPUT_T="${2}"
+    INPUT_DATE="${1} ${2}"
+    STZ="${3}"
+    TTZ="${4}"
 
     MSG="Converting ${INPUT_DATE} from ${STZ} to ${TTZ}"
-
-    if [[ $STZ == "EST" ]]; then STZ="EST5EDT"; MSG+=" S+DST"; fi
-    if [[ $TTZ == "EST" ]]; then TTZ="EST5EDT"; MSG+=" T+DST"; fi
-    if [[ $STZ == "CST" ]]; then STZ="CST6CDT"; MSG+=" S+DST"; fi
-    if [[ $TTZ == "CST" ]]; then TTZ="CST6CDT"; MSG+=" T+DST"; fi
+    EST="EST"
+    CST="CST"
+	setopt extendedglob
+    if [[ $STZ == (#i)"$EST" ]]; then STZ="EST5EDT"; MSG+=" S+DST"; fi
+    if [[ $TTZ == (#i)"$EST" ]]; then TTZ="EST5EDT"; MSG+=" T+DST"; fi
+    if [[ $STZ == (#i)"$CST" ]]; then STZ="CST6CDT"; MSG+=" S+DST"; fi
+    if [[ $TTZ == (#i)"$CST" ]]; then TTZ="CST6CDT"; MSG+=" T+DST"; fi
 
     echo "$MSG"
 
