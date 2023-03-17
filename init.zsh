@@ -426,6 +426,15 @@ init_check_services () {
     else
         _error "Redis not installed"
     fi
+    
+    if [[ -f /opt/netdata/bin ]]; then
+    	_success "Netdata: located at /opt/netdata/bin and config at /opt/netdata/etc"
+    elif [[ -f /usr/sbin/netdata ]]; then
+    	_success "Netdata: located at /usr/sbin/netdata and config at /etc/netdata"
+    else
+    	_error "Netdata not installed"
+    fi
+    	
 }
 
 # -- system_check - check usualy system stuff
