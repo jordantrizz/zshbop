@@ -16,13 +16,13 @@ typeset -gA help_mysql
 help_mysql[mysql-dbsize]='Get size of all databases in MySQL'
 mysql-dbsize () {
 		echo "Getting all database sizes"
-        mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY (data_length + index_length) DESC;'
+         mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY SUM(data_length + index_length) DESC;'
 }
 # - mysql-dbrowsize
 help_mysql[mysql-dbrowsize]='Get number of rows in a table'
 mysql-dbrowsize () { 
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ;" 
+		mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
         echo "Usage: $0 <database name>"
         return 1
@@ -43,7 +43,7 @@ mysql-tablesize () {
 # - mysql-datafree
 help_mysql[mysql-datafree]='List tables that have white space'
 mysql-datafree () { 
-	mysql -e "SELECT ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables where DATA_FREE > 0;" 
+	mysql -e "SELECT TABLE_SCHEMA, ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables where DATA_FREE > 0 ORDER by DATA_FREE DESC;"
 }
 
 # - mysql-msds
