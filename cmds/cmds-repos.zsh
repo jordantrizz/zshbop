@@ -47,6 +47,10 @@ repos () {
 	# -- chatgpt-cli
 	GIT_REPOS[chatgpt-cli]="A chatgpt implementation in CLI 0xacx/chatGPT-shell-cli"
     GIT_REPOS_URL[chatgpt-cli]="https://github.com/0xacx/chatGPT-shell-cli"
+    
+    # -- zsh-installs
+    GIT_REPOS[zsh-installs]="zsh installs"
+    GIT_REPOS_URL[zsh-installs]="https://github.com/jordantrizz/zsh-installs"
         
 	# repos install
     if [[ $1 == 'pull' ]] && [[ -n "$2" ]]; then
