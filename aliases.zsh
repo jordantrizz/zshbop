@@ -62,3 +62,4 @@ alias ssh-keygen="ssh-keygen -t ed25519"
 # - Litespeed
 alias lsphp74="/usr/local/lsws/lsphp74/bin/php"
 alias lsphp81="/usr/local/lsws/lsphp81/bin/php"
+alias lsws="cd /usr/local/lsws"
