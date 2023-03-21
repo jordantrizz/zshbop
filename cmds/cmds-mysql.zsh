@@ -22,14 +22,14 @@ mysql-alldbsize () {
 # - mysql-allrowsize
 help_mysql[mysql-allrowsize]='The number of rows of all tables in MySQL'
 mysql-allrowsize () {
-        mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES ORDER BY table_rows DESC;"
+        mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES ORDER BY table_rows DESC;"
 }
 
 # - mysql-dbrowsize
 help_mysql[mysql-dbrowsize]='Get number of rows in a table'
 mysql-dbrowsize () { 
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
+		mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
         echo "Usage: $0 <database name>"
         return 1
@@ -40,7 +40,7 @@ mysql-dbrowsize () {
 help_mysql[mysql-dbtablesize]='Get size of all tables in database'
 mysql-dbtablesize () { 
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" 
+		mysql -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" 
 	else
 		echo "Usage: $0 <database name>"
 		return 1
