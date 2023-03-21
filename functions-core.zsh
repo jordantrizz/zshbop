@@ -5,6 +5,8 @@
 # -----------------------------
 
 # -- Help category
+typeset -gA help_files
+typeset -gA help_corefunc
 help_files[corefunc]='Core functions for scripts'
 
 # ---------------------
@@ -34,8 +36,6 @@ COLOR_FUNCTIONS=(_error _warning _success _noticebg _noticefg _banner_red _banne
 
 # -- Text Colors
 _grey () { echo "$bg[bright-gray]$fg[black] $@ $reset_color" }
-
-_loading "Loading functions-core.zsh"
 
 # ------------
 # -- Debugging

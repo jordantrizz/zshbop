@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+source ${ZBR}/zshbop.zsh
 # -- domain-info
         CLOUDFLARE_IPS=(
         "173.245.48.0/20"
