@@ -27,7 +27,7 @@ mysql-allrowsize () {
 	else
 		LIMIT=""
 	fi
-	mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES ORDER BY table_rows DESC ${LIMIT};"
+	mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE table_schema NOT IN ('performance_schema', 'sys') ORDER BY table_rows DESC ${LIMIT};"
 }
 
 # - mysql-dbrowsize
