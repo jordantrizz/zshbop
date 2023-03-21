@@ -15,14 +15,19 @@ typeset -gA help_mysql
 # - mysql-alldbsize
 help_mysql[mysql-alldbsize]='Get size of all databases in MySQL'
 mysql-alldbsize () {
-		echo "Getting all database sizes"
-         mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY SUM(data_length + index_length) DESC;'
+	echo "Getting all database sizes"
+    mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY SUM(data_length + index_length) DESC;'
 }
 
 # - mysql-allrowsize
 help_mysql[mysql-allrowsize]='The number of rows of all tables in MySQL'
 mysql-allrowsize () {
-        mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES ORDER BY table_rows DESC;"
+	if [[ $1 ]]; then
+		LIMIT="limit $1"
+	else
+		LIMIT=""
+	fi
+	mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES ORDER BY table_rows DESC ${LIMIT};"
 }
 
 # - mysql-dbrowsize
