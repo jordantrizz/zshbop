@@ -1,6 +1,8 @@
 #!/usr/bin/env zsh
+# -- include zbr core
 source ${ZBR}/zshbop.zsh
-# -- domain-info
+
+# -- Cloudflare IPS
         CLOUDFLARE_IPS=(
         "173.245.48.0/20"
         "103.21.244.0/22"
@@ -24,54 +26,74 @@ source ${ZBR}/zshbop.zsh
         "2c0f:f248::/32"
         "2a06:98c0::/29"
         )
-    if [ $# -eq 0 ]; then
-        echo "Usage: domain-info <domain_name>"
-        return 1
-    fi
 
-    DOMAIN=$1
+usage () {
+    echo "\
+Usage: domain-info [-c] <domain name>
 
-    # Check if domain is using Cloudflare nameservers
-        _loading2 "Checking if $DOMAIN nameservers"
+  Options:
+      -c       - Compact output.
+"
+}
+
+# -- get_nameservers
+get_nameservers () {
     NAMESERVERS=$(dig +short NS $DOMAIN)
+}
 
-    echo ""
+# -- is_cloudflare
+is_cloudflare () {
     IS_CF=0
     if echo $NAMESERVERS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)"; then
         IS_CF=1
-        echo "$bg[yellow]$fg[black]Cloudflare Nameservers${reset_color}"
-    else
-                echo "Nameservers for $DOMAIN:"
     fi
+}
 
-    echo "-------------"
-    echo "$NAMESERVERS"
-    echo "-------------"
-    echo ""
-
-    # Check apex record
-        if [[ $IS_CF == 1 ]]; then
-            _loading2 "Checking if $DOMAIN apex is proxied."
-            APEX_RECORD=$(dig +short A $DOMAIN)
-            echo "Apex record for $DOMAIN:"
-            for IP in "${(f)APEX_RECORD}"; do
-                        if [[ $(grepcidr3 -D "$IP" <(echo "$CLOUDFLARE_IPS")) ]]; then
-                        echo "$IP is $bg[yellow]$fg[black]CF proxied.${reset_color}"
-                else
-                        echo "$IP is not CF proxed"
-                fi
-                done
-                echo ""
-
-        _loading2 "Checking if $DOMAIN www is proxied."
-        WWW_RECORD=$(dig +short A www.$DOMAIN)
-        echo "WWW record for $DOMAIN:"
-        for IP in "${(f)WWW_RECORD}"; do
-            if [[ $(grepcidr3 -D "$IP" <(echo "$CLOUDFLARE_IPS")) ]]; then
-                echo "$IP is $bg[yellow]$fg[black]CF proxied.${reset_color}"
-            else
-                echo "$IP is not CF proxed"
-            fi
-        done
+# -- get_apex
+get_record () {
+    RECORD="$1"
+    RECORD=$(dig +short A $RECORD)
+    TEXT=""
+    for IP in "${(f)RECORD}"; do
+        if [[ $(grepcidr3 -D "$IP" <(echo "$CLOUDFLARE_IPS")) ]]; then
+            TEXT+="$IP = $bg[yellow]$fg[black]CF${reset_color} "
+        else
+            TEXT+="$IP"
         fi
+    done
+    echo $TEXT
+}
 
+# -------
+# -- main
+# -------
+zparseopts -D -E c=COMPACT
+DOMAIN="$1"
+
+if [[ -z $DOMAIN ]]; then
+    usage
+    _error "Please specifiy a domain"
+    exit
+fi
+
+# Get nameservers
+get_nameservers
+is_cloudflare
+APEX_TEXT=$(get_record $DOMAIN)
+WWW_TEXT=$(get_record www.$DOMAIN)
+
+if [[ $COMPACT ]]; then
+    echo -n "$DOMAIN - Nameservers: ${(f)NAMESERVERS}"
+    if [[ $IS_CF ]]; then echo -n " = $bg[yellow]$fg[black]CF${reset_color}"; fi
+    echo -n " $bg[red]$fg[black]||||||${reset_color} APEX@: $APEX_TEXT"
+    echo -n " $bg[red]$fg[black]||||||${reset_color} WWW.: $WWW_TEXT"
+else
+    echo "Domain: $DOMAIN"
+    echo -n "-- Nameservers:" 
+    if [[ $IS_CF ]]; then echo " - $bg[yellow]$fg[black]Cloudflare Nameservers${reset_color}"; fi
+    echo "${NAMESERVERS}"
+    echo "-- DNS"
+    echo " APEX@: $APEX_TEXT"
+    echo " WWW.: $WWW_TEXT"
+    echo ""
+fi
