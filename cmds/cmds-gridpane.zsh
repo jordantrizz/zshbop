@@ -181,3 +181,9 @@ gp-topips () {
 		cat ${1} | awk {' print $1 '} | uniq -c | sort -nr | head -50
 	fi
 }
+
+# -- gp-listsites
+help_gridpane[gp-listsites]="List GridPane sites from /var/www, excluding canary and staging"
+gp-listsites () {
+	ls -al /var/www | egrep -v 'canary|staging|gridpanevps|22222'
+}
