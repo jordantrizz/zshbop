@@ -176,6 +176,7 @@ gp-topips () {
         else
            echo "Usage: gp-topips <ols|nginx> <log>"
            return 1 
+        fi
 	fi
 }
 
