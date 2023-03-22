@@ -19,3 +19,8 @@ lsw-fullrestart () {
 	skill -9 lsphp
 }
 
+# - lsws
+help_litespeed[lsws]='Change directory to Litespeed root'
+lsws () {
+	cd /usr/local/lsws
+}
