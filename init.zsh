@@ -414,12 +414,12 @@ init_check_services () {
 		_error "Nginx not installed"
 	fi
 	
-	# - Openlitespeed
-	if (( $+commands[openlitespeed] )); then
-		_success "OLS: $(openlitespeed -v)"
+	# - litespeed
+	if (( $+commands[litespeed] )); then
+		_success "Litespeed: $(litespeed -v)"
 	else
-		_error "Openlitespeed not installed"
-	fi        
+		_error "Litespeed not installed"
+	fi        	
 	
 	# - Redis
 	if (( $+commands[redis-server] )); then
