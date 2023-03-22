@@ -100,8 +100,9 @@ sysr () {
 	if [[ -z $@ ]]; then
 		echo "systemctl restart - Usage: sysr [service]"
 		return 1
-	fi
-	_noticebg "systemctl restart $@"
+	else
+	    _noticebg "systemctl restart $@"
+        systemctl restart "$@"
 }
 
 # -- sysrld
@@ -110,9 +111,10 @@ sysrld () {
     if [[ -z $@ ]]; then
         echo "systemctl reload - Usage: sysrld [service]"
         return 1
+    else
+        _noticebg "systemctl reload $@"
+        systemctl reload $@
     fi
-    _noticebg "systemctl reload $@"
-    systemctl reload $@
 }
 
 # -- ps-cpu
