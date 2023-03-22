@@ -506,7 +506,8 @@ init_motd () {
 	# -- Check if GridPane Server
 	if [[ -f /root/grid.id ]]; then
 		_loading "Running GridPane CP - type help gridpane for more commands"
-		gp-motd
+		source "${ZBR}/motd/motd-gp.zsh"
+		motd_gp
 	fi
 	
 	# -- Host MOTD
