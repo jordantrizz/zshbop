@@ -165,17 +165,18 @@ gp-ssl-ss () {
 # -- gp-topips
 help_gridpane[gp-topips]="Get the top requests by IP on <log>"
 gp-topips () {
-	if [[ -z $1 ]] && [[ -z $2 ]]; then
-		echo "Usage: gp-topips <ols|nginx> <log>"        
+	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
+		echo "Usage: gp-topips <ols|nginx> <log>"
+        _error "Unknown $@" 
         return 1
 	else
-		if [[ $2 == "ols" ]]; then
+		if [[ $1 == "ols" ]]; then
             cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | head -50
-        elif [[ $2 == "nginx" ]]; then
+        elif [[ $1 == "nginx" ]]; then
             cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | head -50
         else
            echo "Usage: gp-topips <ols|nginx> <log>"
-           return 1 
+           _error "Unknown $@"
         fi
 	fi
 }
