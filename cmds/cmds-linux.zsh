@@ -103,6 +103,7 @@ sysr () {
 	else
 	    _noticebg "systemctl restart $@"
         systemctl restart "$@"
+    fi
 }
 
 # -- sysrld
