@@ -350,5 +350,5 @@ mysql-myisam2innodb () {
 # -- mysql-uptime
 help_mysql[mysql-uptime]="Get MySQL uptime."
 mysql-uptime () {
-    mysql -e "select TIME_FORMAT(SEC_TO_TIME(VARIABLE_VALUE ),'%Hh %im') as Uptime from performance_schema.global_status where VARIABLE_NAME='Uptime'
+    mysql -e "select TIME_FORMAT(SEC_TO_TIME(VARIABLE_VALUE ),'%Hh %im') as Uptime from performance_schema.global_status where VARIABLE_NAME='Uptime';"
 }
