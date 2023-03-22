@@ -171,7 +171,7 @@ gp-topips () {
 	else
 		if [[ $2 == "ols" ]]; then
             cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | head -50
-        else [[ $2 == "nginx" ]]; then
+        elif [[ $2 == "nginx" ]]; then
             cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | head -50
         else
            echo "Usage: gp-topips <ols|nginx> <log>"
