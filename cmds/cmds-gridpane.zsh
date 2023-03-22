@@ -173,7 +173,7 @@ gp-topips () {
 		if [[ $1 == "ols" ]]; then
             cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | head -50
         elif [[ $1 == "nginx" ]]; then
-            cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | head -50
+            cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | head -50
         else
            echo "Usage: gp-topips <ols|nginx> <log>"
            _error "Unknown $@"
