@@ -196,7 +196,7 @@ gp-backupallsites () {
         mkdir $HOME/backups
     fi
     for SITE in ${(f)SITES}; do
-        echo "/usr/local/bin/wp --allow-root db --path=/var/www/htdocs/${SITE}/wp - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz &"
+        echo "/usr/local/bin/wp --allow-root --path=/var/www/${SITE}/htdocs db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz &"
         echo "tar --create --gzip --absolute-names --file=${HOME}backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude=*.tar.gz /var/www/${SITE}/htdocs"
         return 1
     done
