@@ -34,3 +34,10 @@ tar -cvf public_html-01-01-2023.tar --exclude wp-content/cache --exclude wp-cont
 ```
 rsync -avz public_html root@192.168.0.101 --exclude wp-content/cache --exclude wp-content/ai1wm-backups
 ```
+
+# Change Site URL
+* Add wp-config.php
+```
+define( 'WP_HOME', 'http://example.com' );
+define( 'WP_SITEURL', 'http://example.com' );
+```
