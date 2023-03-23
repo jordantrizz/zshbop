@@ -191,7 +191,7 @@ gp-toprequests () {
         return 1
 	else
 		if [[ $1 == "ols" ]]; then
-            cat ${2} | awk awk {' print $6 " - " $7 '} | sort -nr | uniq -c | head -50
+            cat ${2} | awk {' print $6 " - " $7 '} | sort -nr | uniq -c | head -50
         elif [[ $1 == "nginx" ]]; then
             cat ${2} | awk {' print $7 " - " $8 '} | sort -nr | uniq -c | head -50
         else
