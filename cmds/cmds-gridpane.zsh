@@ -191,8 +191,13 @@ gp-listsites () {
 help_gridpane[gp-backupallsites]="Backup all sites on server to ~/backups"
 gp-backupallsites () {
     SITES=$(ls -ld /var/www/*/ | grep -v -e 'canary' -e 'staging' -e 'gridpanevps' -e '22222' | awk '{print $8}' | sed 's|/var/www/||')
+    if [[ ! -d $HOME/backups ]]; then  
+        echo "$HOME/backups directory doesn't exist...creating..."
+        mkdir $HOME/backups
+    fi
     for SITE in ${(f)SITES}; do
-        echo "/usr/local/bin/wp db --path=/var/www/htdocs/${SITE}/wp - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz &"
+        echo "/usr/local/bin/wp --allow-root db --path=/var/www/htdocs/${SITE}/wp - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz &"
         echo "tar --create --gzip --absolute-names --file=${HOME}backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude=*.tar.gz /var/www/${SITE}/htdocs"
+        return 1
     done
 }
