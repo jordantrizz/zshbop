@@ -163,7 +163,7 @@ gp-ssl-ss () {
 }
 
 # -- gp-topips
-help_gridpane[gp-topips]="Get the top requests by IP on <log>"
+help_gridpane[gp-topips]="Get the top requests by IP in an OLS or Nginx access log"
 gp-topips () {
 	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
 		echo "Usage: gp-topips <ols|nginx> <log>"
@@ -176,6 +176,26 @@ gp-topips () {
             cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | head -50
         else
            echo "Usage: gp-topips <ols|nginx> <log>"
+           _error "Unknown $@"
+        fi
+	fi
+}
+
+
+# -- gp-toprequests
+help_gridpane[gp-toprequests]="Get the top requests in an OLS or Nginx access log"
+gp-toprequests () {
+	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
+		echo "Usage: gp-toprequests <ols|nginx> <log>"
+        _error "Unknown $@"
+        return 1
+	else
+		if [[ $1 == "ols" ]]; then
+            cat ${2} | awk {' print $7 '} | uniq -c | sort -nr | head -50
+        elif [[ $1 == "nginx" ]]; then
+            cat ${2} | awk {' print $8 '} | uniq -c | sort -nr | head -50
+        else
+           echo "Usage: gp-toprequests <ols|nginx> <log>"
            _error "Unknown $@"
         fi
 	fi
