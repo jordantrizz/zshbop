@@ -49,7 +49,7 @@ gridpane_certbot-logs () {
 
 # -- gph check-fsl
 help_gridpane[check-fsl]="Check duplicacy .fsl files"
-check-fsl () { 
+check-fsl () {
 	echo "\n** Checking duplicacy storage **";
     echo "----"
 	echo -n "Total size of backup chunks: ";du --max-depth=0 -h /opt/gridpane/backups/duplications/chunks
@@ -114,7 +114,7 @@ gp-logs () {
 				tail -n ${1} ${log}
 			else
 				_error "Can't find $log"
-			fi				
+			fi
 		done
 	fi
 }
@@ -139,8 +139,8 @@ gp-monit527 () {
 # -- gp-ssl-ss
 help_gridpane[gp-ssl-ss]="Generate self-signed certificate for GridPane site"
 gp-ssl-ss () {
-	DOMAIN="$1"	
-	
+	DOMAIN="$1"
+
 	if [[ -z $1 ]]; then
 		echo "./gp-ssl-ss <domain>"
 		if [[ -d /etc/nginx/ssl/${DOMAIN} ]]; then
@@ -152,13 +152,13 @@ gp-ssl-ss () {
 			cd /etc/nginx/ssl/${DOMAIN}
 		fi
 		echo "Generating self signed certificate"
-		
+
 	    openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout cert.key -out cert.crt
 	    openssl x509 -in cert.crt -out cert.pem
-	    openssl rsa -in cert.key -out key.pem	
-		
+	    openssl rsa -in cert.key -out key.pem
+
 		echo "Setting site to https + redis caching"
-		gp conf -ngx -generate https-root redis ${1}		
+		gp conf -ngx -generate https-root redis ${1}
 	fi
 }
 
@@ -167,7 +167,7 @@ help_gridpane[gp-topips]="Get the top requests by IP on <log>"
 gp-topips () {
 	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
 		echo "Usage: gp-topips <ols|nginx> <log>"
-        _error "Unknown $@" 
+        _error "Unknown $@"
         return 1
 	else
 		if [[ $1 == "ols" ]]; then
@@ -191,13 +191,13 @@ gp-listsites () {
 help_gridpane[gp-backupallsites]="Backup all sites on server to ~/backups"
 gp-backupallsites () {
     SITES=$(ls -ld /var/www/*/ | grep -v -e 'canary' -e 'staging' -e 'gridpanevps' -e '22222' | awk '{print $8}' | sed 's|/var/www/||')
-    if [[ ! -d $HOME/backups ]]; then  
+    if [[ ! -d $HOME/backups ]]; then
         echo "$HOME/backups directory doesn't exist...creating..."
         mkdir $HOME/backups
     fi
     for SITE in ${(f)SITES}; do
-        echo "/usr/local/bin/wp --allow-root --path=/var/www/${SITE}/htdocs db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz &"
-        echo "tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' /var/www/${SITE}/htdocs"
-        return 1
+        echo "Backing up ${SITE}..."
+        /usr/local/bin/wp --allow-root --path=/var/www/${SITE}/htdocs db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
+        tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' /var/www/${SITE}/htdocs
     done
 }
