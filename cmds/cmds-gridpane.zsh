@@ -191,9 +191,9 @@ gp-toprequests () {
         return 1
 	else
 		if [[ $1 == "ols" ]]; then
-            cat ${2} | awk {' print $7 '} | uniq -c | sort -nr | head -50
+            cat ${2} | awk {' print $7 '} | sort -nr | uniq -c | head -50
         elif [[ $1 == "nginx" ]]; then
-            cat ${2} | awk {' print $8 '} | uniq -c | sort -nr | head -50
+            cat ${2} | awk {' print $8 '} | sort -nr | uniq -c | head -50
         else
            echo "Usage: gp-toprequests <ols|nginx> <log>"
            _error "Unknown $@"
