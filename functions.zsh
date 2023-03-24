@@ -196,10 +196,11 @@ zshbop_update () {
 	fi
 
     # -- Update custom $ZSHBOP_UPDATE_GIT git repositories located in /git or $GIT_HOME
+    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
     if [[ $ZSHBOP_UPDATE_GIT ]]; then
-        for GIT in ZSHBOP_UPDATE_GIT; do
+        for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
             _loading2 "Updating ${GIT_HOME}/${GIT}"
-            git --git-dir=${GIT}/.git --work-tree=${GIT} pull
+            git --git-dir=${GIT_HOME}/${GIT}/.git --work-tree=${GIT_HOME}/${GIT} pull
         done
     fi        
 
