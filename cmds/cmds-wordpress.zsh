@@ -121,6 +121,7 @@ wp-backupsite () {
     if [[ -z $1 ]]; then
         echo "Usage: wp-backupsite <domain>"
         echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
+        return 1
     fi
 
     WP_CHECK=$(wp --allow-root core is-installed)
@@ -136,5 +137,4 @@ wp-backupsite () {
     echo "Backing up ${SITE}..."
     /usr/local/bin/wp --allow-root - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
     tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
-
 }
