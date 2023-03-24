@@ -10,6 +10,9 @@ _debug " -- Loading ${(%):-%N}"
 help_files[runcloud_description]="Common Runcloud Tools"
 help_files[runcloud]="Common Runcloud Tools"
 
+# - Init help array
+typeset -gA help_runcloud
+
 # -- gp-backupallsites
 help_runcloud[runcloud-backupallsites]="Backup all sites on server to ~/backups"
 runcloud-backupallsites () {
