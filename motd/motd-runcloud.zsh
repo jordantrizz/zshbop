@@ -1,6 +1,6 @@
 # -- motd-runcloud
 help_runcloud[motd-runcloud]="Runcloud MOTD"
-motd_gp () {
+motd_runcloud () {
     _loading2 "The last 10 lines from /var/log/runcloud.log"
     cat /var/log/runcloud.log | tail -10
 
