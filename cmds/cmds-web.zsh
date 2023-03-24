@@ -57,7 +57,7 @@ web-topips () {
         LINES="$3"
 
         # Set lines
-        [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES="-50"
+        [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES=""
         
         # - Check if log exists        
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
@@ -92,7 +92,7 @@ web-toprequests () {
         LINES="$3"
         
         # Set lines
-        [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES="-50"
+        [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES=""
         
         # - Check if log exists        
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
