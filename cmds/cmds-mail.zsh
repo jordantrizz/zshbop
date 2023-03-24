@@ -35,50 +35,45 @@ function mail-smtptest () {
     local response
     local conn
 
-    # Make SMTP connection
-    echo "Trying to connect to $hostname on port $port..."
-    conn="$(nc -w 5 "$hostname" "$port")"
-    echo "Connected!"
+    # Check if hostname resolves
+    #host_ip="$(dig +short "$hostname" | head -n 1)"
+    #if [[ -z "$host_ip" ]]; then
+    #    _error "Unable to resolve hostname: $hostname" >&2
+    #    return 1
+    #fi
 
-    # Send EHLO command
-    echo "Sending EHLO command..."
-    response="$(echo -ne "EHLO example.com\r\n" | tee >(cat - >&3) | cat <&4 >&(grep -v '^EHLO\|^250' >&2))"
-    echo "Response: $response"
+    # Check if port is open
+    #if ! nc -z -w5 "$host_ip" "$port"; then
+    #    _error "Unable to connect to $hostname on port $port" >&2
+    #    return 1
+    #fi
 
-    # Send STARTTLS command and initiate TLS handshake
-    echo "Sending STARTTLS command..."
-    response="$(echo -ne "STARTTLS\r\n" | tee >(cat - >&3) | cat <&4 >&(grep -v '^220' >&2))"
-    echo "Response: $response"
+      if [ $# -ne 4 ]; then
+    echo "Usage: smtp_connect <smtp_server> <smtp_port> <username> <password>"
+    return 1
+  fi
 
-    echo "Initiating TLS handshake..."
-    response="$(openssl s_client -quiet -connect "$hostname":"$port" < /dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > smtp.crt)"
-    echo "Response: $response"
+  local smtp_server=$1
+  local smtp_port=$2
+  local username=$3
+  local password=$4
+  local temp_file=$(mktemp)
 
-    # Start TLS encryption on existing connection
-    echo "Starting TLS encryption on existing connection..."
-    response="$(echo -ne "EHLO example.com\r\n" | tee >(cat - >&3) | cat <&4 >&(grep -v '^EHLO\|^250' >&2))"
-    echo "Response: $response"
+  {
+    echo "EHLO $smtp_server"
+    sleep 1
+    echo "AUTH LOGIN"
+    sleep 1
+    echo "$username" | base64
+    sleep 1
+    echo "$password" | base64
+    sleep 1
+    echo "QUIT"
+  } | openssl s_client -connect $smtp_server:$smtp_port -starttls smtp -crlf 2>/dev/null > $temp_file
 
-    # Send AUTH LOGIN command and send encoded username and password
-    echo "Sending AUTH LOGIN command..."
-    response="$(echo -ne "AUTH LOGIN\r\n" | tee >(cat - >&3) | cat <&4 >&(grep -v '^334' >&2))"
-    echo "Response: $response"
+  local response=$(cat $temp_file)
+  rm $temp_file
+  echo "$response"
 
-    echo "Sending Base64-encoded username..."
-    response="$(echo -ne "$username" | base64 | tr -d '\n' | sed 's/^/USER /' | sed 's/$/\r\n/' | tee >(cat - >&3) | cat <&4 >&(grep -v '^334' >&2))"
-    echo "Response: $response"
-
-    echo "Sending Base64-encoded password..."
-    response="$(echo -ne "$password" | base64 | tr -d '\n' | sed 's/^/PASS /' | sed 's/$/\r\n/' | tee >(cat - >&3) | cat <&4 >&(grep -v '^235' >&2))"
-    echo "Response: $response"
-
-    # Close connection
-    echo "Closing connection..."
-    response="$(echo -ne "QUIT\r\n" | tee >(cat - >&3) | cat <&4 >&(grep -v '^221' >&2))"
-    echo "Response: $response"
-
-    # Close file descriptors
-    exec 3>&-
-    exec 4<&-
 }
 
