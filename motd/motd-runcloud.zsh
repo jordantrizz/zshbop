@@ -6,10 +6,11 @@ motd_runcloud () {
 
     _loading2 "Common Locations"
     echo "** Logs **"
-    echo "/var/log/lsws-rc/runcloud"
-    echo "/var/log/runcloud.log"
+    echo "  /var/log/lsws-rc/runcloud"
+    echo "  /var/log/runcloud.log"
+    echo "  /home/runcloud/logs"
     echo ""
     echo "** Sites **"
-    echo "/home/runcloud/webapps"
+    echo "  /home/runcloud/webapps"
 
 }
