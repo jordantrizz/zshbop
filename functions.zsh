@@ -195,6 +195,14 @@ zshbop_update () {
 		_loading2 "No zshbop-custom to update"
 	fi
 
+    # -- Update custom $ZSHBOP_UPDATE_GIT git repositories located in /git or $GIT_HOME
+    if [[ $ZSHBOP_UPDATE_GIT ]]; then
+        for GIT in ZSHBOP_UPDATE_GIT; do
+            _loading2 "Updating ${GIT_HOME}/${GIT}"
+            git --git-dir=${GIT}/.git --work-tree=${GIT} pull
+        done
+    fi        
+
     # Reload scripts
     _warning "Type zb reload to reload zshbop, or restart your shell."
 }
