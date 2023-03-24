@@ -341,6 +341,6 @@ function plik-conf () {
         return 1
     else
         PLIKRC=$(cat $HOME/.plikrc)
-        echo "echo \"${PLIKRC}\" > \$HOME/.plikrc"
+        echo "echo '${PLIKRC}' > \$HOME/.plikrc"
     fi
 }
