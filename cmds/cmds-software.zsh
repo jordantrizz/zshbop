@@ -332,3 +332,15 @@ function software_jiq () {
 		chmod u+x $HOME/bin/jiq
 	fi
 }
+
+# -- plik-conf
+help_software[plik-conf]='Print out .plikrc'
+function plik-conf () {    
+    if [[ -f $HOME/.plikrc ]]; then
+        _error "No $HOME/.plikrc exists"
+        return 1
+    else
+        PLIKRC=$(echo $HOME/.plikrc)
+        echo "echo \"${PLIKRC}\" > \$HOME/.plikrc"
+    fi
+}
