@@ -340,7 +340,7 @@ function plik-conf () {
         _error "No $HOME/.plikrc exists"
         return 1
     else
-        PLIKRC=$(echo $HOME/.plikrc)
+        PLIKRC=$(cat $HOME/.plikrc)
         echo "echo \"${PLIKRC}\" > \$HOME/.plikrc"
     fi
 }
