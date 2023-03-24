@@ -58,11 +58,11 @@ web-topips () {
                 LINES="|head -50"
             fi
 		if [[ $1 == "ols" ]]; then
-            $(cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | ${LNES})
+            $(cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | ${LINES})
         elif [[ $1 == "nginx" ]]; then
-            $(cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | ${LNES})
+            $(cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | ${LINES})
         elif [[ $1 == "rcols" ]]; then
-            $(cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | ${LNES})
+            $(cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | ${LINES})
         else
             _error "Unknown $@"
         fi
