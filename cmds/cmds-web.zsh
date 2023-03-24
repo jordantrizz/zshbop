@@ -98,11 +98,11 @@ web-toprequests () {
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
 
 		if [[ $1 == "ols" ]]; then
-            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 | head -50
+            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
         elif [[ $1 == "nginx" ]]; then
-            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head -50
+            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         elif [[ $1 == "rcols" ]]; then
-            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head -50
+            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         else
            web-toprequests_usage
            _error "Unknown $@"
