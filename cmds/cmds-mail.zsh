@@ -23,11 +23,18 @@ alias postmark="postmark.sh"
 # -- mail-smtptest
 help_mail[mail-smtptest]='Test SMTP Login'
 function mail-smtptest () {
+    if [[ $# -lt 4 ]]; then
+        echo "Usage: mail-smtptest hostname port username password" >&2
+        return 1
+    fi
+
     local hostname="${1:-smtp.example.com}"
     local port="${2:-587}"
     local username="${3:-user@example.com}"
     local password="${4:-password}"
     local response
+
+    if [[ -z ]]
 
     # Make SMTP connection
     echo "Trying to connect to $hostname on port $port..."
