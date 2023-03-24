@@ -43,7 +43,7 @@ help_web[image-opt]="Optimize images"
 # -- web-topips
 help_web[web-topips]="Get the top requests by IP in an OLS or Nginx access log"
 web-topips_usage () {
-    echo "Usage: web-topips <ols|nginx|rcols> <log>"
+    echo "Usage: web-topips <ols|nginx|rcols> <log> (lines)"
     echo "    rcols = Runcloud OLS"
 }
 web-topips () {
@@ -52,15 +52,19 @@ web-topips () {
         _error "Unknown $@"
         return 1
 	else
+        if [[ ${3} ]]; then
+            LINES="|head -${3}"
+            else
+                LINES="|head -50"
+            fi
 		if [[ $1 == "ols" ]]; then
-            cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | head -50
+            $(cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | ${LNES})
         elif [[ $1 == "nginx" ]]; then
-            cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | head -50
+            $(cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | ${LNES})
         elif [[ $1 == "rcols" ]]; then
-            cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | head -50        
+            $(cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | ${LNES})
         else
-           web-topips_usage
-           _error "Unknown $@"
+            _error "Unknown $@"
         fi
 	fi
 }
