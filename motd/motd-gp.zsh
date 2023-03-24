@@ -1,5 +1,5 @@
 # -- gp-motd
-help_gridpane[gp-motd]="GridPane MOTD"
+help_gridpane[motd_gp]="GridPane MOTD"
 motd_gp () {
     # -- monit logs, grab last 10 warnings and errors
     _loading2 "Last 10 monit warnings and errors"

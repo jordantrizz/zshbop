@@ -503,21 +503,8 @@ init_motd () {
 	init_check_services
 	echo ""
 	
-	# -- Check if GridPane Server
-	if [[ -f /root/grid.id ]]; then
-		_loading "Running GridPane CP - type help gridpane for more commands"
-		source "${ZBR}/motd/motd-gp.zsh"
-		motd_gp
-	fi
-	
-	# -- Host MOTD
-	_cexists host_motd
-	if [[ $? == "0" ]]; then
-		_loading "Found host motd"
-		host_motd
-	else
-		_notice "No host motd"
-	fi
+    # -- Load motd
+    source "${ZBR}/motd.zsh"
 
 	# -- env-install
 	_loading "Run env-install to install default and extra tools"
