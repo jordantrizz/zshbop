@@ -34,8 +34,6 @@ function mail-smtptest () {
     local password="${4:-password}"
     local response
 
-    if [[ -z ]]
-
     # Make SMTP connection
     echo "Trying to connect to $hostname on port $port..."
     response="$(echo -ne "EHLO example.com\r\n" | nc -w 5 "$hostname" "$port")"
