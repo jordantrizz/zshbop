@@ -55,20 +55,13 @@ web-topips () {
         TYPE="$1"
         LOG="$2"
         LINES="$3"
-        
-        # - Set lines
-        if [[ ${LINES} ]]; then
-                SETLINES="-${LINES}"
-        else
-                SETLINES="-50"
-        fi
+
+        # Set lines
+        [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES="-50"
         
         # - Check if log exists        
-        if [[ ! -f $LOG ]];then
-            _error "Couldn't find log: $LOG"
-            return 1
-        fi
-        
+        [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
+
         # - Process
 		if [[ $1 == "ols" ]]; then
             cat ${LOG} | awk {' print $1 '} | uniq -c | sort -nr | head ${SETLINES}
@@ -78,6 +71,41 @@ web-topips () {
             cat ${LOG} | awk {' print $2 '} | uniq -c | sort -nr | head ${SETLINES}
         else
             _error "Unknown $@"
+        fi
+	fi
+}
+
+# -- web-toprequests
+help_gridpane[web-toprequests]="Get the top requests in an access log"
+web-toprequests_usage () {
+    echo "Usage: gp-toprequests <ols|nginx|rcols> <log> (lines)"
+    echo "    rcols = Runcloud OLS"
+}
+web-toprequests () {
+	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
+		web-toprequests_usage
+        _error "Unknown $@"
+        return 1
+	else
+        TYPE="$1"
+        LOG="$2"
+        LINES="$3"
+        
+        # Set lines
+        [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES="-50"
+        
+        # - Check if log exists        
+        [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
+
+		if [[ $1 == "ols" ]]; then
+            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 | head -50
+        elif [[ $1 == "nginx" ]]; then
+            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head -50
+        elif [[ $1 == "rcols" ]]; then
+            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head -50
+        else
+           web-toprequests_usage
+           _error "Unknown $@"
         fi
 	fi
 }
