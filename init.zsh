@@ -511,5 +511,4 @@ init_motd () {
 	
     # -- last echo to keep motd clean
     echo ""
-    
 }

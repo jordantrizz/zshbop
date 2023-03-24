@@ -52,17 +52,30 @@ web-topips () {
         _error "Unknown $@"
         return 1
 	else
-        if [[ ${3} ]]; then
-            LINES="head -${3}"
-            else
-                LINES="head -50"
-            fi
+        TYPE="$1"
+        LOG="$2"
+        LINES="$3"
+        
+        # - Set lines
+        if [[ ${LINES} ]]; then
+                SETLINES="-${LINES}"
+        else
+                SETLINES="-50"
+        fi
+        
+        # - Check if log exists        
+        if [[ ! -f $LOG ]];then
+            _error "Couldn't find log: $LOG"
+            return 1
+        fi
+        
+        # - Process
 		if [[ $1 == "ols" ]]; then
-            $(cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | ${LINES})
+            cat ${LOG} | awk {' print $1 '} | uniq -c | sort -nr | head ${SETLINES}
         elif [[ $1 == "nginx" ]]; then
-            $(cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | ${LINES})
+            cat ${LOG} | awk {' print $3 '} | uniq -c | sort -nr | head ${SETLINES}
         elif [[ $1 == "rcols" ]]; then
-            $(cat ${2} | awk {' print $2 '} | uniq -c | sort -nr | ${LINES})
+            cat ${LOG} | awk {' print $2 '} | uniq -c | sort -nr | head ${SETLINES}
         else
             _error "Unknown $@"
         fi
