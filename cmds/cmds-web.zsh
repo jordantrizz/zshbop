@@ -39,3 +39,22 @@ alias curl-ttfb2="ttfb2"
 
 # -- image-opt
 help_web[image-opt]="Optimize images"
+
+# -- web-topips
+help_web[web-topips]="Get the top requests by IP in an OLS or Nginx access log"
+web-topips () {
+	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
+		echo "Usage: web-topips <ols|nginx> <log>"
+        _error "Unknown $@"
+        return 1
+	else
+		if [[ $1 == "ols" ]]; then
+            cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | head -50
+        elif [[ $1 == "nginx" ]]; then
+            cat ${2} | awk {' print $3 '} | uniq -c | sort -nr | head -50
+        else
+           echo "Usage: web-topips <ols|nginx> <log>"
+           _error "Unknown $@"
+        fi
+	fi
+}
