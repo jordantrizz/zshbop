@@ -53,9 +53,9 @@ web-topips () {
         return 1
 	else
         if [[ ${3} ]]; then
-            LINES="|head -${3}"
+            LINES="head -${3}"
             else
-                LINES="|head -50"
+                LINES="head -50"
             fi
 		if [[ $1 == "ols" ]]; then
             $(cat ${2} | awk {' print $1 '} | uniq -c | sort -nr | ${LINES})
