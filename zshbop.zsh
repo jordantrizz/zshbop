@@ -38,7 +38,7 @@ export TMP="$HOME/tmp"
 export ZDOTDIR="${HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 
 # -- zshbop specific
-export SCRIPT_NAME="zshbop" # -- Current zshbop branch
+export ZSHBOP_NAME="zshbop" # -- Current zshbop branch
 export SCRIPT_DIR=${0:a:h} # -- Current working directory
 export ZSHBOP_CACHE_DIR="${HOME}/.zshbop_cache"
 export ZSHBOP_PLUGIN_MANAGER="init_antidote"

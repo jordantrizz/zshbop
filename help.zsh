@@ -23,20 +23,21 @@ get_category_commands () {
 	
 	# If help all is used
 	_debug "-- Finding category: $HCMD"
-        if [[ $HCMD == "all" ]]; then
+    if [[ $HCMD == "all" ]]; then
 		output_all=" -- All Commands\n"
-                for key in ${(kon)help_files}; do
-                        help_all_cat=(help_${key})
-                        output_all+=" -- $key ------------------------------------------------------------\n"
-                        for key in ${(kon)${(P)help_all_cat}}; do
-                    	    output_all+=$(printf '%s\n' "  ${(r:25:)key} - ${${(P)help_all_cat}[$key]}\n")
-                    	done
-                    	output_all+="\n"
+        for key in ${(kon)help_files}; do
+            help_all_cat=(help_${key})
+            output_all+=" -- $key ------------------------------------------------------------\n"
+            for key in ${(kon)${(P)help_all_cat}}; do
+                output_all+=$(printf '%s\n' "  ${(r:25:)key} - ${${(P)help_all_cat}[$key]}\n")
+            done
+            output_all+="\n"
 		done
 		echo $output_all | less
 	elif [[ -z ${(P)HELP_CAT} ]]; then
-        	echo "No command category $HCMD, try running kb $HCMD"
-                echo ""
+        _debug "\${(P)HELP_CAT}: ${(P)HELP_CAT}"
+        echo "No command category $HCMD, try running kb $HCMD"
+        echo ""
 		return
 	else
 		echo "-- $HCMD ---"
@@ -72,7 +73,7 @@ help () {
 # -- Help introduction
 help_intro () {
 	echo "-----------------------------"
-	echo "-- Welcome to $SCRIPT_NAME --"
+	echo "-- Welcome to $ZSHBOP_NAME --"
     echo "-----------------------------"
     echo ""
     echo "ZSHBop contains a number of built-in functions, scripts and binaries."
