@@ -250,6 +250,7 @@ zshbop-install () {
 }
 
 # -- os-alias - return alias if binary exists for os
+help_core[os-alias]='Return alias if binary exists for os'
 os-binary () {
     BINARY="$1"
 	unset LC_CHECK NULL OS_BINARY
@@ -279,4 +280,18 @@ os-binary () {
 	    alias ${BINARY}="${OS_BINARY}"
 	    return 0
 	fi
+}
+
+
+
+# -- debugz - return alias if binary exists for os
+help_core[debugz]='Debug ZSH Function'
+function debugz() {
+  local func_name="$1"
+  shift
+
+  PS4='+ ${FUNCNAME[0]}: line %l: '
+  set -x
+  $func_name "$@"
+  set +x
 }
