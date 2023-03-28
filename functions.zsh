@@ -204,6 +204,7 @@ zshbop_update () {
                 git --git-dir=${GIT}/.git --work-tree=${GIT} pull
             else
                 _error "Couldn't find ${GIT}"
+            
         done
     fi
 
