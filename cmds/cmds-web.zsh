@@ -79,7 +79,7 @@ web-topips () {
 # -- web-toprequests
 help_gridpane[web-toprequests]="Get the top requests in an access log"
 web-toprequests_usage () {
-    echo "Usage: gp-toprequests <ols|nginx|rcols> <log> (lines)"
+    echo "Usage: web-toprequests <ols|nginx|rcols> <log> (lines)"
     echo "    rcols = Runcloud OLS"
 }
 
