@@ -118,6 +118,9 @@ gp stack redis -max-memory 300
 * gp stack php 7.4 -mem-limit 512 -no-reload &&
 ## Update PHP memory per site.
 * gp stack php -site-mem-limit 512 test.com
+## Enable php-fpm slow log
+* gp stack php -site-slowlog-timeout 5 site.url
+* gp stack php -site-slowlog-trace-depth 15 site.url
 
 # Cache
 ## Commands
