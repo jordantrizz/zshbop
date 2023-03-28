@@ -14,7 +14,7 @@
 
 # -- Git Repositores to update.
 #ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik)
-#export -p ZSHBOP_UPDATE_GIT
+#export -p ZSHBOP_UPDATE_GIT > /dev/null
 
 # -- Exbin
 #export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting
