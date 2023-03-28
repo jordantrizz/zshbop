@@ -188,3 +188,27 @@ Enable server wide
 # Create Vanilla Nginx Config
 * gp conf nginx generate https-vanilla site.com
 
+# Notes
+
+## Check Caching
+### Redis
+```
+X-Grid-SRCache-Fetch HIT | MISS | BYPASS
+HIT means the website is cached.
+
+MISS means this page hadn’t been cached yet as it’s the first time it’s been visited since either the cache has been activated or cleared -on reload it should say HIT.
+
+BYPASS means this page has been excluded and will never be cached.
+```
+### Nginx
+```
+X-Grid-Cache HIT | MISS | BYPASS | STALE
+
+HIT means the website is cached.
+
+MISS means this page hadn’t been cached yet as it’s the first time it’s been visited since either the cache has been activated or cleared -on reload it should say HIT.
+
+BYPASS means this page has been excluded and will never be cached.
+
+STALE means your browser’s cache has expired. This will be common with FastCGI as the cache refreshes every second by default. This still means that caching is taking place on your server.
+```
