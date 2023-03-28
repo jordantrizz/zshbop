@@ -199,8 +199,11 @@ zshbop_update () {
     _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
     if [[ $ZSHBOP_UPDATE_GIT ]]; then
         for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
-            _loading2 "Updating ${GIT}"
-            git --git-dir=${GIT}/.git --work-tree=${GIT} pull
+            if [[ -d ${GIT} ]]; then
+                _loading2 "Updating ${GIT}"
+                git --git-dir=${GIT}/.git --work-tree=${GIT} pull
+            else
+                _error "Couldn't find ${GIT}"
         done
     fi
 
