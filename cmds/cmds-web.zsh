@@ -46,6 +46,7 @@ web-topips_usage () {
     echo "Usage: web-topips <ols|nginx|rcols> <log> (lines)"
     echo "    rcols = Runcloud OLS"
 }
+
 web-topips () {
 	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
 		web-topips_usage
@@ -81,6 +82,7 @@ web-toprequests_usage () {
     echo "Usage: gp-toprequests <ols|nginx|rcols> <log> (lines)"
     echo "    rcols = Runcloud OLS"
 }
+
 web-toprequests () {
 	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
 		web-toprequests_usage

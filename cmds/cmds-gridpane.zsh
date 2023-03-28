@@ -162,35 +162,16 @@ gp-ssl-ss () {
 	fi
 }
 
-# -- gp-toprequests
-help_gridpane[gp-toprequests]="Get the top requests in an OLS or Nginx access log"
-gp-toprequests () {
-	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
-		echo "Usage: gp-toprequests <ols|nginx> <log>"
-        _error "Unknown $@"
-        return 1
-	else
-		if [[ $1 == "ols" ]]; then
-            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 | head -50
-        elif [[ $1 == "nginx" ]]; then
-            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head -50
-        else
-           echo "Usage: gp-toprequests <ols|nginx> <log>"
-           _error "Unknown $@"
-        fi
-	fi
-}
-
 # -- gp-listsites
 help_gridpane[gp-listsites]="List GridPane sites from /var/www, excluding canary and staging"
 gp-listsites () {
-	ls -ld /var/www/*/ | grep -v -e 'canary' -e 'staging' -e 'gridpanevps' -e '22222' | awk '{print $8}' | sed 's|/var/www/||'
+	\ls -ld /var/www/*/ | grep -v -e 'canary' -e 'staging' -e 'gridpanevps' -e '22222' | awk '{print $9}' | sed 's|/var/www/||' | sed 's|/$||'
 }
 
 # -- gp-backupallsites
 help_gridpane[gp-backupallsites]="Backup all sites on server to ~/backups"
 gp-backupallsites () {
-    SITES=$(ls -ld /var/www/*/ | grep -v -e 'canary' -e 'staging' -e 'gridpanevps' -e '22222' | awk '{print $8}' | sed 's|/var/www/||')
+    SITES=$(gp-listsites)
     if [[ ! -d $HOME/backups ]]; then
         echo "$HOME/backups directory doesn't exist...creating..."
         mkdir $HOME/backups
