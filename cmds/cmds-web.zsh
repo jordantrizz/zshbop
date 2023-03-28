@@ -80,7 +80,12 @@ web-topips () {
 help_gridpane[web-toprequests]="Get the top requests in an access log"
 web-toprequests_usage () {
     echo "Usage: web-toprequests <ols|nginx|rcols> <log> (lines)"
-    echo "    rcols = Runcloud OLS"
+    echo ""
+    echo "  ols = Default OLS"
+    echo "  nginx = "Default Nginx
+    echo "  rcols = Runcloud OLS"
+    echo "  gpnginx = GridPane Nginx"
+    echo "  gpols = GridPane OLS"
 }
 
 web-toprequests () {
@@ -98,10 +103,16 @@ web-toprequests () {
         
         # - Check if log exists        
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
-
-		if [[ $1 == "ols" ]]; then
-            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
+        
+        elif [[ $1 == "ols" ]]; then
+            _error "Not working"
+            return 1
         elif [[ $1 == "nginx" ]]; then
+            _error "Not working"
+            return 1
+		elif [[ $1 == "gpols" ]]; then
+            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
+        elif [[ $1 == "gpnginx" ]]; then
             cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         elif [[ $1 == "rcols" ]]; then
             # "domain.com 127.0.0.1 - - [24/Mar/2023:14:47:33 +0000] "POST /wp-admin/admin-ajax.php?_fs_blog_admin=true HTTP/2" 200 36"
