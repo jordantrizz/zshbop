@@ -121,6 +121,8 @@ gp stack redis -max-memory 300
 ## Enable php-fpm slow log
 * gp stack php -site-slowlog-timeout 5 site.url
 * gp stack php -site-slowlog-trace-depth 15 site.url
+## PHP FPM pm.max-requests
+* gp stack php site-pm-max-requests 5000 site.url
 
 # Cache
 ## Commands
