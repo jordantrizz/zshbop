@@ -104,7 +104,7 @@ web-toprequests () {
         # - Check if log exists        
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
         
-        elif [[ $1 == "ols" ]]; then
+        if [[ $1 == "ols" ]]; then
             _error "Not working"
             return 1
         elif [[ $1 == "nginx" ]]; then
