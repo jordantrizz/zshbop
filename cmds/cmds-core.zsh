@@ -282,8 +282,6 @@ os-binary () {
 	fi
 }
 
-
-
 # -- debugz - return alias if binary exists for os
 help_core[debugz]='Debug ZSH Function'
 function debugz() {
