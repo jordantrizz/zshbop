@@ -53,7 +53,6 @@ git clone new-repo-url new-repo
 ## Separate SSH keys for Git Repositories
 * https://stackoverflow.com/questions/22768517/how-to-manage-one-only-key-per-each-git-repository
 
-### Configuration core.sshCommand
 Since Git version 2.10.0, you can configure this per repo or globally, using the core.sshCommand setting. There's no more need to use the environment variable. Here's how you clone a repo and set this configuration at the same time:
 
 git clone -c "core.sshCommand=ssh -i ~/.ssh/id_rsa_example -F /dev/null" git@github.com:example/example.git
@@ -61,10 +60,26 @@ cd example/
 git pull
 git push
 
-### If the repo already exists, run:
+If the repo already exists, run:
 
 ```git config core.sshCommand "ssh -i ~/.ssh/id_rsa_example -F /dev/null"```
 
+## Overwrite main with dev branch
+If you don't want to deal with the conflicts and just want to overwrite the dev branch with the main branch code, you can do a hard reset to the main branch. 
+This will discard all the changes in the dev branch and replace them with the code from the main branch. Here are the steps to do this:
+
+1. Start by checking out the dev branch:
+```git checkout dev```
+
+2. Then, do a hard reset to the main branch:
+```git reset --hard origin/main```
+
+This will remove all changes in the dev branch and overwrite it with the code from the main branch.
+
+3. Finally, push the changes to the remote dev branch:
+```git push -f origin dev```
+
+The -f flag is necessary to force push the changes to the remote dev branch, as you are rewriting the history of the branch.
 
 # Git Errors
 ## Unable to Read Tree
