@@ -201,10 +201,10 @@ init_antidote () {
 init_antigen () {
 	_debug "Loading antigen"
 	_loading "Loading antigen"
-    if [[ -e $ZSHBOP_ROOT/antigen.zsh ]]; then
-  _debug "- Loading antigen from $ZSHBOP_ROOT/antigen.zsh"
+    if [[ -e $ZSHBOP_ROOT/lib/antigen.zsh ]]; then
+  _debug "- Loading antigen from $ZSHBOP_ROOT/lib/antigen.zsh"
   # shellcheck source=./antigen.zsh
-  source ${ZSHBOP_ROOT}/antigen.zsh >/dev/null 2>&1
+  source ${ZSHBOP_ROOT}/lib/antigen.zsh >/dev/null 2>&1
   antigen init ${ZSHBOP_ROOT}/.antigenrc >/dev/null 2>&1
 else
   _echo "	- Couldn't load antigen.."
