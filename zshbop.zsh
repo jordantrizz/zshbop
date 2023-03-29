@@ -83,7 +83,7 @@ EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 # ---------------
 source ${ZSHBOP_ROOT}/colors.zsh # -- colors first!
 source ${ZSHBOP_ROOT}/functions-core.zsh #--
-source ${ZSHBOP_ROOT}/functions.zsh # -- 
+source ${ZSHBOP_ROOT}/lib/functions.zsh # -- 
 source ${ZSHBOP_ROOT}/init.zsh # -- include init
 source ${ZSHBOP_ROOT}/aliases.zsh # -- include functions
 source ${ZSHBOP_ROOT}/help.zsh # -- include help functions

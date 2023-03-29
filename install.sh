@@ -54,19 +54,14 @@ echo "$USAGE"
 
 # -- zshbop_banner
 zshbop_banner () {
-    
-echo "                    $$\       $$\                           "
-echo "                    $$ |      $$ |                          "
-echo "$$$$$$$$\  $$$$$$$\ $$$$$$$\  $$$$$$$\   $$$$$$\   $$$$$$\  "
-echo "\____$$  |$$  _____|$$  __$$\ $$  __$$\ $$  __$$\ $$  __$$\ "
-echo "  $$$$ _/ \$$$$$$\  $$ |  $$ |$$ |  $$ |$$ /  $$ |$$ /  $$ |"
-echo " $$  _/    \____$$\ $$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |"
-echo "$$$$$$$$\ $$$$$$$  |$$ |  $$ |$$$$$$$  |\$$$$$$  |$$$$$$$  |"
-echo "\________|\_______/ \__|  \__|\_______/  \______/ $$  ____/ "
-echo "                                                  $$ |      "
-echo "                                                  $$ |      "
-echo "                                                  \__|      "
-
+    echo "           _      _                   ";
+    echo "          | |    | |                  ";
+    echo " ____ ___ | |__  | |__    ___   _ __  ";
+    echo "|_  // __|| '_ \ | '_ \  / _ \ | '_ \ ";
+    echo " / / \__ \| |_) || |_) || (_) || |_) |";
+    echo "/___||___/|_.__/ |_.__/  \___/ | .__/ ";
+    echo "                               | |    ";
+    echo "                               |_|    ";
 }
 
 # -- flight_check
@@ -85,7 +80,7 @@ pre_flight_check () {
                         TOOLS_INSTALL+=("$tool")
                 else
                         TOOL_PATH=`which $tool`
-                        _success "$tool is installed in $TOOL_PATH"
+                        _debug "$tool is installed in $TOOL_PATH"
                 fi
         done        
         _debug "\$TOOLS_INSTALL: ${TOOLS_INSTALL[@]}"        
@@ -153,7 +148,7 @@ pkg_install () {
 
 # -- install_method - how do you want to install zshbop?
 install_method () {
-    
+    zshbop_banner
 	_running "Install (d)efaults or (c)ustomize? (d/c)?"
 	read INSTALL
 
