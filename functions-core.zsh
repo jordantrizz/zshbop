@@ -15,39 +15,35 @@ help_files[corefunc]='Core functions for scripts'
 
 # -- Different colored messages
 _echo () { echo "$@" }
-_error () { echo  "$fg[red] * $@ $reset_color" }
-_warning () { echo "$fg[yellow] * $@ $reset_color" }
-_success () { echo "$fg[green] * $@ $reset_color" }
-_noticebg () { echo "$bg[magenta]$fg[white] * $@ $reset_color" }
-_noticefg () { echo "$fg[magenta] * $@ $reset_color" }
+_error () { echo  "$fg[red] * $@ ${RSC}" }
+_warning () { echo "$fg[yellow] * $@ ${RSC}" }
+_success () { echo "$fg[green] * $@ ${RSC}" }
+_noticebg () { echo "$bg[magenta]$fg[white] * $@ ${RSC}" }
+_noticefg () { echo "$fg[magenta] * $@ ${RSC}" }
 alias _notice="_noticefg"
 
 # -- Banners
-_banner_red () { echo "$bg[red]$fg[white]${@}${reset_color}" }
-_banner_green () { echo "$bg[green]$fg[white]${@}${reset_color}" }
-_banner_yellow () { echo "$bg[yellow]$fg[black]${@}${reset_color}" }
-_banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${reset_color}" }
-_loading () { echo "$bg[yellow]$fg[black] * ${@}${reset_color}" }
-_loading2 () { echo "$bg[bright-grey]$fg[black]${@}${reset_color}" }
-_loading3 () { echo "$bg[bright-grey]$fg[black]${@}${reset_color}" }
-_loading4 () { echo "$fg[bright-grey]${@}${reset_color}" }
+_banner_red () { echo "$bg[red]$fg[white]${@}${RSC}" }
+_banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
+_banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
+_banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
+_loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" }
+_loading2 () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
+_loading3 () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
+_loading4 () { echo "$fg[bright-grey]${@}${RSC}" }
 alias _loading_grey=_loading2
 
 COLOR_FUNCTIONS=(_error _warning _success _noticebg _noticefg _banner_red _banner_green  _banner_grey _loading _loading2 _loading3 _loading4)
 
 # -- Text Colors
-_grey () { echo "$bg[bright-gray]$fg[black] $@ $reset_color" }
+_grey () { echo "$bg[bright-gray]$fg[black] $@ ${RSC}" }
+RSC=$reset_color # To replace $reset_color :)
 
-# -- list all colors
-help_corefunc[colors-print]='Print all available colors'
-function colors-print {
-  for variable code name in ${(k)color}; do
-    echo "${variable}: ${code} (${name})"
-    for style in fg bg fg_bold fg_no_bold bg_bold bg_no_bold; do
-      if [[ -v "${(P)style}[${variable#color}]}" ]]; then
-        echo "  ${style}: ${${(P)style}[${variable#color[}]}mThis text is in ${name}${reset_color}"
-      fi
-    done
+function colors-print () {
+  for k in ${(k)color}; do
+    if [[ ! $k =~ ^(fg|bg|[[:digit:]]{1,3}|no-|none|normal|italic|underline|reverse|bold|conceal|faint|default|blink) ]]; then
+        echo "${k}: ${fg[$k]} Foreground ${RSC} - ${bg[$k]}Background${RSC}"                  
+    fi
   done
 }
 
@@ -66,7 +62,7 @@ fi
 # -- _debug
 _debug () {
     if [[ $ZSH_DEBUG == 1 ]]; then
-        echo "$fg[cyan]** DEBUG: $@$reset_color";
+        echo "$fg[cyan]** DEBUG: $@${RSC}";
     fi
 }
 

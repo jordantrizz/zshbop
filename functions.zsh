@@ -311,8 +311,8 @@ help_zshbop[version]='Get version information'
 zshbop_version () {
         _debug_function
         _loading "zshbop Version"
-        echo "Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT$reset_color"
-        echo "Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color --"
+        echo "Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC}"
+        echo "Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC} --"
 }
 
 # --------------------------
@@ -325,9 +325,9 @@ zshbop_version-check () {
 	
 	# -- check .zshrc
 	_loading "zshbop Version Check"
-    echo "-- Latest zshbop .zshrc: $fg[green]$ZSHBOP_LATEST_MD5$reset_color"
-    echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5$reset_color"
-    echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color"
+    echo "-- Latest zshbop .zshrc: $fg[green]$ZSHBOP_LATEST_MD5${RSC}"
+    echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5${RSC}"
+    echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
         
     _loading2 "Checking if $HOME/.zshrc is the same as $ZSHBOP/.zshrc"
     if [[ $ZSHBOP_HOME_MD5 == $ZSHBOP_INSTALL_MD5 ]]; then
@@ -379,24 +379,21 @@ zshbop_debug () {
 help_zshbop[colors]='List variables for using color'
 zshbop_colors () {
     _debug_function
-    _loading "Color names"
-    MAIN_COLORS=""
-    MAIN_COLORS=($(echo ${color[@]} | tr ' ' '\n' | grep -Ev '[0-9]{2}|bg-'))
-	for color in ${MAIN_COLORS[@]}; do
-		echo "$fg[$color] $color $bg[$color] bg_$color $reset_color"
-	done
-	echo ""
 	
     _loading "How to use color"
     echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
     echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
-    echo "  Reset Color: \$reset_color"
+    echo "  Reset Color: \${RSC}"
     echo ""
 
 	_loading "Listing all color functions"
 	for func in ${COLOR_FUNCTIONS[@]}; do
 		${=func} "$func"
 	done
+    echo ""
+    
+    _loading "Listing colors available"
+    colors-print
 }
 
 # ----------------
