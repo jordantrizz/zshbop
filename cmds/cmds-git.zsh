@@ -41,7 +41,7 @@ git-config () {
 
 # -- grb
 help_git[grb]='List git remote branches'
-function git-remote-branches {
+function grb {
     git branch -r
 }
 
