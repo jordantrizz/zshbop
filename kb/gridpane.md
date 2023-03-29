@@ -120,6 +120,7 @@ The below example will set the redis maxmemory to 300MB
 gp stack redis -max-memory 300
 
 ```
+<<<<<<< HEAD
 
 # Redis Object Cache
 ## Change Redis maxmemory
@@ -129,6 +130,8 @@ The below example will set the redis maxmemory to 300MB
 gp stack redis -max-memory 300
 
 ```
+=======
+>>>>>>> bleeding
 
 # PHP
 ## Change PHP Settings

@@ -1,5 +1,6 @@
-# zshbop
-This is my custom ZSH configuration. It uses antidote ~~antigen~~ to install ZSH plugins.
+<p align="center"><img src="https://user-images.githubusercontent.com/345869/228565610-dbd52f13-ee2a-454a-84f8-9d3e0b2438c7.png" alt="ZSHBOP"></p>
+
+This is my custom ZSH configuration. It uses antidote to install ZSH plugins.
 
 <a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
@@ -48,9 +49,15 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 |---------------------|---------------|
 | Quick Install       | ```bash <(curl -sL https://zshrc.pl)``` |
 | Fallback Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/master/install.sh)```  |
-| Development Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install.sh)``` | 
+| Development Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install.sh)``` |
+| Bleeding Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/bleeding/install.sh)```|
 
-## Advanced Install
+# Branches
+* main - production releases, fully functional.
+* dev - development releases that are somewhat functional.
+* bleeding - bleeding releases that most likely won't work.
+
+# Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
 <p>
 If you don't want to have zsh within your home directory, then use the following.
