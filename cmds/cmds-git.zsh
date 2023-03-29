@@ -62,14 +62,57 @@ function gcb {
         echo "Usage: git-compare-branches branch1 branch2"
         return 1
     fi
+
+    _loading "Comparing $1 with $2"
+    echo ""
+
     git fetch
     branch1_commit=$(git rev-parse --short=7 "$1")
     branch2_commit=$(git rev-parse --short=7 "$2")
     if [[ "$branch1_commit" == "$branch2_commit" ]]; then
         echo "Both branches are at the same commit: $branch1_commit"
-    elif [[ "$branch1_commit" > "$branch2_commit" ]]; then
-        echo "$1 has a newer commit: $branch1_commit"
     else
-        echo "$2 has a newer commit: $branch2_commit"
+        _loading2 "Last 5 commits from $1:"
+        git log --pretty=format:"%h - %s (%ad)" --date=short "$1" | head -5
+        echo ""
+        _loading2 "Last 5 commits from $2:"
+        git log --pretty=format:"%h - %s (%ad)" --date=short "$2" | head -5
     fi
 }
+
+# -- gcab
+help_git[gcab]='Compare all branches'
+function gcab {
+    if [[ $# -eq 2 ]]; then
+        _loading "Comparing $1 with $2"
+        echo ""
+        git fetch
+        branch1_commit=$(git rev-parse --short=7 "$1")
+        branch2_commit=$(git rev-parse --short=7 "$2")
+        if [[ "$branch1_commit" == "$branch2_commit" ]]; then
+            echo "Both branches are at the same commit: $branch1_commit"
+        else
+            _loading2 "Last 5 commits from $1:"
+            git log --pretty=format:"%h - %s (%ad)" --date=short "$1" | head -5
+            echo ""
+            _loading2 "Last 5 commits from $2:"
+            git log --pretty=format:"%h - %s (%ad)" --date=short "$2" | head -5
+        fi
+    else
+        _loading "Fetching all remote branches..."
+        git fetch --all
+        _loading2 "Comparing all branches..."
+        for branch in $(git branch -a | grep -v HEAD); do
+            if [[ $branch != *remotes/origin/HEAD* ]]; then
+                branch_commit=$(git rev-parse --short=7 "$branch")
+                echo ""
+                _loading3 "Branch $branch_commit: $branch"
+                _loading4 "Last 5 commits:"
+                git log --pretty=format:"%h - %s (%ad)" --date=short "$branch" | head -5
+            fi
+        done
+    fi
+}
+
+
+
