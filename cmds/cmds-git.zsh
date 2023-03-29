@@ -54,3 +54,22 @@ function grp {
     done
     git pull --all
 }
+
+# -- gcb
+help_git[gcb]='Compare two branches'
+function gcb {
+    if [[ $# -ne 2 ]]; then
+        echo "Usage: git-compare-branches branch1 branch2"
+        return 1
+    fi
+    git fetch
+    branch1_commit=$(git rev-parse --short=7 "$1")
+    branch2_commit=$(git rev-parse --short=7 "$2")
+    if [[ "$branch1_commit" == "$branch2_commit" ]]; then
+        echo "Both branches are at the same commit: $branch1_commit"
+    elif [[ "$branch1_commit" > "$branch2_commit" ]]; then
+        echo "$1 has a newer commit: $branch1_commit"
+    else
+        echo "$2 has a newer commit: $branch2_commit"
+    fi
+}
