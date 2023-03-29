@@ -83,12 +83,12 @@ pre_flight_check () {
                         _debug "$tool is installed in $TOOL_PATH"
                 fi
         done        
-        _debug "\$TOOLS_INSTALL: ${TOOLS_INSTALL[@]}"        
+        _debug "\$TOOLS_INSTALL: ${TOOLS_INSTALL[*]}"        
         if [[ ${#TOOLS_INSTALL[@]} -eq 0 ]]; then
             _success "No software to install, proceeding."
         else
             _running "Installing required packages..."
-            echo "   Packages: ${TOOLS_INSTALL[@]}"
+            echo "   Packages: ${TOOLS_INSTALL[*]}"
             echo ""      
             read -p "Do you want to install the software above? (y/n): " choice
             if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then    
