@@ -25,6 +25,7 @@ _error () { echo -e "${RED}** ERROR ** - ${*} ${ECOL}"; }
 _warning () { echo -e "${YELLOW}** ERROR ** - ${*} ${ECOL}"; }
 _success () { echo -e "${GREEN}** SUCCESS ** - ${*} ${ECOL}"; }
 _running () { echo -e "${BLUEBG}${*}${ECOL}"; }
+_install () { echo -e "${GREENBG}${*}${ECOL}"; }
 _debug () { if [[ $DEBUG == "1" ]]; then echo -e "${CYAN}*** DEBUG: ${*}${ECOL}"; fi; }
 
 # -- usage
@@ -72,7 +73,7 @@ pre_flight_check () {
         _running "Running pre-flight Check"    
         local TOOLS_INSTALL
         
-        _running "Checking if required software are installed"
+        _debug "Checking if required software are installed"
         _debug "\$REQUIRED_SOFTWARE: ${REQUIRED_SOFTWARE[*]}"
         for tool in "${REQUIRED_SOFTWARE[@]}"; do
                 if ! [ -x "$(command -v $tool)" ]; then
@@ -85,7 +86,7 @@ pre_flight_check () {
         done        
         _debug "\$TOOLS_INSTALL: ${TOOLS_INSTALL[*]}"        
         if [[ ${#TOOLS_INSTALL[@]} -eq 0 ]]; then
-            _success "No software to install, proceeding."
+            _debug "No software to install, proceeding."
         else
             _running "Installing required packages..."
             echo "   Packages: ${TOOLS_INSTALL[*]}"
@@ -149,7 +150,9 @@ pkg_install () {
 # -- install_method - how do you want to install zshbop?
 install_method () {
     zshbop_banner
-	_running "Install (d)efaults or (c)ustomize? (d/c)?"
+	echo ""
+    _install "Starting zshbop install"
+    echo "Install (d)efaults or (c)ustomize? (d/c)?"
 	read INSTALL
 
 	if [ $INSTALL == "d" ];then
