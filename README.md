@@ -1,3 +1,4 @@
+<p align="center"><img src="https://user-images.githubusercontent.com/345869/228565610-dbd52f13-ee2a-454a-84f8-9d3e0b2438c7.png" alt="ZSHBOP"></p>
 # zshbop
 This is my custom ZSH configuration. It uses antidote ~~antigen~~ to install ZSH plugins.
 

@@ -52,6 +52,23 @@ Version: ${VERSION}
 echo "$USAGE"
 }
 
+# -- zshbop_banner
+zshbop_banner () {
+    
+echo "                    $$\       $$\                           "
+echo "                    $$ |      $$ |                          "
+echo "$$$$$$$$\  $$$$$$$\ $$$$$$$\  $$$$$$$\   $$$$$$\   $$$$$$\  "
+echo "\____$$  |$$  _____|$$  __$$\ $$  __$$\ $$  __$$\ $$  __$$\ "
+echo "  $$$$ _/ \$$$$$$\  $$ |  $$ |$$ |  $$ |$$ /  $$ |$$ /  $$ |"
+echo " $$  _/    \____$$\ $$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |"
+echo "$$$$$$$$\ $$$$$$$  |$$ |  $$ |$$$$$$$  |\$$$$$$  |$$$$$$$  |"
+echo "\________|\_______/ \__|  \__|\_______/  \______/ $$  ____/ "
+echo "                                                  $$ |      "
+echo "                                                  $$ |      "
+echo "                                                  \__|      "
+
+}
+
 # -- flight_check
 pre_flight_check () {
     # -- Pre-flight Check
@@ -76,10 +93,15 @@ pre_flight_check () {
             _success "No software to install, proceeding."
         else
             _running "Installing required packages..."
-            echo "   Packages: ${TOOLS_INSTALL[@]}"         
+            echo "   Packages: ${TOOLS_INSTALL[@]}"
+            echo ""      
             read -p "Do you want to install the software above? (y/n): " choice
             if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then    
-                apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"		
+                echo ""
+                echo "${YELLOW}****************************************************${ECOL}"
+                apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"
+                echo "${YELLOW}****************************************************${ECOL}"
+                echo ""
             elif [ "$choice" == "n" ] || [ "$choice" == "N" ]; then
                 echo "Not installing the software...continuing"
             else
@@ -131,7 +153,8 @@ pkg_install () {
 
 # -- install_method - how do you want to install zshbop?
 install_method () {
-	echo "Install (d)efaults or (c)ustomize? (d/c)?"
+    
+	_running "Install (d)efaults or (c)ustomize? (d/c)?"
 	read INSTALL
 
 	if [ $INSTALL == "d" ];then
