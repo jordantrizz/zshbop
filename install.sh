@@ -3,10 +3,8 @@
 # -- zshbop Install script
 # ------------------------
 
-# ------------
 # -- Variables
-# ------------
-VERSION="0.0.2"
+VERSION="0.0.3"
 SKIPDEP="0"
 HELP="0"
 REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe')
@@ -22,20 +20,12 @@ GREENBG="\033[0;42m"
 DARKGREYBG="\033[0;100m"
 ECOL="\033[0;0m"
 
-# ------------
 # -- Functions
-# ------------
-
-# -- _error
 _error () { echo -e "${RED}** ERROR ** - $@ ${ECOL}"; }
 _warning () { echo -e "${YELLOW}** ERROR ** - $@ ${ECOL}"; }
 _success () { echo -e "${GREEN}** SUCCESS ** - $@ ${ECOL}"; }
 _running () { echo -e "${BLUEBG}${@}${ECOL}"; }
-
-
-# ------------
-# -- Functions
-# ------------
+_debug () { if [ $DEBUG=="1" ]; then echo -e "${CYAN}*** DEBUG: ${*}${ECOL}"; fi; }
 
 # -- usage
 usage () {
@@ -45,6 +35,7 @@ USAGE=\
   Options
     -h       - This help screen
     -s       - Skip dependencies
+    -d       - Debug mode
   
   Commands
     
@@ -63,9 +54,10 @@ echo "$USAGE"
 
 # -- flight_check
 flight_check() {
-   # Checking if zsh is installed
-   TOOLS_INSTALL=('')
-   _running "Checking if required software are installed"
+	# Checking if zsh is installed
+	TOOLS_INSTALL=('')
+	_running "Checking if required software are installed"
+	_debug "\$REQUIRED_SOFTWARE: $REQUIRED_SOFTWARE"
 	for tool in ${REQUIRED_SOFTWARE[@]}; do
         	if ! [ -x "$(command -v $tool)" ]; then
                 	_error "$tool is not installed."
@@ -75,12 +67,13 @@ flight_check() {
 	                _success "$tool is installed in $TOOL_PATH"
 	        fi
 	done
+
+	_debug "\$TOOLS_INSTALL: $TOOLS_INSTALL"
 	if [[ -z TOOLS_INSTALL ]]; then
 		_success "Not need to install any software"
 	else
 		_running "Installing required tools...${TOOLS_INSTALL[@]}"
-		apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"
-		
+		apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"		
 	fi
 	return
 }
@@ -220,6 +213,10 @@ setup_system() {
         ;;
         -s|--skipdep)
         SKIPDEP="1"
+        shift # past argument
+        ;;
+        -d)
+        DEBUG="1"
         shift # past argument
         ;;
         *)    # unknown option

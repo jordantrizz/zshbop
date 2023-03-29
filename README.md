@@ -48,9 +48,15 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 |---------------------|---------------|
 | Quick Install       | ```bash <(curl -sL https://zshrc.pl)``` |
 | Fallback Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/master/install.sh)```  |
-| Development Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install.sh)``` | 
+| Development Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install.sh)``` |
+| Bleeding Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/bleeding/install.sh)```|
 
-## Advanced Install
+# Branches
+* main - production releases, fully functional.
+* dev - development releases that are somewhat functional.
+* bleeding - bleeding releases that most likely won't work.
+
+# Advanced Install
 <details><summary>Click to Reveal Advanced Install</summary>
 <p>
 If you don't want to have zsh within your home directory, then use the following.
