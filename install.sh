@@ -21,11 +21,11 @@ DARKGREYBG="\033[0;100m"
 ECOL="\033[0;0m"
 
 # -- Functions
-_error () { echo -e "${RED}** ERROR ** - $@ ${ECOL}"; }
-_warning () { echo -e "${YELLOW}** ERROR ** - $@ ${ECOL}"; }
-_success () { echo -e "${GREEN}** SUCCESS ** - $@ ${ECOL}"; }
-_running () { echo -e "${BLUEBG}${@}${ECOL}"; }
-_debug () { if [ $DEBUG=="1" ]; then echo -e "${CYAN}*** DEBUG: ${*}${ECOL}"; fi; }
+_error () { echo -e "${RED}** ERROR ** - ${*} ${ECOL}"; }
+_warning () { echo -e "${YELLOW}** ERROR ** - ${*} ${ECOL}"; }
+_success () { echo -e "${GREEN}** SUCCESS ** - ${*} ${ECOL}"; }
+_running () { echo -e "${BLUEBG}${*}${ECOL}"; }
+_debug () { if [[ $DEBUG == "1" ]]; then echo -e "${CYAN}*** DEBUG: ${*}${ECOL}"; fi; }
 
 # -- usage
 usage () {
@@ -53,29 +53,42 @@ echo "$USAGE"
 }
 
 # -- flight_check
-flight_check() {
-	# Checking if zsh is installed
-	TOOLS_INSTALL=('')
-	_running "Checking if required software are installed"
-	_debug "\$REQUIRED_SOFTWARE: $REQUIRED_SOFTWARE"
-	for tool in ${REQUIRED_SOFTWARE[@]}; do
-        	if ! [ -x "$(command -v $tool)" ]; then
-                	_error "$tool is not installed."
-                	TOOLS_INSTALL+=("$tool")
-	        else
-        	        TOOL_PATH=`which $tool`
-	                _success "$tool is installed in $TOOL_PATH"
-	        fi
-	done
-
-	_debug "\$TOOLS_INSTALL: $TOOLS_INSTALL"
-	if [[ -z TOOLS_INSTALL ]]; then
-		_success "Not need to install any software"
+pre_flight_check () {
+    # -- Pre-flight Check
+    _debug "Running pre_flight_check"
+    if [[ $SKIPDEP == "0" ]]; then
+        _running "Running pre-flight Check"    
+        local TOOLS_INSTALL
+        
+        _running "Checking if required software are installed"
+        _debug "\$REQUIRED_SOFTWARE: ${REQUIRED_SOFTWARE[*]}"
+        for tool in "${REQUIRED_SOFTWARE[@]}"; do
+                if ! [ -x "$(command -v $tool)" ]; then
+                        _error "$tool is not installed."
+                        TOOLS_INSTALL+=("$tool")
+                else
+                        TOOL_PATH=`which $tool`
+                        _success "$tool is installed in $TOOL_PATH"
+                fi
+        done        
+        _debug "\$TOOLS_INSTALL: ${TOOLS_INSTALL[@]}"        
+        if [[ ${#TOOLS_INSTALL[@]} -eq 0 ]]; then
+            _success "No software to install, proceeding."
+        else
+            _running "Installing required packages..."
+            echo "   Packages: ${TOOLS_INSTALL[@]}"         
+            read -p "Do you want to install the software above? (y/n): " choice
+            if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then    
+                apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"		
+            elif [ "$choice" == "n" ] || [ "$choice" == "N" ]; then
+                echo "Not installing the software...continuing"
+            else
+                echo "Invalid choice. Please enter 'y' or 'n'."
+            fi
+        fi
 	else
-		_running "Installing required tools...${TOOLS_INSTALL[@]}"
-		apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"		
+	    _running "Skipping pre-flight check and installing required packages."
 	fi
-	return
 }
 
 # -- check_zsh_default
@@ -91,33 +104,33 @@ check_zsh_default () {
 }
 
 # -- pkg_install - install packafges.
-pkg_install() {
+pkg_install () {
 	# Checking what package manager we have
     _running "Checking what package manager we have...."
     if [ -x "$(command -v apt-get)" ]; then
         echo " - We have apt!"
-        sudo apt install $@
+        sudo apt install "${*}"
 	elif [ -x "$(command -v yum)" ]; then
         echo " - We have yum!"
-        sudo yum install $@
+        sudo yum install "${*}"
     elif [ -x "$(command -v brew)" ]; then
         echo " - We have brew!"
-        brew install $@
+        brew install "${*}"
     else
     	_error "Can't detect package manager :("
     fi
     
     $(${PKG_MANAGER})
     if [ $? -eq 1 ]; then 
-    	_error "$@ install failed...."
+    	_error "${*} install failed...."
         exit 1
     else
-	    _success "$@ installed successfully"
+	    _success "${*} installed successfully"
     fi
 }
 
 # -- install_method - how do you want to install zshbop?
-install_method() {
+install_method () {
 	echo "Install (d)efaults or (c)ustomize? (d/c)?"
 	read INSTALL
 
@@ -197,45 +210,38 @@ setup_system() {
 	fi
 }		
 
-pre_flight_check () { 
-	# -- Pre-flight Check
-	if [[ $SKIPDEP == "0" ]]; then
-	    _running "Running pre-flight Check"
-	    flight_check
-	else
-	    _running "Skipping pre-flight check"
-	fi
-}
 
 # -------
 # -- Main
 # -------
 
-    POSITIONAL=()
-    while [[ $# -gt 0 ]]
-    do
-    key="$1"
+_debug "ARGS: ${*}"
 
-    case $key in
-		-h|--help)
-        HELP="1"
-        shift # past argument
-        ;;
-        -s|--skipdep)
-        SKIPDEP="1"
-        shift # past argument
-        ;;
-        -d)
-        DEBUG="1"
-        shift # past argument
-        ;;
-        *)    # unknown option
-        POSITIONAL+=("$1") # save it in an array for later
-        shift # past argument
-        ;;
-    esac
-    done
-    set -- "${POSITIONAL[@]}" # restore positional parameters
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -h|--help)
+    HELP="1"
+    shift # past argument
+    ;;
+    -s|--skipdep)
+    SKIPDEP="1"
+    shift # past argument
+    ;;
+    -d)
+    DEBUG="1"
+    shift # past argument
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # -- set $CMD
 CMD="$1"
@@ -246,7 +252,7 @@ if [[ $HELP == "1" ]];then
     exit
 # -- clean
 elif [[ $CMD == "clean" ]]; then
-	_running "Removing zshbop ###"
+	_running "Removing zshbop from system"
 	echo "Continue (y/n)?"
 	read CLEAN	
 	if [ $CLEAN == "y" ]; then
@@ -287,6 +293,7 @@ elif [[ $CMD == "custom" ]]; then
 		INSTALL_LOCATION="$3"
 	fi
 else
+    pre_flight_check
 	install_method
 fi
 
