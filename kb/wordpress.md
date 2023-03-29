@@ -24,3 +24,20 @@ if ( WP_DEBUG ) {
     @ini_set( 'error_log', dirname(__FILE__) . '/debug.log' );
 };
 ```
+
+# Tar Backup Directory
+```
+tar -cvf public_html-01-01-2023.tar --exclude wp-content/cache --exclude wp-content/ai1wm-backups
+```
+
+# Rsync Backup
+```
+rsync -avz public_html root@192.168.0.101 --exclude wp-content/cache --exclude wp-content/ai1wm-backups
+```
+
+# Change Site URL
+* Add wp-config.php
+```
+define( 'WP_HOME', 'http://example.com' );
+define( 'WP_SITEURL', 'http://example.com' );
+```

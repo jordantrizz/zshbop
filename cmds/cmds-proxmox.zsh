@@ -14,7 +14,7 @@ typeset -gA help_pmox
 
 # -- register pmox
 pmox () {
-        if [[ $1 == "help" ]] || [[ -n $1 ]]; then
+        if [[ $1 == "help" ]] || [[ -z $1 ]]; then
                 pmox_help
         elif [[ -n $1 ]]; then
 	        _debug "-- Running pmox $1"
@@ -35,11 +35,11 @@ pmox_help () {
     echo "  createvm <name> <memory> <network> <storage> <disksize> <os> [dhcpnet] [tempdir]"
 	echo ""
 	echo "  <name>              - Name of the VM"
-	echo "  <memory>            - Memory of VM"
+	echo "  <memory>            - Memory of VM in MB"
 	echo "  <network>           - Network bridge to use"
-    echo "  <storage>           - Network bridge to use"
+    echo "  <storage>           - Storage location"
 	echo "  <disksize>          - Disk size in MB"
-	echo "  <os>                - bionic,focal"
+	echo "  <os>                - bionic,focal,jammy"
 	echo "  [dhcpnet]           - If you have a local network with dhcp, the bridge it's on."
 	echo "  [tempdir]           - Setup temporary directory for download for cloudimage, optional."
 	echo ""

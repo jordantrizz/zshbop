@@ -53,3 +53,18 @@ password="qweqwe"
 * In most cases, which won’t use Operating System File Cache. 
 * However, there have been cases when using buffered IO with InnoDB made sense. 
 * If you’re still running MyISAM, you will need OS cache for the “data” part of your tables.
+
+# Notes
+## Enable Password Authentication
+```
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'test';
+```
+
+## Print Out Raw Data
+* mysql -B or mysql --batch
+* mysql -r
+
+## Remove headers
+```
+mysql -s
+```

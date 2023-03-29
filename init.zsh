@@ -25,6 +25,7 @@ init_path () {
 	export PATH=$PATH:$HOME/bin/aws-cli # aws-cli https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
 	export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
+	export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
 	
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
@@ -67,6 +68,32 @@ init_add_path () {
 	else
 		_debug "Can't find $DIR"
 	fi
+}
+
+# -- init_detectos -- detect the OS running
+init_detectos () {
+        # -- Detect operating system
+        _loading "Detecting Operating System"
+        export UNAME=$(uname -s)
+        case "${UNAME}" in
+            Linux*)     MACHINE_OS=linux;;
+            Darwin*)    MACHINE_OS=mac;;
+            CYGWIN*)    MACHINE_OS=cygwin;;
+            MINGW*)     MACHINE_OS=mingw;;
+            *)          MACHINE_OS="UNKNOWN:${UNAME}"
+        esac
+
+        # -- Check for WSL and set as MACHINE_OS
+        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
+            MACHINE_OS="wsl"
+        fi
+
+        # -- Check for synology and set as MACHINE_OS
+        if [[ $(uname -a) =~ "synology" ]]; then
+            MACHINE_OS="synology"
+        fi
+
+        _loading_grey "Running in ${MACHINE_OS}"
 }
 
 # -- Initialize oh-my-zsh plugins
@@ -219,6 +246,7 @@ init_sshkeys () {
 		_loading "Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
 		        # Load default SSH key
+		        _loading2 "Load default SSH key"
 		        _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
         		if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
 		                _debug  " - FOUND: $HOME/.ssh/id_rsa"
@@ -228,22 +256,28 @@ init_sshkeys () {
         		fi
 
 		        # Check and load custom SSH key
-        		_debug " - Check for custom SSH key via $CUSTOM_SSHKEY and load keychain"
-		        if [ ! -z "${CUSTOM_SSHKEY+1}" ]; then
-        		        _debug " - FOUND: $CUSTOM_SSHKEY"
-                		eval `keychain -q --eval --agents ssh $CUSTOM_SSHKEY`
+		        _loading2 "Loading custom SSH keys."
+        		_debug " - Check for custom SSH key via $CUSTOM_SSH_KEY and load keychain"
+        						
+		        if [[ ! -z "${CUSTOM_SSH_KEYS[@]}" ]]; then
+			        _debug " - FOUND: $CUSTOM_SSH_KEYS"
+			        for key in ${CUSTOM_SSH_KEYS[@]}; do
+						_loading3 "Loading -- $key"
+                		eval `keychain -q --eval --agents ssh $key`
+                	done
 		        else
-        		        _debug " - NOTFOUND: $CUSTOM_SSHKEY not set."
+        		        _debug " - NOTFOUND: $CUSTOM_SSH_KEYS not set."
 		        fi
 
 			# Load any id_rsa* keys @@ISSUE
+			_loading2 "Load any id_rsa* keys"
 			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
 				eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
 			fi
 			# Load any client-* keys
 			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
-                        	eval `keychain -q --eval --agents ssh $HOME/.ssh/clients*`
-                	fi
+            	eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
+            fi
 		else
 			_error "Command keychain doesn't exist, please install for SSH keys to work"
 		fi
@@ -273,26 +307,6 @@ init_pkg_manager () {
 	fi	
 }
 
-# -- init_detectos -- detect the OS running
-init_detectos () {
-        # -- Detect operating system
-        _loading "Detecting Operating System"
-        export UNAME=$(uname -s)
-        case "${UNAME}" in
-            Linux*)     MACHINE_OS=linux;;
-            Darwin*)    MACHINE_OS=mac;;
-            CYGWIN*)    MACHINE_OS=cygwin;;
-            MINGW*)     MACHINE_OS=mingw;;
-            *)          MACHINE_OS="UNKNOWN:${UNAME}"
-        esac
-
-        # -- Check for WSL and set as MACHINE_OS
-        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
-            MACHINE_OS="wsl"
-        fi
-        _loading_grey "Running in ${MACHINE_OS}"
-}
-
 # -- init-app-config - set some application configuration
 init-app-config () {
 	_loading "Setting application configuration"
@@ -302,61 +316,61 @@ init-app-config () {
 
 # -- init_zshbop -- initialize zshbop
 init_zshbop () {
-  # -- Start init
+	# -- Start init
 	_debug_function
 	_loading "Starting init"
-  _debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
+	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
-  # -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
-  _loading "Running ZSH $ZSH_VERSION"
-  autoload is-at-least
-  if ! is-at-least 5.7 $ZSH_VERSION; then
-    _warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
-  else
-    _success "Running close to latest ZSH"
-  fi
+	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
+	_loading "Running ZSH $ZSH_VERSION"
+	autoload is-at-least
+	if ! is-at-least 5.7 $ZSH_VERSION; then
+		_warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
+	else
+    	_success "Running close to latest ZSH"
+	fi
 
-  # -- Set paths
-  init_path
+	# -- Set paths
+	init_path
         
-  # -- Detect operating system
+	# -- Detect operating system
 	init_detectos
 
 	# -- Init package manager
 	init_pkg_manager
 	
-  # -- Include commands
-  for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
+	# -- Include commands
+	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
 	  source $CMD_FILE
-  done
+	done
         
-  # -- Common application configuration
-  init-app-config
+	# -- Common application configuration
+  	init-app-config
 
 	# -- Init OhMyZSH plugins
-  init_omz_plugins
-  init_p10k
+  	init_omz_plugins
+  	init_p10k
 
-  # -- Init custom zshbop
-  zshbop_load_custom
+  	# -- Init custom zshbop
+  	zshbop_load_custom
         
-  # -- Init antigen
+  	# -- Init antigen
 	if [[ $funcstack[3] != "zshbop_reload" ]]; then
 	  init_plugins
 	else
 	  _loading_grey "Not loading Plugin Manager on Reload"
 	fi
 
-  # -- Init os defaults @@ISSUE
-  init_os
+  	# -- Init os defaults @@ISSUE
+  	init_os
 
 	# -- Skip when running rld
 	_debug "\$funcstack = $funcstack"
 	if [[ $funcstack[3] != "zshbop_reload" ]]; then
-	  init_sshkeys
+		init_sshkeys
 		init_motd
-	  # -- Print zshbop version information
-	  zshbop_version
+		# -- Print zshbop version information
+	  	zshbop_version
     echo ""
 	else
 	  _loading_grey "Skipped some scripts due to running rld"
@@ -400,12 +414,12 @@ init_check_services () {
 		_error "Nginx not installed"
 	fi
 	
-	# - Openlitespeed
-	if (( $+commands[openlitespeed] )); then
-		_success "OLS: $(openlitespeed -v)"
+	# - litespeed
+	if (( $+commands[litespeed] )); then
+		_success "Litespeed: $(litespeed -v)"
 	else
-		_error "Openlitespeed not installed"
-	fi        
+		_error "Litespeed not installed"
+	fi        	
 	
 	# - Redis
 	if (( $+commands[redis-server] )); then
@@ -413,6 +427,16 @@ init_check_services () {
     else
         _error "Redis not installed"
     fi
+
+	# - Netdata    
+    if [[ -f /opt/netdata/bin/netdata ]]; then
+    	_success "Netdata: located at /opt/netdata/bin and config at /opt/netdata/etc/netdata"
+    elif [[ -f /usr/sbin/netdata ]]; then
+    	_success "Netdata: located at /usr/sbin/netdata and config at /etc/netdata"
+    else
+    	_error "Netdata not installed"
+    fi
+    	
 }
 
 # -- system_check - check usualy system stuff
@@ -434,10 +458,12 @@ system_check () {
 	fi
 	
 	# -- check disk space
-	_loading2 "Checking disk space"
+	_loading2 "Checking disk space on $MACHINE_OS"
 	check_diskspace
+
+	# -- check block devices
 	_loading2 "Checking block devices"
-	check_diskspace2
+	check_blockdevices
 }	
 
 # -- init_motd - initial scripts to run on login
@@ -478,20 +504,11 @@ init_motd () {
 	init_check_services
 	echo ""
 	
-	# -- Check if GridPane Server
-	if [[ -f /root/grid.id ]]; then
-		_loading "Running GridPane CP - type help gridpane for more commands"
-		gp-motd
-	fi
-	
-	# -- Host MOTD
-	_cexists host_motd
-	if [[ $? == "0" ]]; then
-		_loading "Found host motd"
-		host_motd
-	else
-		_notice "No host motd"
-	fi
+    # -- Load motd
+    source "${ZBR}/motd.zsh"
+
+	# -- env-install
+	_loading "Run env-install to install default and extra tools"
 	
     # -- last echo to keep motd clean
     echo ""

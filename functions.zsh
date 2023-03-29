@@ -4,8 +4,6 @@
 # -----------------------------------------------------------------------------------
 
 #######################################
-echo "\e[43;30m * Loading ${0:a} \e[0m"
-
 # -----------
 # -- ZSHBOP Aliases
 # -----------
@@ -30,7 +28,7 @@ alias motd="init_motd"
 # -- clear cache for various tools
 # -------------------------------------
 help_zshbop[cc]='Clear cache for antigen + more'
-alias cc="zshbop_cc"
+alias cc="zshbop_cacheclear"
 zshbop_cacheclear () {
 	_loading "Clearing plugin manager cache"
 	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
@@ -46,6 +44,14 @@ zshbop_cacheclear () {
 
 	_loading "Clearing zshrc.zwc file"
 	rm -f ~/.zshrc.zwc
+}
+
+# -- zshbop_scc
+alias scc="zshbop_scc"
+help_zshbop[zshbop_scc]='Clear everything, including zsh autocompletion'
+zshbop_scc () {
+    _loading "Clearing rm ~/.zcompdump*"
+    rm -f ~/.zcompdump*
 }
 
 # -------------------
@@ -188,6 +194,19 @@ zshbop_update () {
 		_loading2 "No zshbop-custom to update"
 	fi
 
+    # -- Update $ZSHBOP_UPDATE_GIT git repositories from custom config.
+    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
+    if [[ $ZSHBOP_UPDATE_GIT ]]; then
+        for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
+            if [[ -d ${GIT} ]]; then
+                _loading2 "Updating ${GIT}"
+                git --git-dir=${GIT}/.git --work-tree=${GIT} pull
+            else
+                _error "Couldn't find ${GIT}"
+            fi
+        done
+    fi
+
     # Reload scripts
     _warning "Type zb reload to reload zshbop, or restart your shell."
 }
@@ -291,8 +310,8 @@ help_zshbop[version]='Get version information'
 zshbop_version () {
         _debug_function
         _loading "zshbop Version"
-        echo "Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT$reset_color"
-        echo "Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color --"
+        echo "Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC}"
+        echo "Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC} --"
 }
 
 # --------------------------
@@ -305,9 +324,9 @@ zshbop_version-check () {
 	
 	# -- check .zshrc
 	_loading "zshbop Version Check"
-    echo "-- Latest zshbop .zshrc: $fg[green]$ZSHBOP_LATEST_MD5$reset_color"
-    echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5$reset_color"
-    echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5$reset_color"
+    echo "-- Latest zshbop .zshrc: $fg[green]$ZSHBOP_LATEST_MD5${RSC}"
+    echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5${RSC}"
+    echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
         
     _loading2 "Checking if $HOME/.zshrc is the same as $ZSHBOP/.zshrc"
     if [[ $ZSHBOP_HOME_MD5 == $ZSHBOP_INSTALL_MD5 ]]; then
@@ -358,30 +377,22 @@ zshbop_debug () {
 # ------------------
 help_zshbop[colors]='List variables for using color'
 zshbop_colors () {
-        _debug_function
-        _loading "Color names"
-        for k in ${color}; do
-		   print -- key: $k
-		done
+    _debug_function
+	
+    _loading "How to use color"
+    echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
+    echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
+    echo "  Reset Color: \${RSC}"
+    echo ""
 
-        _loading "How to use color"
-        echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
-        echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
-        echo "  Reset Color: \$reset_color"
-
-        _loading "-- Color Options"
-        _banner_red "_banner_red"
-        _banner_green "_banner_green"
-        _banner_yellow "_banner_yellow"
-        _banner_grey "_banner_grey"
-        _error "_error"
-        _warning "_warning"
-        _success "_success"
-        _notice "_notice"
-		_noticebg "_noticebg" 
-		_noticefg "_noticefg"
-		_loading "_loading"
-		_loading2 "_loading"
+	_loading "Listing all color functions"
+	for func in ${COLOR_FUNCTIONS[@]}; do
+		${=func} "$func"
+	done
+    echo ""
+    
+    _loading "Listing colors available"
+    colors-print
 }
 
 # ----------------

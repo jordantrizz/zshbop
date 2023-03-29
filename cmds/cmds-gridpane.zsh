@@ -49,7 +49,7 @@ gridpane_certbot-logs () {
 
 # -- gph check-fsl
 help_gridpane[check-fsl]="Check duplicacy .fsl files"
-check-fsl () { 
+check-fsl () {
 	echo "\n** Checking duplicacy storage **";
     echo "----"
 	echo -n "Total size of backup chunks: ";du --max-depth=0 -h /opt/gridpane/backups/duplications/chunks
@@ -71,6 +71,13 @@ help_gridpane[gp-mysql]="Gridpane MYSQL command"
 gp-mysql () {
 	mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
 	mysql --user root --password="${mysqlrootpw}"
+}
+
+# -- gp-mysqlps
+help_gridpane[gp-mysqlps]="Gridpane mysql 'show full processlist'"
+gp-mysqlps () {
+    mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
+    mysql --user root --password="${mysqlrootpw}" -e "show full processlist"
 }
 
 # -- gp-mysqltuner.pl
@@ -107,20 +114,14 @@ gp-logs () {
 				tail -n ${1} ${log}
 			else
 				_error "Can't find $log"
-			fi				
+			fi
 		done
 	fi
 }
 
 # -- gp-motd
 help_gridpane[gp-motd]="GridPane MOTD"
-gp-motd () {
-    # -- monit logs, grab last 10 warnings and errors
-    egrep -i ' warning | error ' /var/log/monit.log | tail -10
-    
-    # -- inform
-    _notice "View more GridPane logs with the command gp-logs"
-}
+alias gp-motd="motd_gp"
 
 # -- gp-monit527
 help_gridpane[gp-monit527]="Upgrade monit to 5.27 on aGridPane server"
@@ -133,4 +134,51 @@ gp-monit527 () {
     cp /opt/gridpane/monit-5.27.0/bin/monit /usr/local/bin/
     systemctl start monit
     tail -20 /var/log/monit.log
+}
+
+# -- gp-ssl-ss
+help_gridpane[gp-ssl-ss]="Generate self-signed certificate for GridPane site"
+gp-ssl-ss () {
+	DOMAIN="$1"
+
+	if [[ -z $1 ]]; then
+		echo "./gp-ssl-ss <domain>"
+		if [[ -d /etc/nginx/ssl/${DOMAIN} ]]; then
+			_error "There's already an SSL directory, quiting"
+			exit 1
+		else
+			echo "No SSL directory...creating"
+			mkdir /etc/nginx/ssl/${DOMAIN}
+			cd /etc/nginx/ssl/${DOMAIN}
+		fi
+		echo "Generating self signed certificate"
+
+	    openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout cert.key -out cert.crt
+	    openssl x509 -in cert.crt -out cert.pem
+	    openssl rsa -in cert.key -out key.pem
+
+		echo "Setting site to https + redis caching"
+		gp conf -ngx -generate https-root redis ${1}
+	fi
+}
+
+# -- gp-listsites
+help_gridpane[gp-listsites]="List GridPane sites from /var/www, excluding canary and staging"
+gp-listsites () {
+	\ls -ld /var/www/*/ | grep -v -e 'canary' -e 'staging' -e 'gridpanevps' -e '22222' | awk '{print $9}' | sed 's|/var/www/||' | sed 's|/$||'
+}
+
+# -- gp-backupallsites
+help_gridpane[gp-backupallsites]="Backup all sites on server to ~/backups"
+gp-backupallsites () {
+    SITES=$(gp-listsites)
+    if [[ ! -d $HOME/backups ]]; then
+        echo "$HOME/backups directory doesn't exist...creating..."
+        mkdir $HOME/backups
+    fi
+    for SITE in ${(f)SITES}; do
+        echo "Backing up ${SITE}..."
+        /usr/local/bin/wp --allow-root --path=/var/www/${SITE}/htdocs db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
+        tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' /var/www/${SITE}/htdocs
+    done
 }

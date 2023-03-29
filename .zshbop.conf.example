@@ -12,6 +12,10 @@
 #export ZSHBOP_CUSTOM_SSHKEY="" # -- Set a custom SSH key to be loaded
 #export ZSHBOP_PLUGIN_MANAGER="init_antidote" # -- Override plugin manager, can be init_antidote or init_antigen
 
+# -- Git Repositores to update.
+#ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik)
+#export -p ZSHBOP_UPDATE_GIT > /dev/null
+
 # -- Exbin
 #export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting
 #export EXBIN_HOST="" # Exbin host, for netcat just the hostname and for api the full URL

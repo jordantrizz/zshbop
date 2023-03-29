@@ -123,8 +123,9 @@ options:
                                       You can specify this multiple times.
                                       If more than one pattern matches, the latest matched pattern is used.
     -q, --no-output                   Don't echo the input.
+    -w, --web-hook                    Slack webhook URL
     --config config_file              Specify the location of the config file.
-    --setup                           Setup slacktee interactively.
+    --setup                           Setup slacktee interactively.	
 EOF
 }
 
@@ -493,7 +494,11 @@ function parse_args()
 				;;
 			-q|--no-output)
 				no_output=1
-		                ;;
+			    ;;
+			-w|--web-hook)
+				webhook_url="$1"
+				shift
+				;;
 			-d|--cond-prefix)
 				case "$1" in
 					-*|'')

@@ -52,11 +52,12 @@ check_nala () {
 # ----------------------------------------
 _joe_ftyperc () {
     _debug_function
-        _debug "Checking for ~/.joe folder"
+    _debug "Checking for ~/.joe folder"
     [[ ! -d ~/.joe ]] && mkdir ~/.joe
+    
     _debug "Checking for joe ftyperc"
-        if [[ ! -f ~/.joe/ftyperc ]]; then
-                _debug "Missing ~/.joe/ftyperc, copying"
-                cp $ZSHBOP_ROOT/custom/ftyperc ~/.joe/ftyperc
-        fi
+    if [[ ! -f ~/.joe/ftyperc ]]; then
+    	_debug "Missing ~/.joe/ftyperc, copying"
+        cp $ZSHBOP_ROOT/custom/ftyperc ~/.joe/ftyperc
+    fi
 }

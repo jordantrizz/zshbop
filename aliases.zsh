@@ -21,8 +21,6 @@ alias cg="clustergit"
 alias toc="gh-md-toc --insert README.md"
 alias joe4="joe --wordwrap -nobackups -tab 4"
 alias fdcount="tree | grep directories"
-alias whatismyip='dig @resolver1.opendns.com A myip.opendns.com +short -4;dig @resolver1.opendns.com AAAA myip.opendns.com +short -6'
-alias listen='netstat -anp | grep LISTEN'
 alias lessn="less -N"
 
 # - Shell Aliases
@@ -50,7 +48,7 @@ alias yabs='yabs.sh'
 alias screen="screen -c $ZSHBOP_ROOT/.screenrc"
 alias screens="screen -list"
 alias scrl="screen -list"
-alias scra="screen -r $1"
+alias scra="screen -r ${1}"
 function scrc {
 	screen -dmS ${1}
 	screen -rd ${1}
@@ -63,3 +61,4 @@ function sshr { ssh root@$1 }
 # - Litespeed
 alias lsphp74="/usr/local/lsws/lsphp74/bin/php"
 alias lsphp81="/usr/local/lsws/lsphp81/bin/php"
+alias ssh-keygen="ssh-keygen -t ed25519"

@@ -12,10 +12,6 @@
 * gp site {site.url} -suspend
 * Utilizes /var/www/holding.html so update this file if needed.
 
-## Clear site cache
-* gp fix cached eiexperience.com - Clear single site cache
-* gp fix clear-cache - Clear all site cache.
-
 # Advanced
 ## Setup System Cron for WordPress
 * gp site {site.url} -gpcron-on {minute.interval}
@@ -97,12 +93,33 @@ The default values are specified below, however the full list is at https://grid
 MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
 * gp mysql restart
 
-# Redis Page Cache
-## Redis Cache Expiry
+# GridPane Fix Commands
+* Reset file permissions ```gpfix perms site.com```
+* Clear single site cache ```gp fix cache site.com```
+* Clear all sites on server cache ``` gp fix cache```
+
+# Caching
+## Redis Page Cache
+### Enable Redis Page Cache
+* gp site {site.url} -redis-cache -ttl 2592000
+### Redis Cache Expiry
 * gp stack nginx redis -site-cache-valid {accepted.value} {site.url}
 
-## Clear Site Redis Full Page Cache
-* gp fix cache cached site.com
+## FastCGI Cache
+### Enable FastCGI Cache
+* gp site {site.url} -fastcgi-cache -ttl 1
+
+## Disable Cache
+* gp site {site.url} -cache-off
+
+# Object Cache
+## Change Redis maxmemory
+* https://gridpane.com/kb/configure-redis/
+The below example will set the redis maxmemory to 300MB
+```
+gp stack redis -max-memory 300
+
+```
 
 # Redis Object Cache
 ## Change Redis maxmemory
@@ -120,6 +137,11 @@ gp stack redis -max-memory 300
 * gp stack php 7.4 -mem-limit 512 -no-reload &&
 ## Update PHP memory per site.
 * gp stack php -site-mem-limit 512 test.com
+## Enable php-fpm slow log
+* gp stack php -site-slowlog-timeout 5 site.url
+* gp stack php -site-slowlog-trace-depth 15 site.url
+## PHP FPM pm.max-requests
+* gp stack php site-pm-max-requests 5000 site.url
 
 # Cache
 ## Commands
@@ -185,3 +207,27 @@ Enable server wide
 # Create Vanilla Nginx Config
 * gp conf nginx generate https-vanilla site.com
 
+# Notes
+
+## Check Caching
+### Redis
+```
+X-Grid-SRCache-Fetch HIT | MISS | BYPASS
+HIT means the website is cached.
+
+MISS means this page hadn’t been cached yet as it’s the first time it’s been visited since either the cache has been activated or cleared -on reload it should say HIT.
+
+BYPASS means this page has been excluded and will never be cached.
+```
+### Nginx
+```
+X-Grid-Cache HIT | MISS | BYPASS | STALE
+
+HIT means the website is cached.
+
+MISS means this page hadn’t been cached yet as it’s the first time it’s been visited since either the cache has been activated or cleared -on reload it should say HIT.
+
+BYPASS means this page has been excluded and will never be cached.
+
+STALE means your browser’s cache has expired. This will be common with FastCGI as the cache refreshes every second by default. This still means that caching is taking place on your server.
+```

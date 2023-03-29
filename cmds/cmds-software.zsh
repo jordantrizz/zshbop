@@ -42,23 +42,18 @@ csf-install () {
 # -- github-cli - Installs github.com CLI
 help_software[gh-cli-deb]='Installs github.com cli, aka gh'
 software_gh-cli-deb () {
-	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-	sudo apt-add-repository https://cli.github.com/packages
-	sudo apt update
-	sudo apt install gh
+	type -p curl >/dev/null || sudo apt install curl -y
+	curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+	&& sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+	&& sudo apt update \
+	&& sudo apt install gh -y
 }
 
 # -- mdv - Installs github.com CLI
 help_software[mdv]='Installs github.com cli, aka gh'
 software_mdv () {
-        # Old method that is broken
-        #sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-        #sudo apt-add-repository https://cli.github.com/packages
-        #sudo apt update
-        #sudo apt install gh
-	repos terminal_markdown_viewer
-        cd $ZSHBOP_ROOT/repos/terminal_markdown_viewer
-        pip install .
+	pip install mdv
 }
 
 # -- asciinema - Installs asciinema
@@ -167,7 +162,7 @@ aws-cli () {
 		mkdir $HOME/downloads
 	fi
 	cd $HOME/downloads
-	curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o
+	curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscli-exe-linux-x86_64.zip
 	unzip awscli-exe-linux-x86_64.zip
 	cd $HOME/downloads/aws
 	if [[ -d $HOME/bin ]]; then
@@ -288,6 +283,7 @@ software_speedtest-cli () {
 }
 
 # -- software_gh-cli-curl
+help_software[gh-cli-curl]="Install github cli"
 software_gh-cli-curl () {
 	VERSION=`curl  "https://api.github.com/repos/cli/cli/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-`
 	if [[ ! -f $HOME/tmp ]]; then
@@ -305,4 +301,46 @@ software_gh-cli-curl () {
 	    cd $HOME/bin
 	fi
 	cp $HOME/tmp/gh_${VERSION}_linux_amd64/bin/gh $HOME/bin
+}
+
+# -- ubuntu-netselect
+help_software[ubuntu-netselect]='Install netselect to find the fastest ubuntu mirror.'
+function ubuntu-netselect () {
+    _cexists netselect
+    if [[ $? == "0" ]]; then
+        echo "netselect installed, type 'sudo netselect'"
+    elif [[ $? == "1" ]]; then
+        _checkroot
+            mkdir ~/tmp
+            wget http://ftp.us.debian.org/debian/pool/main/n/netselect/netselect_0.3.ds1-28+b1_amd64.deb -P ~/tmp
+            sudo dpkg -i ~/tmp/netselect_0.3.ds1-28+b1_amd64.deb
+    fi
+}
+
+# -- jiq
+help_software[jiq]='Install jiq a visual cli jq processor'
+function software_jiq () {
+	if [[ ! -f $HOME/bin ]]; then
+		mkdir $HOME/bin
+	fi
+
+	if [[ $MACHINE_OS == "mac" ]]; then
+		wget "https://github.com/fiatjaf/jiq/releases/download/v0.7.2/jiq_darwin_amd64" -O $HOME/bin/jiq
+		chmod u+x $HOME/bin/jiq
+	elif [[ $MACHINE_OS == "linux" ]]; then
+		wget "https://github.com/fiatjaf/jiq/releases/download/v0.7.2/jiq_linux_amd64" -O $HOME/bin/jiq
+		chmod u+x $HOME/bin/jiq
+	fi
+}
+
+# -- plik-conf
+help_software[plik-conf]='Print out .plikrc'
+function plik-conf () {    
+    if [[ ! -f $HOME/.plikrc ]]; then
+        _error "No $HOME/.plikrc exists"
+        return 1
+    else
+        PLIKRC=$(cat $HOME/.plikrc)
+        echo "echo '${PLIKRC}' > \$HOME/.plikrc"
+    fi
 }

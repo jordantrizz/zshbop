@@ -44,19 +44,19 @@ env-check () {
         echo ""
         for i in $default_tools; do
 				_cexists $i
-                if $? == "0"; then
+                if [[ $? == "0" ]]; then
                         echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
                 else
                         echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
                 fi
         done
         echo "---------------------------"
-        echo "Looking for default tools.."
+        echo "Looking for extra tools.."
         echo "---------------------------"
         echo ""
         for i in $extra_tools; do
         _cexists $i
-        if $? == "0"; then
+        if [[ $? == "0" ]]; then
                         echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
                 else
                         echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
@@ -71,24 +71,40 @@ env-check () {
 # -- env-install - Install tools into environment.
 help_core[env-install]='Install tools into environment'
 env-install () {
-        echo "---------------------------"
-        echo "Installing default tools.."
-        echo "---------------------------"
-        _debug "default_tools: $default_tools"
-        sudo apt-get update
-        sudo apt install $default_tools
-        echo "---------------------------"
-        echo "Installing extra tools.."
-        echo "---------------------------"
-	_debug "extra_tools: $extra_tools"
-        sudo apt install $extra_tools
-        echo "---------------------------"
-        echo "Manual installs"
-        echo "---------------------------"
-        echo " mdv       - pip install mdv"
-        echo " gnomon    - via npm"
-        echo " lsd       - https://github.com/Peltoche/lsd"
-        echo ""
+	sudo apt-get update
+    echo "---------------------------"
+    echo "Installing default tools.."
+    echo "---------------------------"
+    echo "default_tools: $default_tools"
+    
+    if read -q "Continue? (y/n)"; then
+	    sudo apt-get install --no-install-recommends postfix- $default_tools
+    else
+		echo "Skipping due to press 'n'"
+    fi
+    echo ""
+    
+    
+    
+    echo "---------------------------"
+    echo "Installing extra tools.."
+    echo "---------------------------"
+	echo "extra_tools: $extra_tools"
+    
+        if read -q "Continue? (y/n)"; then
+		sudo apt-get install --no-install-recommends postfix- $extra_tools
+    else
+        echo "Skipping due to press 'n'"
+    fi
+    echo ""
+    
+    echo "---------------------------"
+    echo "Manual installs"
+    echo "---------------------------"
+    echo " mdv       - pip install mdv"
+    echo " gnomon    - via npm"
+    echo " lsd       - https://github.com/Peltoche/lsd"
+    echo ""
 }
 
 # -- install-pkg - Install specific tool
@@ -234,6 +250,7 @@ zshbop-install () {
 }
 
 # -- os-alias - return alias if binary exists for os
+help_core[os-alias]='Return alias if binary exists for os'
 os-binary () {
     BINARY="$1"
 	unset LC_CHECK NULL OS_BINARY
@@ -263,4 +280,16 @@ os-binary () {
 	    alias ${BINARY}="${OS_BINARY}"
 	    return 0
 	fi
+}
+
+# -- debugz - return alias if binary exists for os
+help_core[debugz]='Debug ZSH Function'
+function debugz() {
+  local func_name="$1"
+  shift
+
+  PS4='+ ${FUNCNAME[0]}: line %l: '
+  set -x
+  $func_name "$@"
+  set +x
 }
