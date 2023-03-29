@@ -39,3 +39,18 @@ git-config () {
         git config --global --get user.name
 }
 
+# -- grb
+help_git[grb]='List git remote branches'
+function git-remote-branches {
+    git branch -r
+}
+
+# -- grp
+help_git[grp]='Pull down remote branches'
+function grp {
+    git fetch --all
+    for branch in $(git branch -r | grep -v HEAD); do
+        git branch --track ${branch##*/} $branch
+    done
+    git pull --all
+}
