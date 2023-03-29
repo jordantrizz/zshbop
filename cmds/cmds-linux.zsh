@@ -100,8 +100,10 @@ sysr () {
 	if [[ -z $@ ]]; then
 		echo "systemctl restart - Usage: sysr [service]"
 		return 1
-	fi
-	_noticebg "systemctl restart $@"
+	else
+	    _noticebg "systemctl restart $@"
+        systemctl restart "$@"
+    fi
 }
 
 # -- sysrld
@@ -110,9 +112,10 @@ sysrld () {
     if [[ -z $@ ]]; then
         echo "systemctl reload - Usage: sysrld [service]"
         return 1
+    else
+        _noticebg "systemctl reload $@"
+        systemctl reload $@
     fi
-    _noticebg "systemctl reload $@"
-    systemctl reload $@
 }
 
 # -- ps-cpu
@@ -128,33 +131,30 @@ usedspace () {
 }
 
 # -- check_diskspace
-help_linux[check_diskspace]="Check diskspace and warn if full"
+help_linux[check_diskspace2]="Check diskspace based on OS"
 check_diskspace () {
-	ALERT="98" # alert level 
-	# :\\ = wsl drive letters
-	# /run = not requires
-	# wsl = wsl stuffs
-	# /init = wsl stuffs
-	DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none' | awk '{ print $5 " " $1 }' )
-	#IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
-	DISKUSAGE=("${(@f)${DF_COMMAND}}")
-	for OUT in ${DISKUSAGE[@]}; do
-		PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
-		PARTITION=$(echo "$OUT" | awk '{ print $2 }' )
-		FIRSTMSG="Checking $PARTITION with $PERCENTAGE%"
-		
-		# - Check percentage and then alert.
-		if [[ $PERCENTAGE -ge $ALERT ]]; then
-			_notice "$FIRSTMSG.."
-    		_error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
-		else
-			_notice "$FIRSTMSG.. - no issue."
-		fi
-	done
+	check_diskspace_${MACHINE_OS}
+}
+
+# -- check_blockdevices
+check_blockdevices () {
+        OUTPUT=""
+        ALERT="98"
+        DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
+        OUTPUT="$fg[cyan]Device Type Size Used% MountPoint${reset_color}"
+        for DEVICE in $DEVICES
+        do
+                TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
+                SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
+                MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
+                USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
+                OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
+        done
+        echo -e "$OUTPUT" | column -t
 }
 
 # -- check_diskspace
-help_linux[check_blockdevices]="Check block devices"
+help_linux[check_diskspace2]="Check diskspace2"
 check_diskspace2 () {
 	OUTPUT=""
     ALERT="98" # alert level
@@ -223,30 +223,6 @@ ps-mem () {
 	fi
 }
 
-# -- interfaces
-help_linux[interfaces]="List interfaces ip, mac and link"
-interfaces () {
-	# Get a list of all network interfaces
-	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'| egrep -v 'tunl|sit|veth'))
-
-	# Loop through each interface
-	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
-	for interface in $interfaces; do
-	    # Get IP address
-	    ip=$(ip -4 addr show $interface | grep 'inet ' | awk '{print $2}')
-
-	    # Get MAC address
-	    mac=$(ip -o link show $interface | awk '{print $17}')
-
-	    # Get link speed
-	    speed=$(ip -o link show $interface | awk '{print $9}')
-
-	    # Print interface information
-		OUTPUT+="\n$interface $ip $mac $speed"
-	done
-	echo -e "$OUTPUT" | column -t
-}
-
 # -- speed-convert
 help_linux[speed-convert]="Convert data speeds"
 speed-convert () {
@@ -279,4 +255,19 @@ speed-convert () {
 		echo "$gbit_s GBit/s"
 		echo "$gb_s GB/s"
 	fi
+}
+
+# -- utc
+help_linux[utc]="Display UTC date and time"
+function utc () {
+	date -u
+}
+
+# -- datetz
+help_linux[datetz]="Display specified timezone date and time"
+datetz () {
+	env TZ=":US/Pacific" date
+	env TZ=":US/Central" date	
+	env TZ=":US/Eastern" date
+	env TZ="UTC" date
 }

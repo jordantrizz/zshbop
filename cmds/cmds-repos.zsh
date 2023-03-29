@@ -15,37 +15,92 @@ repos () {
 
 	# list of repositories
 	declare -A GIT_REPOS GIT_REPOS_URL
-    GIT_REPOS[gp-tools]="GridPane Tools by @Jordantrizz"
-    GIT_REPOS_URL[gp-tools]="https://github.com/jordantrizz/gp-tools"
+	
+	# arguments
+	zparseopts -D -E - d+=DEBUG_FLAG
+	if [[ -n "$DEBUG_FLAG" ]]; then local ZSH_DEBUG="1";_debug "Debug enabled";fi
+    
+    # -- gp-tools
+    GIT_REPOS[wp-shelltools]="WordPress Shell Tools"
+    GIT_REPOS_URL[wp-shelltools]="https://github.com/managingwp/wp-shelltools"
+    
+    # -- mwp-scan-malware
+    GIT_REPOS[mwp-scan-malware]="Scan malware with Yara using custom signatures"
+    GIT_REPOS_URL[mwp-scan-malware]="https://github.com/managingwp/mwp-scan-malware"
+
+	# -- github-markdown-toc
 	GIT_REPOS[github-markdown-toc]="Add markdown table of contents to README.md"
-    GIT_REPOS_URL[github-markdown-toc]="https://github.com/jordantrizz/github-markdown-toc"
+	GIT_REPOS_URL[github-markdown-toc]="https://github.com/jordantrizz/github-markdown-toc"
+	
+	# -- cloudflare-cli
 	GIT_REPOS[cloudflare-cli]="Interface with Cloudflares API"
     GIT_REPOS_URL[cloudflare-cli]="https://github.com/jordantrizz/cloudflare-cli"
+    
+    # -- site24x7-custom-install
 	GIT_REPOS[site24x7-custom-install]="Custom Site24x7 install"
     GIT_REPOS_URL[site24x7-custom-install]="https://github.com/lmtca/site24x7-custom-install"
+    
+    # -- forwardemail-api-bash
     GIT_REPOS[forwardemail-api-bash]="forwardemail.net api bash script"
     GIT_REPOS_URL[forwardemail-api-bash]="https://github.com/jordantrizz/forwardemail-api-bash"
+
+	# -- chatgpt-cli
+	GIT_REPOS[chatgpt-cli]="A chatgpt implementation in CLI 0xacx/chatGPT-shell-cli"
+    GIT_REPOS_URL[chatgpt-cli]="https://github.com/0xacx/chatGPT-shell-cli"
+    
+    # -- zsh-installs
+    GIT_REPOS[zsh-installs]="zsh installs"
+    GIT_REPOS_URL[zsh-installs]="https://github.com/jordantrizz/zsh-installs"
         
 	# repos install
-    if [[ $1 == 'install' ]] && [[ -n "$2" ]]; then
+    if [[ $1 == 'pull' ]] && [[ -n "$2" ]]; then
 		_debug "Checking if $2 is in \$GIT_REPO"
        	_if_marray "$2" GIT_REPOS
        	REPODIR=$2
        	
+       	if [[ -z $3 ]]; then BRANCH=$3; fi
+       	_debug "Installing branch $BRANCH"
+       	
 		if [[ $MARRAY_VALID == "0" ]]; then
-			_debug "Found repository - installing via url ${GIT_REPOS_URL[$2]}"
-	        echo "-- Installing repository $2 into $ZSHBOP_ROOT/repos/$REPODIR"
+			_debug "Found repository - pulling via url ${GIT_REPOS_URL[$2]}"
+	        echo "-- Pulling repository $2 into $ZSHBOP_ROOT/repos/$REPODIR"
 	        REPO="$ZSHBOP_ROOT/repos/$REPODIR"
 			if [[ ! -d "$REPO" ]]; then
-				git clone ${GIT_REPOS_URL[$2]} ${REPO}
-				init_path
+				if [[ -z $BRANCH ]]; then
+					echo "branch specified, so pulling using branch $BRANCH"
+					git clone ${GIT_REPOS_URL[$2]} ${REPO} ${BRANCH}
+					init_path
+				else
+				    git clone ${GIT_REPOS_URL[$2]} ${REPO}
+                    init_path
+				fi
+				
+				
 			else
-				_error "Repo already installed or ${REPO} folder exists..exiting"
+				_error "Repo already pulled or ${REPO} folder exists..exiting"
 			fi
 		else
 			echo "No such repository $2"
 			return 1
 		fi		
+	# repos list		
+	elif [[ $1 == 'list' ]]; then
+		_loading "Listing repos pulled"
+		if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+            _debug "Found repositories"
+            for REPO in $ZSHBOP_ROOT/repos/*; do
+            	REPO_BRANCH=$(git -C $REPO rev-parse --abbrev-ref HEAD)
+                _debug "Found $REPO with $REPO_BRANCH"
+                if [[ -d $REPO ]]; then
+                    _success "$REPO - $REPO_BRANCH"
+                else
+                    _error "No repos pulled"
+                fi
+            done
+        else
+            _error "No repos pulled"
+        fi
+        echo ""
 	# repos update
 	elif [[ $1 == 'update' ]]; then
     	_loading "Updating repos "
@@ -64,13 +119,19 @@ repos () {
 			_loading2 "No repos to update"
 		fi
 	else
-    	echo "Usage: repos <install|update>"
+    	echo "Usage: repos <pull <repo>|list|update>"
         echo ""
         echo "This command pulls down popular Github repositories."
+        echo "To pull down a repo, simply type 'repo <reponame>'"
+        echo "The repo will be pulled into \$ZSHBOP/repos"
         echo ""
-        echo "To pull down a repo, simply type \"repo <reponame>\" and the repository will be installed into ZSHBOP/repos"
+		echo "Commands:"
+		echo "    pull <repo> (branch)     - Pull  repository"
+		echo "    list                     - List pulled repositories"
+		echo "    branch <repo> <branch>   - Change branch for repository"
+		echo "    update                   - Update repositories"
         echo ""
-        echo "Repositories"
+        echo "Available Repositories"
         echo ""
         for key value in ${(kv)GIT_REPOS}; do
         	printf '%s\n' "  ${(r:60:)key} - $value"

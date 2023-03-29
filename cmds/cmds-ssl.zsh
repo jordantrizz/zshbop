@@ -29,3 +29,11 @@ ssl-check () {
 		openssl x509 -in $2 -text -noout
 	fi
 }
+
+# -- gen-ss-cert
+help_ssl[gen-ss-cert]='Generate a self signed certificate'
+gen-ssl-cert () {
+	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout cert.key -out cert.crt
+	openssl x509 -in cert.crt -out cert.pem
+	openssl rsa -in cert.key -out key.pem
+}

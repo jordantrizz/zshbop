@@ -121,6 +121,32 @@ fi
 # Get function name
 ```${FUNCNAME[0]```
 
+# Improperly Expanded Variables
+You might want to have variables in variables and ultimately have single quotes being escaped.
+
+```
+CF_ACCOUNT="test@test.com"
+CF_TOKEN="qweqeqweqwe"
+DOMAIN_NAME="test.com"
+
+CURL_HEADERS="-H \"X-Auth-Email: $CF_ACCOUNT\" -H \"X-Auth-Key: $CF_TOKEN\""
+curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${DOMAIN_NAME}" $CURL_HEADERS -H 'Content-Type: application/json'
+```
+Will result in ```curl -s -X GET 'https://api.cloudflare.com/client/v4/zones?name=test.com' -H ''\''X-Auth-Email:' 'test@test.com'\''' -H ''\''X-Auth-key:' 'qweqweqweqwe'\''' -H ''\''X-Auth-Key:' ''\''6c78b261e9b616e89063dd060edcb8f20849a'\''' -H 'Content-Type: application/json'```
+
+Instead you can use an array.
+
+```
+CF_ACCOUNT="test@test.com"
+CF_TOKEN="qweqeqweqwe"
+DOMAIN_NAME="test.com"
+
+CURL_HEADERS=(-H "X-Auth-Email: $CF_ACCOUNT" -H "X-Auth-Key: $CF_TOKEN")
+
+curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${DOMAIN_NAME}" "${CURL_HEADERS[@]}" -H "Content-Type: application/json"
+```
+
+
 # Large Code Snippets
 ## Dealing with Command Arguments
 https://readforlearn.com/how-do-i-parse-command-line-arguments-in-bash/

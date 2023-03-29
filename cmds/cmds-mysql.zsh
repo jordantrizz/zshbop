@@ -12,28 +12,40 @@ help_files[mysql]='MySQL related commands'
 # - Init help array
 typeset -gA help_mysql
 
-# - mysql-dbsize
-help_mysql[mysql-dbsize]='Get size of all databases in MySQL'
-mysql-dbsize () {
-		echo "Getting all database sizes"
-        mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY (data_length + index_length) DESC;'
+# - mysql-alldbsize
+help_mysql[mysql-alldbsize]='Get size of all databases in MySQL'
+mysql-alldbsize () {
+	echo "Getting all database sizes"
+    mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY SUM(data_length + index_length) DESC;'
 }
+
+# - mysql-allrowsize
+help_mysql[mysql-allrowsize]='The number of rows of all tables in MySQL'
+mysql-allrowsize () {
+	if [[ $1 ]]; then
+		LIMIT="limit $1"
+	else
+		LIMIT=""
+	fi
+	mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE table_schema NOT IN ('performance_schema', 'sys') ORDER BY table_rows DESC ${LIMIT};"
+}
+
 # - mysql-dbrowsize
 help_mysql[mysql-dbrowsize]='Get number of rows in a table'
 mysql-dbrowsize () { 
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_name, table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ;" 
+		mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
         echo "Usage: $0 <database name>"
         return 1
     fi
 }
 
-# - mysql-tablesize
-help_mysql[mysql-tablesize]='Get size of all tables in MySQL'
-mysql-tablesize () { 
+# - mysql-dbtablesize
+help_mysql[mysql-dbtablesize]='Get size of all tables in database'
+mysql-dbtablesize () { 
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" 
+		mysql -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" 
 	else
 		echo "Usage: $0 <database name>"
 		return 1
@@ -43,7 +55,7 @@ mysql-tablesize () {
 # - mysql-datafree
 help_mysql[mysql-datafree]='List tables that have white space'
 mysql-datafree () { 
-	mysql -e "SELECT ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables where DATA_FREE > 0;" 
+	mysql -e "SELECT TABLE_SCHEMA, ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables where DATA_FREE > 0 ORDER by DATA_FREE DESC;"
 }
 
 # - mysql-msds
@@ -55,12 +67,7 @@ mysql-msds () {
 # - mysql-myisam
 help_mysql[mysql-myisam]='Locate myisam tables in MySQL'
 mysql-myisam () { 
-	mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';" 
-	if [[ -z $? ]]; then
-		_error "Found MyISAM tables"
-	else
-		_success "No MyISAM tables found"
-	fi
+	mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';"
 }
 
 # - mysql-maxmem
@@ -310,4 +317,38 @@ mysql-createuser () {
 		OUTPUT=$(mysql -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${RND_PASS}';")
 		echo $OUTPUT
 	fi
+}
+
+# -- mysqlps
+help_mysql[mysqlps]="Show current mysql processes"
+mysqlps () {
+	mysql -e 'show full processlist'
+}
+
+# -- mysql-myisam2innodb
+help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
+mysql-myisam2innodb () {
+	if [[ -z $1 ]]; then
+		_error "Please specify the database"
+		return 1
+	else
+		DB_NAME="$1"
+		echo "Upgrading MyISAM tables to InnoDB in database $DB_NAME..."
+		tables=$(mysql $DB_NAME -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
+
+		echo "$tables" | while read table; do
+    		if [[ $table != "Name" ]]; then
+      			echo "Upgrading table $table to InnoDB..."
+      			mysql $DB_NAME -e "ALTER TABLE $table ENGINE=InnoDB;"
+      			echo "Table $table upgraded to InnoDB successfully."
+    		fi
+  		done
+		echo "All MyISAM tables have been upgraded to InnoDB."
+	fi
+}
+
+# -- mysql-uptime
+help_mysql[mysql-uptime]="Get MySQL uptime."
+mysql-uptime () {
+    mysql -e "select TIME_FORMAT(SEC_TO_TIME(VARIABLE_VALUE ),'%Hh %im') as Uptime from performance_schema.global_status where VARIABLE_NAME='Uptime';"
 }

@@ -39,3 +39,80 @@ git-config () {
         git config --global --get user.name
 }
 
+# -- grb
+help_git[grb]='List git remote branches'
+function grb {
+    git -P branch -r
+}
+
+# -- grp
+help_git[grp]='Pull down remote branches'
+function grp {
+    git fetch --all
+    for branch in $(git branch -r | grep -v HEAD); do
+        git branch --track ${branch##*/} $branch
+    done
+    git pull --all
+}
+
+# -- gcb
+help_git[gcb]='Compare two branches'
+function gcb {
+    if [[ $# -ne 2 ]]; then
+        echo "Usage: git-compare-branches branch1 branch2"
+        return 1
+    fi
+
+    _loading "Comparing $1 with $2"
+    echo ""
+
+    git fetch
+    branch1_commit=$(git rev-parse --short=7 "$1")
+    branch2_commit=$(git rev-parse --short=7 "$2")
+    if [[ "$branch1_commit" == "$branch2_commit" ]]; then
+        echo "Both branches are at the same commit: $branch1_commit"
+    else
+        _loading2 "Last 5 commits from $1:"
+        git log --pretty=format:"%h - %s (%ad)" --date=short "$1" | head -5
+        echo ""
+        _loading2 "Last 5 commits from $2:"
+        git log --pretty=format:"%h - %s (%ad)" --date=short "$2" | head -5
+    fi
+}
+
+# -- gcab
+help_git[gcab]='Compare all branches'
+function gcab {
+    if [[ $# -eq 2 ]]; then
+        _loading "Comparing $1 with $2"
+        echo ""
+        git fetch
+        branch1_commit=$(git rev-parse --short=7 "$1")
+        branch2_commit=$(git rev-parse --short=7 "$2")
+        if [[ "$branch1_commit" == "$branch2_commit" ]]; then
+            echo "Both branches are at the same commit: $branch1_commit"
+        else
+            _loading2 "Last 5 commits from $1:"
+            git log --pretty=format:"%h - %s (%ad)" --date=short "$1" | head -5
+            echo ""
+            _loading2 "Last 5 commits from $2:"
+            git log --pretty=format:"%h - %s (%ad)" --date=short "$2" | head -5
+        fi
+    else
+        _loading "Fetching all remote branches..."
+        git fetch --all
+        _loading2 "Comparing all branches..."
+        for branch in $(git branch -a | grep -v HEAD); do
+            if [[ $branch != *remotes/origin/HEAD* ]]; then
+                branch_commit=$(git rev-parse --short=7 "$branch")
+                echo ""
+                _loading3 "Branch $branch_commit: $branch"
+                _loading4 "Last 5 commits:"
+                git log --pretty=format:"%h - %s (%ad)" --date=short "$branch" | head -5
+            fi
+        done
+    fi
+}
+
+
+

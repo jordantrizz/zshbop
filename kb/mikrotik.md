@@ -19,3 +19,9 @@ scp id_rsa.pub admin@192.168.80.1:.
 ssh admin@192.168.80.1
 /user ssh-keys import public-key-file=id_rsa.pub user=admin
 ```
+
+# DNS
+## Create CNAME record CLI
+```
+/ip/dns/static add name="dns.name" cname="subdomain.dns.name" type="CNAME" comment="static"
+```

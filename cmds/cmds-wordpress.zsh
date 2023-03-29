@@ -110,3 +110,32 @@ help_wordpress[wp-doctor]='Install wp-doctor module'
 wp-doctor () {
 	wp package install wp-cli/doctor-command:@stable
 }
+
+# -- wp-skip
+help_wordpress[wp-skip]='wp-cli but skip themes and plugins'
+alias wp-skip="wp --skip-themes --skip-plugins"
+
+# -- wp-backupsite
+help_wordpress[wp-backupsite]="Backup WordPress site on server to ~/backups"
+wp-backupsite () {
+    if [[ -z $1 ]]; then
+        echo "Usage: wp-backupsite <domain>"
+        echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
+        return 1
+    fi
+    SITE="$1"
+
+    WP_CHECK=$(wp --allow-root core is-installed)
+    if [[ $? == "1" ]]; then
+        _error "$WP_CHECK"
+    fi
+
+    if [[ ! -d $HOME/backups ]]; then
+        echo "$HOME/backups directory doesn't exist...creating..."
+        mkdir $HOME/backups
+    fi
+
+    echo "Backing up ${SITE}..."
+    /usr/local/bin/wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
+    tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
+}

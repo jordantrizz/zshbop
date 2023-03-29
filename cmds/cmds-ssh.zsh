@@ -16,7 +16,7 @@ typeset -gA help_ssh
 help_ssh[pk]='List public ssh-keys'
 pk () { 
 	#SSH_PUBLIC_KEYS=$(ls -1 ~/.ssh/*.pub)
-	SSH_PUBLIC_KEYS=("${(@f)$(ls -1 ~/.ssh/*.pub)}")
+	SSH_PUBLIC_KEYS=("${(@f)$(\ls -1 ~/.ssh/*.pub)}")
 	_loading "Listing all public keys in /$HOME/.ssh"
 	for PUBKEY in ${SSH_PUBLIC_KEYS}; do
 		 _banner_grey "-- $PUBKEY --"
@@ -45,6 +45,7 @@ ssh-keygen-ed25519 () {
 	ssh-keygen -t ed25519
 }
 
+# -- ssh-key-audit
 help_ssh[ssh-key-audit]="Find all SSH Keys on System"
 ssh-key-audit () {
     $file=""
@@ -61,4 +62,10 @@ ssh-key-audit () {
         cat $file;
     done;
     _banner_yellow "** END User SSH Keys                      *"
+}
+
+# -- ak
+help_ssh[ak]="Display ~/.ssh/authorized_keys"
+ak () {
+	cat ~/.ssh/authorized_keys
 }
