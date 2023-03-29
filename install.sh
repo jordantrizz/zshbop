@@ -37,9 +37,9 @@ USAGE=\
     -h       - This help screen
     -s       - Skip dependencies
     -d       - Debug mode
-  
+
   Commands
-    
+
     clean                            - Remove zshbop
     default                          - Default install
     home                             - Install in home directory
@@ -47,7 +47,7 @@ USAGE=\
     custom <branch> <location>		 - Custom install
                                             branch   - m=main d=dev b=bleeding
                                             location - h=home s=system g=~/git
-                   
+
 Version: ${VERSION}
 "
 echo "$USAGE"
@@ -70,9 +70,9 @@ pre_flight_check () {
     # -- Pre-flight Check
     _debug "Running pre_flight_check"
     if [[ $SKIPDEP == "0" ]]; then
-        _running "Running pre-flight Check"    
+        _running "Running pre-flight Check"
         local TOOLS_INSTALL
-        
+
         _debug "Checking if required software are installed"
         _debug "\$REQUIRED_SOFTWARE: ${REQUIRED_SOFTWARE[*]}"
         for tool in "${REQUIRED_SOFTWARE[@]}"; do
@@ -83,16 +83,16 @@ pre_flight_check () {
                         TOOL_PATH=`which $tool`
                         _debug "$tool is installed in $TOOL_PATH"
                 fi
-        done        
-        _debug "\$TOOLS_INSTALL: ${TOOLS_INSTALL[*]}"        
+        done
+        _debug "\$TOOLS_INSTALL: ${TOOLS_INSTALL[*]}"
         if [[ ${#TOOLS_INSTALL[@]} -eq 0 ]]; then
             _debug "No software to install, proceeding."
         else
             _running "Installing required packages..."
             echo "   Packages: ${TOOLS_INSTALL[*]}"
-            echo ""      
+            echo ""
             read -p "Do you want to install the software above? (y/n): " choice
-            if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then    
+            if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
                 echo ""
                 echo "${YELLOW}****************************************************${ECOL}"
                 apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"
@@ -137,9 +137,9 @@ pkg_install () {
     else
     	_error "Can't detect package manager :("
     fi
-    
+
     $(${PKG_MANAGER})
-    if [ $? -eq 1 ]; then 
+    if [ $? -eq 1 ]; then
     	_error "${*} install failed...."
         exit 1
     else
@@ -220,7 +220,7 @@ setup_system() {
 		_error " - $SYSTEM/zshbop already exists\n"
 		exit 1
 	fi
-	
+
 	_running "Copying $SYSTEM/zshbop/.zshrc into ~/"
 	cp $SYSTEM/zshbop/.zshrc ~/.zshrc
 	if [[ $? -ge "1" ]]; then
@@ -229,7 +229,7 @@ setup_system() {
 	else
 		_success "Copied $SYSTEM/zshbop/.zshrc to ~/.zshrc"
 	fi
-}		
+}
 
 
 # -------
@@ -275,9 +275,9 @@ if [[ $HELP == "1" ]];then
 elif [[ $CMD == "clean" ]]; then
 	_running "Removing zshbop from system"
 	echo "Continue (y/n)?"
-	read CLEAN	
+	read CLEAN
 	if [ $CLEAN == "y" ]; then
-		_running "Cleaning up!"		
+		_running "Cleaning up!"
 		rm ~/.zshrc
 		rm -rf /usr/local/sbin/zshbop
 		rm -rf ~/zshbop
