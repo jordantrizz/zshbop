@@ -197,6 +197,16 @@ setup_system() {
 	fi
 }		
 
+pre_flight_check () { 
+	# -- Pre-flight Check
+	if [[ $SKIPDEP == "0" ]]; then
+	    _running "Running pre-flight Check"
+	    flight_check
+	else
+	    _running "Skipping pre-flight check"
+	fi
+}
+
 # -------
 # -- Main
 # -------
@@ -230,14 +240,6 @@ setup_system() {
 # -- set $CMD
 CMD="$1"
 
-# -- Pre-flight Check
-if [[ $SKIPDEP == "0" ]]; then
-    _running "Running pre-flight Check"
-    flight_check
-else
-    _running "Skipping pre-flight check"
-fi
-
 # -- help
 if [[ $HELP == "1" ]];then
     usage
@@ -259,14 +261,17 @@ elif [[ $CMD == "clean" ]]; then
 	fi
 # -- default
 elif [[ $CMD == "default" ]]; then
+	pre_flight_check
 	INSTALL=d
 # -- home
 elif [[ $CMD == "home" ]]; then
+	pre_flight_check
     INSTALL=c
     BRANCH=m
     INSTALL_LOCATION=h
 # -- git
 elif [[ $CMD == "git" ]]; then
+	pre_flight_check
 	INSTALL=c
 	BRANCH=d
 	INSTALL_LOCATION=g
@@ -276,6 +281,7 @@ elif [[ $CMD == "custom" ]]; then
 		usage
 		exit 1
 	else
+		pre_flight_check
 		INSTALL=c
 		BRANCH="$2"
 		INSTALL_LOCATION="$3"
