@@ -133,3 +133,27 @@ web-toprequests () {
         fi
     fi
 }
+
+help_gridpane[web-toprequests]="Look for php.ini opcode settings in /etc/php"
+
+function php-opcache() {
+    if [[ -z $1 ]]; then
+        echo "Usage: ${funcstack[1]} <all|phpver>"
+        echo "   phpver = php80 or php73"
+        return 1
+    else    
+        _loading "Looking for opcache settings in php.ini files located in /etc/php"
+        if [[ $1 == 'all' ]]; then
+	        find /etc/php -name php.ini -type f -print0 | while IFS= read -r -d '' ini_file; do    
+                _loading2 "==== $ini_file ===="                
+                grep opcache "$ini_file" | egrep -v ';|^$' 
+            done       
+        else            
+            _loading "Looking for opcache settings in php.ini for ${1}"
+            find /etc/php -name php.ini -type f -print0 | grep $1 | while IFS= read -r -d '' ini_file; do    
+                _loading2 "==== $ini_file ===="                
+                grep opcache "$ini_file" | egrep -v ';|^$' 
+            done
+        fi
+    fi
+}
