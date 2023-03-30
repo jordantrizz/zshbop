@@ -45,3 +45,18 @@ sysinfo () {
 # -- sysinfo
 help_system[yabs]='Run yabs'
 alias yabs="yabs.sh"
+
+# -- check-cpu-mhz
+help_system[check-cpu-mhz]='Check if running high frequency'
+
+function check-cpu-mhz() {
+  local mhz=$(($(sysctl -n hw.cpufrequency) / 1000000))  # Get CPU Mhz
+  
+  if (( mhz < 3000 )); then
+    _error "CPU Mhz is below 3Ghz"
+  elif (( mhz < 3500 )); then
+    _warning "CPU Mhz is between 3Ghz and 3.5Ghz"
+  else
+    _success "CPU Mhz is 3.5Ghz or above"
+  fi
+}
