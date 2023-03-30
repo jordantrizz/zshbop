@@ -67,3 +67,11 @@ function check-cpu-mhz() {
     echo "Processor Model: $model"
 
 }
+
+help_system[specs]='Check system specs'
+function specs () {
+    _loading "Quick System Specs"
+    echo " - Sockets: $(lscpu | awk '/^Socket/{print $2}') Cores: $(lscpu | awk '/^Core\(s\) per socket/{print $4}')  Threads: $(lscpu | awk '/^CPU\(s\)/{print $2}')"
+    echo " - System Memory $(free -g | awk '/^Mem:/{print $2}')GB"
+    check-cpu-mhz
+}
