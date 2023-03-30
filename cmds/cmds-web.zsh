@@ -89,46 +89,47 @@ web-toprequests_usage () {
 }
 
 web-toprequests () {
-	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
-		web-toprequests_usage
+    if [[ -z "$1" ]] && [[ -z "$2" ]]; then
+        web-toprequests_usage
         _error "Unknown $@"
         return 1
-	else
+    else
         TYPE="$1"
         LOG="$2"
         LINES="$3"
-        
+        CAT="cat"
+
         # Set lines
         [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES=""
-        
-        # - Check if log exists        
+
+        # - Check if log exists
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
 
         # - Check if log ends in .gz
-        if [[ $LOG == "*.gz" ]]; then
-            echo "Log file is gzip'd"
-            CMD="zcat"
+        if [[ $(file -b --mime-type $LOG) == "application/gzip" ]]; then
+            echo "Processing $LOG which is gzip'd"
+            CAT="zcat"
         else
-            echo "Log file is text"
-            CMD="cat"
-        fi        
-        
+            echo "Processing $LOG which is text"
+            CAT="cat"
+        fi
+
         if [[ $1 == "ols" ]]; then
             _error "Not working"
             return 1
         elif [[ $1 == "nginx" ]]; then
             _error "Not working"
             return 1
-		elif [[ $1 == "gpols" ]]; then
-            $CMD ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
+        elif [[ $1 == "gpols" ]]; then
+            $CAT ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
         elif [[ $1 == "gpnginx" ]]; then
-            $CMD ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
+            $CAT ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         elif [[ $1 == "rcols" ]]; then
             # "domain.com 127.0.0.1 - - [24/Mar/2023:14:47:33 +0000] "POST /wp-admin/admin-ajax.php?_fs_blog_admin=true HTTP/2" 200 36"
-            $CMD ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
+            $CAT ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         else
            web-toprequests_usage
            _error "Unknown $@"
         fi
-	fi
+    fi
 }
