@@ -103,5 +103,6 @@ system_check () {
     check_blockdevices
 
     # -- Quick CPU/Mem    
+    _loading2 "Quick Specs"
     specs
 }
