@@ -8,8 +8,11 @@ motd_gp () {
     _loading2 "Last 5 Maldet scans"
     maldet-scans | tail -5
 
-    # -- gp-oscheck    
+    # -- gp-oscheck
+    _loading "Checking OS"    
     gp-oscheck
+    check-cpu-mhz
+    
     # -- inform
     _notice "View more GridPane logs with the command gp-logs"
 
