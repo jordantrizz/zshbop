@@ -9,11 +9,13 @@ motd_gp () {
     maldet-scans | tail -5
 
     # -- gp-oscheck
-    _loading "Checking OS"    
+    _loading2 "Checking OS"    
     gp-oscheck
     check-cpu-mhz
-    
+
     # -- inform
     _notice "View more GridPane logs with the command gp-logs"
+
+    _loading "End GP MOTD"
 
 }
