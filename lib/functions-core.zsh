@@ -16,6 +16,7 @@ help_files[corefunc]='Core functions for scripts'
 # -- Different colored messages
 _echo () { echo "$@" }
 _error () { echo  "$fg[red] * $@ ${RSC}" }
+_error2 () { echo  "$bg[red] * $@ ${RSC}" }
 _warning () { echo "$fg[yellow] * $@ ${RSC}" }
 _success () { echo "$fg[green] * $@ ${RSC}" }
 _noticebg () { echo "$bg[magenta]$fg[white] * $@ ${RSC}" }
