@@ -71,8 +71,10 @@ mysql-myisam () {
 	mysql_output=$(mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';")
     if [[ $mysql_output ]]; then
         _loading2 "Found MyISAM tables"
+        echo $mysql_output
     else
         _success "No MyISAM tables found"
+        echo $mysql_output
     fi
 }
 
