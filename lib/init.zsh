@@ -314,6 +314,12 @@ init-app-config () {
 	git config --global init.defaultBranch main
 }
 
+init_cmds () {
+   	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
+	  source $CMD_FILE
+	done
+}
+
 # -- init_zshbop -- initialize zshbop
 init_zshbop () {
 	# -- Start init
@@ -340,10 +346,8 @@ init_zshbop () {
 	init_pkg_manager
 	
 	# -- Include commands
-	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
-	  source $CMD_FILE
-	done
-        
+    init_cmds
+
 	# -- Common application configuration
   	init-app-config
 
