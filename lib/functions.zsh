@@ -202,10 +202,10 @@ zshbop_update () {
             [[ -d "$HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             [[ -d "$GIT_HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             if [[ -d ${ZUG} ]]; then 
-                _loading2 "Updating ${ZUG}/${GIT}"
-                git --git-dir=${ZUG}/${GIT}/.git --work-tree=${ZUG}/${GIT} pull
+                _loading2 "Updating ${ZUG}"
+                git --git-dir=${ZUG}/.git --work-tree=${ZUG} pull
             else
-                _error "Couldn't find ${ZUG}${GIT}"
+                _error "Couldn't find ${ZUG}"
             fi
         done
     fi
