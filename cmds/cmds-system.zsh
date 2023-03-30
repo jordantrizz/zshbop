@@ -65,7 +65,6 @@ function check-cpu-mhz() {
 
     local model=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ *//')
     echo "Processor Model: $model"
-
 }
 
 help_system[specs]='Check system specs'
