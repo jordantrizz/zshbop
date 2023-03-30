@@ -68,11 +68,7 @@ kb () {
 
 		# -- alert to install mdv for better experience
         if [[ $MD_READER == cat ]]; then
-                echo "\n\n"
-                echo "---------------------------------------"
-                echo "mdv not avaialble failing back to cat"
-                echo "trying installing mdv by typing"
-                echo "---------------------------------------"
+            echo "mdv not avaialble failing back to cat, trying installing mdv by typing"
         fi
 }
 
