@@ -62,4 +62,8 @@ function check-cpu-mhz() {
     else
         _success "CPU Mhz = $mhz and is 3.5Ghz or above"
     fi
+
+    local model=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ *//')
+    echo "Processor Model: $model"
+
 }
