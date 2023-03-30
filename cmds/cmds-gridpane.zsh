@@ -186,11 +186,13 @@ gp-backupallsites () {
 # -- gp-oscheck
 lmtc_gridpane[gp-oscheck]="Check the OS version"
 gp-oscheck () {
-        # Get the Ubuntu version
+    # Get the Ubuntu version
     version=$(lsb_release -r | awk '{print $2}')
 
     # Check if the version is not 20
     if [[ "$version" != "20.04" ]]; then
-        echo "WARNING: Unsupported Ubuntu version ($version). This function is intended for Ubuntu 20.04."
+        _warning "WARNING: Unsupported Ubuntu version ($version)."
+    else
+        _success "Running Ubuntu $version supported by GridPane"
     fi
 }
