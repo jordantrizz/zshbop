@@ -54,13 +54,16 @@ function check-cpu-mhz() {
     else
         mhz=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo | awk '{sum += $1} END {print sum/NR/1000}')
     fi
-
-    if (( $(echo "$mhz < 3" | bc -l) )); then
-        _error "CPU Mhz = $mhz and is below 3Ghz"
-    elif (( $(echo "$mhz < 3.5" | bc -l) )); then
-        _warning "CPU Mhz = $mhz and is between 3Ghz and 3.5Ghz"
+    if [[ ! bc ]]; then
+        _error "Please install the bc command"
     else
-        _success "CPU Mhz = $mhz and is 3.5Ghz or above"
+        if (( $(echo "$mhz < 3" | bc -l) )); then
+            _error "CPU Mhz = $mhz and is below 3Ghz"
+        elif (( $(echo "$mhz < 3.5" | bc -l) )); then
+            _warning "CPU Mhz = $mhz and is between 3Ghz and 3.5Ghz"
+        else
+            _success "CPU Mhz = $mhz and is 3.5Ghz or above"
+        fi
     fi
 
     local model=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ *//')
