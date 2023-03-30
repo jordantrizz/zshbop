@@ -102,7 +102,6 @@ system_check () {
     _loading2 "Checking block devices"
     check_blockdevices
 
-    # -- Quick CPU/Mem
-    echo "Test"
+    # -- Quick CPU/Mem    
     specs
 }
