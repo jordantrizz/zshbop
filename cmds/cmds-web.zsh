@@ -109,9 +109,9 @@ web-toprequests () {
             echo "Log file is gzip'd"
             CMD="zcat"
         else
+            echo "Log file is text"
             CMD="cat"
-        fi
-        
+        fi        
         
         if [[ $1 == "ols" ]]; then
             _error "Not working"
