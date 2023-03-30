@@ -96,6 +96,9 @@ gp-mysqlpass () {
 # -- gp-duplicacy-audit
 help_gridpane[gp-duplicacy-audit]="Audit Duplicacy backups"
 gp-duplicacy-audit () {
+    local duplicacy_repository=$(find /var/www -name ".duplicacy" | head -n 1)
+    echo "Found at ${duplicacy_repository}
+    cd ${duplicacy_repository}
     duplicacy check -tabular | grep 'all' | awk {' print $1 " "$10 '} | sed 's/gridpane-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-//' | column -t
 }
 
