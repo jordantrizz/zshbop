@@ -64,7 +64,7 @@ function check-cpu-mhz() {
     fi
 
     local model=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ *//')
-    echo "Processor Model: $model"
+    echo " - Processor Model: $model"
 }
 
 help_system[specs]='Check system specs'
@@ -72,5 +72,5 @@ function specs () {
     _loading "Quick System Specs"
     echo " - Sockets: $(lscpu | awk '/^Socket/{print $2}') Cores: $(lscpu | awk '/^Core\(s\) per socket/{print $4}')  Threads: $(lscpu | awk '/^CPU\(s\)/{print $2}')"
     echo " - System Memory $(free -g | awk '/^Mem:/{print $2}')GB"
-    echo " - $(check-cpu-mhz)"
+    echo "$(check-cpu-mhz)"
 }
