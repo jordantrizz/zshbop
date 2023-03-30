@@ -48,15 +48,18 @@ alias yabs="yabs.sh"
 
 # -- check-cpu-mhz
 help_system[check-cpu-mhz]='Check if running high frequency'
-
 function check-cpu-mhz() {
-  local mhz=$(($(sysctl -n hw.cpufrequency) / 1000000))  # Get CPU Mhz
-  
-  if (( mhz < 3000 )); then
-    _error "CPU Mhz is below 3Ghz"
-  elif (( mhz < 3500 )); then
-    _warning "CPU Mhz is between 3Ghz and 3.5Ghz"
-  else
-    _success "CPU Mhz is 3.5Ghz or above"
-  fi
+    if [[ $(uname -s) == "FreeBSD" ]]; then
+        mhz=$(sysctl -n hw.cpufrequency | awk '{print $1/1000000}')
+    else
+        mhz=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo | awk '{sum += $1} END {print sum/NR/1000}')
+    fi
+
+    if (( $(echo "$mhz < 3" | bc -l) )); then
+        _error "CPU Mhz = $mhz and is below 3Ghz"
+    elif (( $(echo "$mhz < 3.5" | bc -l) )); then
+        _warning "CPU Mhz = $mhz and is between 3Ghz and 3.5Ghz"
+    else
+        _success "CPU Mhz = $mhz and is 3.5Ghz or above"
+    fi
 }
