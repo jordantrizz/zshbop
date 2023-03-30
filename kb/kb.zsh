@@ -68,12 +68,12 @@ kb () {
 
 		# -- alert to install mdv for better experience
         if [[ $MD_READER == cat ]]; then
-            echo "mdv not avaialble failing back to cat, trying installing mdv by typing"
+            _notice "mdv not avaialble failing back to cat, trying installing mdv by typing"
         fi
 }
 
 md-reader () {
-	MD_FILE="$1"
+    MD_FILE="$1"
     if [[ $MD_READER == "cat" ]]; then
 		cat $MD_FILE
 	elif [[ $MD_READER == "glow" ]]; then
@@ -82,5 +82,5 @@ md-reader () {
 		eval $MD_READER $MD_FILE | less
 	else
 		less $MD_FILE
-	fi
+	fi    
 }
