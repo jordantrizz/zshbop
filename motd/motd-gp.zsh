@@ -16,6 +16,7 @@ motd_gp () {
     # -- inform
     _notice "View more GridPane logs with the command gp-logs"
 
-    _loading "End GP MOTD"
+    _loading "End GP MOTD - run gp-audit"
+    echo ""
 
 }

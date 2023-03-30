@@ -184,7 +184,7 @@ gp-backupallsites () {
 }
 
 # -- gp-oscheck
-lmtc_gridpane[gp-oscheck]="Check the OS version"
+help_gridpane[gp-oscheck]="Check the OS version"
 gp-oscheck () {
     # Get the Ubuntu version
     version=$(lsb_release -r | awk '{print $2}')
@@ -196,3 +196,11 @@ gp-oscheck () {
         _success "Running Ubuntu $version supported by GridPane"
     fi
 }
+
+# -- gp-audit
+help_gridpane[gp-audit]="Run a GridPane Audit"
+if ! functions gp-audit >/dev/null; then
+  gp-audit () {
+    echo "Not available for free, see https://lmt.ca"
+  }
+fi
