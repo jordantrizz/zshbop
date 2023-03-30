@@ -103,6 +103,15 @@ web-toprequests () {
         
         # - Check if log exists        
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
+
+        # - Check if log ends in .gz
+        if [[ $LOG == "*.gz" ]]; then
+            echo "Log file is gzip'd"
+            CMD="zcat"
+        else
+            CMD="cat"
+        fi
+        
         
         if [[ $1 == "ols" ]]; then
             _error "Not working"
@@ -111,12 +120,12 @@ web-toprequests () {
             _error "Not working"
             return 1
 		elif [[ $1 == "gpols" ]]; then
-            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
+            $CMD ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
         elif [[ $1 == "gpnginx" ]]; then
-            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
+            $CMD ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         elif [[ $1 == "rcols" ]]; then
             # "domain.com 127.0.0.1 - - [24/Mar/2023:14:47:33 +0000] "POST /wp-admin/admin-ajax.php?_fs_blog_admin=true HTTP/2" 200 36"
-            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
+            $CMD ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         else
            web-toprequests_usage
            _error "Unknown $@"
