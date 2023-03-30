@@ -467,6 +467,9 @@ system_check () {
 	# -- check block devices
 	_loading2 "Checking block devices"
 	check_blockdevices
+
+    # -- Quick CPU/Mem
+    specs
 }	
 
 # -- init_motd - initial scripts to run on login
