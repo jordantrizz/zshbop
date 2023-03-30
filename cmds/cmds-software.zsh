@@ -9,7 +9,6 @@ HELP_CATEGORY='software'
 
 # What help file is this?
 help_files[${HELP_CATEGORY}]='Software related commands'
-help_files_description[${HELP_CATEGORY}]='The software command provides many functions to install common software'
 
 # - Init help array
 typeset -gA help_software
