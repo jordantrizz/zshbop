@@ -134,9 +134,8 @@ web-toprequests () {
     fi
 }
 
-help_gridpane[web-toprequests]="Look for php.ini opcode settings in /etc/php"
-
-function php-opcache() {
+help_gridpane[php-opcode]="Look for php.ini opcode settings in /etc/php"
+function php-opcode() {
     if [[ -z $1 ]]; then
         echo "Usage: ${funcstack[1]} <all|phpver>"
         echo "   phpver = php80 or php73"
