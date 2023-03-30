@@ -2,8 +2,15 @@
 # kb function
 # -----------
 
+# -- kbc
+alias kbc="kb -c"
+
 # -- kb - A built in knowledge base.
-kb () {
+kb () {    
+        zparseopts -D -E c=CAT
+        if [[ -n "$CAT" ]]; then
+            echo "Using cat on $1"
+        fi
         _debug_function        
         KB=$1
        
@@ -13,15 +20,18 @@ kb () {
 		CE_GLOW=$?
 		_cexists mdv
 		CE_MDV=$?
-        if [[ $CE_GLOW == "0" ]]; then
-                _debug "glow exists!"
-                MD_READER="glow"
+        if [[ $CAT ]]; then
+            _debug "Using cat"
+            MD_READER="cat"
+        elif [[ $CE_GLOW == "0" ]]; then
+            _debug "glow exists!"
+            MD_READER="glow"
         elif [[ $CE_MDV == "0" ]]; then
-        		_debug "mdv exists!"
-        		MD_READER="mdv"
+            _debug "mdv exists!"
+            MD_READER="mdv"
         else
-                _debug "mdv doesn't exist using cat"
-                MD_READER="cat"
+            _debug "mdv doesn't exist using cat"
+            MD_READER="cat"
         fi
         _debug "MD_READER: $MD_READER"
 
@@ -68,7 +78,9 @@ kb () {
 
 md-reader () {
 	MD_FILE="$1"
-	if [[ $MD_READER == "glow" ]]; then
+    if [[ $MD_READER == "cat" ]]; then
+		cat $MD_FILE
+	elif [[ $MD_READER == "glow" ]]; then
 		eval $MD_READER -p $MD_FILE
 	elif [[ $MD_READER == "mdv" ]]; then
 		eval $MD_READER $MD_FILE | less
