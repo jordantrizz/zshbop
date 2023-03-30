@@ -182,3 +182,15 @@ gp-backupallsites () {
         tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' /var/www/${SITE}/htdocs
     done
 }
+
+# -- gp-oscheck
+lmtc_gridpane[gp-oscheck]="Check the OS version"
+gp-oscheck () {
+        # Get the Ubuntu version
+    version=$(lsb_release -r | awk '{print $2}')
+
+    # Check if the version is not 20
+    if [[ "$version" != "20.04" ]]; then
+        echo "WARNING: Unsupported Ubuntu version ($version). This function is intended for Ubuntu 20.04."
+    fi
+}

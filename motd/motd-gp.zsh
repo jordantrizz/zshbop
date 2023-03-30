@@ -10,4 +10,7 @@ motd_gp () {
 
     # -- inform
     _notice "View more GridPane logs with the command gp-logs"
+
+    # -- gp-oscheck
+    gp-oscheck
 }
