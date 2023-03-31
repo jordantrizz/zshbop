@@ -8,4 +8,4 @@
 4. Click on the three dots to the right and select "Add Virtual Mac"
 5. Either create a new or assign to existing.
 
-If you have bare-metal and running virtualization, and you have an existing virtual mac. You can add it to the existing virtual mac.
+If you have bare-metal and running virtualization like proxmox. You need to using the virtual machines mac address and select "ovh".
