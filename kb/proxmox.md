@@ -128,12 +128,6 @@ Run the following command ```pveam update``` it should return update successful
 1. Login to DHCP server via ssh
 2. Install dhcp server ```apt install isc-dhcp-server -y```
 3. Edit /etc/dhcp/dhcpd.conf
-3.1 Update the dhcpd details distributed to clients.
-```
-# option definitions common to all supported networks...
-option domain-name "domain.com";
-option domain-name-servers 192.168.5.2; # this server
-```
 3.2 Make the server authoratative, uncomment this line.
 ```
 #authoritative;
@@ -141,9 +135,12 @@ option domain-name-servers 192.168.5.2; # this server
 3.3 Add to bottom of file
 ```
 subnet 192.168.5.0 netmask 255.255.255.0 {
-        range 192.168.5.10 192.168.5.254;
-        option routers 192.168.5.2;
+    option domain-name "domain.com";
+    option domain-name-servers 8.8.8.8;
+    range 192.168.5.10 192.168.5.254;
+    option routers 192.168.5.2;
 }
+
 ```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
 
