@@ -101,9 +101,18 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * Unlock the vm with ```qm unlock 108```
 
 # Setups
-## Internal Network + DHCP Server
+## Internal Network + NAT + DHCP Server
 ### Create internal Network
-Create an internal network by creating a bridge and choosing a subnet like 192.168.5.0/24
+1. Create an internal network bridge and give the IP 192.168.5.1/24
+### Setup NAT
+1. Edit /etc/network/interfaces and add the following
+```
+post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+post-up iptables -t nat -A POSTROUTING -s '192.168.5.0/24' -o vmbr0 -j MASQUERADE
+post-down iptables -t nat -D POSTROUTING -s '192.168.5.0/24' -o vmbr0 -j MASQUERADE
+```
+2. Run ```ifup vmbr1``` which runs the post-up commands.
+3. Install iptables-persistent ```apt-get install iptables-persistent```
 ### Create DHCP Server Container
 1. Update Container Template Database
 Run the following command ```pveam update``` it should return update successful
@@ -113,7 +122,6 @@ Run the following command ```pveam update``` it should return update successful
 5. Once the download is finished, we click on “Create CT” button from Proxmox VE web gui
 6. Configure
 * Set a ssh-key and password which will be for root@
-* Add the host to the bridge and give it an ip of 192.168.5.1/24
+* Add the host to the bridge and give it an ip of 192.168.5.2/24
 * DNS can be 8.8.8.8 or 192.168.5.1
 ### Setup DHCP Server
-
