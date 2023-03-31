@@ -7,8 +7,8 @@
 3. Expand the additional IP network range.
 4. Click on the three dots to the right and select "Add Virtual Mac"
 5. Either create a new or assign to existing.
-
-If you have bare-metal and running virtualization like proxmox. You need to using the virtual machines mac address and select "ovh".
+5.1 If you're attaching the IP to an existing server or virtual instance, use existing.
+5.2 For new server or instances you will need to create a new one and then make sure your virtual instance has it's network interface overriden.
 
 # OVH netplan + cloud-init
 * https://www.reddit.com/r/Proxmox/comments/llz6ww/proxmox_template_with_custom_cloudinit_need_to/
@@ -23,8 +23,8 @@ network:
     ethernets:
         eth0:
             addresses:
-            #- 192.99.181.44/32
-            gateway4: 148.113.152.254                
+            - 192.168.0.2/32
+            gateway4: 192.168.0.254               
             nameservers:
                 addresses:
                 - 8.8.8.8
@@ -33,7 +33,7 @@ network:
                 - lmthosting.com
             set-name: eth0
             routes:
-            - to: 148.113.152.254/32
+            - to: 192.168.3.0/32
               via: 0.0.0.0
               scope: link
 ```
