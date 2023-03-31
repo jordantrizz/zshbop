@@ -123,7 +123,7 @@ Run the following command ```pveam update``` it should return update successful
 6. Configure
 * Set a ssh-key and password which will be for root@
 * Add the host to the bridge and give it an ip of 192.168.5.2/24
-* DNS can be 8.8.8.8 or 192.168.5.1
+* DNS can be 8.8.8.8
 ### Setup DHCP Server
 1. Login to DHCP server via ssh
 2. Install dhcp server ```apt install isc-dhcp-server -y```
