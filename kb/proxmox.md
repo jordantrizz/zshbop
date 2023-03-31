@@ -142,7 +142,7 @@ option domain-name-servers 192.168.5.2; # this server
 ```
 subnet 192.168.5.0 netmask 255.255.255.0 {
         range 192.168.5.10 192.168.5.254;
-        options routers 192.168.5.2;
+        option routers 192.168.5.2;
 }
 ```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
