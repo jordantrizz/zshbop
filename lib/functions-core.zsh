@@ -67,6 +67,13 @@ _debug () {
     fi
 }
 
+# -- _debug
+_debugf () {
+    if [[ $DEBUGF == 1 ]]; then
+        echo "$fg[cyan]** DEBUG: $@${RSC}";
+    fi
+}
+
 # -- _debug_all
 _debug_all () {
         _debug "--------------------------"
