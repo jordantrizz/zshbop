@@ -9,3 +9,40 @@
 5. Either create a new or assign to existing.
 
 If you have bare-metal and running virtualization like proxmox. You need to using the virtual machines mac address and select "ovh".
+
+# OVH netplan + cloud-init
+* https://www.reddit.com/r/Proxmox/comments/llz6ww/proxmox_template_with_custom_cloudinit_need_to/
+1. You must first set the storage up to permit storing the 'snippets' type:
+```
+pvesm set local --content images,rootdir,vztmpl,backup,iso,snippets
+```
+2. Create a network.yaml within a new directory `/var/lib/vz/snippets/` that looks similar to:
+```
+network:
+    version: 2
+    ethernets:
+        eth0:
+            addresses:
+            #- 192.99.181.44/32
+            gateway4: 148.113.152.254                
+            nameservers:
+                addresses:
+                - 8.8.8.8
+                - 1.1.1.1
+                search:
+                - lmthosting.com
+            set-name: eth0
+            routes:
+            - to: 148.113.152.254/32
+              via: 0.0.0.0
+              scope: link
+```
+
+3. Clone a template, i.e. one made from one of the ubuntu cloud-init images:
+```
+qm clone 9000 123 --name cloudinit-test01
+```
+4. Configure the VM to use your custom Netplan V1 config:
+```
+qm set 124 --sshkey ~/.ssh/id_rsa.pub --cicustom network=local:snippets/network.yaml -citype nocloud
+```

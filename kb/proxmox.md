@@ -99,3 +99,21 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * Unmount storage that is affected with unmount -f or -l
 * Kill vzdump process with kill -9
 * Unlock the vm with ```qm unlock 108```
+
+# Setups
+## Internal Network + DHCP Server
+### Create internal Network
+Create an internal network by creating a bridge and choosing a subnet like 192.168.5.0/24
+### Create DHCP Server Container
+1. Update Container Template Database
+Run the following command ```pveam update``` it should return update successful
+2. Navigate to one of the storage which we want to use to store templates
+3. Click on “Templates” button
+4. Select the lxc container template we want to download and click on “Download” button to download it (e.g. TurnKey WordPress)
+5. Once the download is finished, we click on “Create CT” button from Proxmox VE web gui
+6. Configure
+* Set a ssh-key and password which will be for root@
+* Add the host to the bridge and give it an ip of 192.168.5.1/24
+* DNS can be 8.8.8.8 or 192.168.5.1
+### Setup DHCP Server
+
