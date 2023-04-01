@@ -4,6 +4,7 @@
 
 # -- kbc
 alias kbc="kb -c"
+alias kbd="cd ${KB}"
 
 # -- kb - A built in knowledge base.
 kb () {    
