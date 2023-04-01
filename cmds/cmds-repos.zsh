@@ -15,11 +15,17 @@ repos () {
 
 	# list of repositories
 	declare -A GIT_REPOS GIT_REPOS_URL
-	
-	# arguments
+    # =====================================
+    # -- Arguments
+    # =====================================
 	zparseopts -D -E - d+=DEBUG_FLAG
 	if [[ -n "$DEBUG_FLAG" ]]; then local ZSH_DEBUG="1";_debug "Debug enabled";fi
     
+
+    # =====================================
+    # -- Repositories
+    # =====================================
+
     # -- gp-tools
     GIT_REPOS[wp-shelltools]="WordPress Shell Tools"
     GIT_REPOS_URL[wp-shelltools]="https://github.com/managingwp/wp-shelltools"
@@ -55,8 +61,15 @@ repos () {
     # -- zsh-sweep
     GIT_REPOS[zsh-sweep]="zsh-sweep"
     GIT_REPOS_URL[zsh-sweep]="https://github.com/psprint/zsh-sweep"
-        
-	# repos install
+
+    # =====================================
+    # -- Functions
+    # =====================================
+
+    # -------------
+	# -- repos pull
+    # -------------
+
     if [[ $1 == 'pull' ]] && [[ -n "$2" ]]; then
 		_debug "Checking if $2 is in \$GIT_REPO"
        	_if_marray "$2" GIT_REPOS
@@ -87,7 +100,9 @@ repos () {
 			echo "No such repository $2"
 			return 1
 		fi		
-	# repos list		
+    # -------------
+	# -- repos list
+    # -------------
 	elif [[ $1 == 'list' ]]; then
 		_loading "Listing repos pulled"
 		if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
@@ -105,7 +120,9 @@ repos () {
             _error "No repos pulled"
         fi
         echo ""
-	# repos update
+	# ---------------
+	# -- repos update
+    # ---------------
 	elif [[ $1 == 'update' ]]; then
     	_loading "Updating repos "
 		if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
@@ -137,8 +154,8 @@ repos () {
         echo ""
         echo "Available Repositories"
         echo ""
-        for key value in ${(kv)GIT_REPOS}; do
-        	printf '%s\n' "  ${(r:60:)key} - $value"
+        for key in ${(kon)GIT_REPOS}; do
+        	printf '%s\n' "  ${(r:40:)key} - $GIT_REPOS[$key]"
         done
         echo ""
 	fi
