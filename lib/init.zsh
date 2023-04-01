@@ -7,7 +7,9 @@
 
 _debug "Loading mypath=${0:a}"
 
+# ==============================================
 # -- init_path - setup all the required paths.
+# ==============================================
 init_path () {
 	_debug_function
 
@@ -51,7 +53,9 @@ init_path () {
 	fi
 }
 
+# ==============================================
 # -- init_add_path
+# ==============================================
 init_add_path () {
 	DIR="$@"
 	if [[ -d $DIR ]]; then
@@ -70,7 +74,9 @@ init_add_path () {
 	fi
 }
 
+# ==============================================
 # -- init_detectos -- detect the OS running
+# ==============================================
 init_detectos () {
         # -- Detect operating system
         _loading "Detecting Operating System"
@@ -96,7 +102,9 @@ init_detectos () {
         _loading_grey "Running in ${MACHINE_OS}"
 }
 
+# ==============================================
 # -- Initialize oh-my-zsh plugins
+# ==============================================
 init_omz_plugins () {
 	_loading "Loading OMZ plugins"
 	# omz plugin config
@@ -142,7 +150,22 @@ init_omz_plugins () {
 	alias genpass="genpass-apple"
 }
 
+# ==============================================
+# -- init_zsh_sweep
+# ==============================================
+function init_zsh_sweep () {
+    if [[ -d $REPOS/zsh-sweep ]]; then
+        exprot zs_set_path=1 # add to $PATH
+        source ${REPOS}/zsh-sweep.plugin.zsh'    
+    else
+        _debug "There is no $REPOS/zsh-sweep, run repos pull zsh-sweep"
+    fi
+}
+
+
+# ==============================================
 # -- powerlevel10k customizations
+# ==============================================
 init_p10k () {
 	_loading "Loading powerlevel10k configuration"
 	# shellcheck source=./.p10k.zsh
@@ -152,7 +175,9 @@ init_p10k () {
 	export POWERLEVEL9K_DISK_USAGE_WARNING_LEVEL="90"
 }
 
+# ==============================================
 # -- fzf
+# ==============================================
 init_fzf () {
 	if _cexists fzf; then
 	    _debug "fzf is installed"
@@ -165,7 +190,9 @@ init_fzf () {
 	fi
 }
 
-# -- Initialize plugins
+# ==============================================
+# -- Initialize ZSH plugins
+# ==============================================
 init_plugins () {
 	_loading "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
 	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
@@ -175,7 +202,9 @@ init_plugins () {
 	fi
 }
 
+# ==============================================
 # -- Initialize antidote plugin manager
+# ==============================================
 init_antidote () {
 	# -- plugin config
 	export AUTO_LS_CHPWD="false"
@@ -197,7 +226,9 @@ init_antidote () {
   source $ANTIDOTE_STATIC
 }
 
+# ==============================================
 # -- Initialize antigen plugin manager
+# ==============================================
 init_antigen () {
 	_debug "Loading antigen"
 	_loading "Loading antigen"
@@ -211,7 +242,9 @@ else
 fi
 }
 
+# ==============================================
 # -- Load os zsh scripts
+# ==============================================
 init_os () {
 	_debug_function
 	# -- Loading os defaults
@@ -240,7 +273,9 @@ init_os () {
 	fi
 }
 
+# ==============================================
 # -- Load default SSH keys into keychain
+# ==============================================
 init_sshkeys () {
 		_debug_function
 		_loading "Loading SSH keys into keychain"
@@ -283,7 +318,9 @@ init_sshkeys () {
 		fi
 }
 
+# ==============================================
 # -- init_pkg_manager
+# ==============================================
 init_pkg_manager () {
 	_debug_function
 	_debug "Running on $MACHINE_OS"
@@ -307,20 +344,28 @@ init_pkg_manager () {
 	fi	
 }
 
+# ==============================================
 # -- init-app-config - set some application configuration
+# ==============================================
 init-app-config () {
+    
 	_loading "Setting application configuration"
 	# git
 	git config --global init.defaultBranch main
 }
 
+# ==============================================
+# -- init_cmds
+# ==============================================
 init_cmds () {
    	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
 	  source $CMD_FILE
 	done
 }
 
+# ==============================================
 # -- init_zshbop -- initialize zshbop
+# ==============================================
 init_zshbop () {
 	# -- Start init
 	_debug_function
@@ -385,7 +430,9 @@ init_zshbop () {
 	typeset -U PATH
 }
 
+# ==============================================
 # -- init_checklist
+# ==============================================
 init_check_software () {
 	# -- Check services and software
 	_banner_yellow "-- Checking Software"
@@ -399,7 +446,9 @@ init_check_software () {
     check_broot
 }
 
+# ==============================================
 # -- init_check_services
+# ==============================================
 init_check_services () {
     # -- Check system software versions
     _banner_yellow "-- Checking Service Versions"
@@ -442,7 +491,9 @@ init_check_services () {
     	
 }
 
+# ==============================================
 # -- system_check - check usualy system stuff
+# ==============================================
 system_check () {
 	# -- start
 	_debug_function
@@ -472,7 +523,9 @@ system_check () {
     specs
 }	
 
+# ==============================================
 # -- init_motd - initial scripts to run on login
+# ==============================================
 init_motd () {
 	# -- Start motd
     _debug_function
