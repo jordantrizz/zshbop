@@ -14,8 +14,8 @@ _debug "Loading mypath=${0:a}"
 # -- Help header
 help_sub_header () {
 		echo "----------------------"
-                echo "-- $HCMD"
-                echo "----------------------"
+        echo "-- $HCMD"
+        echo "----------------------"
 }
 
 get_category_commands () {	

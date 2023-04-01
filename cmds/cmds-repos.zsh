@@ -51,6 +51,10 @@ repos () {
     # -- zsh-installs
     GIT_REPOS[zsh-installs]="zsh installs"
     GIT_REPOS_URL[zsh-installs]="https://github.com/jordantrizz/zsh-installs"
+
+    # -- zsh-sweep
+    GIT_REPOS[zsh-sweep]="zsh-sweep"
+    GIT_REPOS_URL[zsh-sweep]="https://github.com/psprint/zsh-sweep"
         
 	# repos install
     if [[ $1 == 'pull' ]] && [[ -n "$2" ]]; then
