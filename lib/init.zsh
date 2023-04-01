@@ -380,38 +380,19 @@ init_zshbop () {
 	else
     	_success "Running close to latest ZSH"
 	fi
-
-	# -- Set paths
-	init_path
-        
-	# -- Detect operating system
-	init_detectos
-
-	# -- Init package manager
-	init_pkg_manager
-	
-	# -- Include commands
-    init_cmds
-
-	# -- Common application configuration
-  	init-app-config
-
-	# -- Init OhMyZSH plugins
-  	init_omz_plugins
-  	init_p10k
-
-  	# -- Init custom zshbop
-  	zshbop_load_custom
+    init_path            # -- Set paths
+	init_detectos        # -- Detect operating system	
+	init_pkg_manager     # -- Init package manager
+    init_cmds            # -- Include commands
+    init-app-config      # -- Common application configuration
+  	init_omz_plugins     # -- Init OhMyZSH plugins
+  	init_p10k            # -- Init powerlevel10k
+  	zshbop_load_custom   # -- Init custom zshbop  	
+    init_os              # -- Init os defaults # TODO Needs to be refactored
+    init_zsh_sweep       # -- Init zsh-sweep if installed
         
   	# -- Init antigen
-	if [[ $funcstack[3] != "zshbop_reload" ]]; then
-	  init_plugins
-	else
-	  _loading_grey "Not loading Plugin Manager on Reload"
-	fi
-
-  	# -- Init os defaults @@ISSUE
-  	init_os
+    [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload"
 
 	# -- Skip when running rld
 	_debug "\$funcstack = $funcstack"
