@@ -80,8 +80,8 @@ repos () {
        	
 		if [[ $MARRAY_VALID == "0" ]]; then
 			_debug "Found repository - pulling via url ${GIT_REPOS_URL[$2]}"
-	        echo "-- Pulling repository $2 into $ZSHBOP_ROOT/repos/$REPODIR"
-	        REPO="$ZSHBOP_ROOT/repos/$REPODIR"
+	        echo "-- Pulling repository $2 into $REPOS_DIR/$REPODIR"
+	        REPO="$REPOS_DIR/$REPODIR"
 			if [[ ! -d "$REPO" ]]; then
 				if [[ -z $BRANCH ]]; then
 					echo "branch specified, so pulling using branch $BRANCH"
@@ -105,9 +105,9 @@ repos () {
     # -------------
 	elif [[ $1 == 'list' ]]; then
 		_loading "Listing repos pulled"
-		if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+		if [ "$(find "$REPOS_DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
             _debug "Found repositories"
-            for REPO in $ZSHBOP_ROOT/repos/*; do
+            for REPO in $REPOS_DIR/*; do
             	REPO_BRANCH=$(git -C $REPO rev-parse --abbrev-ref HEAD)
                 _debug "Found $REPO with $REPO_BRANCH"
                 if [[ -d $REPO ]]; then
@@ -125,9 +125,9 @@ repos () {
     # ---------------
 	elif [[ $1 == 'update' ]]; then
     	_loading "Updating repos "
-		if [ "$(find "$ZSHBOP_ROOT/repos" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+		if [ "$(find "$REPOS_DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
 			_debug "Found repositories"
-			for REPO in $ZSHBOP_ROOT/repos/*; do
+			for REPO in $REPOS_DIR/*; do
 		    	_debug "Found $REPO"
 	        	if [[ -d $REPO ]]; then
 	        		_loading2 "Updating repo $REPO"

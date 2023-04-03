@@ -154,12 +154,16 @@ init_omz_plugins () {
 # -- init_zsh_sweep
 # ==============================================
 function init_zsh_sweep () {
-    if [[ -d $REPOS/zsh-sweep ]]; then
-        exprot zs_set_path=1 # add to $PATH
-        source ${REPOS}/zsh-sweep.plugin.zsh'    
+    [[ "$ZSH_EVAL_CONTEXT" == "toplevel" ]] && DEBUG="1"
+
+    if [[ -d $REPOS_DIR/zsh-sweep ]]; then
+        _debug "$REPOS_DIR/zsh-sweep exists, loading"
+        export zs_set_path=1 # add to $PATH
+        source "${REPOS_DIR}/zsh-sweep/zsh-sweep.plugin.zsh" # Include script
     else
-        _debug "There is no $REPOS/zsh-sweep, run repos pull zsh-sweep"
+        _debug "There is no $REPOS_DIR/zsh-sweep, run repos pull zsh-sweep"
     fi
+    [[ "$ZSH_EVAL_CONTEXT" == "toplevel" ]] && DEBUG="0"
 }
 
 
@@ -170,7 +174,7 @@ init_p10k () {
 	_loading "Loading powerlevel10k configuration"
 	# shellcheck source=./.p10k.zsh
 	source $ZSH_ROOT/.p10k.zsh
-	export POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS=0 # Don't wait for Git status even for a millisecond, so that prompt always updates
+	export POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS="0" # Don't wait for Git status even for a millisecond, so that prompt always updates
 	export POWERLEVEL9K_DISK_USAGE_ONLY_WARNING="true"
 	export POWERLEVEL9K_DISK_USAGE_WARNING_LEVEL="90"
 }
