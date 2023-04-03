@@ -7,7 +7,6 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_files[gridpane_description]="Common GridPane Tools"
 help_files[gridpane]="Common GridPane Tools"
 
 # - Init help array

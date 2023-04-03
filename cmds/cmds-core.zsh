@@ -188,7 +188,6 @@ _debug " -- Loading \${(%):-%N}"
 typeset -gA help_$1
 
 # What help file is this?
-help_files[$1_description]="-- To install, run software <cmd>"
 help_files[$1]='Software related commands'
 
 TEMPLATE

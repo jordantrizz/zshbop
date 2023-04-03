@@ -10,7 +10,6 @@ _debug " -- Loading ${(%):-%N}"
 typeset -gA help_domain
 
 # What help file is this?
-help_files[domain_description]="Domain Name functions and commands."
 help_files[domain]="Domain Name functions and commands."
 
 # -- domaincheck

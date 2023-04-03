@@ -13,21 +13,20 @@ _debug "Loading mypath=${0:a}"
 
 # -- Help header
 help_sub_header () {
-		echo "----------------------"
-        echo "-- $HCMD"
-        echo "----------------------"
+	
+    loading "$HCMD"
 }
 
 get_category_commands () {	
 	_debug_function
 	
 	# If help all is used
-	_debug "-- Finding category: $HCMD"
+	_debug "Finding category: $HCMD"
     if [[ $HCMD == "all" ]]; then
-		output_all=" -- All Commands\n"
+		output_all=$(_loading "All Commands\n")
         for key in ${(kon)help_files}; do
             help_all_cat=(help_${key})
-            output_all+=" -- $key ------------------------------------------------------------\n"
+            output_all+=$(_loading2 "-- $key --------\n")
             for key in ${(kon)${(P)help_all_cat}}; do
                 output_all+=$(printf '%s\n' "  ${(r:25:)key} - ${${(P)help_all_cat}[$key]}\n")
             done
@@ -36,18 +35,32 @@ get_category_commands () {
 		echo $output_all | less
 	elif [[ -z ${(P)HELP_CAT} ]]; then
         _debug "\${(P)HELP_CAT}: ${(P)HELP_CAT}"
-        echo "No command category $HCMD, try running kb $HCMD"
+        _error "No command category $HCMD, try running kb $HCMD"
+        echo ""		
+	else
+		_loading "-- $HCMD -------- $help_files[${HCMD}] --------"	
+        echo ""
+		for key in ${(kon)${(P)HELP_CAT}}; do
+            printf '%s\n' "  ${(r:25:)key} - ${${(P)HELP_CAT}[$key]}"
+        done
+        echo ""
+    fi
+    
+    
+    if [[ $cmdsc_files[$HCMD] ]]; then
+        CMDSC_CMDS=(cmdsc_$HCMD)
+        echo ""
+        _loading2 "-- $HCMD - Custom - $cmdsc_files[$HCMD] --------"
+        echo ""
+        for key in ${(kon)${(P)CMDSC_CMDS}}; do
+            printf '%s\n' "  ${(r:25:)key} - ${${(P)CMDSC_CMDS}[$key]}"
+        done
+        echo ""
+    else    
+        _error "No custom command category $HCMD, try running kb $HCMD"
         echo ""
 		return
-	else
-		echo "-- $HCMD ---"
-		echo $help_files_description[${HCMD}]
-		echo "----------------------------------------------------------------------"
-		for key in ${(kon)${(P)HELP_CAT}}; do
-        		printf '%s\n' "  ${(r:25:)key} - ${${(P)HELP_CAT}[$key]}"
-        	done
-        	echo ""
-        fi
+    fi
 }
 
 # -- Help
@@ -72,30 +85,22 @@ help () {
 
 # -- Help introduction
 help_intro () {
-	echo "-----------------------------"
-	echo "-- Welcome to $ZSHBOP_NAME --"
-    echo "-----------------------------"
+	_loading " Welcome to $ZSHBOP_NAME"
     echo ""
-    echo "ZSHBop contains a number of built-in functions, scripts and binaries."
-    echo "This help command will list all that are available."
-	echo ""
+    echo "ZSHBop contains a number of built-in functions, scripts and binaries. This help command will list all that are available."
 	echo "You can request help on any of the following categories by typing help <category>"
 	echo ""
 
 	# -- Go through help_zshbop
-    echo "------------"
-    echo "-- zshbop --"
-    echo "------------"
+    _loading2 "    zshbop    "
     echo ""        
     for key in ${(kon)help_zshbop}; do
     	printf '%s\n' "  zshbop ${(r:25:)key} - ${help_zshbop[$key]}"
     done
 
 	# -- Go through help_core variables
-	echo ""
-	echo "----------"
-    echo "-- core --"
-    echo "----------"
+    echo ""
+    _loading2 "    Core    "
     echo ""
 	
     for key in ${(kon)help_core}; do
@@ -103,26 +108,24 @@ help_intro () {
     done
 
 	# -- Go through help_files variable
-	echo ""
-	echo "------------------"
-	echo "-- all commands --"
-    echo "------------------"
-	echo ""	
+    echo ""
+    _loading2 "    All Categories    "
+    echo ""
     for key in ${(kon)help_files}; do
 		printf '%s\n' "  ${(r:25:)key} - $help_files[$key]"
     done
 	
 	# -- Custom help files.
 	echo ""
-	echo "Checking for \$help_custom"
-	_debug "$help_custom"
-    if [[ -n $help_custom ]]; then
+	_loading "Checking for \$cmdsc_files"
+	_debug "$cmdsc_files"
+    if [[ -n $cmdsc_files ]]; then
 		_debug "Loading custom commands"
-	    echo "-----------------------"
-	    echo "-- Custom Commands --"
-	    echo "-----------------------"
-		for key value in ${(kv)help_custom}; do
-	    	printf '%s\n' "  help ${(r:25:)key} - $value"
+        echo ""
+        _loading2 "    Custom Command Categories    "
+        echo ""
+		for key value in ${(kv)cmdsc_files}; do
+	    	printf '%s\n' "  chelp ${(r:25:)key} - $value"
 	    done
 	else
 		_debug "No custom commands found in $HOME/.zshbop"
@@ -131,11 +134,8 @@ help_intro () {
 	# -- Examples
 	
 	echo ""
-	echo "---------------"
-        echo "-- Examples --"
-        echo "---------------"
-        echo "$> help mysql"
-        echo "$> help tools"
-        echo ""
-
+    _loading2 "    Examples    "
+    echo "$> help mysql"
+    echo "$> help tools"
+    echo ""
 }

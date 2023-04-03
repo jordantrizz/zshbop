@@ -7,8 +7,7 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_files[network_description]="Network tools and built-in scripts."
-help_files[network]='Network Tools'
+help_files[network]='Network tools and built-in scripts.'
 
 # - Init help array
 typeset -gA help_network
