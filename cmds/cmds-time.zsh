@@ -9,6 +9,9 @@ _debug " -- Loading ${(%):-%N}"
 # - Init help array
 typeset -gA help_time
 
+# What help file is this?
+help_files[time]='Time based commands'
+
 # -- tzc
 help_time[tzc]='Convert time'
 tzc () {

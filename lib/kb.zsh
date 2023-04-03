@@ -6,6 +6,23 @@
 alias kbc="kb -c"
 alias kbd="cd ${KB}"
 
+function _kb  {
+        
+    
+    compadd $(srv auto)
+}
+compdef _kb kb
+
+kb_usage () {
+    _banner_yellow "Current KB Articles"
+    \ls $ZSH_ROOT/kb
+
+    if [[ -d $ZBC/kb ]]; then				
+        _banner_yellow "Current Custom KB Articles"
+        \ls $ZBC/kb
+    fi   
+}
+
 # -- kb - A built in knowledge base.
 kb () {    
         zparseopts -D -E c=CAT
@@ -37,34 +54,30 @@ kb () {
         _debug "MD_READER: $MD_READER"
 
 		# -- Check if kb file exists
-		if [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
-				_banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
-				KB_COMBINED="\n"
-				KB_COMBINED+="---- $ZSHBOP_ROOT/kb/${KB}.md ----\n"
-				KB_COMBINED+="\n"
-				KB_COMBINED+=$(cat $ZSHBOP_ROOT/kb/${KB}.md)
-				KB_COMBINED+="\n"
-				KB_COMBINED+="---- $ZBC/kb/${KB}.md ----\n"
-				KB_COMBINED+="\n"
-				KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
-				_debug "$KB_COMBINED"
-				md-reader $KB_COMBINED
+        if [[ -z $KB ]]; then            
+            kb_usage
+             return 1
+		elif [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
+            _banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
+            KB_COMBINED="\n"
+            KB_COMBINED+="---- $ZSHBOP_ROOT/kb/${KB}.md ----\n"
+            KB_COMBINED+="\n"
+            KB_COMBINED+=$(cat $ZSHBOP_ROOT/kb/${KB}.md)
+            KB_COMBINED+="\n"
+            KB_COMBINED+="---- $ZBC/kb/${KB}.md ----\n"
+            KB_COMBINED+="\n"
+            KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
+            _debug "$KB_COMBINED"
+            md-reader $KB_COMBINED
         elif [[ -a $ZSHBOP_ROOT/kb/$1.md ]]; then
-				_banner_yellow "Found zshbop KB file $ZSH_ROOT/kb/$1.md, showing both via $MD_READER"
-                md-reader $ZSH_ROOT/kb/$1.md
+            _banner_yellow "Found zshbop KB file $ZSH_ROOT/kb/$1.md, showing both via $MD_READER"
+            md-reader $ZSH_ROOT/kb/$1.md
         elif [[ -a $ZBC/kb/$1.md ]]; then
-        		_banner_yellow "Found zshbop custom KB file $ZBC/kb/$1.md, showing both via $MD_READER"
-        		md-reader $ZBC/kb/$1.md
+            _banner_yellow "Found zshbop custom KB file $ZBC/kb/$1.md, showing both via $MD_READER"
+            md-reader $ZBC/kb/$1.md        
         else
-				_error "Couldn't find $KB in KB"
-				_banner_yellow "Current KB Articles"
-                \ls $ZSH_ROOT/kb
-
-				if [[ -d $ZBC/kb ]]; then				
-					_banner_yellow "Current Custom KB Articles"
-        	        \ls $ZBC/kb
-        	    fi
-                return 1
+            kb_usage
+             return 1
         fi
 
 		# -- alert to install mdv for better experience
