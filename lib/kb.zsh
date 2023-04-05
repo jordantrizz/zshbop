@@ -6,9 +6,7 @@
 alias kbc="kb -c"
 alias kbd="cd ${KB}"
 
-function _kb  {
-        
-    
+function _kb  {    
     compadd $(srv auto)
 }
 compdef _kb kb
