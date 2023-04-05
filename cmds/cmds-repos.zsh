@@ -62,6 +62,10 @@ repos () {
     GIT_REPOS[zsh-sweep]="zsh-sweep"
     GIT_REPOS_URL[zsh-sweep]="https://github.com/psprint/zsh-sweep"
 
+    # -- wp-umbrella-cli-bash
+    GIT_REPOS[wp-umbrella-cli-bash]="wp-umbrella-cli-bash"
+    GIT_REPOS_URL[wp-umbrella-cli-bash]="https://github.com/managingwp/wp-umbrella-cli-bash"
+
     # =====================================
     # -- Functions
     # =====================================
