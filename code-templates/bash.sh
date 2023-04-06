@@ -11,23 +11,60 @@ DEBUG="0"
 REQUIRED_APPS=("jq" "column")
 
 # -- Colors
-export NC='\e[0m' # No Color
-export CBLACK='\e[0;30m'
-export CGRAY='\e[1;30m'
-export CRED='\e[0;31m'
-export CLIGHT_RED='\e[1;31m'
-export CGREEN='\e[0;32m'
-export CLIGHT_GREEN='\e[1;32m'
-export CBROWN='\e[0;33m'
-export CYELLOW='\e[1;33m'
-export CBLUE='\e[0;34m'
-export CLIGHT_BLUE='\e[1;34m'
-export CPURPLE='\e[0;35m'
-export CLIGHT_PURPLE='\e[1;35m'
-export CCYAN='\e[0;36m'
-export CLIGHT_CYAN='\e[1;36m'
-export CLIGHT_GRAY='\e[0;37m'
-export CWHITE='\e[1;37m'
+NC='\e[0m' # No Color
+CBLACK='\e[0;30m'
+CGRAY='\e[1;30m'
+CRED='\e[0;31m'
+CLIGHT_RED='\e[1;31m'
+CGREEN='\e[0;32m'
+CLIGHT_GREEN='\e[1;32m'
+CBROWN='\e[0;33m'
+CYELLOW='\e[1;33m'
+CYELLOWBB='\e[43m\e[97m'
+CBLUE='\e[0;34m'
+CBLUEBG='\e[44m\e[97m'
+CLIGHT_BLUE='\e[1;34m'
+CPURPLE='\e[0;35m'
+CLIGHT_PURPLE='\e[1;35m'
+CCYAN='\e[0;36m'
+CLIGHT_CYAN='\e[1;36m'
+CLIGHT_GRAY='\e[0;37m'
+CDARK_GRAYBG='\e[100m\e[97m'
+CWHITE='\e[1;37m'
+
+# ==================================
+# -- Core Functions
+# ==================================
+
+# -- messages
+_error () { echo -e "${CRED}** ERROR ** - ${*} ${NC}"; } # _error
+_success () { echo -e "${CGREEN}** SUCCESS ** - ${*} ${NC}"; } # _success
+_running () { echo -e "${CBLUEBG}${*}${NC}"; } # _running
+_creating () { echo -e "${CDARK_GREYBG}${*}${NC}"; }
+_separator () { echo -e "${CYELLOWBG}****************${NC}"; }
+_debug () {
+    if [[ $DEBUG == "1" ]]; then
+        echo -e "${CCYAN}** DEBUG ${*}${NC}"
+    fi
+}
+
+# -- debug_jsons
+_debug_json () {
+    if [[ $DEBUG_JSON == "1" ]]; then
+        echo -e "${CCYAN}** Outputting JSON ${*}${NC}"
+        echo "${@}" | jq
+    fi
+}
+
+# -- usage
+usage () {
+	if [[ -z $1 ]]; then
+	    echo "$USAGE"
+	else
+		USAGE_TEXT="USAGE_${1}"
+		echo "${!USAGE_TEXT}"
+	fi
+}
 
 # ==================================
 # -- Usage
@@ -73,40 +110,6 @@ Objects:
 
 ${USAGE_FOOTER}
 "
-
-# ==================================
-# -- Core Functions
-# ==================================
-
-# -- messages
-_error () { echo -e "${CRED}** ERROR ** - ${*} ${NC}"; } # _error
-_success () { echo -e "${CGREEN}** SUCCESS ** - ${*} ${NC}"; } # _success
-_running () { echo -e "${BLUEBG}${*}${NC}"; } # _running
-_creating () { echo -e "${DARKGREYBG}${*}${NC}"; }
-_separator () { echo -e "${YELLOWBG}****************${NC}"; }
-_debug () {
-    if [[ $DEBUG == "1" ]]; then
-        echo -e "${CCYAN}** DEBUG ${*}${NC}"
-    fi
-}
-
-# -- debug_jsons
-_debug_json () {
-    if [[ $DEBUG_JSON == "1" ]]; then
-        echo -e "${CCYAN}** Outputting JSON ${*}${NC}"
-        echo "${@}" | jq
-    fi
-}
-
-# -- usage
-usage () {
-	if [[ -z $1 ]]; then
-	    echo "$USAGE"
-	else
-		USAGE_TEXT="USAGE_${1}"
-		echo "${!USAGE_TEXT}"
-	fi
-}
 
 # ==================================
 # -- Functions
