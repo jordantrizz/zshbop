@@ -11,7 +11,7 @@ function cron-list-users() {
     for user in /var/spool/cron/crontabs/*(N); do
 
         _loading "Crons for user ${user:t}: in /var/spool/cron/crontabs/${user:t}:"
-        cat $user | grep "$#.*"
+        cat $user | grep -v "#"
         echo "----------------------------------------------------"
     done
 }
