@@ -9,6 +9,7 @@ alias kbd="cd ${KB}"
 function _kb  {    
     compadd $(srv auto)
 }
+
 compdef _kb kb
 
 kb_usage () {

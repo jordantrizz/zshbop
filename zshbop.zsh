@@ -8,7 +8,8 @@
 # ------------
 
 # -- autoload
-autoload -Uz compinit 
+autoload -Uz compinit
+compinit
 autoload -Uz compdef
 
 # -- Help arrays
