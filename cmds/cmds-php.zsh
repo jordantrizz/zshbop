@@ -87,4 +87,5 @@ echo "TCP socket value: $tcpValue\n";
 // Close the TCP socket connection
 $tcpSocketRedis->close();
 }
+?>
 EOF
