@@ -439,33 +439,18 @@ init_check_services () {
     _banner_yellow "-- Checking Service Versions"
 
 	# - mysql	    
-	if (( $+commands[mysqld] )); then
-		_success "MySQL: $(mysqld --version)"
-	else
-		_error "MySQL Server not installed"
-	fi
+	if (( $+commands[mysqld] )) ?? _success "MySQL: $(mysqld --version)" || _error "MySQL Server not installed"
 	
 	# - nginx
-	if (( $+commands[nginx] )); then
-		_success "Nginx: $(nginx -v 2>&1 >/dev/null)"
-	else
-		_error "Nginx not installed"
-	fi
+	if (( $+commands[nginx] )) ?? _success "Nginx: $(nginx -v 2>&1 >/dev/null)" || _error "Nginx not installed"	
 	
 	# - litespeed
-	if (( $+commands[litespeed] )); then
-		_success "Litespeed: $(litespeed -v)"
-	else
-		_error "Litespeed not installed"
-	fi        	
-	
+	if (( $+commands[litespeed] )) ?? _success "Litespeed: $(litespeed -v)" || _error "Litespeed not installed"
+		
 	# - Redis
-	if (( $+commands[redis-server] )); then
-        _success "Redis: $(redis-server --version)"
-    else
-        _error "Redis not installed"
-    fi
-    
+	if (( $+commands[redis-server] )) ?? _success "Redis: $(redis-server --version)" || _error "Redis not installed"
+
+	# - Netdata    
     if [[ -f /opt/netdata/bin/netdata ]]; then
     	_success "Netdata: located at /opt/netdata/bin and config at /opt/netdata/etc/netdata"
     elif [[ -f /usr/sbin/netdata ]]; then
