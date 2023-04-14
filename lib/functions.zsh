@@ -70,6 +70,7 @@ zshbop_reload () {
 	echo ""
 	_warning "You may have to close your shell and restart it to see changes"
     echo ""
+    zshbop_report
 }
 
 # ---------------------
