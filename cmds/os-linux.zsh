@@ -106,3 +106,7 @@ system_check () {
     _loading2 "Quick Specs"
     specs
 }
+
+# -- auto-ls
+export AUTO_LS_COMMANDS=('color' git-status)
+auto-ls-color () { ls -al --color=tty;echo "\n"; }

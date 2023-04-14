@@ -26,11 +26,11 @@ else
     alias ls="exa -al"
 fi
 
-# -- autols
-auto-ls-ls () {
-	\ls -a
-	echo ""
-}
+
+# - auto-ls
+# Be sure to call it auto-ls-<name of your function>
+export AUTO_LS_COMMANDS=('color' git-status)
+auto-ls-color () { \ls -aG;echo "\n"; }
 
 # -- check_diskspace
 check_diskspace_mac () {
