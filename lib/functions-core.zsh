@@ -13,11 +13,15 @@ help_files[corefunc]='Core functions for scripts'
 # -- Internal Functions
 # ---------------------
 
+# -- Logging errors and Warnings
+ZSHBOP_ERRORS=()
+ZSHBOP_WARNINGS=()
+
 # -- Different colored messages
 _echo () { echo "$@" }
-_error () { echo  "$fg[red] * $@ ${RSC}" }
-_error2 () { echo  "$bg[red] * $@ ${RSC}" }
-_warning () { echo "$fg[yellow] * $@ ${RSC}" }
+_error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
+_error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
+_warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@"); }
 _success () { echo "$fg[green] * $@ ${RSC}" }
 _noticebg () { echo "$bg[magenta]$fg[white] * $@ ${RSC}" }
 _noticefg () { echo "$fg[magenta] * $@ ${RSC}" }

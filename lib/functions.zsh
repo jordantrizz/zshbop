@@ -440,6 +440,25 @@ zshbop_help () {
 }
 
 # --------------
+# -- zshbop_report
+# --------------
+help_zshbop[report]='Print out errors and warnings'
+zshbop_report () {
+        _debug_function
+        _loading "-- zshbop report ------------"
+        echo ""
+        _loading2 "-- errors ------------"
+        for key in ${(kon)ZSHBOP_ERRORS}; do
+            echo "- $key"
+        done
+        echo ""
+        _loading2 "-- warnings ------------"
+        for key in ${(kon)ZSHBOP_WARNINGS}; do
+            echo "- $key"
+        done
+}
+
+# --------------
 # -- Always Last
 # --------------
 
