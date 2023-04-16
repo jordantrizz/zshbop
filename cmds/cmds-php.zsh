@@ -50,7 +50,7 @@ help_php[php-install]='One liner for install PHP'
 
 # -- 
 help_php[php-redis-test]='Creates a file called redis.php that tests redis via port and socket.'
-function php-redis-test () {}
+function php-redis-test () {
 
 cat <<'EOF' > redis.php
 <?php
@@ -89,3 +89,4 @@ $tcpSocketRedis->close();
 }
 ?>
 EOF
+}
