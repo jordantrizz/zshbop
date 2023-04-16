@@ -1,9 +1,8 @@
+#!/usr/bin/env zsh
 # -----------------------------------------------------------------------------------
-# -- functions.zsh
-# -- This file contains all the required zshbop functions for the main .zshrc script.
+# -- functions.zsh -- This file contains all the required zshbop functions for the main .zshrc script.
 # -----------------------------------------------------------------------------------
-
-#######################################
+_debug "Loading mypath=${0:a}"
 
 # -----------
 # -- ZSHBOP Aliases

@@ -1,14 +1,11 @@
-# ----------------------------------------------
-# -- help function and it's associated functions
-# ----------------------------------------------
-#
-# The following script handles all of the help information for fucntions and scripts added throughout.
-#
-# - To add command help, which is a file within this repostiryo and not a function.
-#
-# 	help_mysql[maxmysqlmem]='Calculate maximum MySQL memory'
-#
-
+#!/usr/bin/env zsh
+# -----------------------------------------------------------------------------------
+# -- help.zsh - Help function and it's associated functions
+# -----------------------------------------------------------------------------------
+# -- The following script handles all of the help information for fucntions and scripts added throughout.a
+# -- To add command help, which is a file within this repostiryo and not a function.
+# -- help_mysql[maxmysqlmem]='Calculate maximum MySQL memory'
+# -----------------------------------------------------------------------------------
 _debug "Loading mypath=${0:a}"
 
 # -- Help header

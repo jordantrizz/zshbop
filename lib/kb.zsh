@@ -1,16 +1,12 @@
-# -----------
-# kb function
-# -----------
+#!/usr/bin/env zsh
+# -----------------------------------------------------------------------------------
+# -- kb.zsh -- Knowledge Base (KB) functions
+# -----------------------------------------------------------------------------------
+_debug "Loading mypath=${0:a}"
 
 # -- kbc
 alias kbc="kb -c"
 alias kbd="cd ${KB}"
-
-function _kb  {    
-    compadd $(kb auto)
-}
-
-compdef _kb kb
 
 kb_usage () {
     _banner_yellow "Current KB Articles"
@@ -126,3 +122,10 @@ md-reader-text () {
         _notice "mdv not avaialble failing back to cat, trying installing mdv by typing"
     fi
 }
+
+
+# -- auto completion - needs to be at the end of this file.
+function _kb  {    
+    compadd $(kb auto)
+}
+compdef _kb kb

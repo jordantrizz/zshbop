@@ -1,8 +1,8 @@
-# -----------------------------
-# -- functions-core.zsh
-# --
-# -- Core functions for scripts
-# -----------------------------
+#!/usr/bin/env zsh
+# -----------------------------------------------------------------------------------
+# -- functions-core.zsh -- Core functions for scripts
+# -----------------------------------------------------------------------------------
+_debug "Loading mypath=${0:a}"
 
 # -- Help category
 typeset -gA help_files

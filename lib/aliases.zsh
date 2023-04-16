@@ -1,9 +1,7 @@
 #!/usr/bin/env zsh
-# ------------------------
-# -- zshbop aliases file
-# -------------------------
-# This file contains all the aliases for zshbop
-
+# -----------------------------------------------------------------------------------
+# -- aliases.zsh -- This file contains all the aliases for zshbop
+# -----------------------------------------------------------------------------------
 _debug "Loading mypath=${0:a}"
 
 # -----------------

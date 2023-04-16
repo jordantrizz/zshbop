@@ -8,9 +8,8 @@
 # ------------
 
 # -- autoload
-autoload -Uz compinit
+autoload -Uz compinit compdef
 compinit
-autoload -Uz compdef
 
 # -- Help arrays
 typeset -gA help_files

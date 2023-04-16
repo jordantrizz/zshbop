@@ -1,11 +1,8 @@
 #!/usr/bin/env zsh
-# shellcheck disable=SC1090
-# -------------------
-# -- zshbop functions
-# -------------------
-# This file contains all the functions for initializing zshbop
-
-_debug "Loading mypath=${0:a}"
+# -----------------------------------------------------------------------------------
+# -- zshbop functions -- This file contains all the functions for initializing zshbop
+# -----------------------------------------------------------------------------------
+#_debug "Loading mypath=${0:a}"
 
 # ==============================================
 # -- init_path - setup all the required paths.
