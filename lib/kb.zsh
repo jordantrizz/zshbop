@@ -37,68 +37,63 @@ kb_set_md_reader () {
 
 # -- kb - A built in knowledge base.
 kb () {    
-        # -- args
-        zparseopts -D -E c=CAT
-        if [[ -n "$CAT" ]]; then
-            echo "Using cat on $1"
+    # -- args
+    zparseopts -D -E c=CAT
+    if [[ -n "$CAT" ]]; then
+        echo "Using cat on $1"
+    fi
+    KB=$1
+
+    # -- debug function
+    _debug_function
+
+    # -- set md reader
+    kb_set_md_reader
+
+    # -- Auto complete KB articles.
+    if [[ $KB == "auto" ]]; then
+        _debug "Running autocomplete"
+        AUTO_KB=()
+        if [[ -d $ZSHBOP_ROOT/kb ]]; then
+            ZBR_KBS=$(\ls -1 $ZSHBOP_ROOT/kb)
+            echo $ZBR_KBS
         fi
-        KB=$1
-
-        # -- debug function
-        _debug_function
-
-        # -- set md reader
-        kb_set_md_reader
-
-        # -- Auto complete KB articles.
-		if [[ $KB == "auto" ]]; then
-            _debug "Running autocomplete"
-            AUTO_KB=()
-            if [[ -d $ZSHBOP_ROOT/kb ]]; then
-                ZBR_KBS=$(\ls -1 $ZSHBOP_ROOT/kb)
-                echo $ZBR_KBS
-            fi
-            if [[ -d $ZBC/kb ]]; then
-                ZBC_KBS=$(\ls -1 $ZBC/kb)
-                echo $ZBC_KBS
-            fi
-        # -- List KB articles.
-        elif [[ $KB == "list" ]]; then
-            kb_usage
-            return 0
-        # -- Check if kb file exists
-        elif [[ -z $KB ]]; then
-            kb_usage
-             return 1
-		elif [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
-            _banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
-            KB_COMBINED="\n"
-            KB_COMBINED+="---- $ZSHBOP_ROOT/kb/${KB}.md ----\n"
-            KB_COMBINED+="\n"
-            KB_COMBINED+=$(cat $ZSHBOP_ROOT/kb/${KB}.md)
-            KB_COMBINED+="\n"
-            KB_COMBINED+="---- $ZBC/kb/${KB}.md ----\n"
-            KB_COMBINED+="\n"
-            KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
-            _debug "$KB_COMBINED"
-            md-reader-text $KB_COMBINED
-        elif [[ -a $ZSHBOP_ROOT/kb/$1.md ]]; then
-            _banner_yellow "Found zshbop KB file $ZSH_ROOT/kb/$1.md, showing via $MD_READER"
-            _debug "Running $MD_READER $ZSH_ROOT/kb/$1.md"
-            md-reader $ZSH_ROOT/kb/$1.md
-        elif [[ -a $ZBC/kb/$1.md ]]; then
-            _banner_yellow "Found zshbop custom KB file $ZBC/kb/$1.md, both via $MD_READER"
-            _debug "Running $MD_READER $ZBC/kb/$1.md"
-            md-reader $ZBC/kb/$1.md        
-        else
-            kb_usage
-             return 1
+        if [[ -d $ZBC/kb ]]; then
+            ZBC_KBS=$(\ls -1 $ZBC/kb)
+            echo $ZBC_KBS
         fi
-
-		# -- alert to install mdv for better experience
-        if [[ $MD_READER == cat ]]; then
-            _notice "mdv not avaialble failing back to cat, trying installing mdv by typing"
-        fi
+    # -- List KB articles.
+    elif [[ $KB == "list" ]]; then
+        kb_usage
+        return 0
+    # -- Check if kb file exists
+    elif [[ -z $KB ]]; then
+        kb_usage
+            return 1
+    elif [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
+        _banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
+        KB_COMBINED="\n"
+        KB_COMBINED+="---- $ZSHBOP_ROOT/kb/${KB}.md ----\n"
+        KB_COMBINED+="\n"
+        KB_COMBINED+=$(cat $ZSHBOP_ROOT/kb/${KB}.md)
+        KB_COMBINED+="\n"
+        KB_COMBINED+="---- $ZBC/kb/${KB}.md ----\n"
+        KB_COMBINED+="\n"
+        KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
+        _debug "$KB_COMBINED"
+        md-reader-text $KB_COMBINED
+    elif [[ -a $ZSHBOP_ROOT/kb/$1.md ]]; then
+        _banner_yellow "Found zshbop KB file $ZSH_ROOT/kb/$1.md, showing via $MD_READER"
+        _debug "Running $MD_READER $ZSH_ROOT/kb/$1.md"
+        md-reader $ZSH_ROOT/kb/$1.md
+    elif [[ -a $ZBC/kb/$1.md ]]; then
+        _banner_yellow "Found zshbop custom KB file $ZBC/kb/$1.md, both via $MD_READER"
+        _debug "Running $MD_READER $ZBC/kb/$1.md"
+        md-reader $ZBC/kb/$1.md        
+    else
+        kb_usage
+            return 1
+    fi
 }
 
 md-reader () {
@@ -124,5 +119,10 @@ md-reader-text () {
 		echo $MD_TEXT | eval $MD_READER | less
 	else
 		echo $MD_TEST | less
-	fi    
+	fi
+
+    # -- alert to install mdv for better experience
+    if [[ $MD_READER == cat ]]; then
+        _notice "mdv not avaialble failing back to cat, trying installing mdv by typing"
+    fi
 }

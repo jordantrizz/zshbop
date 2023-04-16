@@ -376,14 +376,8 @@ init_zshbop () {
 	_loading "Starting init"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
-	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
-	_loading "Running ZSH $ZSH_VERSION"
-	autoload is-at-least
-	if ! is-at-least 5.7 $ZSH_VERSION; then
-		_warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
-	else
-    	_success "Running close to latest ZSH"
-	fi
+    # -- Init zshbop
+    init_checkzsh        # -- Check zsh
     init_path            # -- Set paths
 	init_detectos        # -- Detect operating system	
 	init_pkg_manager     # -- Init package manager
@@ -541,4 +535,17 @@ init_motd () {
 	
     # -- last echo to keep motd clean
     echo ""
+}
+
+# -- check zsh version
+function init_checkzsh () {
+	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
+	_loading "Running ZSH $ZSH_VERSION"
+    _loading "Latest version is 5.9 as per https://zsh.sourceforge.io/News/"
+	autoload is-at-least
+	if ! is-at-least 5.7 $ZSH_VERSION; then
+		_warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
+	else
+    	_success "Running close to latest ZSH"
+	fi
 }

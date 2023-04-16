@@ -59,3 +59,5 @@ alias sshc="ssh-connect"
 function sshr { ssh root@$1 }
 alias ssh-keygen="ssh-keygen -t ed25519"
 
+# -- zsh
+alias checkzsh="init_checkzsh"
