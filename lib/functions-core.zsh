@@ -52,42 +52,6 @@ function colors-print () {
   done
 }
 
-# ------------
-# -- Debugging
-# ------------
-ZSH_DEBUG="0"
-
-# -- zshbop debugging
-if [ -f $ZSHBOP_ROOT/.debug ]; then
-        export ZSH_DEBUG=1
-elif [ ! -f $ZSHBOP_ROOT/.debug ]; then
-        export ZSH_DEBUG=0
-fi
-
-# -- _debug
-_debug () {
-    if [[ $ZSH_DEBUG == 1 ]]; then
-        echo "$fg[cyan]** DEBUG: $@${RSC}";
-    fi
-}
-
-# -- _debug
-_debugf () {
-    if [[ $DEBUGF == 1 ]]; then
-        echo "$fg[cyan]** DEBUG: $@${RSC}";
-    fi
-}
-
-# -- _debug_all
-_debug_all () {
-        _debug "--------------------------"
-        _debug "arguments - $@"
-        _debug "funcstack - $funcstack"
-        _debug "ZSH_ARGZERO - $ZSH_ARGZERO"
-        _debug "SCRIPT_DIR - $SCRIPT_DIR"
-        _debug "--------------------------"
-}
-
 # ---------------------------------------------------------------
 # -- _require_pkg ($package)
 # --

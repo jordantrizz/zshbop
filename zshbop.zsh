@@ -79,6 +79,23 @@ EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 
 ###########################################################
 
+# ------------
+# -- Debugging
+# ------------
+# \033[36mThis text is cyan!\033[0m
+ZSH_DEBUG="0"
+[[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
+_debug () { [[ $ZSH_DEBUG == 1 ]] && echo "\033[36m** DEBUG: $@\033[0m"; } # -- debug for core
+_debugf () { [[ $DEBUGF == 1 ]] && echo "\033[36m** DEBUG: $@\033[0m"; } # -- debugf for debugging third party scripts
+
+# -- _debug_all
+_debug_all () {
+        _debug "--------------------------"
+        _debug "arguments - $@ | funcstack - $funcstack"
+        _debug "ZSH_ARGZERO - $ZSH_ARGZERO | SCRIPT_DIR - $SCRIPT_DIR"
+        _debug "--------------------------"
+}
+
 # ---------------
 # -- Source files
 # ---------------
