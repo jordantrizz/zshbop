@@ -88,6 +88,64 @@ ps2 () {
     fi
 }
 
+# -- ps-cpu
+help_linux[ps-cpu]='Show top 5 CPU applications'
+ps-cpu () {
+    ps aux --sort -pcpu | head -5
+}
+
+# -- ps-mem2
+help_linux[ps-mem2]='Show memory as human readable and sort'
+function ps-mem2() {
+    local sortbyfield="rss"
+    local fsep="-o zzz:::zzz%% -o"
+    local ps_cmd="\ps ax o user:16 $fsep pid $fsep pcpu $fsep pmem $fsep vsz $fsep rss $fsep tty $fsep stat $fsep lstart $fsep time:16 $fsep cmd --sort -$sortbyfield"
+    local awk_cmd="awk 'function setprefix(num){{n_suffix=1; while(num > 1000 && n_suffix < suffixes_len) {num /= 1024; n_suffix++;}; num=int(100*num)/100suffixes[n_suffix]}; return num} BEGIN{suffixes_len=split(\"kB MB GB TB PB EB ZB\",suffixes);FS=\"zzz:::zzz%\";} NR>1 {\$5=setprefix(\$5);\$6=setprefix(\$6); }{ printf \"%-16s %6s %-5s %-5s %9s %9s %-8s %-8s %-25s %-18s %s\n\", \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11;}'"
+    local cut_cmd="cut -c -250"
+    eval "$ps_cmd | $awk_cmd | $cut_cmd"
+}
+
+# -- ps-mem
+help_linux[ps-mem]="List processes with human readable memory"
+ps-mem () {
+	# PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
+	PS_OUTPUT=$(ps -afu)
+	PS_AWK=$(echo $PS_OUTPUT | awk 'BEGIN{ORS=""} NR>1 {$5=int($5/1024)"M"; $6=int($6/1024)"M"; print $1"\t\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t";out="";for(i=11;i<=NF;i++){out=out" "$i};print out;print "\n"}')
+	#PS_AWK=$(echo $PS_OUTPUT | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
+	#PS_HEADER=$(echo "$PS_OUTPUT" | head -1)
+	PS_HEAD="USER\t\tPID\t%CPU\t%MEM\tVSZ\tRSS\tTTY\tSTAT\tSTART\tTIME\tCOMMAND"
+	PS_SEPARATOR="-----------------------------------------------------------------------------------------------"
+	PS_HEADER="$PS_SEPARATOR\n$PS_HEAD\n$PS_SEPARATOR"
+	# - add header
+	i=0
+	#PS_FINAL="$PS_AWK"
+	PS_AWK2=(${(@f)PS_AWK})
+	#PS_FINAL=$PS_AWK2
+	#PS_AWK2=(${(s:\n:)PS_AWK})
+	#PS_AWK2=$(echo $PS_AWK | tr '\n' '\n')
+	#read -A PS_AWK2 <<< "$PS_AWK"
+	unset PS_FINAL
+	for LINE in ${PS_AWK2[@]}; do
+		PS_FINAL+="$LINE\n"
+		if [[ $i == "15" ]]; then
+			PS_FINAL+="$PS_HEADER\n"
+			i=0
+		fi
+		i=$((i+1))
+	done;
+
+	# - print results
+	if [[ -n $1 ]]; then
+		_notice "Grep'ing for $1"
+		echo "$PS_HEADER"
+		echo "$PS_FINAL" | \grep -a ${1}
+	else
+		echo "$PS_HEADER"
+		echo "$PS_FINAL"
+	fi
+}
+
+
 # -- fork
 help_linux[fork]='Fork command into background'
 fork () { 
@@ -118,11 +176,6 @@ sysrld () {
     fi
 }
 
-# -- ps-cpu
-help_linux[ps-cpu]='Show top 5 CPU applications'
-ps-cpu () {
-    ps aux --sort -pcpu | head -5
-}
 
 # -- usedspace
 help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
@@ -187,45 +240,7 @@ check_diskspace2 () {
 
 }
 
-# -- ps-mem
-help_linux[ps-mem]="List processes with human readable memory"
-ps-mem () {
-	# PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
-	PS_OUTPUT=$(ps -afu)
-	PS_AWK=$(echo $PS_OUTPUT | awk 'BEGIN{ORS=""} NR>1 {$5=int($5/1024)"M"; $6=int($6/1024)"M"; print $1"\t\t"$2"\t"$3"\t"$4"\t"$5"\t"$6"\t"$7"\t"$8"\t"$9"\t"$10"\t";out="";for(i=11;i<=NF;i++){out=out" "$i};print out;print "\n"}')
-	#PS_AWK=$(echo $PS_OUTPUT | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
-	#PS_HEADER=$(echo "$PS_OUTPUT" | head -1)
-	PS_HEAD="USER\t\tPID\t%CPU\t%MEM\tVSZ\tRSS\tTTY\tSTAT\tSTART\tTIME\tCOMMAND"
-	PS_SEPARATOR="-----------------------------------------------------------------------------------------------"
-	PS_HEADER="$PS_SEPARATOR\n$PS_HEAD\n$PS_SEPARATOR"
-	# - add header
-	i=0
-	#PS_FINAL="$PS_AWK"
-	PS_AWK2=(${(@f)PS_AWK})
-	#PS_FINAL=$PS_AWK2
-	#PS_AWK2=(${(s:\n:)PS_AWK})
-	#PS_AWK2=$(echo $PS_AWK | tr '\n' '\n')
-	#read -A PS_AWK2 <<< "$PS_AWK"
-	unset PS_FINAL
-	for LINE in ${PS_AWK2[@]}; do
-		PS_FINAL+="$LINE\n"
-		if [[ $i == "15" ]]; then
-			PS_FINAL+="$PS_HEADER\n"
-			i=0
-		fi
-		i=$((i+1))
-	done;
 
-	# - print results
-	if [[ -n $1 ]]; then
-		_notice "Grep'ing for $1"
-		echo "$PS_HEADER"
-		echo "$PS_FINAL" | \grep -a ${1}
-	else
-		echo "$PS_HEADER"
-		echo "$PS_FINAL"
-	fi
-}
 
 # -- speed-convert
 help_linux[speed-convert]="Convert data speeds"
