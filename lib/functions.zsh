@@ -200,14 +200,16 @@ zshbop_update () {
     # -- Update $ZSHBOP_UPDATE_GIT git repositories from custom config.
     _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
     if [[ $ZSHBOP_UPDATE_GIT ]]; then
+        _debug "Found \$ZSHBOP_UPDATE_GIT which continas $ZSH_UPDATE_GIT"
         for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
+            _debug "Checking $GIT"
             [[ -d "$HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             [[ -d "$GIT_HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             if [[ -d ${ZUG} ]]; then 
                 _loading2 "Updating ${ZUG}"
                 git --git-dir=${ZUG}/.git --work-tree=${ZUG} pull
             else
-                _error "Couldn't find ${ZUG}"
+                _error "Couldn't find ${GIT}"
             fi
         done
     fi
