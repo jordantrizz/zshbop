@@ -205,6 +205,7 @@ zshbop_update () {
             _debug "Checking $GIT"
             [[ -d "$HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             [[ -d "$GIT_HOME/$GIT" ]] && ZUG="$HOME/$GIT"
+            [[ -d $GIT ]] && ZUG="$GIT"
             if [[ -d ${ZUG} ]]; then 
                 _loading2 "Updating ${ZUG}"
                 git --git-dir=${ZUG}/.git --work-tree=${ZUG} pull
