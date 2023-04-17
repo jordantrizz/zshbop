@@ -51,14 +51,8 @@ kb () {
     if [[ $KB == "auto" ]]; then
         _debug "Running autocomplete"
         AUTO_KB=()
-        if [[ -d $ZSHBOP_ROOT/kb ]]; then
-            ZBR_KBS=$(\ls -1 $ZSHBOP_ROOT/kb)
-            echo $ZBR_KBS
-        fi
-        if [[ -d $ZBC/kb ]]; then
-            ZBC_KBS=$(\ls -1 $ZBC/kb)
-            echo $ZBC_KBS
-        fi
+        if [[ -d $ZSHBOP_ROOT/kb ]] && { ZBR_KBS=$(\ls -1 $ZSHBOP_ROOT/kb); echo $ZBR_KBS | sed s/.md//g; }        
+        if [[ -d $ZBC/kb ]] && { ZBC_KBS=$(\ls -1 $ZBC/kb);  echo $ZBC_KBS | sed s/.md//g; }
     # -- List KB articles.
     elif [[ $KB == "list" ]]; then
         kb_usage
