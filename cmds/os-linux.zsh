@@ -93,4 +93,4 @@ check_diskspace_linux () {
 
 # -- auto-ls
 export AUTO_LS_COMMANDS=('color' git-status)
-auto-ls-color () { ls -al --color=tty;echo "\n"; }
+auto-ls-color () { ls -al --color=auto;echo "\n"; }
