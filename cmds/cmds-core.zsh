@@ -275,8 +275,9 @@ os-binary () {
 		_debug "$OS_BINARY not installed"
 		return 1
 	else
-	    _loading2 "Using created alias ${BINARY} ${OS_BINARY}"
+	    _debug "Using created alias ${BINARY} ${OS_BINARY}"
 	    alias ${BINARY}="${OS_BINARY}"
+        eval "export ${(U)BINARY}_CMD=$OS_BINARY"
 	    return 0
 	fi
 }

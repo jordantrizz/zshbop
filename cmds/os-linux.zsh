@@ -9,9 +9,9 @@ if [[ $? == "0" ]]; then
 	LC_CHECK="$?"
     _debug "exa run - out: $NULL \$?:$LC_CHECK"
 	if [[ $LC_CHECK -ge "1" ]]; then
-		_loading "exa failed, using default ls alias"
+		_warning "exa failed, using default ls alias"
 	else
-		_loading2 "Using exa"
+		_debug "Using exa"
 		alias ls="${EXA_LINUX} ${DEFAULT_EXA}"
 		alias exa="${EXA_LINUX}"
 	fi		
@@ -36,17 +36,32 @@ interfaces_linux () {
 	# Loop through each interface
 	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
 	for interface in $interfaces; do
-	    # Get IP address
-	    ip=$(ip -o addr show $interface | awk '{print $4}')
-	
+        _debug "Processing interface: $interface"
+        if [[ $interface == *NONE* ]] && { interface=$(echo $interface | sed 's/@NONE//g'); _debug "Found @NONE in \$interface, removing @NONE"; }        
+                
 	    # Get MAC address
-	    mac=$(ip -o link show $interface | awk '{print $6}')
+	    mac=$(ip -o link show $interface | awk '{print $17}')
 
 	    # Get link speed
 	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
+        [[ -z $speed ]] && speed="N/A"
 
-	    # Print interface information
-	    OUTPUT+="\n$interface $ip $mac $speed"
+	    # Get IP address
+        ip=$(ip -o addr show $interface | awk '{print $3","$4}')
+        if [[ "${ip%%\n*}" != "${ip}" ]]; then
+            _debug " -- Found multiple IP addresses for $interface"
+            while read -r ip; do
+                _debug "Interface: $interface IP: $ip MAC: $mac Speed: $speed"
+                OUTPUT+="\n$interface $ip $mac $speed"
+            done <<< "${ip}"
+        elif [[ -z $ip ]]; then
+            _debug " -- No IP address found for $interface"
+            OUTPUT+="\n$interface N/A $mac $speed"
+        else
+            # Print interface information
+            _debug "Interface: $interface IP: $ip MAC: $mac Speed: $speed"
+	        OUTPUT+="\n$interface $ip $mac $speed"
+        fi
 	done
 	echo -e "$OUTPUT" | column -t
 }

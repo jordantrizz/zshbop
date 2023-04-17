@@ -16,14 +16,15 @@ DEFAULT_EXA="${EXA_CMD} --long --all --group"
 # -- sysfetch
 sysfetch () {
     DEFAULT_SYSFETCH="neofetch"
-    os-binary fastfetch
+    export FASTFETCH_CONFIG="--structure Title:Separator:OS:Host:Kernel:Uptime:Packages:Shell:Terminal:TerminalFont:CPU:GPU:Memory:Disk:Locale:Break --logo none"
     _debug "Checking if fastfetch is installed"
+    os-binary fastfetch    
     if [[ $? == "1" ]]; then
         _debug "fastfetch not found, using ${DEFAULT_SYSFETCH}"
         eval ${DEFAULT_SYSFETCH}
     else
-        _debug "fastfetch succcess using for sysfetch"
-        eval fastfetch
+        _debug "fastfetch succcess using for sysfetch and ${FASTFETCH_CONFIG}"
+        eval "${FASTFETCH_CMD} ${FASTFETCH_CONFIG}"
     fi
 }
 
