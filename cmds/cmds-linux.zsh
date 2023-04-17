@@ -138,6 +138,7 @@ check_diskspace () {
 
 # -- check_blockdevices
 check_blockdevices () {
+    if [[ $MACHINE_OS == "linux" ]]; then
         OUTPUT=""
         ALERT="98"
         DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
@@ -151,6 +152,9 @@ check_blockdevices () {
                 OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
         done
         echo -e "$OUTPUT" | column -t
+    else
+        _error "check_blockdevices not supported on $MACHINE_OS"
+    fi
 }
 
 # -- check_diskspace
@@ -270,4 +274,20 @@ datetz () {
 	env TZ=":US/Central" date	
 	env TZ=":US/Eastern" date
 	env TZ="UTC" date
+}
+
+# -- swappiness
+help_linux[swappiness]="Display swappiness"
+swappiness () {
+    if [[ $MACHINE_OS == "linux" ]]; then
+    	if [[ -f /proc/sys/vm/swappiness ]]; then
+	    	_notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+    	else
+    		_error "Can't find swap"
+    	fi
+    elif [[ $MACHINE_OS == "mac" ]]; then
+    	show_swap_mac
+    else 
+    	_error "Not a linux machine"
+    fi
 }

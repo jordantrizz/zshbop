@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------------
 # -- functions.zsh -- This file contains all the required zshbop functions for the main .zshrc script.
 # -----------------------------------------------------------------------------------
-_debug "Loading mypath=${0:a}"
+_debug_load
 
 # -----------
 # -- ZSHBOP Aliases
@@ -15,6 +15,8 @@ alias init="init_zshbop"
 alias _debug_function="_debug_all"
 alias zbr="cd $ZBR"
 alias motd="init_motd"
+alias report="zshbop_report"
+alias omz-plugins='escho "OMZ Plugins $OMZ_PLUGINS"'
 
 ##########################################
 # -------------------

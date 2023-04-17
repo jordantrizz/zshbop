@@ -76,37 +76,6 @@ check_diskspace_linux () {
     done
 }
 
-# -- system_check - check usualy system stuff
-system_check () {
-    # -- start
-    _debug_function
-    _banner_yellow "System check on $MACHINE_OS"
-
-    # -- network interfaces
-    _loading "Network interfaces"
-    interfaces
-
-    # -- check swappiness
-    _loading2 "Checking swappiness"
-    if [[ -f /proc/sys/vm/swappiness ]]; then
-        _notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
-    else
-        _error "Can't find swap"
-    fi
-
-    # -- check disk space
-    _loading2 "Checking disk space"
-    check_diskspace
-
-    # -- check block devices
-    _loading2 "Checking block devices"
-    check_blockdevices
-
-    # -- Quick CPU/Mem    
-    _loading2 "Quick Specs"
-    specs
-}
-
 # -- auto-ls
 export AUTO_LS_COMMANDS=('color' git-status)
 auto-ls-color () { ls -al --color=tty;echo "\n"; }

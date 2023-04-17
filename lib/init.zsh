@@ -2,7 +2,8 @@
 # -----------------------------------------------------------------------------------
 # -- zshbop functions -- This file contains all the functions for initializing zshbop
 # -----------------------------------------------------------------------------------
-#_debug "Loading mypath=${0:a}"
+_debug_load
+_debug_load
 
 # ==============================================
 # -- init_path - setup all the required paths.
@@ -103,9 +104,9 @@ init_detectos () {
 # -- Initialize oh-my-zsh plugins
 # ==============================================
 init_omz_plugins () {
-	_loading "Loading OMZ plugins"
+	_debug "Loading OMZ plugins"
 	# omz plugin config
-  export GIT_AUTO_FETCH_INTERVAL=1200
+    export GIT_AUTO_FETCH_INTERVAL=1200
 
 	# load plugins
 	plugins=(
@@ -137,8 +138,8 @@ init_omz_plugins () {
 		ufw
 		ubuntu
 	)
-	WW_PLUGINS=$(echo $plugins | fmt)
-	_loading_grey "OMZ - $WW_PLUGINS"
+	export OMZ_PLUGINS=$(echo $plugins | fmt)
+	_debug "OMZ plugins - $OMZ_PLUGINS"
 	
 	# omz plugin config
 	export GIT_AUTO_FETCH_INTERVAL=1200
@@ -458,30 +459,26 @@ init_check_services () {
 system_check () {
 	# -- start
 	_debug_function
-	_banner_yellow "System check"
+	_banner_yellow "System check on $MACHINE_OS"
 	
     # -- network interfaces
-    _loading "Network interfaces"
+    _loading2 "Network interfaces"
     interfaces
 
 	# -- check swappiness
 	_loading2 "Checking swappiness"
-	if [[ -f /proc/sys/vm/swappiness ]]; then
-		_notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
-	else
-		_error "Can't find swap"
-	fi
+    swappiness
 	
 	# -- check disk space
 	_loading2 "Checking disk space on $MACHINE_OS"
 	check_diskspace
 
 	# -- check block devices
-	_loading2 "Checking block devices"
+    _loading2 "Checking block devices"
 	check_blockdevices
 
     # -- Quick CPU/Mem
-    specs
+    check_specs
 }	
 
 # ==============================================
@@ -510,11 +507,7 @@ init_motd () {
     # -- Show screen sessions
     _loading "Screen Sessions"
     _cexists screen
-    if [[ $? == "0" ]]; then
-    	_success "$(screen -list)"
-    else
-    	_error "** Screen not installed"
-    fi
+    [[ $? == "0" ]] && _success "$(screen -list)" || _error "Screen not installed"
 
     # -- Running system checklist
 	init_check_software

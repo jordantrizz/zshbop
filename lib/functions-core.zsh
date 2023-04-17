@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------------
 # -- functions-core.zsh -- Core functions for scripts
 # -----------------------------------------------------------------------------------
-_debug "Loading mypath=${0:a}"
+_debug_load
 
 # -- Help category
 typeset -gA help_files

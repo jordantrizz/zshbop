@@ -72,7 +72,11 @@ function check-cpu-mhz() {
 
 help_system[specs]='Check system specs'
 function specs () {
-    echo " - Sockets: $(lscpu | awk '/^Socket/{print $2}') Cores: $(lscpu | awk '/^Core\(s\) per socket/{print $4}')  Threads: $(lscpu | awk '/^CPU\(s\)/{print $2}')"
-    echo " - System Memory $(free -g | awk '/^Mem:/{print $2}')GB"
-    echo "$(check-cpu-mhz)"
+    if [[ $MACHINE_OS == "linux" ]]; then
+        echo " - Sockets: $(lscpu | awk '/^Socket/{print $2}') Cores: $(lscpu | awk '/^Core\(s\) per socket/{print $4}')  Threads: $(lscpu | awk '/^CPU\(s\)/{print $2}')"
+        echo " - System Memory $(free -g | awk '/^Mem:/{print $2}')GB"
+        echo "$(check-cpu-mhz)"
+    else
+        _error "Not implemented for $MACHINE_OS"
+    fi
 }

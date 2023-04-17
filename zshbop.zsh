@@ -87,7 +87,7 @@ ZSH_DEBUG="0"
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
 _debug () { [[ $ZSH_DEBUG == 1 ]] && echo "\033[36m** DEBUG: $@\033[0m"; } # -- debug for core
 _debugf () { [[ $DEBUGF == 1 ]] && echo "\033[36m** DEBUG: $@\033[0m"; } # -- debugf for debugging third party scripts
-
+_debug_load () { _debug "Loading ${0:a}" }
 # -- _debug_all
 _debug_all () {
         _debug "--------------------------"

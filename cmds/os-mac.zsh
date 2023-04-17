@@ -66,3 +66,27 @@ interfaces_mac () {
     #echo -E "$OUTPUT"
     echo -e "$OUTPUT" | column -t
 }
+
+# -- Show macos memory pressure
+function show_swap_mac() {
+    physical_memory=$(sysctl hw.memsize | awk '{print $2/1024/1024}')
+    used_memory=$(echo "scale=2; ${physical_memory} - $(memory_pressure | grep "Pages free" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages active" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages inactive" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages speculative" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages wired down" | awk '{print $4/1024}')" | bc)
+    cached_files=$(vm_stat | awk '/^Pages free:/ {free=$3} /^Pages speculative:/ {spec=$3} /^Pages inactive:/ {inactive=$3} /^Pages wired down:/ {wired=$4} END {printf "%.1f MB\n", (free+spec+inactive+wired)*4096/1048576}')
+    swap_used=$(sysctl vm.swapusage | awk '/vm.swapusage:/ {print $7}')
+    echo "Physical Memory: ${physical_memory} | Memory Used: ${used_memory} | Cached Files: ${cached_files} | Swap Used ${swap_used}"
+    _notice "You can also run sysctl vm.swapusage or memory_pressure"
+}
+
+# -- check mac diskspace
+check_diskspace_mac () {
+    # TODO create this function
+    local usage=$(df -h / | awk 'NR==2{print $5}' | sed 's/%//')
+    local used=$(df -h / | awk 'NR==2{print $3}')
+    local free=$(df -h / | awk 'NR==2{print $4}')
+
+    echo "Disk usage: $used used, $free free"
+
+    if [ "$usage" -gt 90 ]; then
+    echo "Warning: Disk usage is above 90%!"
+    fi
+}

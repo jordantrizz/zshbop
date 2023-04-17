@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------------
 # -- kb.zsh -- Knowledge Base (KB) functions
 # -----------------------------------------------------------------------------------
-_debug "Loading mypath=${0:a}"
+_debug_load
 
 # -- kbc
 alias kbc="kb -c"
@@ -37,6 +37,7 @@ kb () {
     zparseopts -D -E c=CAT
     if [[ -n "$CAT" ]]; then
         echo "Using cat on $1"
+        MD_READER="cat"
     fi
     KB=$1
 

@@ -14,19 +14,20 @@ alias ls="${DEFAULT_LS}"
 DEFAULT_EXA="${EXA_CMD} --long --all --group"
 
 # -- sysfetch
-DEFAULT_SYSFETCH="neofetch"
+sysfetch () {
+    DEFAULT_SYSFETCH="neofetch"
+    os-binary fastfetch
+    _debug "Checking if fastfetch is installed"
+    if [[ $? == "1" ]]; then
+        _debug "fastfetch not found, using ${DEFAULT_SYSFETCH}"
+        eval ${DEFAULT_SYSFETCH}
+    else
+        _debug "fastfetch succcess using for sysfetch"
+        eval fastfetch
+    fi
+}
 
-# -- sys_fetch
-os-binary "fastfetch"
-if [[ $? == "1" ]]; then
-    _debug "fastfetch not found, using ${DEFAULT_SYSFETCH}"
-    sysfetch () { ${DEFAULT_SYSFETCH} }
-else
-	_debug "fastfetch succcess using for sysfetch"
-	sysfetch () { fastfetch }
-fi
-
-# -- sys_fetch
+# -- ls/exa
 os-binary "exa"
 
 # -- glow

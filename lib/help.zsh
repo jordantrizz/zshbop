@@ -6,7 +6,7 @@
 # -- To add command help, which is a file within this repostiryo and not a function.
 # -- help_mysql[maxmysqlmem]='Calculate maximum MySQL memory'
 # -----------------------------------------------------------------------------------
-_debug "Loading mypath=${0:a}"
+_debug_load
 
 # -- Help header
 help_sub_header () {
