@@ -452,6 +452,10 @@ zshbop_report () {
         _debug_function
         _loading "-- zshbop report ------------"
         echo ""
+        _loading2 "-- logs ------------"
+        for key in ${(kon)ZSHBOP_LOGS}; do
+            echo "- $key"
+        done
         _loading2 "-- errors ------------"
         for key in ${(kon)ZSHBOP_ERRORS}; do
             echo "- $key"

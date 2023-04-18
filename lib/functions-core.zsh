@@ -19,6 +19,7 @@ ZSHBOP_WARNINGS=()
 
 # -- Different colored messages
 _echo () { echo "$@" }
+_log () {ZSHBOP_LOG+=("$@");}
 _error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
 _error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
 _warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@"); }
