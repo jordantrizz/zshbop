@@ -9,7 +9,7 @@ typeset -gA help_docker # Init help array.
 help_docker[dps]='Docker ps -a'
 dps () {
 	if alias dops >/dev/null 2>&1; then
-        dops -a ${*}
+        eval "dops -a ${*}"
     else
         docker ps -a ${*}
     fi
