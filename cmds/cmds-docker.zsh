@@ -10,3 +10,6 @@ help_docker[dps]='Docker ps -a'
 dps () {
 	docker ps -a ${*}
 }
+
+help_docker[dops]='Mikescher/better-docker-ps'
+alias dops=dops_linux-amd64
