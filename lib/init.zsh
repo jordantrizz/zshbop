@@ -447,12 +447,6 @@ init_check_services () {
         export NETDATA_HOME="/opt/netdata/etc/netdata"
     	_success "Netdata: located at /opt/netdata/bin and config at /opt/netdata/etc/netdata"
     elif [[ -f /usr/sbin/netdata ]]; then
-        if [[ -f /etc/netdata/netdata.conf ]]; then
-            export NETDATA_HOME="/etc/netdata"
-        elif [[ -f /usr/lib/netdata/netdata.conf ]]; then
-            export NETDATA_HOME="/usr/lib/netdata"
-        fi
-        [[ -z $NETDATA_HOME
         export NETDATA_HOME="/etc/netdata"
     	_success "Netdata: located at /usr/sbin/netdata and config at /etc/netdata"
     else
