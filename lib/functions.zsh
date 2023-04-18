@@ -478,6 +478,34 @@ zshbop_report () {
         done
 }
 
+# ==============================================
+# -- system_check - check usualy system stuff
+# ==============================================
+zsbhop_systemcheck () {
+	# -- start
+	_debug_function
+	_loading2 "System check on $MACHINE_OS"
+	
+    # -- network interfaces
+    _debug "Network interfaces"
+    interfaces
+
+	# -- check swappiness
+	_debug "Checking swappiness"
+    swappiness
+	
+	# -- check disk space
+	_debug "Checking disk space on $MACHINE_OS"
+	check_diskspace
+
+	# -- check block devices
+    _debug "Checking block devices"
+	check_blockdevices
+
+    # -- Quick CPU/Mem
+    check_specs
+}
+
 # --------------
 # -- Always Last
 # --------------
@@ -494,3 +522,5 @@ zshbop () {
         $zshbop_cmd $@
     fi
 }
+
+
