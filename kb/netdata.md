@@ -14,7 +14,11 @@
 
 # Configuration
 ## Editing Confg
+Copies default config to override directory.
 * ```./edit-config go.d/web_log.conf```
+
+# Cheatsheet
+* https://learn.netdata.cloud/docs/getting-started/manage-and-configure/
 
 # Alarms
 
