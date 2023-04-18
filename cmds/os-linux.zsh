@@ -73,8 +73,8 @@ check_diskspace_linux () {
     # /run = not requires
     # wsl = wsl stuffs
     # /init = wsl stuffs
+    local DISKSPACE_ERROR=0
     DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|devfs' | awk '{ print $5 " " $1 }' )
-    #IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
     DISKUSAGE=("${(@f)${DF_COMMAND}}")
     for OUT in ${DISKUSAGE[@]}; do
         PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
@@ -85,10 +85,12 @@ check_diskspace_linux () {
         if [[ $PERCENTAGE -ge $ALERT ]]; then
             _notice "$FIRSTMSG.."
             _error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
+            DISKSPACE_ERROR=1
         else
-            _notice "$FIRSTMSG.. - no issue."
+            _log "$FIRSTMSG.. - no issue."            
         fi
     done
+    [[ $DISKSPACE_ERROR == 1 ]] && _error "Disk space issue found, please check." || _success "No disk space issue found."
 }
 
 # -- auto-ls
