@@ -13,6 +13,11 @@ alias less="less -X"
 alias ls="${DEFAULT_LS}"
 DEFAULT_EXA="${EXA_CMD} --long --all --group"
 
+# -- os-binary
+os-binary fastfetch 
+os-binary "exa"
+os-binary "glow"
+
 # -- sysfetch
 sysfetch () {
     DEFAULT_SYSFETCH="neofetch"
@@ -27,13 +32,6 @@ sysfetch () {
         eval "${FASTFETCH_CMD} ${FASTFETCH_CONFIG}"
     fi
 }
-
-# -- ls/exa
-os-binary "exa"
-
-# -- glow
-os-binary "glow"
-
 
 # -- tran - https://github.com/abdfnx/tran/releases
 alias tran="tran_linux_amd64"
