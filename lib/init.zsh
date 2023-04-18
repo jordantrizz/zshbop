@@ -65,7 +65,7 @@ init_add_path () {
 	                export PATH=$PATH:$NAME
 	            i=$((i+1))
 	        done
-	        _success " Found $i folders and added them to \$PATH"
+	        _log " Found $i folders and added them to \$PATH"
 		fi
 	else
 		_debug "Can't find $DIR"
@@ -76,8 +76,7 @@ init_add_path () {
 # -- init_detectos -- detect the OS running
 # ==============================================
 init_detectos () {
-        # -- Detect operating system
-        _loading "Detecting Operating System"
+        # -- Detect operating system        
         export UNAME=$(uname -s)
         case "${UNAME}" in
             Linux*)     MACHINE_OS=linux;;
@@ -97,7 +96,7 @@ init_detectos () {
             MACHINE_OS="synology"
         fi
 
-        _loading_grey "Running in ${MACHINE_OS}"
+        _loading_grey "Detecting Operating System - Running in ${MACHINE_OS}"
 }
 
 # ==============================================
@@ -169,7 +168,7 @@ function init_zsh_sweep () {
 # -- powerlevel10k customizations
 # ==============================================
 init_p10k () {
-	_loading "Loading powerlevel10k configuration"
+	_log "Loading powerlevel10k configuration"
 	# shellcheck source=./.p10k.zsh
 	source $ZSH_ROOT/.p10k.zsh
 	export POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS="0" # Don't wait for Git status even for a millisecond, so that prompt always updates
@@ -196,7 +195,7 @@ init_fzf () {
 # -- Initialize ZSH plugins
 # ==============================================
 init_plugins () {
-	_loading "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
+	_loading2 "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
 	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
 		init_antigen	
 	else
@@ -212,7 +211,7 @@ init_antidote () {
 	export AUTO_LS_CHPWD="false"
 	
 	# -- load antidote
-	_loading "Loading antidote"
+	_log "Loading antidote"
 	zstyle ':antidote:bundle' use-friendly-names 'yes' # remove slashes and user friendly names
 	zstyle ':antidote:bundle' file "${ZBR}/.zsh_plugins.txt"
 	export ANTIDOTE_DIR="${ZBR}/antidote"
@@ -220,12 +219,12 @@ init_antidote () {
 	export ANTIDOTE_STATIC="${ZSHBOP_CACHE_DIR}/.zsh_plugins.zsh"
 	_debug "ANTIDOTE_PLUGINS: $ANTIDOTE_PLUGINS ANTIDOTE_STATIC:$ANTIDOTE_STATIC"
 	
-  # shellcheck source=./antidote/antidote.zsh
-  source $ANTIDOTE_DIR/antidote.zsh
-	_loading2 "Generate antidote static file $ANTIDOTE_STATIC"
-  antidote bundle < $ANTIDOTE_PLUGINS > $ANTIDOTE_STATIC
-  _loading2 "Sourcing antidote static file $ANTIDOTE_STATIC"
-  source $ANTIDOTE_STATIC
+    # shellcheck source=./antidote/antidote.zsh
+    source $ANTIDOTE_DIR/antidote.zsh
+	_log "Generate antidote static file $ANTIDOTE_STATIC"
+    antidote bundle < $ANTIDOTE_PLUGINS > $ANTIDOTE_STATIC
+    _log "Sourcing antidote static file $ANTIDOTE_STATIC"
+    source $ANTIDOTE_STATIC
 }
 
 # ==============================================
@@ -250,17 +249,17 @@ fi
 init_os () {
 	_debug_function
 	# -- Loading os defaults
-	_loading "Loading OS configuration"
+	_debug "Loading OS configuration"
 
 	# -- Include common OS configuration
-	_loading2 "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
+	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
 	source $ZSHBOP_ROOT/cmds/os-common.zsh
 
 	# Include OS Specific configuration
 	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
-        	_loading2 "Loading cmds/os-mac.zsh"
+        	_loading2 "Loaded OS Configuration cmds/os-mac.zsh"
 	        source $ZSHBOP_ROOT/cmds/os-mac.zsh
 	# -- Linux
 	elif [[ $MACHINE_OS = "linux" ]] then
@@ -268,9 +267,8 @@ init_os () {
     	source $ZSHBOP_ROOT/cmds/os-linux.zsh
 	# -- WSL Linux
 	elif [[ $MACHINE_OS = "wsl" ]]; then				
-	    _loading2 "Loading cmds/os-linux.zsh"
-        source $ZSHBOP_ROOT/cmds/os-linux.zsh
-       	_loading2 "Loading cmds/os-wsl.zsh"
+	    _loading2 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
+        source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
 	    source $ZSHBOP_ROOT/cmds/os-wsl.zsh
 	fi
 }
@@ -280,34 +278,35 @@ init_os () {
 # ==============================================
 init_sshkeys () {
 		_debug_function
-		_loading "Loading SSH keys into keychain"
+		_log "Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
-		        # Load default SSH key
-		        _loading2 "Load default SSH key"
-		        _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
-        		if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
-		                _debug  " - FOUND: $HOME/.ssh/id_rsa"
-		                eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
-		        else
-		                _debug " - NOTFOUND: $HOME/.ssh/id_rsa"
-        		fi
+            # Load default SSH key
+            _log "Load default SSH key"
+            _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
+            if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
+                    _debug  " - FOUND: $HOME/.ssh/id_rsa"
+                    eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
+            else
+                    _debug " - NOTFOUND: $HOME/.ssh/id_rsa"
+            fi
 
-		        # Check and load custom SSH key
-		        _loading2 "Loading custom SSH keys."
-        		_debug " - Check for custom SSH key via $CUSTOM_SSH_KEY and load keychain"
-        						
-		        if [[ ! -z "${CUSTOM_SSH_KEYS[@]}" ]]; then
-			        _debug " - FOUND: $CUSTOM_SSH_KEYS"
-			        for key in ${CUSTOM_SSH_KEYS[@]}; do
-						_loading3 "Loading -- $key"
-                		eval `keychain -q --eval --agents ssh $key`
-                	done
-		        else
-        		        _debug " - NOTFOUND: $CUSTOM_SSH_KEYS not set."
-		        fi
+            # Check and load custom SSH key
+            _log "Loading custom SSH keys."
+            _debug " - Check for custom SSH key via $CUSTOM_SSH_KEY and load keychain"
+                            
+            if [[ ! -z "${CUSTOM_SSH_KEYS[@]}" ]]; then
+                _debug " - FOUND: $CUSTOM_SSH_KEYS"
+                for key in ${CUSTOM_SSH_KEYS[@]}; do
+                    _log "Loading -- $key"
+                    eval `keychain -q --eval --agents ssh $key`
+                done
+            else
+                    _debug " - NOTFOUND: $CUSTOM_SSH_KEYS not set."
+            fi
 
 			# Load any id_rsa* keys @@ISSUE
-			_loading2 "Load any id_rsa* keys"
+            # TODO figure out why this is @@ISSUE
+			_log "Load any id_rsa* keys"
 			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
 				eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
 			fi
@@ -351,7 +350,7 @@ init_pkg_manager () {
 # ==============================================
 init-app-config () {
     
-	_loading "Setting application configuration"
+	_log "Setting application configuration"
 	# git
 	git config --global init.defaultBranch main
 }
@@ -372,6 +371,7 @@ init_zshbop () {
 	# -- Start init
 	_debug_function
 	_loading "Starting init"
+    zshbop_version
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
     # -- Init zshbop
@@ -386,6 +386,7 @@ init_zshbop () {
   	zshbop_load_custom   # -- Init custom zshbop  	
     init_os              # -- Init os defaults # TODO Needs to be refactored
     init_zsh_sweep       # -- Init zsh-sweep if installed
+    init_systemcheck     # -- Init systemcheck to confirm system status.
         
   	# -- Init antigen
     [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload"
@@ -395,11 +396,10 @@ init_zshbop () {
 	if [[ $funcstack[3] != "zshbop_reload" ]]; then
 		init_sshkeys
 		init_motd
-		# -- Print zshbop version information
-	  	zshbop_version
     echo ""
 	else
-	  _loading_grey "Skipped some scripts due to running rld"
+	    _loading_grey "Skipped some scripts due to running rld"
+	    zshbop_version
 	fi
 
 	# Remove Duplicates in $PATH
@@ -431,16 +431,16 @@ init_check_services () {
     _banner_yellow "-- Checking Service Versions"
 
 	# - mysql	    
-	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || _error "MySQL Server not installed"
+	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || _log "MySQL Server not installed"
 	
 	# - nginx
-	if (( $+commands[nginx] )) && _success "Nginx: $(nginx -v 2>&1 >/dev/null)" || _error "Nginx not installed"	
+	if (( $+commands[nginx] )) && _success "Nginx: $(nginx -v 2>&1 >/dev/null)" || _log "Nginx not installed"	
 	
 	# - litespeed
-	if (( $+commands[litespeed] )) && _success "Litespeed: $(litespeed -v)" || _error "Litespeed not installed"
+	if (( $+commands[litespeed] )) && _success "Litespeed: $(litespeed -v)" || _log "Litespeed not installed"
 		
 	# - Redis
-	if (( $+commands[redis-server] )) && _success "Redis: $(redis-server --version)" || _error "Redis not installed"
+	if (( $+commands[redis-server] )) && _success "Redis: $(redis-server --version)" || _log "Redis not installed"
 
 	# - Netdata    
     if [[ -f /opt/netdata/bin/netdata ]]; then
@@ -448,7 +448,7 @@ init_check_services () {
     elif [[ -f /usr/sbin/netdata ]]; then
     	_success "Netdata: located at /usr/sbin/netdata and config at /etc/netdata"
     else
-    	_error "Netdata not installed"
+    	_log "Netdata not installed"
     fi
     	
 }
@@ -456,30 +456,14 @@ init_check_services () {
 # ==============================================
 # -- system_check - check usualy system stuff
 # ==============================================
-system_check () {
+init_systemcheck () {
 	# -- start
 	_debug_function
-	_banner_yellow "System check on $MACHINE_OS"
-	
-    # -- network interfaces
-    _loading2 "Network interfaces"
-    interfaces
-
-	# -- check swappiness
-	_loading2 "Checking swappiness"
-    swappiness
-	
-	# -- check disk space
-	_loading2 "Checking disk space on $MACHINE_OS"
-	check_diskspace
-
-	# -- check block devices
-    _loading2 "Checking block devices"
-	check_blockdevices
-
-    # -- Quick CPU/Mem
-    check_specs
-}	
+	_loading2 "System check on $MACHINE_OS"
+		
+	check_diskspace # -- check disk space
+	check_blockdevices 	# -- check block devices
+}
 
 # ==============================================
 # -- init_motd - initial scripts to run on login
@@ -492,17 +476,13 @@ init_motd () {
     _joe_ftyperc
 
     # -- check for old instances
-    _loading "Old Instance Check"
+    _debug "Old Instance Check"
     zshbop_migrate-check
     zshbop_previous-version-check
 
     # -- system details
     _loading "System details"
-	sysfetch
-
-    # -- System check
-    system_check
-    echo ""
+	sysfetch | _pipe_separate 3
 
     # -- Show screen sessions
     _loading "Screen Sessions"
@@ -521,7 +501,7 @@ init_motd () {
     source "${ZSHBOP_ROOT}/motd/motd.zsh"
 
 	# -- env-install
-	_loading "Run env-install to install default and extra tools"
+	_loading "Run env-install to install default and extra tools. Run system-specs for more system details."
 	
     # -- last echo to keep motd clean
     echo ""

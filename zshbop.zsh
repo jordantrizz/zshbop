@@ -80,8 +80,9 @@ EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 ###########################################################
 
 # ------------
-# -- Debugging
+# -- Debugging and Logging
 # ------------
+# -- Debug
 # \033[36mThis text is cyan!\033[0m
 ZSH_DEBUG="0"
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
@@ -95,6 +96,18 @@ _debug_all () {
         _debug "ZSH_ARGZERO - $ZSH_ARGZERO | SCRIPT_DIR - $SCRIPT_DIR"
         _debug "--------------------------"
 }
+# -- Logging
+# -- Logging errors and Warnings
+ZSHBOP_LOGS=()
+ZSHBOP_ERRORS=()
+ZSHBOP_WARNINGS=()
+
+ZSH_VERBOSE="0"
+[[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
+_log () { [[ $ZSH_VERBOSE == 1 ]] && echo "\033[30m** VERBOSE: ${*}\033[0m"; ZSHBOP_LOGS+=("${*}"); }
+_error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
+_error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
+_warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@"); }
 
 # ---------------
 # -- Source files

@@ -243,7 +243,7 @@ zshbop_previous-version-check () {
 help_zshbop[migrate-check]='Check if running old zshbop.'
 zshbop_migrate-check () {
 	_debug_function
-        _loading2 "Checking for legacy zshbop"        
+        _log "Checking for legacy zshbop"        
         FOUND="0"
         for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
                 if [ -d "$ZBPATH_MIGRATE" ]; then
@@ -252,22 +252,22 @@ zshbop_migrate-check () {
                 fi
         done
         if [[ "$FOUND" == "0" ]]; then
-                _loading2 "Don't need to migrate legacy zshbop"
+                _debug "Don't need to migrate legacy zshbop"
         fi
 
-        _banner_yellow "-- Checking for github modules"
+        _log "-- Checking for github modules"
         if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
                 _debug "Found old ultimate-linux-tool-box"
                 _warning "Found ultimate-linux-tool-box run 'zshbop migrate'"
         else
-                _success "Didn't find ultimate-linux-tool-box"
+                _log "Didn't find ultimate-linux-tool-box"
         fi
 
         if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
                 _debug "Found old ultimate-wordpress-tools"
                 _warning "Found ultimate-wordpress-tools run 'zshbop migrate'"
         else
-                _success "Didn't find ultimate-wordpress-tools"
+                _log "Didn't find ultimate-wordpress-tools"
         fi
         
 }
@@ -365,15 +365,28 @@ zshbop_debug () {
                 echo "Turning debug off"
                 _debug "Turning debug off"
                 if [[ -f $ZSHBOP_ROOT/.debug ]]; then
-	                rm $ZSHBOP_ROOT/.debug
-    	            echo "Reloading to disable debug"
-    	        else
+	                rm $ZSHBOP_ROOT/.debug    	            
+                else
     	        	_error "$ZSHBOP_ROOT/.debug doesn't exist"
 	                rld
 	            fi
+       	        if [[ -f $ZSHBOP_ROOT/.verbose ]]; then
+                    rm $ZSHBOP_ROOT/.verbose
+                else
+                    _error "$ZSHBOP_ROOT/.verbose doesn't exist"
+                fi
+                echo "Reloading to disable debug"
+                rld
+        elif [[ $1 == "verbose" ]] || [[ $2 == "verbose" ]]; then
+                echo "Turning debug verbose on"
+                _debug "Turning debug verbose on"
+                touch $ZSHBOP_ROOT/.verbose
+                touch $ZSHBOP_ROOT/.debug
+                echo "Reloading to enable debug verbose"
+                rld
         else
 				_error "nothing passed"
-                echo "Usage: debug <on|off>"
+                echo "Usage: debug <on|off|verbose>"
                 echo "Debug is $ZSH_DEBUG"
         fi
 }
@@ -418,7 +431,7 @@ zshbop_custom () {
 help_zshbop[load_custom]='Load zshbop custom config'
 zshbop_load_custom () {
 	# -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
-	_loading "Checking for $HOME/.zshbop.conf"
+	_log "Checking for $HOME/.zshbop.conf"
     if [[ -f $HOME/.zshbop.conf ]]; then
     	ZSHBOP_CUSTOM="$HOME/.zshbop.conf"
         _loading_grey "Loaded custom zshbop config at $ZSHBOP_CUSTOM"

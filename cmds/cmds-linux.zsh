@@ -186,7 +186,7 @@ usedspace () {
 # -- check_diskspace
 help_linux[check_diskspace2]="Check diskspace based on OS"
 check_diskspace () {
-	check_diskspace_${MACHINE_OS}
+	check_diskspace_${MACHINE_OS} $@
 }
 
 # -- check_blockdevices

@@ -13,29 +13,18 @@ help_files[corefunc]='Core functions for scripts'
 # -- Internal Functions
 # ---------------------
 
-# -- Logging errors and Warnings
-ZSHBOP_LOGS=()
-ZSHBOP_ERRORS=()
-ZSHBOP_WARNINGS=()
-
-# -- Different colored messages
+# -- Banners
 _echo () { echo "$@" }
-_log () { ZSHBOP_LOGS+=("${*}"); }
-_error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
-_error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
-_warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@"); }
 _success () { echo "$fg[green] * $@ ${RSC}" }
 _noticebg () { echo "$bg[magenta]$fg[white] * $@ ${RSC}" }
 _noticefg () { echo "$fg[magenta] * $@ ${RSC}" }
 alias _notice="_noticefg"
-
-# -- Banners
 _banner_red () { echo "$bg[red]$fg[white]${@}${RSC}" }
 _banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
 _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
 _banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
 _loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" }
-_loading2 () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
+_loading2 () { echo " $bg[bright-grey]$fg[black] * ${@}${RSC}" }
 _loading3 () { echo "$fg[bright-grey]${@}${RSC}" }
 _loading4 () { echo "$fg[bright-grey]${@}${RSC}" }
 alias _loading_grey=_loading2
@@ -178,5 +167,27 @@ _if_marray () {
         done
         _debug "MARRAY_VALID = $MARRAY_VALID"
         if [[ MARRAY_VALID == "1" ]]; return 0
+}
+
+# --------------------------------
+# -- _pipe_separate
+# --
+# -- Separate piped output into columns after third item
+# --------------------------------
+function _pipe_separate() {
+    local -a lines=("${(f)$(cat)}")
+    local -i count=0
+    [[ ${1} ]] && local ITEMS=$1 || local ITEMS=3
+
+    for line in "${lines[@]}"; do
+        if (( count < ${ITEMS} )); then
+        printf "%s | " "$line"
+        (( count++ ))
+        else
+        printf "%s\n" "$line"
+        count=0
+        fi
+    done
+    echo ""
 }
 
