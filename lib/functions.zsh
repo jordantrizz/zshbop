@@ -317,9 +317,7 @@ zshbop_migrate () {
 help_zshbop[version]='Get version information'
 zshbop_version () {
         _debug_function
-        _loading "zshbop Version"
-        echo "Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC}"
-        echo "Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC} --"
+        _loading "zshbop Version *${RSC} = Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC} | Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
 }
 
 # --------------------------

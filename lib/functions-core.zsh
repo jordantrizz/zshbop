@@ -14,12 +14,13 @@ help_files[corefunc]='Core functions for scripts'
 # ---------------------
 
 # -- Logging errors and Warnings
+ZSHBOP_LOGS=()
 ZSHBOP_ERRORS=()
 ZSHBOP_WARNINGS=()
 
 # -- Different colored messages
 _echo () { echo "$@" }
-_log () {ZSHBOP_LOG+=("$@");}
+_log () { ZSHBOP_LOGS+=("${*}"); }
 _error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
 _error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
 _warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@"); }

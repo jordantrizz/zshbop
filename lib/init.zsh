@@ -29,7 +29,7 @@ init_path () {
 	
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
-	_loading "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
+	_log "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
 	#init_add_path $ZSHBOP_ROOT/repos
 	init_add_path $HOME/bin
 	init_add_path $HOME/git
@@ -530,12 +530,11 @@ init_motd () {
 # -- check zsh version
 function init_checkzsh () {
 	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
-	_loading "Running ZSH $ZSH_VERSION"
-    _loading "Latest version is 5.9 as per https://zsh.sourceforge.io/News/"
+	_log "Running ZSH $ZSH_VERSION - Latest version is 5.9 as per https://zsh.sourceforge.io/News/"
 	autoload is-at-least
 	if ! is-at-least 5.7 $ZSH_VERSION; then
 		_warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
 	else
-    	_success "Running close to latest ZSH"
+    	_log "Running close to latest ZSH"
 	fi
 }
