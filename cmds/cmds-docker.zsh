@@ -8,7 +8,11 @@ typeset -gA help_docker # Init help array.
 # -- paths
 help_docker[dps]='Docker ps -a'
 dps () {
-	docker ps -a ${*}
+	if (( $+commands[dops] )); then
+        dops -a ${*}
+    else
+        docker ps -a ${*}
+    fi
 }
 
 help_docker[dops]='Mikescher/better-docker-ps'
