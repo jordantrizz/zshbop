@@ -128,7 +128,7 @@ repos () {
 	# -- repos update
     # ---------------
 	elif [[ $1 == 'update' ]]; then
-    	_loading "Updating repos "
+        [[ $funcstack[2] == "zshbop_update" ]] && _loading2 "Updating repos" || _loading "Updating repos"
 		if [ "$(find "$REPOS_DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
 			_debug "Found repositories"
 			for REPO in $REPOS_DIR/*; do
