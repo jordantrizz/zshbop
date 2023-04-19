@@ -164,7 +164,7 @@ zshbop_check-updates () {
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
 	_debug_function
-    _loading "**** UPDATING ZSHBOP ****"
+    _banner_yellow "**** START UPDATING ZSHBOP ****"
         
     # -- print out zshbop version
     zshbop_version
@@ -218,6 +218,7 @@ zshbop_update () {
 
     # Reload scripts
     _warning "Type zb reload to reload zshbop, or restart your shell."
+    _banner_yellow "**** END UPDATING ZSHBOP ****"
     echo ""
 }
 # -----------------------------------
