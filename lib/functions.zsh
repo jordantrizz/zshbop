@@ -319,20 +319,22 @@ zshbop_migrate () {
 # --------------------
 help_zshbop[version]='Get version information'
 zshbop_version () {
-        _debug_function
-        _loading "zshbop Version *${RSC} = Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[white]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC} | Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
+        echo "zshbop Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}"
+}
+
+help_zshbop[commit]='Get commit information'
+zshbop_commit () {        
+        echo "zshbop Commit: ${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC} | Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
 }
 
 # --------------------------
 # -- zshbop_version_check ()
 # --------------------------
 help_zshbop[version-check]='Check zshbop version'
-zshbop_version-check () {
-  _debug_function
-	zshbop_version
-	
+zshbop_version-check () {    		
 	# -- check .zshrc
 	_loading "zshbop Version Check"
+    zshbop_version
     echo "-- Latest zshbop .zshrc: $fg[green]$ZSHBOP_LATEST_MD5${RSC}"
     echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5${RSC}"
     echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
