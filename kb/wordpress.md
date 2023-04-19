@@ -41,3 +41,7 @@ rsync -avz public_html root@192.168.0.101 --exclude wp-content/cache --exclude w
 define( 'WP_HOME', 'http://example.com' );
 define( 'WP_SITEURL', 'http://example.com' );
 ```
+
+# wp-cli
+## Another Update is Currently in Progress
+```wp option delete core_updater.lock```
