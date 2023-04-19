@@ -62,7 +62,7 @@ zshbop_scc () {
 # -- reload zshbop
 # -------------------
 help_zshbop[reload]='Reload zshbop'
-zshbop_reload () {
+zshbop_reload () {    
     _debug_function
     _debug "Clearing cache"
     zshbop_cacheclear
@@ -164,7 +164,7 @@ zshbop_check-updates () {
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
 	_debug_function
-    _loading "UPDATING ZSHBOP"
+    _loading "**** UPDATING ZSHBOP ****"
         
     # -- print out zshbop version
     zshbop_version
@@ -172,7 +172,7 @@ zshbop_update () {
     # -- Pull zshbop down from git using current branch
     _loading2 "Pulling zshbop updates"
 
-    # -- Changed branch from develop to dev
+    # -- Changed branch from develop to dev - 2021-05-01
     if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
     	_debug "Detected old branch name develop"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
@@ -183,13 +183,14 @@ zshbop_update () {
 
 	# Check if .zshrc is out of date.
 	# Called from script directly versus cached functions
+    _loading2 "Previous version check"
 	$ZSHBOP_ROOT/zshbop.zsh previous-version-check
 
     # Update repos
 	repos update
 	
 	# Update $ZBC aka custom zshbop directory
-	_loading "Updating custom zshbop directory $ZBC"
+	_loading2 "Updating custom zshbop directory $ZBC"
 	if [[ $ZBC ]]; then
 		_loading2 "Found zshbop custom, running git pull if a git repostiory"
 		git --git-dir=${ZBC}/.git --work-tree=${ZBC} pull
@@ -198,7 +199,7 @@ zshbop_update () {
 	fi
 
     # -- Update $ZSHBOP_UPDATE_GIT git repositories from custom config.
-    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
+    _loading2 "Updating \$ZSHBOP_UPDATE_GIT git repositores."
     if [[ $ZSHBOP_UPDATE_GIT ]]; then
         _debug "Found \$ZSHBOP_UPDATE_GIT which continas $ZSH_UPDATE_GIT"
         for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
@@ -217,6 +218,7 @@ zshbop_update () {
 
     # Reload scripts
     _warning "Type zb reload to reload zshbop, or restart your shell."
+    echo ""
 }
 # -----------------------------------
 # -- zshbop_pervious-version-check ()

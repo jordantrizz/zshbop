@@ -370,7 +370,7 @@ init_cmds () {
 init_zshbop () {
 	# -- Start init
 	_debug_function
-	_loading "Starting init"
+	_loading "**** Starting init ****"
     zshbop_version
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
