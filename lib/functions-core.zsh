@@ -118,7 +118,7 @@ _cexists () {
     if (( $+commands[${CMD}] )); then
         _debug "$CMD is installed";
         CMD_EXISTS="0"
-    else
+    elsef
         _debug "$CMD not installed";    
         CMD_EXISTS="1"
     fi
