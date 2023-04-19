@@ -31,21 +31,23 @@ alias omz-plugins='escho "OMZ Plugins $OMZ_PLUGINS"'
 # -------------------------------------
 help_zshbop[cc]='Clear cache for antigen + more'
 alias cc="zshbop_cacheclear"
-zshbop_cacheclear () {
-	_loading "Clearing plugin manager cache"
+zshbop_cacheclear () {   
+    _loading "Clearing ZSH cache" 
+	_loading2 "Clearing plugin manager cache"
 	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
-      _loading_grey $(antigen reset)
+      _loading2 $(antigen reset)
 	elif [[ $ZSHBOP_PLUGIN_MANAGER == "init_antidote" ]]; then
 	    if [[ -a ${ANTIDOTE_STATIC} ]]; then
-	      _loading_grey "Removing antidote static file cache"
+	      _loading2 "Removing antidote static file cache"
 	      rm "${ANTIDOTE_STATIC}"
 	    else
-	      _loading_grey "${ANTIDOTE_STATIC} doesn't exist"
+	      _loading2 "${ANTIDOTE_STATIC} doesn't exist"
 	    fi
 	fi
 
-	_loading "Clearing zshrc.zwc file"
+	_loading2 "Clearing zshrc.zwc file"
 	rm -f ~/.zshrc.zwc
+    _loading "ZSH Cache cleared"
 }
 
 # -- zshbop_scc
@@ -62,13 +64,10 @@ zshbop_scc () {
 # -- reload zshbop
 # -------------------
 help_zshbop[reload]='Reload zshbop'
-zshbop_reload () {    
-    _debug_function
-    _debug "Clearing cache"
+zshbop_reload () {
+    _loading "Reloading zshbop"
     zshbop_cacheclear
 	source $HOME/.zshrc
-	zshbop_version-check
-	echo ""
 	_warning "You may have to close your shell and restart it to see changes"
     echo ""
     zshbop_report
