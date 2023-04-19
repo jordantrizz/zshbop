@@ -111,24 +111,16 @@ _requires_cmd () {
 # -- Returns 0 if command exists or 1 if command doesn't exist
 # ------------------------------------------------------------------------
 _cexists () {
-    unset CMD_EXISTS CMD CMD_PATH
+    unset CMD_EXISTS
     CMD="$1"
 
     # Check if command exists
-    CE_PATH=$(which $CMD)
-    CE_EXIT_CODE=$?
-    if [[ $CE_EXIT_CODE == "0" ]]; then
-        CMD_PATH=$(which $CMD)
-        _debug "CMD_PATH: $CMD_PATH"
-        if [[ $ZSH_DEBUG == 1 ]]; then
-            _debug "$CMD is installed";
-        fi
-            CMD_EXISTS="0"
+    if (( $+commands[${CMD}] )); then
+        _debug "$CMD is installed";
+        CMD_EXISTS="0"
     else
-        if [[ $ZSH_DEBUG == 1 ]]; then
-            _debug "$CMD not installed";
-        fi
-            CMD_EXISTS="1"
+        _debug "$CMD not installed";    
+        CMD_EXISTS="1"
     fi
 
     # Check if alias exists
