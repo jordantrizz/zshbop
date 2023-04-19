@@ -56,7 +56,7 @@ export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
 export ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
 
 # -- zshbop md5sum
-export ZSHBOP_LATEST_MD5="46c094ff2b56af2af23c5b848d46f997" # -- the md5 of .zshrc
+export ZSHBOP_LATEST_MD5="09fcdc31ca648bb15f7bb7ff90d0539a" # -- the md5 of .zshrc
 export ZSHBOP_HOME_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $HOME
 export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $ZSHBOPROOT
 
