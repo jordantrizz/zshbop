@@ -398,8 +398,7 @@ init_zshbop () {
 		init_motd
     echo ""
 	else
-	    _loading_grey "Skipped some scripts due to running rld"
-	    zshbop_version
+	    _loading_grey "Skipped some scripts due to running rld"	    
 	fi
 
 	# Remove Duplicates in $PATH
