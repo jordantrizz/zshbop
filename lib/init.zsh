@@ -369,8 +369,8 @@ init_cmds () {
 # ==============================================
 init_zshbop () {
 	# -- Start init
-	_debug_function	
-    zshbop_version
+	_debug_function
+    echo "\e[43;30m  Initilizing zshbop $(zshbop_version)  \e[0m"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
     # -- Init zshbop
