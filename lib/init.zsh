@@ -369,8 +369,7 @@ init_cmds () {
 # ==============================================
 init_zshbop () {
 	# -- Start init
-	_debug_function
-	_loading "**** Starting init ****"
+	_debug_function	
     zshbop_version
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 

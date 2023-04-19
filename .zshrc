@@ -21,6 +21,6 @@ if [ -z "$ZSHBOP_ROOT" ]; then
 fi
 
 # - Initilize zshbop
-echo "\e[43;30m  Initilizing zshbop \e[0m"
+echo "\e[43;30m  Initilizing zshbop $ZSHBOP_VERSION\e[0m"
 source $ZSHBOP_ROOT/zshbop.zsh
 init_zshbop
