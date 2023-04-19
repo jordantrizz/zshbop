@@ -59,3 +59,9 @@ lots of SYN packets and never completes the handshakes).
 ```
 ./edit-config health.d/web_log.conf
 ```
+
+# Common Alarms to Silence
+```
+web_log_1m_unmatched
+web_log_1m_redirects
+```
