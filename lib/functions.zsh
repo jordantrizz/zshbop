@@ -32,7 +32,7 @@ alias omz-plugins='escho "OMZ Plugins $OMZ_PLUGINS"'
 help_zshbop[cc]='Clear cache for antigen + more'
 alias cc="zshbop_cacheclear"
 zshbop_cacheclear () {   
-    _loading "Clearing ZSH cache" 
+    _loading "**** Start ZSH cache clear ****" 
 	_loading2 "Clearing plugin manager cache"
 	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
       _loading2 $(antigen reset)
@@ -47,7 +47,8 @@ zshbop_cacheclear () {
 
 	_loading2 "Clearing zshrc.zwc file"
 	rm -f ~/.zshrc.zwc
-    _loading "ZSH Cache cleared"
+    _loading "**** End ZSH cache clear ****"
+    echo ""
 }
 
 # -- zshbop_scc
