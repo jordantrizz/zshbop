@@ -37,11 +37,9 @@ get_category_commands () {
 		done
 		echo $output_all | less        
     elif [[ $HCMD == "auto" ]]; then		
-        for key in ${(kon)help_files}; do
-            help_all_cat=(help_${key})            
-            for key in ${(kon)${(P)help_all_cat}}; do
-                echo "$key"
-            done            
+
+        for key in ${(kon)help_files}; do                        
+            echo "$key"
 		done
 	elif [[ -z ${(P)HELP_CAT} ]]; then
         _debug "\${(P)HELP_CAT}: ${(P)HELP_CAT}"
