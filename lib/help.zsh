@@ -14,6 +14,7 @@ help_sub_header () {
     loading "$HCMD"
 }
 
+# -- get_category_commands ($category)
 get_category_commands () {	
 	_debug_function
 	
@@ -29,7 +30,14 @@ get_category_commands () {
             done
             output_all+="\n"
 		done
-		echo $output_all | less
+		echo $output_all | less        
+    elif [[ $HCMD == "auto" ]]; then		
+        for key in ${(kon)help_files}; do
+            help_all_cat=(help_${key})            
+            for key in ${(kon)${(P)help_all_cat}}; do
+                echo "$key"
+            done            
+		done
 	elif [[ -z ${(P)HELP_CAT} ]]; then
         _debug "\${(P)HELP_CAT}: ${(P)HELP_CAT}"
         _error "No command category $HCMD, try running kb $HCMD"
@@ -42,8 +50,10 @@ get_category_commands () {
         done
         echo ""
     fi
+}
     
-    
+# -- get_category_commands_custom ($category)
+function get_category_commands_custom () {
     if [[ $cmdsc_files[$HCMD] ]]; then
         CMDSC_CMDS=(cmdsc_$HCMD)
         echo ""
@@ -53,6 +63,11 @@ get_category_commands () {
             printf '%s\n' "  ${(r:25:)key} - ${${(P)CMDSC_CMDS}[$key]}"
         done
         echo ""
+    elif [[ $HCMD == "auto" ]]; then
+        CMDSC_CMDS=(cmdsc_$HCMD)
+        for key in ${(kon)${(P)CMDSC_CMDS}}; do
+            echo $key
+        done
     else    
         _error "No custom command category $HCMD, try running kb $HCMD"
         echo ""
@@ -72,11 +87,15 @@ help () {
         _debug "After aliases \$HCMD: $HCMD"
 
 		# Print out help intro if no arguments passed, otherwise run get_category_commands
-        if [ ! $HCMD ]; then
+        if [[ ! $HCMD ]]; then
         	help_intro | less
+        elif [[ $HCMD == "auto" ]]; then
+        	get_category_commands auto
+            get_category_commands_custom auto
         else
         	HELP_CAT=(help_${HCMD})
 			get_category_commands $HCMD
+            get_category_commands_custom $HCMD
         fi
 }
 
