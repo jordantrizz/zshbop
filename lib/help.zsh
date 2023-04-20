@@ -8,9 +8,14 @@
 # -----------------------------------------------------------------------------------
 _debug_load
 
+# -- auto completion - needs to be at the end of this file.
+function _help  {    
+    compadd $(help auto)
+}
+compdef _help help
+
 # -- Help header
-help_sub_header () {
-	
+help_sub_header () {	
     loading "$HCMD"
 }
 
