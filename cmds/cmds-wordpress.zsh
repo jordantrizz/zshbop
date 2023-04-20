@@ -146,3 +146,8 @@ function wp-admin-email () {
     [[ -z $1 ]] && { echo "Usage: wp-admin-email <email>"; return 1 } || wp option update admin_email ${1}
     
 }
+# -- wp-plugins
+help_wordpress[wp-plugins]='List plugins'
+function wp-plugins () {
+    wp plugin status
+}
