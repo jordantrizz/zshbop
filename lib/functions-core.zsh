@@ -35,6 +35,8 @@ COLOR_FUNCTIONS=(_error _warning _success _noticebg _noticefg _banner_red _banne
 _grey () { echo "$bg[bright-gray]$fg[black] $@ ${RSC}" }
 RSC=$reset_color # To replace $reset_color :)
 
+# -- colors-print
+help_corefunc[colors-print]='Print all colors'
 function colors-print () {
   for k in ${(k)color}; do
     if [[ ! $k =~ ^(fg|bg|[[:digit:]]{1,3}|no-|none|normal|italic|underline|reverse|bold|conceal|faint|default|blink) ]]; then
@@ -80,6 +82,7 @@ _require_pkg () {
 # --
 # -- Check to see if $command is installed
 # ----------------------------------------
+help_corefunc[_requires_cmd]='Check to see if $command is installed'
 _requires_cmd () {
     _debug_function
     _debug "Running _requires on $1"
@@ -110,6 +113,7 @@ _requires_cmd () {
 # --
 # -- Returns 0 if command exists or 1 if command doesn't exist
 # ------------------------------------------------------------------------
+help_corefunc[_cexists]="Returns 0 if command exists or 1 if command doesn't exist"
 _cexists () {
     unset CMD_EXISTS
     CMD="$1"
@@ -132,6 +136,7 @@ _cexists () {
 # --
 # -- checkroot - check if running as root
 # ---------------------------------------
+help_corefunc[_checkroot]="Check if running as root"
 _checkroot () {
         _debug_function
     if [[ $EUID -ne 0 ]]; then
@@ -145,6 +150,7 @@ _checkroot () {
 # -- _if_marray "$NEEDLE" HAYSTACK
 # -- must use quotes, second argument is array without $
 # ------------------------------------------------------
+help_corefunc[_if_marray]="Check if value is in array"
 _if_marray () {
         MARRAY_VALID=1
         _debug "$funcstack[1] - find value = $1 in array = $2"
@@ -166,6 +172,7 @@ _if_marray () {
 # --
 # -- Separate piped output into columns after third item
 # --------------------------------
+help_corefunc[_pipe_separate]='Separate piped output into columns after third item or $1 items'
 function _pipe_separate() {
     local -a lines=("${(f)$(cat)}")
     local -i count=0
