@@ -48,7 +48,7 @@ php-strace () {
 # TODO what is this about?
 help_php[php-install]='One liner for install PHP'
 
-# -- 
+# -- php-redis-test
 help_php[php-redis-test]='Creates a file called redis.php that tests redis via port and socket.'
 function php-redis-test () {
 
@@ -89,4 +89,19 @@ $tcpSocketRedis->close();
 }
 ?>
 EOF
+}
+
+# -- php-timezones
+help_php[php-timezones]='Print out PHP timezones'
+function php-timezones () {
+    if (( $+commands[php] )); then        
+        php -r '
+            $timezones = DateTimeZone::listIdentifiers();
+            foreach ($timezones as $timezone) {
+                echo $timezone . PHP_EOL;
+            }
+        '
+    else
+        echo "PHP is not installed. Please install PHP and try again."
+    fi
 }
