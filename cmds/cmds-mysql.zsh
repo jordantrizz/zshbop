@@ -360,3 +360,9 @@ help_mysql[mysql-uptime]="Get MySQL uptime."
 mysql-uptime () {
     mysql -e "select TIME_FORMAT(SEC_TO_TIME(VARIABLE_VALUE ),'%Hh %im') as Uptime from performance_schema.global_status where VARIABLE_NAME='Uptime';"
 }
+
+# -- mysql-config
+lmtc_mysql[mysql-config]='Output MySQL running configuration'
+mysq-config () {
+      mysql --raw -B -N -e 'SHOW VARIABLES;'
+}
