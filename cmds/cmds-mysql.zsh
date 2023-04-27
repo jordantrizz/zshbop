@@ -363,6 +363,6 @@ mysql-uptime () {
 
 # -- mysql-config
 lmtc_mysql[mysql-config]='Output MySQL running configuration'
-mysq-config () {
+mysql-config () {
       mysql --raw -B -N -e 'SHOW VARIABLES;'
 }
