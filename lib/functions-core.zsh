@@ -52,16 +52,13 @@ function colors-print () {
 # ---------------------------------------------------------------
 help_corefunc[_require_pkg]='Check if command exists and if not install using package manager'
 _require_pkg () {
-    local array_name=$1
-    PKG=""
-    
+    local REQUIRE_PKG=$1
     _debug_all
-    _debug "Running _requires_pkg on $1"    
-    _debug "array: ${array_name}"
+    _debug "Running _requires_pkg on $REQUIRE_PKG"    
 
-    for PKG in ${(P)${array_name}}; do
-        _debug "Processing PKG: $PKG"
-        if [[ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 1 ]]; then
+    for PKG in ${REQUIRE_PKG}; do
+        _debug "Processing PKG: ${PKG} - dpkg-query -W -f='${PKG}' nano 2>/dev/null | grep -c 'ok installed'"
+        if [[ $(dpkg-query -W -f='${Status}' ${PKG} 2>/dev/null | grep -c "ok installed") == "1" ]]; then
             _debug "$PKG is installed";
             REQUIRES_PKG=0
         else
