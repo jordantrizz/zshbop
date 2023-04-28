@@ -52,7 +52,7 @@ function colors-print () {
 # ---------------------------------------------------------------
 help_corefunc[_require_pkg]='Check if command exists and if not install using package manager'
 _require_pkg () {
-        _debug_function
+        _debug_all
         _debug "Running _requires_pkg on $1"
         _debug "array: ${(P)${array_name}}"
 
@@ -84,7 +84,7 @@ _require_pkg () {
 # ----------------------------------------
 help_corefunc[_requires_cmd]='Check to see if $command is installed'
 _requires_cmd () {
-    _debug_function
+    _debug_all
     _debug "Running _requires on $1"
     _debug "array: ${(P)${array_name}}"
 
@@ -138,7 +138,7 @@ _cexists () {
 # ---------------------------------------
 help_corefunc[_checkroot]="Check if running as root"
 _checkroot () {
-        _debug_function
+        _debug_all
     if [[ $EUID -ne 0 ]]; then
         _error "Requires root...exiting."
     return

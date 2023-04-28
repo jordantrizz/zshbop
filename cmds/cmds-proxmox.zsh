@@ -54,12 +54,11 @@ pmox_help () {
 # -- pmox_init
 pmox_init () {
     # -- debug
-    _debug_all
-    _debug_function
+    _debug_all    
     
     REQUIRED_PKG=('curl' 'libguestfs-tools')
     _debug $REQUIRED_PKG
-	_require_pkg REQUIRED_PKG
+	_require_pkg $REQUIRED_PKG
 
     # -- check for pvesh
 	_cexists pvesh
@@ -84,7 +83,7 @@ pmox_init () {
 help_pmox[createvm]='Create VM'
 pmox_createvm () {
     _debug_all
-    _debug_function
+    _debug_all
     
     # -- inputs
     NAME=$2
@@ -203,7 +202,7 @@ pmox_createvm () {
 help_pmox[info]='Info about Proxmox instance'
 pmox_info () {
     _debug_all
-    _debug_function
+    _debug_all
     _banner_green "Proxmox instance infornation"
     echo "----------------------------"
     _banner_green "  -- Version"

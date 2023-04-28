@@ -42,7 +42,7 @@ kb () {
     KB=$1
 
     # -- debug function
-    _debug_function
+    _debug_all
 
     # -- set md reader
     kb_set_md_reader

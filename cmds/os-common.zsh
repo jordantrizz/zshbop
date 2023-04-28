@@ -38,7 +38,7 @@ alias tran="tran_linux_amd64"
 
 # -- check if nala is installed
 check_nala () {
-        _debug_function
+        _debug_all
         _debug "Checking if nala is installed"
         _cexists nala
         if [[ $? == "0" ]]; then
@@ -51,7 +51,7 @@ check_nala () {
 # -- _joe_ftyperc - setting up .joe folder @ISSUE needs to be moved
 # ----------------------------------------
 _joe_ftyperc () {
-    _debug_function
+    _debug_all
     _debug "Checking for ~/.joe folder"
     [[ ! -d ~/.joe ]] && mkdir ~/.joe
     

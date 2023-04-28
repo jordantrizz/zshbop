@@ -96,6 +96,7 @@ _debug_all () {
         _debug "ZSH_ARGZERO - $ZSH_ARGZERO | SCRIPT_DIR - $SCRIPT_DIR"
         _debug "--------------------------"
 }
+
 # -- Logging
 # -- Logging errors and Warnings
 ZSHBOP_LOGS=()

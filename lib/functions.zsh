@@ -12,7 +12,6 @@ alias rld="zshbop_reload"
 alias urld="zshbop_update;zshbop_reload"
 alias zb="zshbop"
 alias init="init_zshbop"
-alias _debug_function="_debug_all"
 alias zbr="cd $ZBR"
 alias motd="init_motd"
 alias report="zshbop_report"
@@ -81,7 +80,7 @@ zshbop_reload () {
 # ---------------------
 help_zshbop[startup]='Run zshbop startup'
 zshbop_startup () {
-	_debug_function
+	_debug_all
 	init_motd
 }
 
@@ -92,7 +91,7 @@ zshbop_startup () {
 # --------------------------
 help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
-        _debug_function
+        _debug_all
 		if [[ -n $2 ]]; then
 	        echo "	-- Switching to $2 branch"
     		GIT_CHECKOUT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2)
@@ -114,7 +113,7 @@ zshbop_branch  () {
 # ----------------------------
 help_zshbop[check-updates]='Check for zshbop update, not completed yet'
 zshbop_check-updates () {
-	_debug_function
+	_debug_all
 
     # Sources for version check
 	MAIN_UPDATE="https://raw.githubusercontent.com/$ZSHBOP_REPO/main/version"
@@ -163,7 +162,7 @@ zshbop_check-updates () {
 # -------------------
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
-	_debug_function
+	_debug_all
     _banner_yellow "**** START UPDATING ZSHBOP ****"
         
     # -- print out zshbop version
@@ -226,7 +225,7 @@ zshbop_update () {
 # -----------------------------------
 help_zshbop[previous-version-check]='Checking if \$HOME/.zshrc is pre v1.1.3 and replacing.'
 zshbop_previous-version-check () {
-        _debug_function
+        _debug_all
 
         # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
         _debug " -- Current $HOME/.zshrc md5 is - $ZSHBOP_HOME_MD5"
@@ -245,7 +244,7 @@ zshbop_previous-version-check () {
 # -----------------------
 help_zshbop[migrate-check]='Check if running old zshbop.'
 zshbop_migrate-check () {
-	_debug_function
+	_debug_all
         _log "Checking for legacy zshbop"        
         FOUND="0"
         for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
@@ -279,7 +278,7 @@ zshbop_migrate-check () {
 # --------------------
 help_zshbop[migrate]='Migrate old zshbop to new zshbop'
 zshbop_migrate () {
-	_debug_function
+	_debug_all
         _debug " -- Migrate old zshbop to legacy zshbop"
         FOUND="0"
         for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
@@ -358,7 +357,7 @@ zshbop_version-check () {
 help_zshbop[debug]='Turn debug on and off'
 alias debug=zshbop_debug
 zshbop_debug () {
-        _debug_function        
+        _debug_all        
         echo "test $@"
         if [[ $1 == "on" ]] || [[ $2 == "on" ]]; then
                 echo "Turning debug on"
@@ -401,7 +400,7 @@ zshbop_debug () {
 # ------------------
 help_zshbop[colors]='List variables for using color'
 zshbop_colors () {
-    _debug_function
+    _debug_all
 	
     _loading "How to use color"
     echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
@@ -451,7 +450,7 @@ zshbop_load_custom () {
 # --------------
 help_zshbop[help]='This help screen :)'
 zshbop_help () {
-        _debug_function
+        _debug_all
         echo "-- zshbop help ------------"
         echo ""
         for key in ${(kon)help_zshbop}; do
@@ -465,7 +464,7 @@ zshbop_help () {
 # --------------
 help_zshbop[report]='Print out errors and warnings'
 zshbop_report () {
-        _debug_function
+        _debug_all
         _loading "-- zshbop report ------------"
         echo ""
         _loading2 "-- logs ------------"
@@ -488,7 +487,7 @@ zshbop_report () {
 # ==============================================
 zsbhop_systemcheck () {
 	# -- start
-	_debug_function
+	_debug_all
 	_loading2 "System check on $MACHINE_OS"
 	
     # -- network interfaces
@@ -516,7 +515,7 @@ zsbhop_systemcheck () {
 # --------------
 
 zshbop () {
-	_debug_function 
+	_debug_all 
     if [[ -z $1 ]]; then
 		zshbop_help
     elif [[ $1 == "help" ]]; then    

@@ -21,7 +21,7 @@ help_sub_header () {
 
 # -- get_category_commands ($category)
 get_category_commands () {	
-	_debug_function
+	_debug_all
 	
 	# If help all is used
 	_debug "Finding category: $HCMD"

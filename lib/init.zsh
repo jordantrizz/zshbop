@@ -9,7 +9,7 @@ _debug_load
 # -- init_path - setup all the required paths.
 # ==============================================
 init_path () {
-	_debug_function
+	_debug_all
 
 	# Default paths to look for
 	export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
@@ -247,7 +247,7 @@ fi
 # -- Load os zsh scripts
 # ==============================================
 init_os () {
-	_debug_function
+	_debug_all
 	# -- Loading os defaults
 	_debug "Loading OS configuration"
 
@@ -277,7 +277,7 @@ init_os () {
 # -- Load default SSH keys into keychain
 # ==============================================
 init_sshkeys () {
-		_debug_function
+		_debug_all
 		_log "Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
             # Load default SSH key
@@ -323,7 +323,7 @@ init_sshkeys () {
 # -- init_pkg_manager
 # ==============================================
 init_pkg_manager () {
-	_debug_function
+	_debug_all
 	_debug "Running on $MACHINE_OS"
 	
 	if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
@@ -369,7 +369,7 @@ init_cmds () {
 # ==============================================
 init_zshbop () {
 	# -- Start init
-	_debug_function
+	_debug_all
     echo "$bg[yellow]$fg[black]Initilizing zshbop${RSC} - $(zshbop_version)"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
@@ -458,7 +458,7 @@ init_check_services () {
 # ==============================================
 init_systemcheck () {
 	# -- start
-	_debug_function
+	_debug_all
 	_loading2 "System check on $MACHINE_OS"
 		
 	check_diskspace # -- check disk space
@@ -470,7 +470,7 @@ init_systemcheck () {
 # ==============================================
 init_motd () {
 	# -- Start motd
-    _debug_function
+    _debug_all
 
     # -- set .joe location
     _joe_ftyperc
