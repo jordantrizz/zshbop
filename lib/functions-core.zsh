@@ -52,29 +52,29 @@ function colors-print () {
 # ---------------------------------------------------------------
 help_corefunc[_require_pkg]='Check if command exists and if not install using package manager'
 _require_pkg () {
-        _debug_all
-        _debug "Running _requires_pkg on $1"
-        _debug "array: ${(P)${array_name}}"
+    local array_name=$1
+    PKG=""
+    
+    _debug_all
+    _debug "Running _requires_pkg on $1"    
+    _debug "array: ${(P)${array_name}}"    
+    
 
-                local array_name=$1
-        PKG=""
-
-        for PKG in ${(P)${array_name}}; do
-        if [[ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 1 ]]; then
-                        if [[ $ZSH_DEBUG == 1 ]]; then
-                                _debug "$PKG is installed";
-                                REQUIRES_PKG=0
-                        fi
-                else
-                        if [[ $ZSH_DEBUG == 1 ]]; then
-                                _debug "$PKG not installed";
-                        fi
-                        echo "$PKG not installed, installing"
-                        sudo apt-get install $PKG
-                        REQUIRES_PKG=1
-                fi
-        done
-
+    for PKG in ${(P)${array_name}}; do
+    if [[ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 1 ]]; then
+                    if [[ $ZSH_DEBUG == 1 ]]; then
+                            _debug "$PKG is installed";
+                            REQUIRES_PKG=0
+                    fi
+            else
+                    if [[ $ZSH_DEBUG == 1 ]]; then
+                            _debug "$PKG not installed";
+                    fi
+                    echo "$PKG not installed, installing"
+                    sudo apt-get install $PKG
+                    REQUIRES_PKG=1
+            fi
+    done
 }
 
 # ----------------------------------------
