@@ -95,8 +95,8 @@ function system-specs () {
 	check_blockdevices show
 }
 
-help_system[count-files-dirctories]='Count files and directories'
-count-files-dirctories() {
+help_system[count-files-directories]='Count files and directories'
+function count-files-directories () {
   local dir=$1
   local num_files=0
   local num_dirs=0
