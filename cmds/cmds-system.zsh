@@ -108,7 +108,7 @@ function count-files-directories () {
       ((size+=$(stat -c %s "$item")))
     elif [[ -d $item ]]; then
       ((num_dirs++))
-      subcount=$(count_files_dirs_and_size "$item")
+      subcount=$(count-files-directories "$item")
       num_files=$((num_files + subcount[1]))
       num_dirs=$((num_dirs + subcount[2]))
       size=$((size + subcount[3]))
