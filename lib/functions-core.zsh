@@ -57,7 +57,7 @@ _require_pkg () {
     
     _debug_all
     _debug "Running _requires_pkg on $1"    
-    _debug "array: ${(P)${array_name}}"        
+    _debug "array: ${array_name}"
 
     for PKG in ${(P)${array_name}}; do
         _debug "Processing PKG: $PKG"
