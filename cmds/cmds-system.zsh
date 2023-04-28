@@ -102,10 +102,14 @@ function count-files-directories () {
     if [[ -d "${target_dir}" ]]; then
         num_files=$(find "${target_dir}" -type f | wc -l)
         num_dirs=$(find "${target_dir}" -type d | wc -l)
+        total_size=$(du -sh "${target_dir}" | cut -f1)
 
         echo "Number of files in ${target_dir}: ${num_files}"
         echo "Number of directories in ${target_dir}: ${num_dirs}"
+        echo "Total size of ${target_dir}: ${total_size}"
+
     else
         echo "Error: ${target_dir} is not a valid directory"
     fi
+
 }
