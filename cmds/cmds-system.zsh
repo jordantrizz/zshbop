@@ -110,7 +110,7 @@ function count-files-directories () {
 
         if [[ -d "${target_dir}/wp-content" ]]; then
             echo "Size breakdown of directories in ${target_dir}:"
-            find "${target_dir}" -mindepth 1 -type d -exec du -sh {} \; | sort -hr
+            find "${target_dir}" -maxdepth 1 -type d -exec du -sh {} \; | sort -hr
         fi
     else
         echo "Error: ${target_dir} is not a valid directory"
