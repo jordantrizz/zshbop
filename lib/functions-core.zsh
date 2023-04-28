@@ -57,23 +57,18 @@ _require_pkg () {
     
     _debug_all
     _debug "Running _requires_pkg on $1"    
-    _debug "array: ${(P)${array_name}}"    
-    
+    _debug "array: ${(P)${array_name}}"        
 
     for PKG in ${(P)${array_name}}; do
-    if [[ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 1 ]]; then
-                    if [[ $ZSH_DEBUG == 1 ]]; then
-                            _debug "$PKG is installed";
-                            REQUIRES_PKG=0
-                    fi
-            else
-                    if [[ $ZSH_DEBUG == 1 ]]; then
-                            _debug "$PKG not installed";
-                    fi
-                    echo "$PKG not installed, installing"
-                    sudo apt-get install $PKG
-                    REQUIRES_PKG=1
-            fi
+        if [[ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 1 ]]; then
+            _debug "$PKG is installed";
+            REQUIRES_PKG=0
+        else
+            _debug "$PKG not installed";        
+            echo "$PKG not installed, installing"
+            sudo apt-get install $PKG
+            REQUIRES_PKG=1
+        fi
     done
 }
 
