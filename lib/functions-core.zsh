@@ -60,6 +60,7 @@ _require_pkg () {
     _debug "array: ${(P)${array_name}}"        
 
     for PKG in ${(P)${array_name}}; do
+        _debug "Processing PKG: $PKG"
         if [[ $(dpkg-query -W -f='${Status}' nano 2>/dev/null | grep -c "ok installed") -eq 1 ]]; then
             _debug "$PKG is installed";
             REQUIRES_PKG=0
