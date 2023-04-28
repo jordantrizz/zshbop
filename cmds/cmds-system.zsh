@@ -97,9 +97,15 @@ function system-specs () {
 
 help_system[count-files-directories]='Count files and directories'
 function count-files-directories () {
-    _loading "Counting files and directories"
-    find . -type d -print0 | while read -d '' -r dir; do
-        files=("$dir"/*)
-        printf "%5d files in directory %s\n" "${#files[@]}" "$dir"
-    done
+    local target_dir="$1"
+
+    if [[ -d "${target_dir}" ]]; then
+        num_files=$(find "${target_dir}" -type f | wc -l)
+        num_dirs=$(find "${target_dir}" -type d | wc -l)
+
+        echo "Number of files in ${target_dir}: ${num_files}"
+        echo "Number of directories in ${target_dir}: ${num_dirs}"
+    else
+        echo "Error: ${target_dir} is not a valid directory"
+    fi
 }
