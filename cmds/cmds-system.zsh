@@ -93,6 +93,31 @@ function system-specs () {
     # -- check block devices
     _loading2 "Checking block devices"
 	check_blockdevices show
+}
 
+help_system[count-files-dirctories]='Count files and directories'
+count-files-dirctories() {
+  local dir=$1
+  local num_files=0
+  local num_dirs=0
+  local size=0
 
+  for item in $dir/*; do
+    if [[ -f $item ]]; then
+      ((num_files++))
+      ((size+=$(stat -c %s "$item")))
+    elif [[ -d $item ]]; then
+      ((num_dirs++))
+      subcount=$(count_files_dirs_and_size "$item")
+      num_files=$((num_files + subcount[1]))
+      num_dirs=$((num_dirs + subcount[2]))
+      size=$((size + subcount[3]))
+    fi
+  done
+
+  echo "Number of files: $num_files"
+  echo "Number of directories: $num_dirs"
+  echo "Total size: $size bytes"
+
+  return ($num_files, $num_dirs, $size)
 }
