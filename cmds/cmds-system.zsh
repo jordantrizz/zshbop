@@ -103,14 +103,15 @@ function count-files-directories () {
         num_files=$(find "${target_dir}" -type f | wc -l)
         num_dirs=$(find "${target_dir}" -type d | wc -l)
         total_size=$(du -sh "${target_dir}" | cut -f1)
+        _loading "Getting details on ${target_dir}"
 
-        echo "Number of files in ${target_dir}: ${num_files}"
-        echo "Number of directories in ${target_dir}: ${num_dirs}"
-        echo "Total size of ${target_dir}: ${total_size}"
+        _loading3 "Number of files: ${num_files}"
+        _loading3 "Number of directories: ${num_dirs}"
+        _loading3 "Total size: ${total_size}"
 
         if [[ -d "${target_dir}/wp-content" ]]; then
-            echo "Size breakdown of directories in ${target_dir}:"
-            find "${target_dir}" -maxdepth 1 -type d -exec du -sh {} \; | sort -hr
+            _loading "Size breakdown of ${target_dir}/wp-content"
+            find "${target_dir}/wp-content" -maxdepth 1 -type d -exec du -sh {} \; | sort -hr
         fi
     else
         echo "Error: ${target_dir} is not a valid directory"
