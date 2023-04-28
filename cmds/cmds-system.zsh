@@ -97,27 +97,9 @@ function system-specs () {
 
 help_system[count-files-directories]='Count files and directories'
 function count-files-directories () {
-  local dir=$1
-  local num_files=0
-  local num_dirs=0
-  local size=0
-
-  for item in $dir/*; do
-    if [[ -f $item ]]; then
-      ((num_files++))
-      ((size+=$(stat -c %s "$item")))
-    elif [[ -d $item ]]; then
-      ((num_dirs++))
-      subcount=$(count-files-directories "$item")
-      num_files=$((num_files + subcount[1]))
-      num_dirs=$((num_dirs + subcount[2]))
-      size=$((size + subcount[3]))
-    fi
-  done
-
-  echo "Number of files: $num_files"
-  echo "Number of directories: $num_dirs"
-  echo "Total size: $size bytes"
-
-  return ($num_files, $num_dirs, $size)
+    _loading "Counting files and directories"
+    find . -type d -print0 | while read -d '' -r dir; do
+        files=("$dir"/*)
+        printf "%5d files in directory %s\n" "${#files[@]}" "$dir"
+    done
 }
