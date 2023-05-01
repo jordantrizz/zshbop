@@ -111,7 +111,8 @@ listen.mode = 0666
 user = site
 group = site
 ```
-4. Setup Home Directory
+4. Change /home and /home/site permissions
 ```
+chmod 701 /home
 chmod 750 /home/site
 ```
