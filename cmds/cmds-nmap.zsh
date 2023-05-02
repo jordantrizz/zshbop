@@ -37,6 +37,6 @@ open-ports () {
 			echo "	Example: open-ports 192.168.1.1"
 		else
 			_require_pkg nmap
-            nmap -sP $1
+            nmap -T4 -n -Pn $1
 		fi
 }
