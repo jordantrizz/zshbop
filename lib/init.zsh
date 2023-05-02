@@ -429,7 +429,7 @@ function init_check_services () {
     _banner_yellow "-- Checking Service Versions"
 
     # -- proxmox 
-    if (( $+commands[pveversion >/dev/null 2>&1] )) && _success "Proxmox: $(pveversion -v)" || _log "Proxmox Server not installed"
+    if (( $+commands[pveversion] )) && _success "Proxmox: $(pveversion 2>&1)" || _log "Proxmox Server not installed"
  
 	# - mysql	    
 	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || _log "MySQL Server not installed"
