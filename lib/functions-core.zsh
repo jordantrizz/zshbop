@@ -61,11 +61,12 @@ function _require_pkg () {
         if [[ $(dpkg-query -W -f='${Status}' ${PKG} 2>/dev/null | grep -c "ok installed") == "1" ]]; then
             _debug "$PKG is installed";
             REQUIRES_PKG=0
+            return 0
         else
             _debug "$PKG not installed";        
             echo "$PKG not installed, installing"
             sudo apt-get install $PKG
-            REQUIRES_PKG=1
+            REQUIRES_PKG=1            
         fi
     done
 }

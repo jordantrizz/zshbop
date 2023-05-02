@@ -21,14 +21,11 @@ _debug " -- Loading ${(%):-%N}"
 help_nmap[ping-sweep]="Ping sweep, return on line hosts with ARP and vendor ID's"
 ping-sweep () {
 	if [[ -z $1 ]]; then
-			echo "Usage: ping-sweep <range>"
-			echo "	Example: ping-sweep 192.168.1.1-255"
+        echo "Usage: ping-sweep <range>"
+        echo "	Example: ping-sweep 192.168.1.1-255"
 	else
-			if [[ _require_pkg nmap ]]; then            
-                nmap -sP $1
-            else
-                _require_pkg nmap
-            fi
+        _require_pkg nmap
+        nmap -sP $1
 	fi
 }
 
@@ -39,10 +36,7 @@ open-ports () {
 			echo "Usage: open-ports <range>"
 			echo "	Example: open-ports 192.168.1.1"
 		else
-			if [[ _require_pkg nmap ]]; then            
-                nmap -sP $1
-            else
-                _require_pkg nmap
-            fi
+			_require_pkg nmap
+            nmap -sP $1
 		fi
 }
