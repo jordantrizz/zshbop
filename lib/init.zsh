@@ -432,7 +432,7 @@ function init_check_services () {
     if (( $+commands[pveversion] )) && _success "Proxmox: $(pveversion 2>1)" || _log "Proxmox Server not installed"
  
 	# - mysql	    
-	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || { _log "MySQL Server not installed";echo "MySQL not installed, but could be using remote database" }
+	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || { _log "MySQL Server not installed";_warning "MySQL not installed, but could be using remote database" }
 	
 	# - nginx
 	if (( $+commands[nginx] )) && _success "Nginx: $(nginx -v 2>&1 >/dev/null)" || _log "Nginx not installed"	
