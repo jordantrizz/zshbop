@@ -480,6 +480,11 @@ zshbop_report () {
         for key in ${(kon)ZSHBOP_WARNINGS}; do
             echo "- $key"
         done
+        echo ""
+        _loading2 "-- alerts ------------"
+        for key in ${(kon)ZSHBOP_ALERTS}; do
+            echo "- $key"
+        done
 }
 
 # ==============================================

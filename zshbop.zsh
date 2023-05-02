@@ -110,6 +110,7 @@ _debug_all () {
 ZSHBOP_LOGS=()
 ZSHBOP_ERRORS=()
 ZSHBOP_WARNINGS=()
+ZSHBOP_ALERTS=()
 
 ZSH_VERBOSE="0"
 ZSHBOP_LOGS=""
@@ -118,6 +119,7 @@ _log () { [[ $ZSH_VERBOSE == 1 ]] && echo "\033[30m** VERBOSE: ${*}\033[0m"; ZSH
 _error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
 _error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
 _warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@"); }
+_alert () { echo "$bg[yellow] $fg[black] * $@ ${RSC}"; ZSHBOP_ALERTS+=("$@"); }
 
 # ---------------
 # -- Source files
