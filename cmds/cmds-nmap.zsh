@@ -24,7 +24,11 @@ ping-sweep () {
 			echo "Usage: ping-sweep <range>"
 			echo "	Example: ping-sweep 192.168.1.1-255"
 	else
-			nmap -sP $1
+			if [[ _require_pkg nmap ]]; then            
+                nmap -sP $1
+            else
+                _require_pkg nmap
+            fi
 	fi
 }
 
@@ -35,6 +39,10 @@ open-ports () {
 			echo "Usage: open-ports <range>"
 			echo "	Example: open-ports 192.168.1.1"
 		else
-			nmap -F $1
+			if [[ _require_pkg nmap ]]; then            
+                nmap -sP $1
+            else
+                _require_pkg nmap
+            fi
 		fi
 }

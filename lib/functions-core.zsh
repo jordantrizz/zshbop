@@ -51,7 +51,7 @@ function colors-print () {
 # -- Check to see if command exists and if not install
 # ---------------------------------------------------------------
 help_corefunc[_require_pkg]='Check if command exists and if not install using package manager'
-_require_pkg () {
+function _require_pkg () {
     local REQUIRE_PKG=$1
     _debug_all
     _debug "Running _requires_pkg on $REQUIRE_PKG"    
@@ -85,20 +85,22 @@ _requires_cmd () {
     CMD=""
 
     for CMD in ${(P)${array_name}}; do
-            if (( $+commands[$CMD] )); then
-            _debug $(which $CMD)
-                    if [[ $ZSH_DEBUG == 1 ]]; then
-                            _debug "$CMD is installed";
-                            REQUIRES_CMD=0
-                    fi
-            else
-                    if [[ $ZSH_DEBUG == 1 ]]; then
-                            _debug "$CMD not installed";
-                    fi
-                    echo "$CMD not installed"
-                    REQUIRES_CMD=1
+        if (( $+commands[$CMD] )); then
+        _debug $(which $CMD)
+            if [[ $ZSH_DEBUG == 1 ]]; then
+                _debug "$CMD is installed";
+                REQUIRES_CMD=0
+                return 0
             fi
-        done
+        else
+            if [[ $ZSH_DEBUG == 1 ]]; then
+                    _debug "$CMD not installed";
+            fi
+            echo "$CMD not installed"
+            REQUIRES_CMD=1
+            return 1
+        fi
+    done
 }
 
 # ------------------------------------------------------------------------
