@@ -428,6 +428,9 @@ function init_check_services () {
     # -- Check system software versions
     _banner_yellow "-- Checking Service Versions"
 
+    # -- cloudflared
+    if (( $+commands[cloudflared -v] )) && _warning "cloudflared: $(cloudflared -v)" || _log "Proxmox Server not installed"
+
     # -- proxmox 
     if (( $+commands[pveversion] )) && _success "Proxmox: $(pveversion 2>/dev/null)" || _log "Proxmox Server not installed"
  
