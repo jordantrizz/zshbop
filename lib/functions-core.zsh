@@ -87,16 +87,11 @@ _requires_cmd () {
     for CMD in ${(P)${array_name}}; do
         if (( $+commands[$CMD] )); then
         _debug $(which $CMD)
-            if [[ $ZSH_DEBUG == 1 ]]; then
-                _debug "$CMD is installed";
-                REQUIRES_CMD=0
-                return 0
-            fi
+            _debug "$CMD is installed";
+            REQUIRES_CMD=0
+            return 0
         else
-            if [[ $ZSH_DEBUG == 1 ]]; then
-                    _debug "$CMD not installed";
-            fi
-            echo "$CMD not installed"
+            _debug "$CMD not installed";
             REQUIRES_CMD=1
             return 1
         fi
