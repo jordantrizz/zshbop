@@ -112,6 +112,7 @@ ZSHBOP_ERRORS=()
 ZSHBOP_WARNINGS=()
 
 ZSH_VERBOSE="0"
+ZSHBOP_LOGS=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
 _log () { [[ $ZSH_VERBOSE == 1 ]] && echo "\033[30m** VERBOSE: ${*}\033[0m"; ZSHBOP_LOGS+=("${*}"); }
 _error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }

@@ -424,7 +424,7 @@ init_check_software () {
 # ==============================================
 # -- init_check_services
 # ==============================================
-init_check_services () {
+function init_check_services () {
     # -- Check system software versions
     _banner_yellow "-- Checking Service Versions"
 
