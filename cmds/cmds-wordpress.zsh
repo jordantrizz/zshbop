@@ -151,3 +151,27 @@ help_wordpress[wp-plugins]='List plugins'
 function wp-plugins () {
     wp plugin status
 }
+
+# -- wppd
+help_wordpress[wppd]='WordPress Plugin deactivate'
+function wppd () {
+    if [ -z $1 ]; then 
+        echo "$0 <plugin>";
+        echo ""
+        echo "example: wppd akismet"		
+    else 
+        wp plugin deactivate $1
+    fi	
+}
+
+# -- wppa
+help_wordpress[wppa]='WordPress Plugin activate'
+function wppa () {
+    if [ -z $1 ]; then 
+        echo "$0 <plugin>";
+        echo ""
+        echo "example: wppa akismet"		
+    else 
+        wp plugin activate $1
+    fi	
+}
