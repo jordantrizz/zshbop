@@ -8,9 +8,18 @@ typeset -gA help_cron # Init help array.
 # -- cron-list-users
 help_cron[cron-list-users]="List user crons"
 function cron-list-users() {
-    for user in /var/spool/cron/crontabs/*(N); do
+    if [[ -d /var/spool/cron/crontabs/ ]]; then
+        $CRON_SPOOL="/var/spool/cron/crontabs/"
+    elif [[ -d /var/spool/cron/ ]]; then
+        $CRON_SPOOL="/var/spool/cron/"
+    else
+        _error "No cron spool folder found"
+        return 1
+    fi
 
-        _loading "Crons for user ${user:t}: in /var/spool/cron/crontabs/${user:t}:"
+    for user in ${CRON_SPOOL}*(N); do
+
+        _loading "Crons for user ${user:t}: in ${CRON_SPOOL}${user:t}:"
         cat $user | grep -v "#"
         echo "----------------------------------------------------"
     done
