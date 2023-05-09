@@ -8,6 +8,9 @@
 ## Update netdata
 * ```wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --dry-run```
 
+# Common Commands
+* Reload health ```netdatacli reload-health```
+
 # Install Notes
 ## Specify different temporary directory, instead of default /tmp
 * ```env TMPDIR=/root/tmp bash <(curl -Ss https://my-netdata.io/kickstart.sh)```

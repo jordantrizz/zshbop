@@ -93,6 +93,8 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * Edit /etc/hostname file from “proxmox1″ to “proxmox2″.
 * ```cp -R /etc/pve/nodes/oldhostname/ /root/```
 * ```mv /etc/pve/nodes/oldhostname/* /etc/pve/nodes/newhostname/*```
+* ```restart```
+* Update /etc/pve/storage.cfg with the new hostname.
 
 # Troubleshooting
 ## Backup Stuck
