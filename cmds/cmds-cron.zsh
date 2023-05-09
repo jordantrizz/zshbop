@@ -9,9 +9,9 @@ typeset -gA help_cron # Init help array.
 help_cron[cron-list-users]="List user crons"
 function cron-list-users() {
     if [[ -d /var/spool/cron/crontabs/ ]]; then
-        $CRON_SPOOL="/var/spool/cron/crontabs/"
+        CRON_SPOOL="/var/spool/cron/crontabs/"
     elif [[ -d /var/spool/cron/ ]]; then
-        $CRON_SPOOL="/var/spool/cron/"
+        CRON_SPOOL="/var/spool/cron/"
     else
         _error "No cron spool folder found"
         return 1
