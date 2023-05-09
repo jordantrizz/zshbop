@@ -152,3 +152,27 @@ function wp-plugins () {
     wp plugin status
 }
 
+# -- wp-cronshim
+help_wordpress[wp-cronshim]='Run wp-cron via cron-shim.sh'
+function wp-cronshim () {
+    echo "Downloading cron-shim.sh... via https://raw.githubusercontent.com/managingwp/wp-shelltools/main/scripts/cron-shim.sh"
+    curl -O https://raw.githubusercontent.com/managingwp/wp-shelltools/main/scripts/cron-shim.sh
+    chmod u+x cron-shim.sh
+}
+
+# -- wp-cli-install
+help_wordpress[wp-cli-install]='Install wp-cli'
+function wp-cli-install () {
+    if [[ -f /usr/local/bin/wp ]]; then
+        echo "wp-cli already installed"
+        return 1
+    else
+        echo "Installing wp-cli..."
+        # https://wp-cli.org/#installing
+        # download via curl to /tmp
+        curl -o /tmp/wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar 
+        chmod +x /tmp/wp-cli.phar
+        mv wp-cli.phar /usr/local/bin/wp
+        echo "wp-cli installed"
+    fi
+}
