@@ -1,15 +1,6 @@
-# --[6~
-# Mail commands
-#
-# Example help: help_wordpress[wp]='Generate phpinfo() file'
-#
-# --
+# -- WordPress
 _debug " -- Loading ${(%):-%N}"
-
-# What help file is this?
 help_files[wordpress]='WordPress related commands'
-
-# - Init help array
 typeset -gA help_wordpress
 
 # -- wp-cli but allow root ;)
@@ -99,11 +90,18 @@ wp-autoload () {
 }
 
 # -- wp-login
-help_wordpress[wp-login]='Install login module'
+help_wordpress[wp-login]='Install wp-cli-login-command module'
 wp-login () {
 	wp package install aaemnnosttv/wp-cli-login-command
 	wp login install --activate
 }
+
+# -- wp-force-login
+help_wordpress[wp-force-login]='Force login to WordPress site'
+wp-force-login () {
+    wp plugin install --activate wp-force-login
+}
+
 
 # -- wp-doctor
 help_wordpress[wp-doctor]='Install wp-doctor module'
