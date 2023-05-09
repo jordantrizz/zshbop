@@ -109,6 +109,7 @@ init_omz_plugins () {
 
 	# load plugins
 	plugins=(
+		aliases
 		z
 		colored-man-pages
 		command-not-found
