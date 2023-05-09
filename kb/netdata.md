@@ -34,6 +34,25 @@ Copies default config to override directory.
 enabled=no
 ```
 
+## Agent Slack Notifications
+See https://learn.netdata.cloud/docs/alerts-and-notifications/notifications/agent-alert-notifications/slack
+### 1 - Open health_alarm_notify.conf
+```
+cd /etc/netdata
+./edit-config health_alarm_notify.conf
+```
+### 2 - Search and Replace
+* Set SEND_SLACK to YES.
+* Set SLACK_WEBHOOK_URL to your Slack app's webhook URL.
+* Set DEFAULT_RECIPIENT_SLACK to the Slack channel your Slack app is set to send messages to.
+
+### 3 - Example
+```
+SEND_SLACK="YES"
+SLACK_WEBHOOK_URL="https://hooks.slack.com/services/XXXXXXXX/XXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" 
+DEFAULT_RECIPIENT_SLACK="#alarms"
+```
+
 ## Silence Specific Alarms
 1. Locate the Alarm
 ```grep 'web_log_' /usr/lib/netdata -R```
