@@ -26,6 +26,7 @@ init_path () {
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
 	export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
+    export PATH=$PATH:/root/.acme.sh/ # acme.sh
 	
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
