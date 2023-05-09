@@ -53,6 +53,13 @@ SLACK_WEBHOOK_URL="https://hooks.slack.com/services/XXXXXXXX/XXXXXXXX/XXXXXXXXXX
 DEFAULT_RECIPIENT_SLACK="#alarms"
 ```
 
+## Testing Alerts
+```
+sudo su -s /bin/bash netdata
+export NETDATA_ALARM_NOTIFY_DEBUG=1
+/usr/libexec/netdata/plugins.d/alarm-notify.sh test
+```
+
 ## Silence Specific Alarms
 1. Locate the Alarm
 ```grep 'web_log_' /usr/lib/netdata -R```
