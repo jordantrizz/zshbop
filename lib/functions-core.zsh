@@ -25,8 +25,8 @@ _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
 _banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
 _loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" }
 _loading2 () { echo " $bg[bright-grey]$fg[black] * ${@}${RSC}" }
-_loading3 () { echo "$fg[bright-grey]${@}${RSC}" }
-_loading4 () { echo "$fg[bright-grey]${@}${RSC}" }
+_loading3 () { echo "  $fg[bright-grey]${@}${RSC}" }
+_loading4 () { echo "   $fg[bright-grey]${@}${RSC}" }
 alias _loading_grey=_loading2
 
 COLOR_FUNCTIONS=(_error _warning _success _noticebg _noticefg _banner_red _banner_green  _banner_grey _loading _loading2 _loading3 _loading4)
