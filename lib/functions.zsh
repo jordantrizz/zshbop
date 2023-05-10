@@ -66,11 +66,9 @@ zshbop_scc () {
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _loading "Reloading zshbop"
+    export RUN_REPORT=1
     zshbop_cacheclear
-	source $HOME/.zshrc
-	_warning "You may have to close your shell and restart it to see changes"
-    echo ""
-    zshbop_report
+	exec zsh
 }
 
 # ---------------------
@@ -464,27 +462,30 @@ zshbop_help () {
 # --------------
 help_zshbop[report]='Print out errors and warnings'
 zshbop_report () {
-        _debug_all
-        _loading "-- zshbop report ------------"
-        echo ""
-        _loading2 "-- logs ------------"
-        for key in ${(kon)ZSHBOP_LOGS}; do
-            echo "- $key"
+    local LOG_LEVEL="$1"
+    local SHOW_LEVEL=()
+    
+    # -- if no log level passed, set to errors
+    if [[ $LOG_LEVEL = "all" ]]; then        
+        SHOW_LEVEL=("logs" "warnings" "alerts" "errors")
+    else        
+        SHOW_LEVEL=("warnings" "alerts" "errors")
+    fi
+
+    # -- start
+    _debug_all
+    _loading "-- zshbop report ------------"
+    echo ""    
+
+    # -- print out logs
+    for LOG in $SHOW_LEVEL; do
+        _loading2 "-- $LOG ------------"
+        ZSHBOP_LOGLEVEL="ZSHBOP_$LOG"
+        for ENTRY in ${(kon)${(P)ZSHBOP_LOGLEVEL:u}}; do
+            echo "- $ENTRY"
         done
-        _loading2 "-- errors ------------"
-        for key in ${(kon)ZSHBOP_ERRORS}; do
-            echo "- $key"
-        done
-        echo ""
-        _loading2 "-- warnings ------------"
-        for key in ${(kon)ZSHBOP_WARNINGS}; do
-            echo "- $key"
-        done
-        echo ""
-        _loading2 "-- alerts ------------"
-        for key in ${(kon)ZSHBOP_ALERTS}; do
-            echo "- $key"
-        done
+    done
+    echo ""
 }
 
 # ==============================================

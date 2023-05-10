@@ -23,10 +23,6 @@ alias ps="ps -auxwwf"
 # -- tran - https://github.com/abdfnx/tran/releases
 alias tran="tran_linux_amd64"
 
-# -- macchina
-alias macchine="macchina-linux-x86_64"
-alias os="macchine"
-
 # -- interfaces
 help_linux[interfaces]="List interfaces ip, mac and link"
 interfaces_linux () {

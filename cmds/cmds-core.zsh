@@ -293,3 +293,9 @@ function debugz() {
   $func_name "$@"
   set +x
 }
+
+# -- os - return os
+help_core[os]='Return OS'
+function os() {
+  echo "$MACHINE_OS / $MACHINE_OS_FLAVOUR"
+}

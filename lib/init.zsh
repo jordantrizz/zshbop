@@ -96,9 +96,7 @@ init_detectos () {
     if [[ $(uname -a) =~ "synology" ]]; then
         MACHINE_OS="synology"
     fi
-
     
-
     # -- Detect OS flavour
     if [[ -e /etc/redhat-release ]] && grep -q -i -e "Red Hat" -e "CentOS" /etc/redhat-release; then
         MACHINE_OS_FLAVOUR="redhat"        
@@ -521,6 +519,12 @@ init_motd () {
 	# -- env-install
 	_loading "Run env-install to install default and extra tools. Run system-specs for more system details."
 	
+    # -- run report after exec zsh
+    if [[ $RUN_REPORT == "1" ]]; then
+        zshbop_report
+        export RUN_REPORT=0
+    fi
+    
     # -- last echo to keep motd clean
     echo ""
 }
