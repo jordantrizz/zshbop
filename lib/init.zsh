@@ -77,27 +77,37 @@ init_add_path () {
 # -- init_detectos -- detect the OS running
 # ==============================================
 init_detectos () {
-        # -- Detect operating system        
-        export UNAME=$(uname -s)
-        case "${UNAME}" in
-            Linux*)     MACHINE_OS=linux;;
-            Darwin*)    MACHINE_OS=mac;;
-            CYGWIN*)    MACHINE_OS=cygwin;;
-            MINGW*)     MACHINE_OS=mingw;;
-            *)          MACHINE_OS="UNKNOWN:${UNAME}"
-        esac
+    # -- Detect operating system        
+    export UNAME=$(uname -s)
+    case "${UNAME}" in
+        Linux*)     MACHINE_OS=linux;;
+        Darwin*)    MACHINE_OS=mac;;
+        CYGWIN*)    MACHINE_OS=cygwin;;
+        MINGW*)     MACHINE_OS=mingw;;
+        *)          MACHINE_OS="UNKNOWN:${UNAME}"
+    esac
 
-        # -- Check for WSL and set as MACHINE_OS
-        if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
-            MACHINE_OS="wsl"
-        fi
+    # -- Check for WSL and set as MACHINE_OS
+    if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
+        MACHINE_OS="wsl"
+    fi
 
-        # -- Check for synology and set as MACHINE_OS
-        if [[ $(uname -a) =~ "synology" ]]; then
-            MACHINE_OS="synology"
-        fi
+    # -- Check for synology and set as MACHINE_OS
+    if [[ $(uname -a) =~ "synology" ]]; then
+        MACHINE_OS="synology"
+    fi
 
-        _loading_grey "Detecting Operating System - Running in ${MACHINE_OS}"
+    
+
+    # -- Detect OS flavour
+    if [[ -e /etc/redhat-release ]] && grep -q -i -e "Red Hat" -e "CentOS" /etc/redhat-release; then
+        MACHINE_OS_FLAVOUR="redhat"        
+    elif [[ -e /etc/os-release ]] && grep -q -i -e "debian" -e "ubuntu" /etc/os-release; then
+        MACHINE_OS_FLAVOUR="debian"
+    else
+        MACHINE_OS_FLAVOUR="unknown"
+    fi
+    _loading_grey "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
 }
 
 # ==============================================
