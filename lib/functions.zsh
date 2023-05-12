@@ -338,9 +338,9 @@ zshbop_version-check () {
         
     _loading2 "Checking if $HOME/.zshrc is the same as $ZSHBOP/.zshrc"
     if [[ $ZSHBOP_HOME_MD5 == $ZSHBOP_INSTALL_MD5 ]]; then
-      _success "  \$HOME/.zshrc and  \$ZSHBOP/.zshrc are the same."
+        _success "  \$HOME/.zshrc and  \$ZSHBOP/.zshrc are the same."
     else
-      _error "  \$HOME/.zshrc and \$ZSHBOP/.zshrc are the different."
+        _error "  \$HOME/.zshrc and \$ZSHBOP/.zshrc are the different."
     fi
     
     # -- checking branch git commit versus current commit
@@ -355,42 +355,42 @@ zshbop_version-check () {
 help_zshbop[debug]='Turn debug on and off'
 alias debug=zshbop_debug
 zshbop_debug () {
-        _debug_all        
-        echo "test $@"
-        if [[ $1 == "on" ]] || [[ $2 == "on" ]]; then
-                echo "Turning debug on"
-                _debug "Turning debug on"
-                touch $ZSHBOP_ROOT/.debug
-                echo "Reloading to enable debug"
+    _debug_all        
+    echo "test $@"
+    if [[ $1 == "on" ]] || [[ $2 == "on" ]]; then
+            echo "Turning debug on"
+            _debug "Turning debug on"
+            touch $ZSHBOP_ROOT/.debug
+            echo "Reloading to enable debug"
+            rld
+    elif [[ $1 == "off" ]] || [[ $2 == "off" ]]; then
+            echo "Turning debug off"
+            _debug "Turning debug off"
+            if [[ -f $ZSHBOP_ROOT/.debug ]]; then
+                rm $ZSHBOP_ROOT/.debug    	            
+            else
+                _error "$ZSHBOP_ROOT/.debug doesn't exist"
                 rld
-        elif [[ $1 == "off" ]] || [[ $2 == "off" ]]; then
-                echo "Turning debug off"
-                _debug "Turning debug off"
-                if [[ -f $ZSHBOP_ROOT/.debug ]]; then
-	                rm $ZSHBOP_ROOT/.debug    	            
-                else
-    	        	_error "$ZSHBOP_ROOT/.debug doesn't exist"
-	                rld
-	            fi
-       	        if [[ -f $ZSHBOP_ROOT/.verbose ]]; then
-                    rm $ZSHBOP_ROOT/.verbose
-                else
-                    _error "$ZSHBOP_ROOT/.verbose doesn't exist"
-                fi
-                echo "Reloading to disable debug"
-                rld
-        elif [[ $1 == "verbose" ]] || [[ $2 == "verbose" ]]; then
-                echo "Turning debug verbose on"
-                _debug "Turning debug verbose on"
-                touch $ZSHBOP_ROOT/.verbose
-                touch $ZSHBOP_ROOT/.debug
-                echo "Reloading to enable debug verbose"
-                rld
-        else
-				_error "nothing passed"
-                echo "Usage: debug <on|off|verbose>"
-                echo "Debug is $ZSH_DEBUG"
-        fi
+            fi
+            if [[ -f $ZSHBOP_ROOT/.verbose ]]; then
+                rm $ZSHBOP_ROOT/.verbose
+            else
+                _error "$ZSHBOP_ROOT/.verbose doesn't exist"
+            fi
+            echo "Reloading to disable debug"
+            rld
+    elif [[ $1 == "verbose" ]] || [[ $2 == "verbose" ]]; then
+            echo "Turning debug verbose on"
+            _debug "Turning debug verbose on"
+            touch $ZSHBOP_ROOT/.verbose
+            touch $ZSHBOP_ROOT/.debug
+            echo "Reloading to enable debug verbose"
+            rld
+    else
+            _error "nothing passed"
+            echo "Usage: debug <on|off|verbose>"
+            echo "Debug is $ZSH_DEBUG"
+    fi
 }
 
 # ------------------
