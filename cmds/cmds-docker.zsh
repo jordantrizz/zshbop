@@ -44,3 +44,16 @@ help_docker[dcv]='docker-compose version'
 alias dcv='docker-compose version ${*}'
 help_docker[dcrc]='docker-compose up --force-recreate -d'
 alias dcrc='docker-compose up --force-recreate -d ${*}'
+
+help_docker[dip]='Find docker ip address'
+function dip () {
+    # List all Docker containers and their IPs
+    for container in $(docker ps -q)
+    do
+        container_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container)
+        container_name=$(docker inspect -f '{{.Name}}' $container | sed 's/\///')
+        echo "Container Name: $container_name"
+        echo "Container IP: $container_ip"
+        echo ""
+    done
+}
