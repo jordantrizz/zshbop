@@ -22,7 +22,7 @@ help_domain[domain-info]='Check a domains name servers and www and a record and 
 # --- dom
 help_domain[dom]='Check a domains availability, www, mx etc'
 function dom () {
-    domaincheck $1
+    domain $1
     domain-info $1
 }
 
