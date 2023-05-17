@@ -181,3 +181,17 @@ function _pipe_separate() {
     echo ""
 }
 
+_detect_host_type() {
+  local dmi_output
+  dmi_output=$(sudo dmidecode -s system-product-name 2>/dev/null)
+
+  if [[ -n $dmi_output ]]; then
+    if [[ $dmi_output == Virtual* ]]; then
+      echo "Virtual Machine"
+    else
+      echo "Physical Machine"
+    fi
+  else
+    echo "Unable to determine"
+  fi
+}
