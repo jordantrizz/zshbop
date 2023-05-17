@@ -23,6 +23,7 @@ function bios-info() {
         sudo smbios-sys-info
     else
         _error "smbios-sys-info not found"
+        _require_package libsmbios-bin
         return 1
     fi
 }
