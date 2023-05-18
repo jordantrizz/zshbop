@@ -216,8 +216,14 @@ function proxmox_createtemp () {
 
     IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
     IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${IMAGE_FILE}"
-    _debugf "curl -o /tmp/$IMAGE_FILE $IMAGE_URL"
-    curl -o /tmp/$IMAGE_FILE $IMAGE_URL
+    TEMP_DIR="/tmp"
+    _debug "Checking if $IMAGE_FILE exists in $TEMP_DIR"
+    if [[ -f ${TEMP_DIR}/${IMAGE_FILE} ]]; then
+        _debug "$IMAGE_FILE already in $TEMP_DIR"
+    else
+        _debugf "curl -o /tmp/$IMAGE_FILE $IMAGE_URL"
+        curl -o /tmp/$IMAGE_FILE $IMAGE_URL
+    fi
 
     _debugf "qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}"
     qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
