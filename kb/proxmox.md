@@ -1,8 +1,58 @@
 # Common Proxmox Commands
 * List Storage ```pvesm list```
 * List VM Config ```qm config 102```
+* List Cloud Init Settings ```qm cloudinit dump 102 user```
+* Restart Proxmox ```systemctl restart pve-cluster```
 
-# Cloud Init Setup
+# Common Tasks
+## Sending with postmark
+*  joe /etc/postfix/main.cf
+```
+relayhost = [smtp.postmarkapp.com]:587
+smtp_use_tls = yes
+smtp_sasl_auth_enable = yes
+smtp_sasl_security_options = noanonymous
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
+```
+* joe /etc/postfix/sasl_passwd
+```
+[smtp.postmarkapp.com]:587    username:password
+```
+* postmap /etc/postfix/sasl_passwd
+* systemctl restart postfix
+## Filter Email and change root emails To:
+* joe /etc/postfix/smtp_header_checks
+```
+/^From:.*/ REPLACE From: server@domain.com
+/^To:.*root@server.domain.com$/ REPLACE To: alerts@domain.com
+```
+* postmap /etc/postfix/smtp_header_checks
+* joe /etc/postfix/main.cf
+```
+smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
+```
+* systemctl restart postfix
+
+## Forward 443 to 8006
+```/sbin/iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8006```
+## Changing Hostname
+* Edit /etc/hosts file from “proxmox1.sysadminote.com proxmox1″ to “proxmox2.sysadminote.com proxmox2″ 
+* Edit /etc/hostname file from “proxmox1″ to “proxmox2″.
+* ```cp -R /etc/pve/nodes/oldhostname/ /root/```
+* ```mv /etc/pve/nodes/oldhostname/* /etc/pve/nodes/newhostname/*```
+* ```restart```
+* Update /etc/pve/storage.cfg with the new hostname.
+
+# Troubleshooting
+## Backup Stuck
+* Unmount storage that is affected with unmount -f or -l
+* Kill vzdump process with kill -9
+* Unlock the vm with ```qm unlock 108```
+
+# Setups
+
 ## Ubuntu 20 Template Setup
 * local-lvm is your lvm storage in proxmox
 * list vm config ```qm config 9000```
@@ -52,59 +102,7 @@ qm clone 9000 $NVMID --name zshdev
 qm set $NVMID --ipconfig0 ip=dhcp
 qm set $NVMID --cicustom "user=local:snippets/cloud-init.yml,vendor=local:snippets/vendor.yml"
 ```
-## Common Commands
-* List Cloud Init Settings ```qm cloudinit dump 102 user```
-* Restart Proxmox ```systemctl restart pve-cluster```
 
-# Email
-## Sending with postmark
-*  joe /etc/postfix/main.cf
-```
-relayhost = [smtp.postmarkapp.com]:587
-smtp_use_tls = yes
-smtp_sasl_auth_enable = yes
-smtp_sasl_security_options = noanonymous
-smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
-smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
-```
-* joe /etc/postfix/sasl_passwd
-```
-[smtp.postmarkapp.com]:587    username:password
-```
-* postmap /etc/postfix/sasl_passwd
-* systemctl restart postfix
-## Filter Email and change root emails To:
-* joe /etc/postfix/smtp_header_checks
-```
-/^From:.*/ REPLACE From: server@domain.com
-/^To:.*root@server.domain.com$/ REPLACE To: alerts@domain.com
-```
-* postmap /etc/postfix/smtp_header_checks
-* joe /etc/postfix/main.cf
-```
-smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
-```
-* systemctl restart postfix
-
-# Advanced Actions
-## Forward 443 to 8006
-```/sbin/iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8006```
-## Changing Hostname
-* Edit /etc/hosts file from “proxmox1.sysadminote.com proxmox1″ to “proxmox2.sysadminote.com proxmox2″ 
-* Edit /etc/hostname file from “proxmox1″ to “proxmox2″.
-* ```cp -R /etc/pve/nodes/oldhostname/ /root/```
-* ```mv /etc/pve/nodes/oldhostname/* /etc/pve/nodes/newhostname/*```
-* ```restart```
-* Update /etc/pve/storage.cfg with the new hostname.
-
-# Troubleshooting
-## Backup Stuck
-* Unmount storage that is affected with unmount -f or -l
-* Kill vzdump process with kill -9
-* Unlock the vm with ```qm unlock 108```
-
-# Setups
 ## Internal Network + NAT + DHCP Server
 ### Create internal Network
 1. Create an internal network bridge and give the IP 192.168.5.1/24
