@@ -123,12 +123,12 @@ _requires_cmd () {
 # -- Returns 0 if command exists or 1 if command doesn't exist
 # ------------------------------------------------------------------------
 help_corefunc[_cexists]="Returns 0 if command exists or 1 if command doesn't exist"
-_cexists () {
+function _cexists () {
     unset CMD_EXISTS
     CMD="$1"
 
     # Check if command exists
-    if (( $+commands[${CMD}] )); then
+    if [[ -x $(commands -v ${CMD}) ]]; then
         _debug "$CMD is installed";
         CMD_EXISTS="0"
     else
