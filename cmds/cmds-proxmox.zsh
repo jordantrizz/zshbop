@@ -67,7 +67,7 @@ proxmox_init () {
     if [[ $1 == "createvm" ]]; then
         proxmox_createvm $@
     elif [[ $1 == "info" ]]; then
-        proxmox_info
+        proxmox-info
     else
         proxmox_help
     fi
@@ -192,9 +192,9 @@ proxmox_createvm () {
     fi
 }
 
-# -- proxmox_info
-help_proxmox[info]='Info about Proxmox instance'
-proxmox_info () {
+# -- proxmox-info
+help_proxmox[proxmox-info]='Info about Proxmox instance'
+proxmox-info () {
     _debug_all
     _debug_all
     _banner_green "Proxmox instance infornation"
