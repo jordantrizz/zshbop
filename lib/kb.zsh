@@ -21,13 +21,18 @@ kb_usage () {
 kb_set_md_reader () {
     if [[ $MD_READER ]]; then
         _debug "MD_READER already set to $MD_READER"
-        return 0
-    elif [[ -x "$(command -v glow)" ]]; then
+    fi
+    _debug "Checking if other md readers are available"
+
+    if [[ -x "$(command -v glow)" ]]; then
         MD_READER="glow"
+        _debug "Setting MD_READER to glow"
     elif [[ -x "$(command -v mdv)" ]]; then
         MD_READER="mdv"
+        _debug "Setting MD_READER to mdv"
     else
         MD_READER="cat"
+        _debug "Setting MD_READER to cat as no other md readers found"
     fi
 }
 
