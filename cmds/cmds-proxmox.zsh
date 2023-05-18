@@ -219,16 +219,18 @@ function proxmox_createtemp () {
     TEMP_DIR="/tmp"
     _debug "Checking if $IMAGE_FILE exists in $TEMP_DIR"
     if [[ -f ${TEMP_DIR}/${IMAGE_FILE} ]]; then
-        _debug "$IMAGE_FILE already in $TEMP_DIR"
+        _debugf "$IMAGE_FILE already in $TEMP_DIR"
     else
         _debugf "curl -o /tmp/$IMAGE_FILE $IMAGE_URL"
         curl -o /tmp/$IMAGE_FILE $IMAGE_URL
     fi
-    QM_LIST=$(qm list | awk '{print $1}' | grep -v VMID)
-    if grep -q "${VM_ID}" $QM_LIST; then
-        echo "VMID $vmid_to_check is taken."
+
+    QM_LIST=$(qm list | awk '{print $1}')
+    if echo "$QM_LIST" | grep -q "$VM_ID"; then
+        echo "VMID $VM_ID is taken."
         return 1
     fi
+
     _debugf "qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}"
     qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
 
