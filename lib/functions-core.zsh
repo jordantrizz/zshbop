@@ -128,7 +128,7 @@ function _cexists () {
     CMD="$1"
 
     # Check if command exists
-    if [[ -x $(commands -v ${CMD}) ]]; then
+    if [[ -x $(command -v ${CMD}) ]]; then
         _debug "$CMD is installed";
         CMD_EXISTS="0"
     else
