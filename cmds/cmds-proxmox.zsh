@@ -343,12 +343,9 @@ _proxmox_info () {
     _debug_all
     _banner_green "Proxmox instance infornation"
     echo "----------------------------"
-    _banner_green "  -- Version"
-    pveversion
-    _banner_green " -- Storage"
-    cat /etc/pve/storage.cfg
-    _banner_green " -- Network"
-    lshw -class network -short | egrep -v 'tap|fwln|fwpr|fwbr'
+    echo "Version: $(pveversion)"
+    echo "Storage: $(pvesm status -content images | awk {'if (NR!=1) print $1 '})"     
+    echo "Network: $(lshw -class network -short | egrep -v 'tap|fwln|fwpr|fwbr')"
 }
 
 # -- proxmox-backup.sh
