@@ -98,17 +98,10 @@ Options:
     "
 }
 
-# -- check if proxmox is installed
+# -- check if proxmox is installed and other checks
 function _proxmox_check () {
     # -- check for pvesh
-	_cexists pvesh
-    if [[ $? == "1" ]]; then        
-        _error "No pvesh present, not running proxmox"
-        return 2
-    else
-        _success "Proxmox is installed"
-        return 0
-    fi
+	[[ _cexists pvesh ]] ?? { _success "Proxmox is installed"; return 0 } || { _error "No pvesh present, not running proxmox"; return 1}
 }
 
 # -- proxmox_createvm
