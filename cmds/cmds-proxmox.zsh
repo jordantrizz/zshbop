@@ -5,7 +5,18 @@ _debug " -- Loading ${(%):-%N}"
 help_files[proxmox]='Proxmox commands'
 typeset -gA help_proxmox
 
+# -- proxmox-restart
+help_proxmox[proxmox-restart]="Restart Proxmox services"
+function proxmox-restart () {
+    _loading " -- Running proxmox-restart"
+    systemctl restart pve-cluster pvedaemon pvestatd pveproxy pve-ha-lrm pve-firewall pvefw-logger
+}
+
+
+
+# -------------------
 # -- register proxmox
+# -------------------
 help_proxmox[proxmox]="Proxmox helper"
 alias pmox='proxmox'
 proxmox () {
