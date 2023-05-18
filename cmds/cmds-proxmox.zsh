@@ -62,7 +62,7 @@ proxmox_init () {
     _debug_all
     ALLARGS="$@"
     zparseopts -D -E d=DEBUG
-    [[ DEBUG ]] || DEBUGF=1
+    [[ $DEBUG ]] || DEBUGF="1"
     _debugf "ALLARGS: $ALLARGS"
     
     REQUIRED_PKG=('curl' 'libguestfs-tools')
