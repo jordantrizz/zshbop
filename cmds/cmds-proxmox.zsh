@@ -224,7 +224,11 @@ function proxmox_createtemp () {
         _debugf "curl -o /tmp/$IMAGE_FILE $IMAGE_URL"
         curl -o /tmp/$IMAGE_FILE $IMAGE_URL
     fi
-
+    QM_LIST=$(qm list | awk '{print $1}' | grep -v VMID)
+    if grep -q "${VM_ID}" $QM_LIST; then
+        echo "VMID $vmid_to_check is taken."
+        return 1
+    fi
     _debugf "qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}"
     qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
 
