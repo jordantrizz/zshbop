@@ -344,5 +344,24 @@ _proxmox_info () {
     echo "Network: $(lshw -class network -short | egrep -v 'tap|fwln|fwpr|fwbr')"
 }
 
+# -- _proxmox_create_lxc
+function _proxmox_create_lxc () {
+        # -- Update container template database
+        _loading3 "Update container template database"
+        pveam update # -- Update Container Template Database
+        [[ $? -eq 0 ]] && _loading3 "Container template database updated successfully" || { _error "Container template database update failed"; return 1 }
+
+        # -- Download Ubuntu 22.10 Container Template
+        _loading3 "Download Ubuntu 22.10 Container Template"
+        pveam download local ubuntu-22.10-standard_22.10-1_amd64.tar.zst # -- Download Ubuntu 22.10 Container Template
+        [[ $? -eq 0 ]] && _loading3 "Ubuntu 22.10 Container Template downloaded successfully" || { _error "Ubuntu 22.10 Container Template download failed"; return 1 }
+
+        # -- Create Ubuntu 22.10 Container
+        _loading3 "Create Ubuntu 22.10 Container for DHCP on vmbr1 network with ip 10.0.0.2 and 16GB rootfs"
+        _debugf "pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${PROXMOX_STORAGE}:16 --storage ${PROXMOX_STORAGE} --unprivileged 1 --onboot 1"
+        pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${PROXMOX_STORAGE}:16 --storage ${PROXMOX_STORAGE} --unprivileged 1 --onboot 1
+        [[ $? -eq 0 ]] && _loading3 "Ubuntu 22.10 Container created successfully" || { _error "Ubuntu 22.10 Container creation failed"; return 1 }
+}
+
 # -- proxmox-backup.sh
 help_proxmox[proxmox-backup.sh]='Backup proxmox database'
