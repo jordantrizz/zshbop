@@ -71,11 +71,8 @@ proxmox_init () {
 
     # -- check for pvesh
 	_cexists pvesh
-    if [[ $? == "1" ]]; then
-        if [[ $ZSH_DEBUG == "0" ]]; then
-            _error "No pvesh present, not running proxmox"
-            return
-        fi
+    if [[ $? == "1" ]]; then        
+        _error "No pvesh present, not running proxmox"
     fi
 
     # -- Check command
