@@ -62,7 +62,7 @@ proxmox_init () {
     _debug_all
     ALLARGS="$@"    
     zparseopts -D -E d=DEBUG
-    [[ $DEBUG ]] || DEBUGF="1"
+    [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
     _debugf "ALLARGS: $ALLARGS"
     
     REQUIRED_PKG=('curl' 'libguestfs-tools')
@@ -85,7 +85,7 @@ proxmox_init () {
     else
         proxmox_help
     fi
-}    
+}
 
 # -- proxmox_createvm
 help_proxmox[createvm]='Create VM'
@@ -207,23 +207,109 @@ proxmox_createvm () {
 # -- proxmox_createtemp
 # $OS $BRIDGE $STORAGE $VM_ID
 help_proxmox[proxmox_createtemp]='Create a template from a VM'
-function proxmox_createtemp () {        
-    [[ -z ${VM_ID} ]] || VM_ID="9000"
-    [[ -z ${OS} ]] || OS="focal"
-    [[ -z ${BRIDGE} ]] || BRIDGE="vmbr0"
-    [[ -z ${STORAGE} ]] || STORAGE="local-lvm"    
+function proxmox_createtemp () {
+    _loading "Creating template"
+
+    # -- Set Variables if not set
+    [[ -z ${VM_ID} ]] && VM_ID="9000"
+    [[ -z ${OS} ]] && OS="focal"
+    [[ -z ${BRIDGE} ]] && BRIDGE="vmbr0"
+    if [[ -z ${STORAGE} ]]; then
+        STORAGE=$(pvesm status -content images | awk {'if (NR!=1) print $1 '})
+    fi
+    _loading2 "OS:$OS BRIDGE:$BRIDGE STORAGE:$STORAGE VM_ID:$VM_ID"
     _debugf "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
+    # -- Check if $OS is valid
+    _loading2 "Checking if $OS is a valid OS"
+    AVAIL_OS=("focal" "bionic" "jammy")
+    _if_marray "$OS" AVAIL_OS
+    if [[ $MARRAY_VALID == "1" ]]; then
+        _error "Couldn't get OS Image"
+        return
+    else
+        _loading2 "OS: $OS is valid"
+    fi
+    echo ""
+
+    # -- Download OS Image
     IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
     IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${IMAGE_FILE}"
-    curl -o /tmp/$IMAGE_FILE $IMAGE_URL
+    TEMP_DIR="/tmp"
+    _loading2 "Fetching $OS Image from $IMAGE_URL into $TEMP_DIR"
+    _loading3 "Checking if $IMAGE_FILE exists in $TEMP_DIR"
+    if [[ -f ${TEMP_DIR}/${IMAGE_FILE} ]]; then
+        _loading3 "$IMAGE_FILE already in $TEMP_DIR"
+        _loading3 "Checking MD5"
+        OS_URL_MD5=$(curl -s https://cloud-images.ubuntu.com/$OS_RELEASE/current/MD5SUMS | grep "$OS_RELEASE-server-cloudimg-amd64.img" | awk {' print $1 '})
+        _loading4 "\$OS_URL_MD5: $OS_URL_MD5"
+        OS_FILE_MD5=$(md5sum $TEMP_DIR/$OS_FILE | awk {'print $1'})
+        _loading4 "\$OS_FILE_MD5:$OS_FILE_MD5"
+        if [[ $OS_URL_MD5 == $OS_FILE_MD5 ]]; then
+            _loading4 "Local file matches remote MD5, continuing build"
+        else
+            _error "Local file MD5 does not match remote MD5."
+            _loading4 "Downloading $IMAGE_URL into $TEMP_DIR"
+            _debugf "curl --output /tmp/$IMAGE_FILE $IMAGE_URL"
+            curl --output /tmp/$IMAGE_FILE $IMAGE_URL
+        fi
+    else
+        _debugf "curl --output /tmp/$IMAGE_FILE $IMAGE_URL"
+        curl --output /tmp/$IMAGE_FILE $IMAGE_URL
+    fi
+    echo ""
+
+    # -- Check if VM_ID is taken
+    _loading2 "Checking if VMID $VM_ID is taken"
+    QM_LIST=$(qm list | awk '{print $1}')
+    if echo "$QM_LIST" | grep -q "$VM_ID"; then
+        echo "VMID $VM_ID is taken."
+        return 1
+    else
+        _loading3 "VMID $VM_ID is available."
+    fi
+
+    # -- Create VM
+    _loading2 "Creating VM with ID:$VM_ID"
+    _debugf "qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}"
     qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Import OS Image
+    _loading2 "Importing OS Image"
+    _debugf "qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}"
     qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}
-    qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Set VM Options
+    _loading2 "Setting VM storage options"
+    _debugf "qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw"
+    qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Set VM Options
+    _loading2 "Setting VM cloudinit"
+    _debugf "qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit"
     qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Set VM boot options
+    _loading2 "Setting VM boot options"
+    _debugf "qm set ${VM_ID} --boot c --bootdisk scsi0"
     qm set ${VM_ID} --boot c --bootdisk scsi0
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Set VM display options
+    _loading2 "Setting VM display options"
+    _debugf "qm set ${VM_ID} --serial0 socket --vga serial0"
     qm set ${VM_ID} --serial0 socket --vga serial0
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Create VM template
+    _loading2 "Creating VM template"
+    _debugf "qm template ${VM_ID}"
     qm template ${VM_ID}
+    [[ $? -ne 0 ]] && return 1
 }
 
 
