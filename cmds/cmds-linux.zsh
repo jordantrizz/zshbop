@@ -310,5 +310,17 @@ swappiness () {
 # -- ubuntu-lts
 help_linux[ubuntu-lts]="Display Ubuntu LTS version"
 ubuntu-lts () {
-    curl -s https://changelogs.ubuntu.com/meta-release-lts | grep Name: | tail -n1
+    lts_data=$(curl -s https://changelogs.ubuntu.com/meta-release-lts)
+    # Extract the versions and codenames
+    VERSION=$(echo "$lts_data" | grep Version: | awk '{print $2}')
+    NAME=$(echo "$lts_data" | grep Name: | awk '{print $2}')
+    DIST=$(echo "$lts_data" | grep Dist: | awk '{print $2}')
+    DATE=$(echo "$lts_data" | grep Date: | awk '{print $4"-"$3"-"$5}')
+    SUPPORTED=$(echo "$lts_data" | grep Supported: | awk '{print "Supported: " $2}')
+
+    # Combine the versions and codenames
+    combined=$(paste <(echo "$NAME") <(echo "$DIST") <(echo "$VERSION") <(echo "$DATE") <(echo "$SUPPORTED"))
+
+    # Print each version with its codename
+    echo "$combined"
 }
