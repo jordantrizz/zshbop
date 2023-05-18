@@ -208,10 +208,10 @@ proxmox_createvm () {
 # $OS $BRIDGE $STORAGE $VM_ID
 help_proxmox[proxmox_createtemp]='Create a template from a VM'
 function proxmox_createtemp () {        
-    [[ -z ${VM_ID} ]] || VM_ID="9000"
-    [[ -z ${OS} ]] || OS="focal"
-    [[ -z ${BRIDGE} ]] || BRIDGE="vmbr0"
-    [[ -z ${STORAGE} ]] || STORAGE="local-lvm"    
+    [[ -z ${VM_ID} ]] && VM_ID="9000"
+    [[ -z ${OS} ]] && OS="focal"
+    [[ -z ${BRIDGE} ]] && BRIDGE="vmbr0"
+    [[ -z ${STORAGE} ]] && STORAGE="local-lvm"    
     _debugf "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
     IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
