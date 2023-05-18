@@ -241,7 +241,8 @@ function proxmox_createtemp () {
     qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}
     [[ $? -ne 0 ]] && return 1
 
-    _debugf "qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0"
+    # local:9000/vm-9000-disk-0.raw
+    _debugf "qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw"
     qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0
     [[ $? -ne 0 ]] && return 1
 
