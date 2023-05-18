@@ -216,7 +216,7 @@ function proxmox_createtemp () {
 
     IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
     IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${IMAGE_FILE}"
-    curl -o /tmp $IMAGE_URL
+    curl -o /tmp/$IMAGE_FILE $IMAGE_URL
     qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
     qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}
     qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0
