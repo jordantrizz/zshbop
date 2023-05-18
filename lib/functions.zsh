@@ -10,6 +10,8 @@ _debug_load
 alias update="zshbop_update"
 alias rld="zshbop_reload"
 alias urld="zshbop_update;zshbop_reload"
+alias qrld="zshbop_reload -q"
+alias qurld="zshbop_update;zshbop_reload -q"
 alias zb="zshbop"
 alias init="init_zshbop"
 alias zbr="cd $ZBR"
@@ -65,10 +67,20 @@ zshbop_scc () {
 # -------------------
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
-    _loading "Reloading zshbop"
-    export RUN_REPORT=1
-    zshbop_cacheclear
-	exec zsh
+    if [[ $1 == "-q" ]]; then
+        _loading "Quick reload of zshbop"
+        export RUN_REPORT=0
+        zshbop_cacheclear
+        source $ZBR/lib/*.zsh
+        source $ZBR/cmds/*.zsh
+        _loading "Load zshbop custom config"
+        zshbop_load_custom
+    else
+        _loading "Reloading zshbop"
+        export RUN_REPORT=1
+        zshbop_cacheclear
+	    exec zsh
+    fi
 }
 
 # ---------------------
@@ -432,14 +444,18 @@ zshbop_custom () {
 # ---------------------
 help_zshbop[load_custom]='Load zshbop custom config'
 zshbop_load_custom () {
-	# -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
-	_log "Checking for $HOME/.zshbop.conf"
-    if [[ -f $HOME/.zshbop.conf ]]; then
-    	ZSHBOP_CUSTOM="$HOME/.zshbop.conf"
-        _loading_grey "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
-        source $ZSHBOP_CUSTOM
+	if [[ $1 == "-q" ]]; then
+        [[ -f $HOME/.zshbop.conf ]] && source $HOME/.zshbop.conf
     else
-    	_error "No custom zshbop config found. Type zshbop custom for more information"
+        # -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
+        _log "Checking for $HOME/.zshbop.conf"
+        if [[ -f $HOME/.zshbop.conf ]]; then
+            ZSHBOP_CUSTOM="$HOME/.zshbop.conf"
+            _loading_grey "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
+            source $ZSHBOP_CUSTOM
+        else
+            _error "No custom zshbop config found. Type zshbop custom for more information"
+        fi
     fi
 }
 
