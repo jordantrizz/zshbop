@@ -9,16 +9,16 @@ typeset -gA help_proxmox
 alias pmox='proxmox'
 proxmox () {
         if [[ $1 == "help" ]] || [[ -z $1 ]]; then
-                pmox_help
+                proxmox_help
         elif [[ -n $1 ]]; then
 	        _debug "-- Running pmox $1"
-                pmox_init $@
+                proxmox_init $@
         fi
 }
 
 # -- pmox
-help_pmox[help]='Help'
-pmox_help () {
+help_proxmox[help]='Help'
+proxmox_help () {
 	echo "Usage: pmox <command> <options>"
     echo ""
     echo "Commands:"
@@ -45,8 +45,8 @@ pmox_help () {
     echo "  Ubuntu 18.04.6 LTS = bionic"
 }
 
-# -- pmox_init
-pmox_init () {
+# -- proxmox_init
+proxmox_init () {
     # -- debug
     _debug_all    
     
@@ -65,17 +65,17 @@ pmox_init () {
 
     # -- Check command
     if [[ $1 == "createvm" ]]; then
-        pmox_createvm $@
+        proxmox_createvm $@
     elif [[ $1 == "info" ]]; then
-        pmox_info
+        proxmox_info
     else
-        pmox_help
+        proxmox_help
     fi
 }    
 
-# -- pmox_createvm
-help_pmox[createvm]='Create VM'
-pmox_createvm () {
+# -- proxmox_createvm
+help_proxmox[createvm]='Create VM'
+proxmox_createvm () {
     _debug_all
     _debug_all
     
@@ -101,11 +101,11 @@ pmox_createvm () {
     _debug "\$NAME:$NAME \$MEM:$MEM \$NET:NET \$STORAGE:$STORAGE \$DISKSIZE:$DISKSIZE \$OS_RELEASE:$OS_RELEASE \$DHCP_NET:$DHCP_NET"
 
     if [[ -z $NAME ]] || [[ -z $MEM ]] || [[ -z $NET ]] || [[ -z $STORAGE ]] || [[ -z $DISKSIZE ]] || [[ -z $OS_RELEASE ]]; then
-        pmox_help
+        proxmox_help
     else
         # -- Check if storage exists
-        IFS=$'\n' PMOX_STORAGE=($(pvesm status | awk {' print $1 '}))
-        _if_marray "$STORAGE" PMOX_STORAGE
+        IFS=$'\n' proxmox_STORAGE=($(pvesm status | awk {' print $1 '}))
+        _if_marray "$STORAGE" proxmox_STORAGE
         if [[ $MARRAY_VALID == "1" ]]; then
             _error "Storage $STORAGE doesn't exist, type pmox info"            
             return
@@ -192,9 +192,9 @@ pmox_createvm () {
     fi
 }
 
-# -- pmox_info
-help_pmox[info]='Info about Proxmox instance'
-pmox_info () {
+# -- proxmox_info
+help_proxmox[info]='Info about Proxmox instance'
+proxmox_info () {
     _debug_all
     _debug_all
     _banner_green "Proxmox instance infornation"
@@ -208,4 +208,4 @@ pmox_info () {
 }
 
 # -- proxmox-backup.sh
-help_pmox[proxmox-backup.sh]='Backup proxmox database'
+help_proxmox[proxmox-backup.sh]='Backup proxmox database'
