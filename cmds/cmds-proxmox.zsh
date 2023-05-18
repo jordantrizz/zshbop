@@ -6,6 +6,7 @@ help_files[proxmox]='Proxmox commands'
 typeset -gA help_proxmox
 
 # -- register proxmox
+help_proxmox[proxmox]="Proxmox helper"
 alias pmox='proxmox'
 proxmox () {
         if [[ $1 == "help" ]] || [[ -z $1 ]]; then
@@ -16,8 +17,39 @@ proxmox () {
         fi
 }
 
-# -- pmox
-help_proxmox[help]='Help'
+# -- proxmox_init
+proxmox_init () {
+    # -- debug
+    _debug_all
+    ALLARGS="$@"    
+    zparseopts -D -E -help=HELP d=DEBUG -name=NAME -memory=MEM -network=NET -storage=STORAGE -disksize=DISKSIZE -os=OS_RELEASE -dhcpnet=DHCP_NET -tempdir=TEMP_DIR -sshkey=SSH_KEY -vmid=VMID -ip=IP -bridge=BRIDGE
+    [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
+    _debugf "ALLARGS: $ALLARGS"
+    
+    REQUIRED_PKG=('curl' 'libguestfs-tools')
+    _debug $REQUIRED_PKG
+	_require_pkg $REQUIRED_PKG
+
+    # -- Check command
+    if [[ $1 == "createvm" ]]; then
+        _proxmox_check || return 1
+        _proxmox_createvm
+    elif [[ $1 == "createtemp" ]]; then
+        _proxmox_check || return 1
+        _proxmox_createtemp
+    elif [[ $1 == "clonetemp" ]]; then
+        _proxmox_check || return 1
+        _proxmox_clonetemp
+    elif [[ $1 == "info" ]]; then
+        _proxmox_check || return 1
+        _proxmox_info
+    else
+        _proxmox_help
+    fi
+
+}
+
+# -- proxmox_help
 proxmox_help () {
 	_loading "Proxmox Helper"
     echo \
@@ -31,67 +63,60 @@ Commands:
 
 Options:
 
-  createvm <name> <memory> <network> <storage> <disksize> <os> [dhcpnet] [tempdir]
-
-    <name>              - Name of the VM
-	<memory>            - Memory of VM in MB
-	<network>           - Network bridge to use
-    <storage>           - Storage location
-	<disksize>          - Disk size in MB
-	<os>                - bionic,focal,jammy
-	[dhcpnet]           - If you have a local network with dhcp, the bridge it's on.
-	[tempdir]           - Setup temporary directory for download for cloudimage, optional.
+  createvm <options>
+  ------------------
+    -name <name>              Name of the VM
+    -memory <memory>          Memory of VM in MB (Default: 2GB)
+    -network <network>        Network bridge to use (Default: vmbr0)
+    -storage <storage>        Storage location (Autodetect)
+    -disksize <disksize>      Disk size in MB (Default: 20GB)
+    -os <os>                  bionic,focal,jammy (Default: focal)
+    -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
+    -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
+    -sshkey [sshkey]          SSH key to add to VM, optional. (Default: ~/.ssh/id_rsa.pub)
+    -vmid [vmid]              VM ID to use, (Default: random)
 	
-	Example: createvm server 2048 vmbr0 storage-lvm 80 focal
+	Example: createvm -name server -memory 2048 -network vmbr0 -storage local -disksize 80 -os focal
   
-  createtemp <os> <bridge> <storage> <vmid>
-    <os>                - bionic,focal,jammy, default focal
-    <bridge>            - Network bridge to use, default vmbr0
-    <storage>           - Storage location, default local-lvm
-    <vmid>              - VM ID to use, default 9000
+  createtemp <options>
+  --------------------
+    -os <os>                  bionic,focal,jammy, default focal
+    -bridge <bridge>          Network bridge to use, default vmbr0
+    -storage <storage>        Storage location, default local-lvm
+    -vmid <vmid>              VM ID to use, default 9000
 
-    OS:
-      Ubuntu 22.04 LTS = jammy
-      Ubuntu 20.04.4 LTS = focal
-      Ubuntu 18.04.6 LTS = bionic"
+  clonetemp <options>
+  -------------------
+    -name <name>              Name of the VM
+    -vmid [vmid]              VM ID to use (Default: random)
+    -ip [ip]                  IP address to use (Default: dhcp)
+
+  OS:
+    Ubuntu 22.04 LTS = jammy
+    Ubuntu 20.04.4 LTS = focal
+    Ubuntu 18.04.6 LTS = bionic
+    "
 }
 
-# -- proxmox_init
-proxmox_init () {
-    # -- debug
-    _debug_all
-    ALLARGS="$@"    
-    zparseopts -D -E d=DEBUG
-    [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
-    _debugf "ALLARGS: $ALLARGS"
-    
-    REQUIRED_PKG=('curl' 'libguestfs-tools')
-    _debug $REQUIRED_PKG
-	_require_pkg $REQUIRED_PKG
-
+# -- check if proxmox is installed
+function _proxmox_check () {
     # -- check for pvesh
 	_cexists pvesh
     if [[ $? == "1" ]]; then        
         _error "No pvesh present, not running proxmox"
-    fi
-
-    # -- Check command
-    if [[ $1 == "createvm" ]]; then
-        proxmox_createvm $@
-    elif [[ $1 == "createtemp" ]]; then
-        proxmox_createtemp $@
-    elif [[ $1 == "info" ]]; then
-        proxmox-info
+        return 2
     else
-        proxmox_help
+        _success "Proxmox is installed"
+        return 0
     fi
 }
 
 # -- proxmox_createvm
-help_proxmox[createvm]='Create VM'
-proxmox_createvm () {
+_proxmox_createvm () {
     _debug_all
+    # TODO implement zparseopts    
     # -- inputs
+
     NAME=$2
     MEM=$3
     NET=$4
@@ -206,8 +231,7 @@ proxmox_createvm () {
 
 # -- proxmox_createtemp
 # $OS $BRIDGE $STORAGE $VM_ID
-help_proxmox[proxmox_createtemp]='Create a template from a VM'
-function proxmox_createtemp () {
+function _proxmox_createtemp () {
     _loading "Creating template"
 
     # -- Set Variables if not set
@@ -313,9 +337,8 @@ function proxmox_createtemp () {
 }
 
 
-# -- proxmox-info
-help_proxmox[proxmox-info]='Info about Proxmox instance'
-proxmox-info () {
+# -- proxmox_info
+_proxmox_info () {
     _debug_all
     _debug_all
     _banner_green "Proxmox instance infornation"
