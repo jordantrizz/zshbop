@@ -19,30 +19,41 @@ proxmox () {
 # -- pmox
 help_proxmox[help]='Help'
 proxmox_help () {
-	echo "Usage: pmox <command> <options>"
-    echo ""
-    echo "Commands:"
-    echo "  createvm    - Create VM"
-    echo "  info        - Info about Proxmox instance"
-    echo ""
-    echo "Options for createvm:"
-    echo "  createvm <name> <memory> <network> <storage> <disksize> <os> [dhcpnet] [tempdir]"
-	echo ""
-	echo "  <name>              - Name of the VM"
-	echo "  <memory>            - Memory of VM in MB"
-	echo "  <network>           - Network bridge to use"
-    echo "  <storage>           - Storage location"
-	echo "  <disksize>          - Disk size in MB"
-	echo "  <os>                - bionic,focal,jammy"
-	echo "  [dhcpnet]           - If you have a local network with dhcp, the bridge it's on."
-	echo "  [tempdir]           - Setup temporary directory for download for cloudimage, optional."
-	echo ""
-	echo "Example: createvm server 2048 vmbr0 storage-lvm 80 focal"
-	echo ""
-    echo "OS:"
-    echo "  Ubuntu 22.04 LTS = jammy"
-    echo "  Ubuntu 20.04.4 LTS = focal"
-    echo "  Ubuntu 18.04.6 LTS = bionic"
+	_loading "Proxmox Helper"
+    echo \
+"
+Usage: pmox <command> <options>
+
+Commands:
+  createvm      - Create VM
+  createtemp    - Create template
+  info          - Info about Proxmox instance
+
+Options:
+
+  createvm <name> <memory> <network> <storage> <disksize> <os> [dhcpnet] [tempdir]
+
+    <name>              - Name of the VM
+	<memory>            - Memory of VM in MB
+	<network>           - Network bridge to use
+    <storage>           - Storage location
+	<disksize>          - Disk size in MB
+	<os>                - bionic,focal,jammy
+	[dhcpnet]           - If you have a local network with dhcp, the bridge it's on.
+	[tempdir]           - Setup temporary directory for download for cloudimage, optional.
+	
+	Example: createvm server 2048 vmbr0 storage-lvm 80 focal
+  
+  createtemp <os> <bridge> <storage> <vmid>
+    <os>                - bionic,focal,jammy, default focal
+    <bridge>            - Network bridge to use, default vmbr0
+    <storage>           - Storage location, default local-lvm
+    <vmid>              - VM ID to use, default 9000
+
+    OS:
+      Ubuntu 22.04 LTS = jammy
+      Ubuntu 20.04.4 LTS = focal
+      Ubuntu 18.04.6 LTS = bionic"
 }
 
 # -- proxmox_init
@@ -193,16 +204,24 @@ proxmox_createvm () {
 }
 
 # -- proxmox_createtemplate
+# $OS $BRIDGE $STORAGE $VM_ID
 help_proxmox[proxmox_createtemplate]='Create a template from a VM'
 function proxmox_createtemplate () {
-    curl -o /tmp https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-    qm create 9000 --memory 2048 --net0 virtio,bridge=vmbr0
-    qm importdisk 9000 /tmp/focal-server-cloudimg-amd64.img local-lvm
-    qm set 9000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-9000-disk-0
-    qm set 9000 --ide2 local-lvm:cloudinit
-    qm set 9000 --boot c --bootdisk scsi0
-    qm set 9000 --serial0 socket --vga serial0
-    qm template 9000
+    [[ -z ${VM_ID} ]] || VM_ID="9000"
+    [[ -z ${OS} ]] || OS="focal"
+    [[ -z ${BRIDGE} ]] || BRIDGE="vmbr0"
+    [[ -z ${STORAGE} ]] || STORAGE="local-lvm"
+
+    IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
+    IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${IMAGE_FILE}"
+    curl -o /tmp $IMAGE_URL
+    qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
+    qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}
+    qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0
+    qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit
+    qm set ${VM_ID} --boot c --bootdisk scsi0
+    qm set ${VM_ID} --serial0 socket --vga serial0
+    qm template ${VM_ID}
 }
 
 
