@@ -276,7 +276,7 @@ os-binary () {
 		return 1
 	else
 	    _debug "Using created alias ${BINARY} ${OS_BINARY}"
-	    alias ${BINARY}="${OS_BINARY}"
+	    function ${BINARY} () { ${OS_BINARY} $@ }
         eval "export ${(U)BINARY}_CMD=$OS_BINARY"
 	    return 0
 	fi
