@@ -243,7 +243,7 @@ function proxmox_createtemp () {
 
     # local:9000/vm-9000-disk-0.raw
     _debugf "qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw"
-    qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0
+    qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw
     [[ $? -ne 0 ]] && return 1
 
     _debugf "qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit"
