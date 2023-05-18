@@ -33,7 +33,7 @@ network:
                 - lmthosting.com
             set-name: eth0
             routes:
-            - to: 192.168.3.0/32
+            - to: 192.168.0.254/32
               via: 0.0.0.0
               scope: link
 ```
