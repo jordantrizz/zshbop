@@ -77,6 +77,8 @@ proxmox_init () {
     # -- Check command
     if [[ $1 == "createvm" ]]; then
         proxmox_createvm $@
+    elif [[ $1 == "createtemp" ]]; then
+        proxmox_createtemp $@
     elif [[ $1 == "info" ]]; then
         proxmox-info
     else
