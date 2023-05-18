@@ -21,11 +21,25 @@ proxmox () {
 proxmox_init () {
     # -- debug
     _debug_all
-    ALLARGS="$@"    
-    zparseopts -D -E -help=HELP d=DEBUG -name=NAME -memory=MEM -network=NET -storage=STORAGE -disksize=DISKSIZE -os=OS_RELEASE -dhcpnet=DHCP_NET -tempdir=TEMP_DIR -sshkey=SSH_KEY -vmid=VMID -ip=IP -bridge=BRIDGE
+    ALLARGS="$@"
+    zparseopts -D -E d=DEBUG -name=NAME -memory=MEM -network=NET -storage=STORAGE -disksize=DISKSIZE -os=OS_RELEASE -dhcpnet=DHCP_NET -tempdir=TEMP_DIR -sshkey=SSH_KEY -vmid=VMID -ip=IP -bridge=BRIDGE
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
-    _debugf "ALLARGS: $ALLARGS"
-    
+    _debugf "ALL_ARGS: $ALL_ARGS"
+    _debugf "DEBUG: $DEBUG"
+    _debugf "HELP: $HELP"
+    _debugf "NAME: $NAME"
+    _debugf "MEM: $MEM"
+    _debugf "NET: $NET"
+    _debugf "STORAGE: $STORAGE"
+    _debugf "DISKSIZE: $DISKSIZE"
+    _debugf "OS_RELEASE: $OS_RELEASE"
+    _debugf "DHCP_NET: $DHCP_NET"
+    _debugf "TEMP_DIR: $TEMP_DIR"
+    _debugf "SSH_KEY: $SSH_KEY"
+    _debugf "VMID: $VMID"
+    _debugf "IP: $IP"
+    _debugf "BRIDGE: $BRIDGE"
+
     REQUIRED_PKG=('curl' 'libguestfs-tools')
     _debug $REQUIRED_PKG
 	_require_pkg $REQUIRED_PKG
@@ -43,6 +57,8 @@ proxmox_init () {
     elif [[ $1 == "info" ]]; then
         _proxmox_check || return 1
         _proxmox_info
+    elseif [[ $1 == help ]]; then
+        _proxmox_help
     else
         _proxmox_help
     fi
@@ -50,7 +66,7 @@ proxmox_init () {
 }
 
 # -- proxmox_help
-proxmox_help () {
+_proxmox_help () {
 	_loading "Proxmox Helper"
     echo \
 "
@@ -59,9 +75,14 @@ Usage: pmox <command> <options>
 Commands:
   createvm      - Create VM
   createtemp    - Create template
+  clonetemp     - Clone template
   info          - Info about Proxmox instance
+  help          - This help
 
-Options:
+Global Options:
+  -d            - Debug mode
+
+Command Options:
 
   createvm <options>
   ------------------
@@ -108,10 +129,8 @@ function _proxmox_check () {
 
 
 # -- proxmox_createvm
-_proxmox_createvm () {
-    _debug_all
-    # TODO implement zparseopts    
-    # -- inputs
+_proxmox_createvm () {    
+
 
     NAME=$2
     MEM=$3
@@ -134,7 +153,7 @@ _proxmox_createvm () {
     _debug "\$NAME:$NAME \$MEM:$MEM \$NET:NET \$STORAGE:$STORAGE \$DISKSIZE:$DISKSIZE \$OS_RELEASE:$OS_RELEASE \$DHCP_NET:$DHCP_NET"
 
     if [[ -z $NAME ]] || [[ -z $MEM ]] || [[ -z $NET ]] || [[ -z $STORAGE ]] || [[ -z $DISKSIZE ]] || [[ -z $OS_RELEASE ]]; then
-        proxmox_help
+        _proxmox_help
     else
         # -- Check if storage exists
         IFS=$'\n' proxmox_STORAGE=($(pvesm status | awk {' print $1 '}))
@@ -219,7 +238,7 @@ _proxmox_createvm () {
         ( set -x;qm importdisk $VM_ID /tmp/${OS_FILE} ${STORAGE} )
         ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
         ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
-        ( set -x;qm set ${VM_ID} --sshkey ~/.ssh/id_rsa.pub )
+        ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
 
         _notice "Completed creation of VM with ID of $VM_ID"
     fi
