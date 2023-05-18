@@ -212,7 +212,7 @@ function proxmox_createtemp () {
     [[ -z ${OS} ]] && OS="focal"
     [[ -z ${BRIDGE} ]] && BRIDGE="vmbr0"
     if [[ -z ${STORAGE} ]]; then
-        STORAGE=$(pvesm status -content images)
+        IFS=$'\n' STORAGE=$(pvesm status -content images| awk {' print $1 '})
     fi
     _debugf "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
