@@ -56,16 +56,34 @@ function _require_pkg () {
     _debug_all
     _debug "Running _requires_pkg on $REQUIRE_PKG"    
 
+    # -- Figure out which package manager to use
+    if [[ $(which apt-get) ]]; then
+        _debug "Using apt-get"
+        PKG_MANAGER="apt-get"
+    elif [[ $(which yum) ]]; then
+        _debug "Using yum"
+        PKG_MANAGER="yum"
+    elif [[ $(which brew) ]]; then
+        _debug "Using brew"
+        PKG_MANAGER="brew"
+    elif [[ $(which ports) ]]; then
+        _debug "Using ports"
+        PKG_MANAGER="ports"
+    else
+        _debug "No package manager found"
+        return 1
+    fi
+    
     for PKG in ${REQUIRE_PKG}; do
-        _debug "Processing PKG: ${PKG} - dpkg-query -W -f='${PKG}' nano 2>/dev/null | grep -c 'ok installed'"
-        if [[ $(dpkg-query -W -f='${Status}' ${PKG} 2>/dev/null | grep -c "ok installed") == "1" ]]; then
+        _debug "Processing PKG: ${PKG} - ${PKG_MANAGER}"
+        if [[ -x $(command -v $PKG) ]]; then
             _debug "$PKG is installed";
             REQUIRES_PKG=0
             return 0
         else
             _debug "$PKG not installed";        
             echo "$PKG not installed, installing"
-            sudo apt-get install $PKG
+            sudo $PKG_MANAGER install $PKG
             REQUIRES_PKG=1            
         fi
     done
