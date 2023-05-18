@@ -235,24 +235,31 @@ function proxmox_createtemp () {
 
     _debugf "qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}"
     qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
+    [[ $? -ne 0 ]] && return 1
 
     _debugf "qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}"
     qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}
+    [[ $? -ne 0 ]] && return 1
 
     _debugf "qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0"
     qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-9000-disk-0
+    [[ $? -ne 0 ]] && return 1
 
     _debugf "qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit"
     qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit
+    [[ $? -ne 0 ]] && return 1
 
     _debugf "qm set ${VM_ID} --boot c --bootdisk scsi0"
     qm set ${VM_ID} --boot c --bootdisk scsi0
+    [[ $? -ne 0 ]] && return 1
 
     _debugf "qm set ${VM_ID} --serial0 socket --vga serial0"
     qm set ${VM_ID} --serial0 socket --vga serial0
+    [[ $? -ne 0 ]] && return 1
 
     _debugf "qm template ${VM_ID}"
     qm template ${VM_ID}
+    [[ $? -ne 0 ]] && return 1
 }
 
 
