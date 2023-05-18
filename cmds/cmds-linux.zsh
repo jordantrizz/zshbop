@@ -306,3 +306,9 @@ swappiness () {
     	_error "Not a linux machine"
     fi
 }
+
+# -- ubuntu-lts
+help_linux[ubuntu-lts]="Display Ubuntu LTS version"
+ubuntu-lts () {
+    curl -s https://changelogs.ubuntu.com/meta-release-lts | grep Name: | tail -n1
+}
