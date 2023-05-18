@@ -24,7 +24,9 @@ network:
         eth0:
             addresses:
             - 192.168.0.2/32
-            gateway4: 192.168.0.254               
+            gateway4: 192.168.0.254
+            match:
+                macaddress: 00:00:00:00:00:00
             nameservers:
                 addresses:
                 - 8.8.8.8
