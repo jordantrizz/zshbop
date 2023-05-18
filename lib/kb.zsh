@@ -24,10 +24,10 @@ kb_set_md_reader () {
     fi
     _debug "Checking if other md readers are available"
 
-    if [[ -x "$(command -v glow)" ]]; then
+    if [[  $(command -v glow) ]]; then
         MD_READER="glow"
         _debug "Setting MD_READER to glow"
-    elif [[ -x "$(command -v mdv)" ]]; then
+    elif [[ $(command -v mdv) ]]; then
         MD_READER="mdv"
         _debug "Setting MD_READER to mdv"
     else
