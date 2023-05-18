@@ -1,19 +1,13 @@
 # --
-# Proxmox commands
-#
-# Example help: help_pmox[pmox]='Command description'
-#
+# Proxmox
 # --
 _debug " -- Loading ${(%):-%N}"
+help_files[proxmox]='Proxmox commands'
+typeset -gA help_proxmox
 
-# What help file is this?
-help_files[pmox]='Proxmox commands'
-
-# - Init help array
-typeset -gA help_pmox
-
-# -- register pmox
-pmox () {
+# -- register proxmox
+alias pmox='proxmox'
+proxmox () {
         if [[ $1 == "help" ]] || [[ -z $1 ]]; then
                 pmox_help
         elif [[ -n $1 ]]; then
