@@ -59,7 +59,11 @@ Options:
 # -- proxmox_init
 proxmox_init () {
     # -- debug
-    _debug_all    
+    _debug_all
+    ALLARGS="$@"
+    zparseopts -D -E d=DEBUG
+    [[ DEBUG ]] || DEBUGF=1
+    _debugf "ALLARGS: $ALLARGS"
     
     REQUIRED_PKG=('curl' 'libguestfs-tools')
     _debug $REQUIRED_PKG
@@ -90,8 +94,6 @@ proxmox_init () {
 help_proxmox[createvm]='Create VM'
 proxmox_createvm () {
     _debug_all
-    _debug_all
-    
     # -- inputs
     NAME=$2
     MEM=$3
@@ -208,11 +210,12 @@ proxmox_createvm () {
 # -- proxmox_createtemp
 # $OS $BRIDGE $STORAGE $VM_ID
 help_proxmox[proxmox_createtemp]='Create a template from a VM'
-function proxmox_createtemp () {
+function proxmox_createtemp () {        
     [[ -z ${VM_ID} ]] || VM_ID="9000"
     [[ -z ${OS} ]] || OS="focal"
     [[ -z ${BRIDGE} ]] || BRIDGE="vmbr0"
-    [[ -z ${STORAGE} ]] || STORAGE="local-lvm"
+    [[ -z ${STORAGE} ]] || STORAGE="local-lvm"    
+    _debug "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
     IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
     IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${IMAGE_FILE}"
