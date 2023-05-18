@@ -205,10 +205,10 @@ proxmox_createvm () {
     fi
 }
 
-# -- proxmox_createtemplate
+# -- proxmox_createtemp
 # $OS $BRIDGE $STORAGE $VM_ID
-help_proxmox[proxmox_createtemplate]='Create a template from a VM'
-function proxmox_createtemplate () {
+help_proxmox[proxmox_createtemp]='Create a template from a VM'
+function proxmox_createtemp () {
     [[ -z ${VM_ID} ]] || VM_ID="9000"
     [[ -z ${OS} ]] || OS="focal"
     [[ -z ${BRIDGE} ]] || BRIDGE="vmbr0"
