@@ -101,9 +101,11 @@ Options:
 # -- check if proxmox is installed and other checks
 function _proxmox_check () {
     # -- check for pvesh
-	[[ $(_cexists pvesh) ]] && { _error "No pvesh present, not running proxmox"; return 1 } || { _success "Proxmox is installed"; return 0 } 
-    [[ $(_cexists lshw) ]] && { _error "No lshw present, required for info command"; return 1 } || { _success "lshw is installed"; return 0 }
+	[[ -x $(command -v pvesh) ]] && { _error "No pvesh present, not running proxmox"; return 1 } || { _success "Proxmox is installed"; return 0 } 
+    [[ -x $(command -v lshw) ]] && { _error "No lshw present, required for info command"; return 1 } || { _success "lshw is installed"; return 0 }
 }
+
+
 
 # -- proxmox_createvm
 _proxmox_createvm () {
