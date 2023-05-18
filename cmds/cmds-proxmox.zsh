@@ -215,7 +215,7 @@ function proxmox_createtemp () {
     [[ -z ${OS} ]] || OS="focal"
     [[ -z ${BRIDGE} ]] || BRIDGE="vmbr0"
     [[ -z ${STORAGE} ]] || STORAGE="local-lvm"    
-    _debug "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
+    _debugf "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
     IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
     IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${IMAGE_FILE}"
