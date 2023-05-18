@@ -57,7 +57,7 @@ proxmox_init () {
     elif [[ $1 == "info" ]]; then
         _proxmox_check || return 1
         _proxmox_info
-    elseif [[ $1 == help ]]; then
+    elif [[ $1 == help ]]; then
         _proxmox_help
     else
         _proxmox_help
@@ -125,8 +125,6 @@ function _proxmox_check () {
 	[[ -x $(command -v pvesh) ]] && _success "Proxmox is installed" || { _error "No pvesh present, not running proxmox"; return 1 }
     [[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required for info command"; return 1 }
 }
-
-
 
 # -- proxmox_createvm
 _proxmox_createvm () {    
