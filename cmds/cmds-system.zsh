@@ -72,7 +72,11 @@ function check-cpu-mhz() {
 help_system[system-specs]='Print system specs'
 function system-specs () {
     if [[ $MACHINE_OS == "linux" ]]; then
-        echo "CPU - $(lscpu | awk '/^Socket/{print $2}')S/: $(lscpu | awk '/^Core\(s\) per socket/{print $4}')C/$(lscpu | awk '/^CPU\(s\)/{print $2}')T - Memory: $(free -g | awk '/^Mem:/{print $2}')GB"
+        CPU_SOCKET=$(lscpu | awk '/^Socket/{print $2}')
+        CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{print $4}')
+        CPU_THREADS=$(lscpu | awk '/^CPU\(s\)/{print $2}')
+        CPU_MHZ=$(check-cpu-mhz)
+        echo " - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ} | Memory: $(free -g | awk '/^Mem:/{print $2}')GB"
         echo "$(check-cpu-mhz)"	
     else
         _error "system-specs not implemented for $MACHINE_OS"
