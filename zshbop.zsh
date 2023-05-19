@@ -65,6 +65,12 @@ export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -
 # -- Associative Arrays
 typeset -gA help_custom # -- Set help_custom for custom help files
 
+# -- Required Tools
+REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 
+    'net-tools' 'dmidecode' 'virtwhat' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
+    'bc' 'whois' 'telnet' 'lynx' 'traceroute' 'mtr' 'mosh' 'tree' 'ncdu' 'fpart'
+    'jq')               
+
 # -- Default tools.
 DEFAULT_TOOLS=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
 DEFAULT_TOOLS+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')

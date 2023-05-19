@@ -8,9 +8,9 @@ VERSION="0.0.3"
 SKIPDEP="0"
 HELP="0"
 REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 
-                   'net-tools' 'dmidecode' 'virtwhat' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
-                   'bc' 'whois' 'telnet' 'lynx' 'traceroute' 'mtr' 'mosh' 'tree' 'ncdu' 'fpart')
-                   )
+    'net-tools' 'dmidecode' 'virtwhat' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
+    'bc' 'whois' 'telnet' 'lynx' 'traceroute' 'mtr' 'mosh' 'tree' 'ncdu' 'fpart'
+    'jq')
 # -- Colors
 RED="\033[0;31m"
 GREEN="\033[0;32m"
