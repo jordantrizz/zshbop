@@ -525,6 +525,7 @@ init_motd () {
     _debug "Old Instance Check"
     zshbop_migrate-check
     zshbop_previous-version-check
+    echo ""
 
     # -- system details
     _loading "System details"
