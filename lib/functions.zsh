@@ -33,6 +33,7 @@ alias omz-plugins='escho "OMZ Plugins $OMZ_PLUGINS"'
 help_zshbop[cc]='Clear cache for antigen + more'
 alias cc="zshbop_cacheclear"
 zshbop_cacheclear () {   
+    _log "${funcstack[1]}:start"
     _loading "**** Start ZSH cache clear ****" 
 	_loading2 "Clearing plugin manager cache"
 	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
@@ -67,6 +68,7 @@ zshbop_scc () {
 # -------------------
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
+    _log "${funcstack[1]}:start"
     if [[ $1 == "-q" ]]; then
         _loading "Quick reload of zshbop"
         export RUN_REPORT=0
@@ -78,7 +80,9 @@ zshbop_reload () {
     else
         _loading "Reloading zshbop"
         export RUN_REPORT=1
+        export ZSHBOP_RELOAD=1
         zshbop_cacheclear
+        _log "Running exec zsh"
 	    exec zsh
     fi
 }
@@ -172,6 +176,7 @@ zshbop_check-updates () {
 # -------------------
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
+    _log "${funcstack[1]}:start"
 	_debug_all
     _loading "START UPDATING ZSHBOP"
         
@@ -494,9 +499,13 @@ zshbop_report () {
         SHOW_LEVEL=("WARNING" "ALERT" "ERROR")
         _loading3 "No log level specified"
     elif [[ $LOG_LEVEL == "help" ]]; then
-        echo "Usage: report <all|error|warning|alert|notice|log>"
+        echo "Usage: report <all|debug|error|warning|alert|notice|log>"
+    elif [[ $LOG_LEVEL == "less" ]]; then
+        less $SCRIPT_LOG
     elif [[ $LOG_LEVEL = "all" ]]; then        
         SHOW_LEVEL=("ERROR" "WARNING" "ALERT" "LOG")
+    elif [[ $LOG_LEVEL = "debug" ]]; then
+        SHOW_LEVEL=("DEBUG")
     elif [[ $LOG_LEVEL = "error" ]]; then
         SHOW_LEVEL=("ERROR")
     elif [[ $LOG_LEVEL = "warning" ]]; then

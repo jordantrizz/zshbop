@@ -3,7 +3,6 @@
 # -- zshbop functions -- This file contains all the functions for initializing zshbop
 # -----------------------------------------------------------------------------------
 _debug_load
-_debug_load
 
 # ==============================================
 # -- init_path - setup all the required paths.
@@ -571,6 +570,7 @@ init_motd () {
 # -- init_zshbop -- initialize zshbop
 # ==============================================
 function init_zshbop () {
+    _log "${funcstack[1]}:start"
 	# -- Start init
 	_debug_all
     echo "$bg[yellow]$fg[black] * Initilizing zshbop${RSC} - $(zshbop_version)"
@@ -589,11 +589,16 @@ function init_zshbop () {
     init_os              # -- Init os defaults # TODO Needs to be refactored
     init_app_config      # -- Init config
     init_zsh_sweep       # -- Init zsh-sweep if installed
-
-    _debug "\$funcstack = $funcstack"
-    [[ $funcstack[2] != "zshbop_reload" ]] && init_plugins || _loading2 "Not loading Plugin Manager on Reload" # -- Init antigen
-    [[ $funcstack[2] != "zshbop_reload" ]] && init_sshkeys || _loading2 "Not loading SSH keys on Reload" # -- Init SSH keys
-    [[ $funcstack[2] != "zshbop_reload" ]] && init_motd || _loading2 "Not loading MOTD on Reload" # -- Init MOTD
+    init_plugins         # -- Init plugins
+    init_sshkeys         # -- Init ssh keys
+    
+    _debug "init_zshbop: \$funcstack = $funcstack"
+    if [[ $ZSHBOP_RELOAD == "1" ]]; then
+        _loading2 "Not loading init_motd, init_sshkeys on Reload"
+        ZSHBOP_RELOAD="0"
+    else
+        init_motd           # -- Init motd
+    fi
 
 	# Remove Duplicates in $PATH
 	_debug "Removing duplicates in \$PATH"

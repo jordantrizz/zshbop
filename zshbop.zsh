@@ -132,7 +132,7 @@ DEBUGF_MSG=""
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
 _debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$SCRIPT_LOG"; } || { echo "$DEBUG_MSG" >> "$SCRIPT_LOG"; } } # -- debug for core
 _debugf () { DEBUGF_MSG="\033[36m** [DEBUG]: $@\033[0m"; [[ $DEBUGF == 1 ]] && { echo $DEBUGF_MSG | tee -a "$SCRIPT_LOG"; } || { echo "$DEBUGF_MSG" >> "$SCRIPT_LOG"; } } # -- debugf for debugging third party scripts
-_debug_load () { _debug "Loading ${0:a}" }
+_debug_load () { _debug "Loading $funcstack" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) } # -- debug load
 # -- _debug_all instead of _debug_function
 _debug_all () {
         _debug "--------------------------"
