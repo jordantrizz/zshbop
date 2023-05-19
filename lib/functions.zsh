@@ -623,7 +623,7 @@ fucntion zshbop_install-env () {
         fi
     done
     _loading2 "Installing - $PKG_TO_INSTALL"
-    eval $(PACKAGE_MANAGER $PKG_TO_INSTALL)
+    eval $($PKG_MANAGER $PKG_TO_INSTALL)
     _log "${funcstack[1]}:stop"
 }
 
