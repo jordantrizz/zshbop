@@ -619,11 +619,19 @@ fucntion zshbop_install-env () {
         _cexists $i
         if [[ $? == "1" ]]; then
             _debug "Adding $i to list of tools to install"
-            PKG_TO_INSTALL=("$i")  
+            PKG_TO_INSTALL+=("$i")  
         fi
     done
     _loading2 "Installing - $PKG_TO_INSTALL"
-    eval $PKG_MANAGER install $PKG_TO_INSTALL
+
+    read -q "REPLY?Proceed with install? [y/n] "
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        _loading3 "Installing - $PKG_TO_INSTALL"
+        eval $PKG_MANAGER install $PKG_TO_INSTALL
+    else
+        _loading3 "Not installing - $PKG_TO_INSTALL"
+    fi
+    
     _log "${funcstack[1]}:stop"
 }
 
