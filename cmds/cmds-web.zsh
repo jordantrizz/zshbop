@@ -19,12 +19,7 @@ _debug " -- Loading ${(%):-%N}"
 help_web[ttfb-rust]='Find out TTFB for a website. Rust app requires cargo from https://github.com/phip1611/ttfb updated frequently'
 ttfb-rust () {
 	_cexists ttfb
-	if [[ $? == "0" ]]; then
-		echo "ttfb existing in your path, simply run ttfb"
-		return
-	else
-		echo "ttfb not installed, run 'sudo install cargo;cargo install ttfb'"
-	fi
+    [[ $? == "0" ]] && echo "ttfb existing in your path, simply run ttfb" || echo "ttfb not installed, run 'sudo install cargo;cargo install ttfb'"
 }
 
 # -- curl-ttfb

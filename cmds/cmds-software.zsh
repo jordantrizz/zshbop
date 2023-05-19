@@ -174,28 +174,21 @@ aws-cli () {
 help_software[vt]="Virus Total CLI"
 if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
 	_cexists vt-linux64
-	if [[ $? -ge "1" ]]; then alias vt=vt-linux64; fi
+	[[ $? -ge "0" ]] && alias vt=vt-linux64 || alias vt="echo 'VT not installed'"
 elif [[ $MACHINE_OS == "mac" ]]; then
 	_cexists vt-macos
-	if [[ $? -ge "1" ]]; then alias vt=vt-macos; fi
+	[[ $? -ge "0" ]] && alias vt=vt-macos || alias vt="echo 'VT not installed'"
 fi
 # -- b2
 help_software[b2]="Backblaze CLI"
 if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
 	_cexists b2-linux
-	if [[ $? -ge "1" ]]; then
-    	alias b2=b2_download
-	else
-		alias b2=b2-linux
-	fi    	
+    [[ $? -ge "1" ]] && alias b2=b2_download || alias b2=b2-linux
 elif [[ $MACHINE_OS == "mac" ]]; then
 	_cexists b2-darwin
-    if [[ $? -ge "1" ]]; then
-        alias b2=b2_download
-    else
-        alias b2=b2-darwin
-    fi
+    [[ $? -ge "1" ]] && alias b2=b2_download || alias b2=b2-darwin
 fi
+
 # -- b2_download
 b2_download () {
 	_debug_all
@@ -236,11 +229,8 @@ b2_download () {
 # -- powershell
 help_software[powershell]="Powershell for Linux"
 _cexists pwsh
-if [[ $? -ge "1" ]]; then
-	alias pwsh=powershell_download
-else
-	alias pwsh=pwsh
-fi
+[[ $? -ge "1" ]] && alias pwsh=powershell_download || alias pwsh=pwsh
+
 powershell_download () {
 	echo "Installing Powershell on Ubuntu"
 	# Update the list of packages
@@ -310,9 +300,9 @@ function ubuntu-netselect () {
         echo "netselect installed, type 'sudo netselect'"
     elif [[ $? == "1" ]]; then
         _checkroot
-            mkdir ~/tmp
-            wget http://ftp.us.debian.org/debian/pool/main/n/netselect/netselect_0.3.ds1-28+b1_amd64.deb -P ~/tmp
-            sudo dpkg -i ~/tmp/netselect_0.3.ds1-28+b1_amd64.deb
+        mkdir ~/tmp
+        wget http://ftp.us.debian.org/debian/pool/main/n/netselect/netselect_0.3.ds1-28+b1_amd64.deb -P ~/tmp
+        sudo dpkg -i ~/tmp/netselect_0.3.ds1-28+b1_amd64.deb
     fi
 }
 

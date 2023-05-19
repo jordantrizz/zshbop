@@ -18,12 +18,12 @@ alias eject-all="osascript -e 'tell application "Finder" to eject (every disk wh
 
 # -- ls/exa
 _cexists exa
-if [[ $? -ge "1" ]]; then
-	_debug "exa failed, using default ls alias"
-    alias ls="${DEFAULT_LS}"
-else
+if [[ $? -ge "0" ]]; then
     _debug "exa success, using exa for ls alias"
     alias ls="exa -al"
+else
+	_debug "exa failed, using default ls alias"
+    alias ls="${DEFAULT_LS}"
 fi
 
 

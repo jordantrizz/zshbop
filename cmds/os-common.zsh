@@ -38,13 +38,13 @@ alias tran="tran_linux_amd64"
 
 # -- check if nala is installed
 check_nala () {
-        _debug_all
-        _debug "Checking if nala is installed"
-        _cexists nala
-        if [[ $? == "0" ]]; then
-            _debug "nala installed - running zsh completions"
-            source /usr/share/bash-completion/completions/nala
-        fi
+    _debug_all
+    _debug "Checking if nala is installed"
+    _cexists nala
+    if [[ $? == "0" ]]; then
+        _debug "nala installed - running zsh completions"
+        source /usr/share/bash-completion/completions/nala
+    fi
 }
 
 # ----------------------------------------

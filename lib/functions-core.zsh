@@ -122,8 +122,7 @@ _requires_cmd () {
 # --
 # -- Returns 0 if command exists or 1 if command doesn't exist
 # ------------------------------------------------------------------------
-# TODO needs to be fixed, doesn't function within if statements.
-help_corefunc[_cexists]="Returns 0 if command exists or 1 if command doesn't exist"
+help_corefunc[_cexists]="Returns 0 if command exists or 1 if command doesn't exist, will never output data"
 function _cexists () {
     CMD_EXISTS=""
     CMD="$1"

@@ -338,20 +338,28 @@ init_pkg_manager () {
 	
 	if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
 		_debug "Checking for Linux package manager"
-			_cexists apt-get
-			if [[ $? == "0" ]]; then
-				_debug "Found apt-get setting \$PKG_MANAGER to apt-get"
-				export PKG_MANAGER="sudo apt-get"
-			else
-				_debug "Didn't find apt-get"
-			fi
+        _cexists apt-get
+        if [[ $? == "0" ]]; then
+            _debug "Found apt-get setting \$PKG_MANAGER to apt-get"
+            export PKG_MANAGER="sudo apt-get"
+        else
+            _debug "Didn't find apt-get"
+        fi
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		_debug "Checking for Mac package manager"
-			_cexists brew
-			if [[ $? == "0" ]]; then
-				_debug "Found brew setting \$PKG_MANAGER to apt-get"
-				export PKG_MANAGER="brew"
-			fi		
+        # -- Check for brew
+        _cexists brew
+        if [[ $? == "0" ]]; then
+            _debug "Found brew setting \$PKG_MANAGER to brew"
+            export PKG_MANAGER="brew"
+        fi
+
+        # -- Check for macports
+        _cexists port
+        if [[ $? == "0" ]]; then
+            _debug "Found port setting \$PKG_MANAGER to port"
+            export PKG_MANAGER="port"
+        fi
 	fi	
 }
 
@@ -423,14 +431,14 @@ init_check_software () {
 	_banner_yellow "-- Checking Software"
 
     # -- check if atop is installed
-    # _cexists 1 == not installed ; 0 == installed
     if _cexists atop; then 
         # -- check if atop is running using ps and pgrep
-        pgrep atop && _success "atop installed and running" || _warning "atop installed but not running, if this is a server install it"
+        pgrep atop >> /dev/null && _success "atop installed and running" || _warning "atop installed but not running, if this is a server install it"
     else
         _warning "atop not installed, if this is a server install it" 
     fi
 
+    # -- check if broot is installed
     check_broot
 }
 
