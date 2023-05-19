@@ -61,9 +61,9 @@ function system-specs () {
             if (( $(echo "$CPU_MHZ < 3" | bc -l) )); then
                 CPU_CHECK=$(_error "CPU Mhz = $CPU_MHZ and is below 3Ghz")
             elif (( $(echo "$CPU_MHZ < 3.5" | bc -l) )); then
-                CPU_CHECK=$(__warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz")
+                CPU_CHECK=$(_warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz")
             else
-                CPU_CHECK=$(__success "CPU Mhz = $CPU_MHZ and is 3.5Ghz or above")
+                CPU_CHECK=$(_success "CPU Mhz = $CPU_MHZ and is 3.5Ghz or above")
             fi
         fi
 
