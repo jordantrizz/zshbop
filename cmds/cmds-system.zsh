@@ -55,7 +55,8 @@ function system-specs () {
 
         # -- Check if Mhz is higher than 3Ghz
         # -- Check if bc is installed
-        if [[ ! bc ]]; then
+        _cexists bc
+        if [[ $? == "1" ]]; then
             _error "Please install the bc command"
         else
             if (( $(echo "$mhz < 3" | bc -l) )); then
