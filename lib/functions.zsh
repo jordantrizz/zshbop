@@ -569,16 +569,26 @@ zshbop_systemcheck () {
 # --------------
 help_zshbop[check]='Check environment for installed software and tools'
 function zshbop_check () {
-    _debug_all
+    _log "${funcstack[1]}:start"
     _loading "Checking environment"
-    _loading2 "Checking for default tools"
+    _loading3 "Checking if required tools are installed"
+    for i in $REQUIRED_SOFTWARE; do
+        _cexists $i
+        if [[ $? == "0" ]]; then
+                echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
+        else
+                echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
+        fi
+    done
+
+    _loading3 "Checking for default tools"
     for i in $DEFAULT_TOOLS; do
-            _cexists $i
-            if [[ $? == "0" ]]; then
-                    echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
-            else
-                    echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
-            fi
+        _cexists $i
+        if [[ $? == "0" ]]; then
+                echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
+        else
+                echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
+        fi
     done
 
     _loading2 "Checking for extra tools"
@@ -590,11 +600,35 @@ function zshbop_check () {
                     echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
     fi
     done
-    echo "--------------------------------------------"
-    echo "Run env-install to install above tools"
-    echo "--------------------------------------------"
-
+    _loading "Run zshbop install-env to install above tools"
+    _log "${funcstack[1]}:end"
 }
+
+# --------------------------------
+# -- zshbop_install-env
+# --------------------------------
+help_zshbop[install-env]='Install environment tools'
+fucntion install-env () {
+    _log "${funcstack[1]}:start"
+    _loading "Installing environment"
+    _loading2 "Installing required tools"
+    # -- install required tools
+    for i in $REQUIRED_SOFTWARE; do
+        _cexists $i
+        if [[ $? == "1" ]]; then
+        else
+            _loading3 "Installing $i via $PACKAGE_MANAGER"
+            $PACKAGE_MANAGER $i
+        fi
+    done
+    _log "${funcstack[1]}:stop"
+}
+
+
+# ==============================================
+# ==============================================
+# ==============================================
+# ==============================================
 
 # --------------
 # -- Always Last
