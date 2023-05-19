@@ -71,28 +71,13 @@ function check-cpu-mhz() {
 
 help_system[system-specs]='Print system specs'
 function system-specs () {
-    _loading "System specs on $MACHINE_OS"
-
     if [[ $MACHINE_OS == "linux" ]]; then
         echo " - Sockets: $(lscpu | awk '/^Socket/{print $2}') Cores: $(lscpu | awk '/^Core\(s\) per socket/{print $4}')  Threads: $(lscpu | awk '/^CPU\(s\)/{print $2}')"
         echo " - System Memory $(free -g | awk '/^Mem:/{print $2}')GB"
         echo "$(check-cpu-mhz)"	
     else
-        _error "check_specs not implemented for $MACHINE_OS"
+        _error "system-specs not implemented for $MACHINE_OS"
     fi
-    
-    _loading2 "Network interfaces"
-    interfaces
-    
-	_loading2 "Swappiness"
-    swappiness
-
-	_loading2 "Checking disk space on $MACHINE_OS"
-	check_diskspace show
-
-    # -- check block devices
-    _loading2 "Checking block devices"
-	check_blockdevices show
 }
 
 help_system[count-files-directories]='Count files and directories'

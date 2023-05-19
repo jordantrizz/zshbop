@@ -38,13 +38,13 @@ check_diskspace_mac () {
 }
 
 # -- interfaces
-interfaces_mac () {
+function interfaces_mac () {
     # Get a list of all network interfaces
     interfaces=($(ifconfig | awk '/: flags/{print $1}' | grep -v 'utun0'))
 
     # Loop through each interface
     #OUTPUT=$(_banner_grey "Interface IP Mac Speed")
-    OUTPUT="Interface IP Mac Speed"
+    OUTPUT="  Interface IP Mac Speed"
     for interface in $interfaces; do
         # Get IP address
         interface=${interface//:/}
@@ -58,7 +58,7 @@ interfaces_mac () {
 
         # Print interface information
         if [[ ! $ip == "" ]]; then
-            OUTPUT+="\n$interface $ip $mac $speed"
+            OUTPUT+="\n  $interface $ip $mac $speed"
             OUTPUT=${OUTPUT%[$'  ']} # Remove trailing whitespace 
 
         fi
@@ -73,7 +73,7 @@ function show_swap_mac() {
     used_memory=$(echo "scale=2; ${physical_memory} - $(memory_pressure | grep "Pages free" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages active" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages inactive" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages speculative" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages wired down" | awk '{print $4/1024}')" | bc)
     cached_files=$(vm_stat | awk '/^Pages free:/ {free=$3} /^Pages speculative:/ {spec=$3} /^Pages inactive:/ {inactive=$3} /^Pages wired down:/ {wired=$4} END {printf "%.1f MB\n", (free+spec+inactive+wired)*4096/1048576}')
     swap_used=$(sysctl vm.swapusage | awk '/vm.swapusage:/ {print $7}')
-    echo "Physical Memory: ${physical_memory} | Memory Used: ${used_memory} | Cached Files: ${cached_files} | Swap Used ${swap_used}"
+    echo -n "Mem: ${physical_memory} | Used: ${used_memory} | Cached: ${cached_files} | Swap: ${swap_used}"
     _notice "You can also run sysctl vm.swapusage or memory_pressure"
 }
 

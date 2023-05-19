@@ -205,7 +205,7 @@ function init_fzf () {
 # -- Initialize ZSH plugins
 # ==============================================
 function init_plugins () {
-	_loading2 "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
+	_loading3 "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
 	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
 		init_antigen	
 	else
@@ -287,46 +287,49 @@ function init_os () {
 # -- Load default SSH keys into keychain
 # ==============================================
 function init_sshkeys () {
-		_debug_all
-		_log "Loading SSH keys into keychain"
-		if (( $+commands[keychain] )); then
-            # Load default SSH key
-            _log "Load default SSH key"
-            _debug " - Check for default SSH key $HOME/.ssh/id_rsa and load keychain"
-            if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
-                    _debug  " - FOUND: $HOME/.ssh/id_rsa"
-                    eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
-            else
-                    _debug " - NOTFOUND: $HOME/.ssh/id_rsa"
-            fi
+    _debug_all
 
-            # Check and load custom SSH key
-            _log "Loading custom SSH keys."
-            _debug " - Check for custom SSH key via $CUSTOM_SSH_KEY and load keychain"
-                            
-            if [[ ! -z "${CUSTOM_SSH_KEYS[@]}" ]]; then
-                _debug " - FOUND: $CUSTOM_SSH_KEYS"
-                for key in ${CUSTOM_SSH_KEYS[@]}; do
-                    _log "Loading -- $key"
-                    eval `keychain -q --eval --agents ssh $key`
-                done
-            else
-                    _debug " - NOTFOUND: $CUSTOM_SSH_KEYS not set."
-            fi
+    # -- Load SSH keys into keychain
+    _dlog "** - init_sskeys - run"
 
-			# Load any id_rsa* keys @@ISSUE
-            # TODO figure out why this is @@ISSUE
-			_log "Load any id_rsa* keys"
-			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
-				eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
-			fi
-			# Load any client-* keys
-			if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
-            	eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
-            fi
-		else
-			_error "Command keychain doesn't exist, please install for SSH keys to work"
-		fi
+    # -- Check if keychain is installed
+    if (( $+commands[keychain] )); then
+        _dlog "keychain installed"
+        # -- Load default SSH key
+        _dlog "- Loading default SSH key into keychain via $HOME/.ssh/id_rsa"
+        if [[ -a $HOME/.ssh/id_rsa || -L $HOME/.ssh/id_rsa ]]; then
+                _dlog "-- FOUND: $HOME/.ssh/id_rsa"
+                eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa`
+        else
+                _dlog "-- NOTFOUND: $HOME/.ssh/id_rsa"
+        fi
+
+        # -- Check and load custom SSH key
+        _dlog "Loading custom SSH keys into keychain via \$CUSTOM_SSH_KEY"
+        if [[ ! -z "${CUSTOM_SSH_KEYS[@]}" ]]; then
+            _dlog "- Found \$CUSTOM_SSH_KEYS: ${CUSTOM_SSH_KEYS[@]}"
+            for SSH_KEY in ${CUSTOM_SSH_KEYS[@]}; do
+                if [[ -f $SSH_KEY ]]; then
+                    _dlog "-- Loading -- $SSH_KEY"
+                    eval `keychain -q --eval --agents ssh $SSH_KEY`
+                else
+                    _elog "-- Can't find $SSH_KEY, please check your CUSTOM_SSH_KEY array in .zshbop.conf"
+                fi
+            done
+        else
+                _dlog "- NOTFOUND: $CUSTOM_SSH_KEYS not set."
+        fi
+
+        # Load any id_rsa* keys @@ISSUE
+        # TODO figure out why this is @@ISSUE
+        _log "Load any id_rsa* keys"
+        if [[ $ENABLE_ALL_SSH_KEYS == 1 ]]; then
+            eval `keychain -q --eval --agents ssh $HOME/.ssh/id_rsa*`
+            eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
+        fi
+    else
+        _error "Command keychain doesn't exist, please install for SSH keys to work"
+    fi
 }
 
 # ==============================================
@@ -415,22 +418,14 @@ function init_zshbop () {
   	init_p10k            # -- Init powerlevel10k
   	zshbop_load_custom   # -- Init custom zshbop  	
     init_os              # -- Init os defaults # TODO Needs to be refactored
-    init_zsh_sweep       # -- Init zsh-sweep if installed
-    zshbop_systemcheck   # -- zshbop systemcheck to confirm system status.
     init_app_config      # -- Init config
-    
-  	# -- Init antigen
-    [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload"
+    init_zsh_sweep       # -- Init zsh-sweep if installed
 
-	# -- Skip when running rld
-	_debug "\$funcstack = $funcstack"
-	if [[ $funcstack[3] != "zshbop_reload" ]]; then
-		init_sshkeys
-		init_motd
-    echo ""
-	else
-	    _loading_grey "Skipped some scripts due to running rld"	    
-	fi
+    _debug "\$funcstack = $funcstack"
+    [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload" # -- Init antigen
+    [[ $funcstack[3] != "zshbop_reload" ]] && init_sshkeys || _loading_grey "Not loading SSH keys on Reload" # -- Init SSH keys
+    [[ $funcstack[3] != "zshbop_reload" ]] && init_motd || _loading_grey "Not loading MOTD on Reload" # -- Init MOTD
+    [[ $funcstack[3] != "zshbop_reload" ]] && zshbop_systemcheck || _loading_grey "Not running systemcheck on Reload" # -- zshbop systemcheck
 
 	# Remove Duplicates in $PATH
 	_debug "Removing duplicates in \$PATH"

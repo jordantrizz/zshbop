@@ -124,6 +124,8 @@ _error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@") }
 _error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@") }
 _warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@") }
 _alert () { echo "$bg[red] $fg[yellow] * $@ ${RSC}"; ZSHBOP_ALERTS+=("$@") }
+_dlog () { _log "${*}"; _debug "${*}" }
+_elog () { _log "${*}"; _error "${*}" }
 
 # ---------------
 # -- Source files

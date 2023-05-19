@@ -258,28 +258,28 @@ zshbop_migrate-check () {
         _log "Checking for legacy zshbop"        
         FOUND="0"
         for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
-                if [ -d "$ZBPATH_MIGRATE" ]; then
-                        _error "Detected old zshbop under $ZBPATH_MIGRATE, run 'zshbop migrate'";
-                        FOUND="1"
-                fi
+            if [ -d "$ZBPATH_MIGRATE" ]; then
+                    _error "Detected old zshbop under $ZBPATH_MIGRATE, run 'zshbop migrate'";
+                    FOUND="1"
+            fi
         done
         if [[ "$FOUND" == "0" ]]; then
-                _debug "Don't need to migrate legacy zshbop"
+            _dlog "Don't need to migrate legacy zshbop"
         fi
 
         _log "-- Checking for github modules"
         if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
-                _debug "Found old ultimate-linux-tool-box"
-                _warning "Found ultimate-linux-tool-box run 'zshbop migrate'"
+            _debug "Found old ultimate-linux-tool-box"
+            _warning "Found ultimate-linux-tool-box run 'zshbop migrate'"
         else
-                _log "Didn't find ultimate-linux-tool-box"
+            _log "Didn't find ultimate-linux-tool-box"
         fi
 
         if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
-                _debug "Found old ultimate-wordpress-tools"
-                _warning "Found ultimate-wordpress-tools run 'zshbop migrate'"
+            _debug "Found old ultimate-wordpress-tools"
+            _warning "Found ultimate-wordpress-tools run 'zshbop migrate'"
         else
-                _log "Didn't find ultimate-wordpress-tools"
+            _log "Didn't find ultimate-wordpress-tools"
         fi
         
 }
@@ -482,8 +482,18 @@ zshbop_report () {
     local SHOW_LEVEL=()
     
     # -- if no log level passed, set to errors
-    if [[ $LOG_LEVEL = "all" ]]; then        
-        SHOW_LEVEL=("logs" "warnings" "alerts" "errors")
+    if [[ $1 == "help" ]]; then
+        echo "Usage: report <all|errors|warnings|alerts|logs>"
+    elif [[ $LOG_LEVEL = "all" ]]; then        
+        SHOW_LEVEL=("errors" "warnings" "alerts" "logs")
+    elif [[ $LOG_LEVEL = "errors" ]]; then
+        SHOW_LEVEL=("errors")
+    elif [[ $LOG_LEVEL = "warnings" ]]; then
+        SHOW_LEVEL=("warnings")
+    elif [[ $LOG_LEVEL = "alerts" ]]; then
+        SHOW_LEVEL=("alerts")
+    elif [[ $LOG_LEVEL = "logs" ]]; then
+        SHOW_LEVEL=("logs")
     else        
         SHOW_LEVEL=("warnings" "alerts" "errors")
     fi
@@ -511,26 +521,32 @@ help_zshbop[systemcheck]='Print out errors and warnings'
 zshbop_systemcheck () {
 	# -- start
 	_debug_all
-	_loading3 "System check on $MACHINE_OS"
+	_loading2 "System check on $MACHINE_OS"
 	
     # -- network interfaces
     _debug "Network interfaces"
-    interfaces
+    _loading3 "Checking network interfaces"
+    interfaces | sed 's/^/  /'
 
 	# -- check swappiness
 	_debug "Checking swappiness"
-    swappiness
+    _loading3 "Checking swappiness"
+    swappiness | sed 's/^/  /'
 	
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"
-	check_diskspace
+    _loading3 "Checking disk space"
+	check_diskspace | sed 's/^/  /'
 
 	# -- check block devices
     _debug "Checking block devices"
-	check_blockdevices
+    _loading3 "Checking block devices"
+	check_blockdevices | sed 's/^/  /'
 
     # -- Quick CPU/Mem
-    check_specs
+    _debug "Checking CPU/Mem"
+    _loading3 "Checking CPU/Mem"
+    system-specs | sed 's/^/  /'
 }
 
 # --------------
