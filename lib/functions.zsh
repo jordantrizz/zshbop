@@ -535,8 +535,8 @@ zsbhop_systemcheck () {
 # --------------
 # -- zshbop_check
 # --------------
-help_zshbop[zshbop_check]='Check environment for installed software and tools'
-zsbhop_check () {
+help_zshbop[check]='Check environment for installed software and tools'
+function zshbop_check () {
     _debug_all
     _loading "Checking environment"
     _loading2 "Checking for default tools"
