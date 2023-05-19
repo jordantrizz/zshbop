@@ -423,7 +423,7 @@ init_check_software () {
 	_banner_yellow "-- Checking Software"
 
     # -- check if atop is installed
-    _cexists atop # 1 == not installed ; 0 == installed
+    # _cexists 1 == not installed ; 0 == installed
     if [[ $(_cexists atop) ]]; then 
         _warning "atop not installed, if this is a server install it" 
     else
