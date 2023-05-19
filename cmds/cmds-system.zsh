@@ -45,40 +45,35 @@ sysinfo () {
 help_system[yabs]='Run yabs'
 alias yabs="yabs.sh"
 
-# -- check-cpu-mhz
-help_system[check-cpu-mhz]='Check if running high frequency'
-function check-cpu-mhz() {
-    if [[ $(uname -s) == "FreeBSD" ]]; then
-        mhz=$(sysctl -n hw.cpufrequency | awk '{print $1/1000000}')
-    else
-        mhz=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo | awk '{sum += $1} END {print sum/NR/1000}')
-    fi
-    if [[ ! bc ]]; then
-        _error "Please install the bc command"
-    else
-        if (( $(echo "$mhz < 3" | bc -l) )); then
-            _error "CPU Mhz = $mhz and is below 3Ghz"
-        elif (( $(echo "$mhz < 3.5" | bc -l) )); then
-            _warning "CPU Mhz = $mhz and is between 3Ghz and 3.5Ghz"
-        else
-            _success "CPU Mhz = $mhz and is 3.5Ghz or above"
-        fi
-    fi
-
-    local model=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ *//')
-    echo " - Processor Model: $model"
-}
-
 help_system[system-specs]='Print system specs'
 function system-specs () {
-    if [[ $MACHINE_OS == "linux" ]]; then
+    # -- FreeBSD
+    if [[ $MACHINE_OS == "freebsd" ]]; then
+        mhz=$(sysctl -n hw.cpufrequency | awk '{print $1/1000000}')
+    elif [[ $MACHINE_OS == "linux" ]]; then
+        CPU_MHZ=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo | awk '{sum += $1} END {print sum/NR/1000}')
+
+        # -- Check if Mhz is higher than 3Ghz
+        # -- Check if bc is installed
+        if [[ ! bc ]]; then
+            _error "Please install the bc command"
+        else
+            if (( $(echo "$mhz < 3" | bc -l) )); then
+                CPU_CHECK=$(_error "CPU Mhz = $mhz and is below 3Ghz")
+            elif (( $(echo "$mhz < 3.5" | bc -l) )); then
+                CPU_CHECK=$(__warning "CPU Mhz = $mhz and is between 3Ghz and 3.5Ghz")
+            else
+                CPU_CHECK=$(__success "CPU Mhz = $mhz and is 3.5Ghz or above")
+            fi
+        fi
+
         CPU_SOCKET=$(lscpu | awk '/^Socket/{print $2}')
         CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{print $4}')
         CPU_THREADS=$(lscpu | awk '/^CPU\(s\)/{print $2}')
-        CPU_MHZ=$(check-cpu-mhz)
-        echo " - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ}"
+        CPU_MODEL=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ *//')
+        echo " - $CPU_MODEL - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ}"
+        echo " - $CPU_CHECK" 
         echo " - Memory: $(free -g | awk '/^Mem:/{print $2}')GB"
-        echo "$(check-cpu-mhz)"	
     else
         _error "system-specs not implemented for $MACHINE_OS"
     fi
