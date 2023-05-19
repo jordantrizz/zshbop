@@ -14,7 +14,7 @@ help_files[${HELP_CATEGORY}]='Software related commands'
 typeset -gA help_software
 
 # -- software - Core software command
-software () {
+function software () {
 	_debug_all "$@"
 	if [[ -z $1 ]]; then
 		help software
@@ -342,4 +342,11 @@ function plik-conf () {
         PLIKRC=$(cat $HOME/.plikrc)
         echo "echo '${PLIKRC}' > \$HOME/.plikrc"
     fi
+}
+
+# -- zsh-bin
+help_software[zsh-bin]='Install zsh-bin from https://github.com/romkatv/zsh-bin'
+function zsh-bin() {
+    _loading "Running sh -c '$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)'"
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)"
 }
