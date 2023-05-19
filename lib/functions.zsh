@@ -540,7 +540,7 @@ help_zshbop[systemcheck]='Print out errors and warnings'
 zshbop_systemcheck () {
 	# -- start
 	_debug_all
-	_loading2 "System check on $MACHINE_OS"
+	_loading "System check on $MACHINE_OS"
 	
     # -- network interfaces
     _debug "Network interfaces"
@@ -612,7 +612,7 @@ fucntion zshbop_install-env () {
     _log "${funcstack[1]}:start"
     _loading "Installing environment"
     _loading3 "Required tools - ${REQUIRED_SOFTWARE[@]}"
-    _loading2 "Generating list of required tools that need to be installed"
+    _loading2 "Generating list of required tools that need to be insstalled"
     # -- install required tools
     for i in ${REQUIRED_SOFTWARE[@]}; do
         _cexists $i
