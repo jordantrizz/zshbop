@@ -485,11 +485,9 @@ function init_check_vm () {
         if [[ -n $VM ]]; then
             _warning "VM-virt-what: Running on $VM"
             _debug "virt-what returned $VM"
-            return 0
         else
             _notice "Not running in a VM"
             _debug "virt-what returned $VM"
-            return 0
         fi
     else
         _notice "Unable to determine if in virtual environment, please install virt-what"
@@ -531,9 +529,8 @@ init_motd () {
     # -- system details
     _loading "System details"
 	sysfetch | _pipe_separate 2 | sed 's/^/  /'
-
-    # -- zshbop_systemcheck
     zshbop_systemcheck
+    init_check_vm
 
     # -- Show screen sessions
     _loading "Screen Sessions"
@@ -545,7 +542,6 @@ init_motd () {
 	
 	# -- Check service software versions        
 	init_check_services
-    init_check_vm
     echo ""
 
     # -- Load motd
