@@ -48,6 +48,8 @@ export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
 export KB="${ZSHBOP_ROOT}/kb"
 export GIT_HOME="${HOME}/git"
 export REPOS_DIR="$ZSHBOP_ROOT/repos"
+export RUN_REPORT="0"
+export ZSHBOP_RELOAD="0"
 
 # -- zshbop git
 export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
