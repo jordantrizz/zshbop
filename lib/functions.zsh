@@ -540,7 +540,6 @@ help_zshbop[systemcheck]='Print out errors and warnings'
 zshbop_systemcheck () {
 	# -- start
 	_debug_all
-	_loading "System check on $MACHINE_OS"
 	
     # -- network interfaces
     _debug "Network interfaces"
