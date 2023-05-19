@@ -481,14 +481,15 @@ function init_check_vm () {
     # -- check if virt-what exists
     _cexists virt-what
     if [[ $? == "0" ]]; then
-        _debug "virt-what exists"
+        _debug "virt-what installed"
         VM=$(virt-what)
-        _debug "virt-what returned $VM"
         if [[ $? == "0" ]]; then
             _warning "VM-virt-what: Running on $VM"
+            _debug "virt-what returned $VM"
             return 0
         else
             _notice "Not running in a VM"
+            _debug "virt-what returned $VM"
             return 0
         fi
     else
