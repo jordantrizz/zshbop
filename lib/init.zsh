@@ -482,7 +482,7 @@ function init_check_vm () {
     _cexists dmidecode
     if [[ $? == "0" ]]; then
         _debug "dmidecode exists"
-        _alert "VM: Running one $(dmidecode -s system-product-name)"
+        _warning "VM-dmidecode: Running one $(dmidecode -s system-product-name)"
         return 0
     else
         _warning "dmidecode not installed"
@@ -492,13 +492,20 @@ function init_check_vm () {
     _cexists virt-what
     if [[ $? == "0" ]]; then
         _debug "virt-what exists"
-        _alert "VM: Running on $(virt-what)"
-        return 0
+        VM=$(virt-what)
+        _debug "virt-what returned $VM"
+        if [[ $? == "0" ]]; then
+            _warning "VM-virt-what: Running on $VM"
+            return 0
+        else
+            _notice "Not running in a VM"
+            return 0
+        fi
     else
         _warning "virtwhat not installed"
     fi
 
-    _alert "Unable to determine if in virtual environment, please install virt-what or dmidecode"
+    _notice "Unable to determine if in virtual environment, please install virt-what or dmidecode"
 }
 
 # ==============================================

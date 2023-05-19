@@ -154,6 +154,7 @@ _error () { echo "$fg[red] *[ERROR] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
 _error2 () { echo "$bg[red] *[ERROR] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
 _warning () { echo "$fg[yellow] *[WARNING] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
 _alert () { echo "$bg[red] $fg[yellow] *[ALERT] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
+_notice () { NOTICE_MSG="$fg[blue] * $@ ${RSC}"; echo "$NOTICE_MSG";echo "[NOTICE] $NOTICE_MSG" >> "$SCRIPT_LOG"; }
 _dlog () { _log "${*}"; _debug "${*}" }
 _elog () { _log "${*}"; _error "${*}" }
 
