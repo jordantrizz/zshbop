@@ -70,7 +70,7 @@ function system-specs () {
         CPU_SOCKET=$(lscpu | awk '/^Socket/{print $2}')
         CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{print $4}')
         CPU_THREADS=$(lscpu | awk '/^CPU\(s\)/{print $2}')
-        CPU_MODEL=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ *//')
+        CPU_MODEL=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
         echo " - $CPU_MODEL - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ}"
         echo " - $CPU_CHECK" 
         echo " - Memory: $(free -g | awk '/^Mem:/{print $2}')GB"
