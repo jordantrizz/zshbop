@@ -75,6 +75,7 @@ env-install () {
 }
 
 # -- install-pkg - Install specific tool
+# TODO - why does this exist?
 help_core[install-pkg]='Install specific tool'
 install-pkg () {
 	# List of packages.

@@ -7,7 +7,8 @@
 VERSION="0.0.3"
 SKIPDEP="0"
 HELP="0"
-REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 'net-tools')
+REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 
+                   'net-tools' 'dmidecode')
 
 # -- Colors
 RED="\033[0;31m"

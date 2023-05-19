@@ -513,8 +513,7 @@ init_motd () {
 
     # -- Show screen sessions
     _loading "Screen Sessions"
-    _cexists screen # 1 == not installed ; 0 == installed
-    [[ $(_cexists screen) ]] && _error "Screen not installed" || _success "$(screen -list)" 
+    _cexists screen && _success "$(screen -list)" || _error "Screen not installed" ||
 
     # -- Running system checklist
 	init_check_software
@@ -561,21 +560,28 @@ function init_checkzsh () {
 # -- check if in virtual environment
 function init_check_vm () {
     _debug "Checking if in virtual environment"
+
+    # -- check if dmidecode exists
     _cexists dmidecode
     if [[ $? == "0" ]]; then
         _debug "dmidecode exists"
-        if [[ $(dmidecode -s system-product-name) == "VirtualBox" ]]; then
-            _alert "Running in VirtualBox"
-        elif [[ $(dmidecode -s system-product-name) == "VMware Virtual Platform" ]]; then
-            _alert "Running in VMware"
-        elif [[ $(dmidecode -s system-product-name) == "KVM" ]]; then
-            _alert "Running in KVM"
-        else
-            _alert "Running on $(dmidecode -s system-product-name)"
-        fi
+        alert "Running one $(dmidecode -s system-product-name)"
+        return 0
     else
         _warning "dmidecode not installed"
     fi
+
+    # -- check if virt-what exists
+    _cexists virt-what
+    if [[ $? == "0" ]]; then
+        _debug "virt-what exists"
+        _alert "Running on $(virt-what)"
+        return 0
+    else
+        _warning "dmidecode not installed"
+    fi
+
+    _alert "Unable to determine if in virtual environment"
 }
 
 # -- check if in virtual environment secondary method
