@@ -483,7 +483,7 @@ function init_check_vm () {
     if [[ $? == "0" ]]; then
         _debug "virt-what installed"
         VM=$(virt-what)
-        if [[ $? == "0" ]]; then
+        if [[ -n $VM ]]; then
             _warning "VM-virt-what: Running on $VM"
             _debug "virt-what returned $VM"
             return 0
