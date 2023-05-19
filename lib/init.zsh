@@ -426,7 +426,7 @@ init_check_software () {
     _cexists atop # 1 == not installed ; 0 == installed
     if [[ $(_cexists atop) ]]; then 
         # -- check if atop is running using ps and pgrep
-        [[ $(pgrep atop) ]] && _success "atop installed and running" || _warning "atop installed but not running, if this is a server install it"
+        [[ $(pgrep atop) ]] && _warning "atop installed but not running, if this is a server install it" || _success "atop installed and running"
     else
         _warning "atop not installed, if this is a server install it" 
     fi
