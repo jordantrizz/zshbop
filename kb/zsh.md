@@ -121,6 +121,18 @@ If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring
 * https://rowannicholls.github.io/bash/intro/booleans.html
 
 ```
+❯ if false; then echo "true $?"; else echo "false $?"; fi
+false 1
+❯ if true; then echo "true $?"; else echo "false $?"; fi
+true 0
+
+❯ if ls; then echo "true $?"; else echo "false $?"; fi
+true 0
+❯ if ls -0; then echo "true $?"; else echo "false $?"; fi
+ls: invalid option -- 0
+usage: ls [-@ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy1%,] [--color=when] [-D format] [file ...]
+false 1
+
 y=true
 n=false
 echo $y $n

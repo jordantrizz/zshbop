@@ -125,11 +125,11 @@ _requires_cmd () {
 # TODO needs to be fixed, doesn't function within if statements.
 help_corefunc[_cexists]="Returns 0 if command exists or 1 if command doesn't exist"
 function _cexists () {
-    unset CMD_EXISTS
+    CMD_EXISTS=""
     CMD="$1"
 
     # Check if command exists
-    if [[ -x $(command -v ${CMD}) ]]; then
+    if command -v ${CMD} >> /dev/null; then
         _debug "$CMD is installed";
         CMD_EXISTS="0"
     else
