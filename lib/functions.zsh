@@ -608,19 +608,19 @@ function zshbop_check () {
 # -- zshbop_install-env
 # --------------------------------
 help_zshbop[install-env]='Install environment tools'
-fucntion install-env () {
+fucntion zshbop_install-env () {
     _log "${funcstack[1]}:start"
     _loading "Installing environment"
-    _loading2 "Installing required tools"
+    _loading2 "Generating list of required tools that need to be installed"
     # -- install required tools
     for i in $REQUIRED_SOFTWARE; do
         _cexists $i
         if [[ $? == "1" ]]; then
-        else
-            _loading3 "Installing $i via $PACKAGE_MANAGER"
-            $PACKAGE_MANAGER $i
+            PKG_TO_INSTALL=("$i")  
         fi
     done
+    _loading2 "Installing - $PKG_TO_INSTALL"
+    $PACKAGE_MANAGER $PKG_TO_INSTALL
     _log "${funcstack[1]}:stop"
 }
 
