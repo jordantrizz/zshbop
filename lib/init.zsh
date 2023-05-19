@@ -532,7 +532,7 @@ init_motd () {
 	sysfetch | _pipe_separate 2 | sed 's/^/  /'
     echo ""
     
-    _loading "System check on $MACHINE_OS"
+    g_loading "System check on $MACHINE_OS"
     zshbop_systemcheck
     init_check_vm
     echo ""
