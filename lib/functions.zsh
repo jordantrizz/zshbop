@@ -611,8 +611,7 @@ help_zshbop[install-env]='Install environment tools'
 fucntion zshbop_install-env () {
     _log "${funcstack[1]}:start"
     _loading "Installing environment"
-    _loading2 "Required tools"
-    _loading3 "${REQUIRED_SOFTWARE[@]}"
+    _loading2 "Required tools - ${REQUIRED_SOFTWARE[@]}"
     _loading2 "Generating list of required tools that need to be installed"
     # -- install required tools
     for i in ${REQUIRED_SOFTWARE[@]}; do
@@ -622,7 +621,7 @@ fucntion zshbop_install-env () {
             PKG_TO_INSTALL+=("$i")  
         fi
     done
-    _loading2 "Installing - $PKG_TO_INSTALL"
+    _loading3 "Packages to install - $PKG_TO_INSTALL"
 
     read -q "REPLY?Proceed with install? [y/n] "
     if [[ $REPLY =~ ^[Yy]$ ]]; then
