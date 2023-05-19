@@ -510,7 +510,7 @@ zshbop_report () {
 zsbhop_systemcheck () {
 	# -- start
 	_debug_all
-	_loading2 "System check on $MACHINE_OS"
+	_loading3 "System check on $MACHINE_OS"
 	
     # -- network interfaces
     _debug "Network interfaces"

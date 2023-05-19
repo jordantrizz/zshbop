@@ -269,15 +269,15 @@ function init_os () {
 	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
-        	_loading2 "Loaded OS Configuration cmds/os-mac.zsh"
+        	_loading3 "Loaded OS Configuration cmds/os-mac.zsh"
 	        source $ZSHBOP_ROOT/cmds/os-mac.zsh
 	# -- Linux
 	elif [[ $MACHINE_OS = "linux" ]] then
-		_loading2 "Loading cmds/os-linux.zsh"
+		_loading3 "Loading cmds/os-linux.zsh"
     	source $ZSHBOP_ROOT/cmds/os-linux.zsh
 	# -- WSL Linux
 	elif [[ $MACHINE_OS = "wsl" ]]; then				
-	    _loading2 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
+	    _loading3 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
 	    source $ZSHBOP_ROOT/cmds/os-wsl.zsh
 	fi
@@ -491,18 +491,6 @@ function init_check_services () {
     else
     	_log "Netdata not installed"
     fi
-}
-
-# ==============================================
-# -- system_check - check usualy system stuff
-# ==============================================
-init_systemcheck () {
-	# -- start
-	_debug_all
-	_loading2 "System check on $MACHINE_OS"
-		
-	check_diskspace # -- check disk space
-	check_blockdevices 	# -- check block devices
 }
 
 # ==============================================
