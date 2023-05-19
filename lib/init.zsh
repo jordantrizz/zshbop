@@ -531,6 +531,7 @@ init_motd () {
 	sysfetch | _pipe_separate 2 | sed 's/^/  /'
     zshbop_systemcheck
     init_check_vm
+    echo ""
 
     # -- Show screen sessions
     _loading "Screen Sessions"
