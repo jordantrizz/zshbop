@@ -591,9 +591,9 @@ function init_zshbop () {
     init_zsh_sweep       # -- Init zsh-sweep if installed
 
     _debug "\$funcstack = $funcstack"
-    [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload" # -- Init antigen
-    [[ $funcstack[3] != "zshbop_reload" ]] && init_sshkeys || _loading_grey "Not loading SSH keys on Reload" # -- Init SSH keys
-    [[ $funcstack[3] != "zshbop_reload" ]] && init_motd || _loading_grey "Not loading MOTD on Reload" # -- Init MOTD
+    [[ $funcstack[2] != "zshbop_reload" ]] && init_plugins || _loading2 "Not loading Plugin Manager on Reload" # -- Init antigen
+    [[ $funcstack[2] != "zshbop_reload" ]] && init_sshkeys || _loading2 "Not loading SSH keys on Reload" # -- Init SSH keys
+    [[ $funcstack[2] != "zshbop_reload" ]] && init_motd || _loading2 "Not loading MOTD on Reload" # -- Init MOTD
 
 	# Remove Duplicates in $PATH
 	_debug "Removing duplicates in \$PATH"

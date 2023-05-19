@@ -173,7 +173,7 @@ zshbop_check-updates () {
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
 	_debug_all
-    _banner_yellow "**** START UPDATING ZSHBOP ****"
+    _loading "START UPDATING ZSHBOP"
         
     # -- print out zshbop version
     zshbop_version
@@ -190,10 +190,10 @@ zshbop_update () {
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
     fi
 
-	# Check if .zshrc is out of date.
-	# Called from script directly versus cached functions
+	# Check if .zshrc is out of date - Called from script directly versus cached functions
     _loading2 "Previous version check"
-	$ZSHBOP_ROOT/zshbop.zsh previous-version-check
+	source $ZBR/lib/functions.zsh 
+    zshbop_previous-version-check
 
     # Update repos
 	repos update
@@ -480,36 +480,46 @@ help_zshbop[report]='Print out errors and warnings'
 zshbop_report () {
     local LOG_LEVEL="$1"
     local SHOW_LEVEL=()
-    
+    local TAIL_LINES=""
+
+    # -- specify how many lines to show
+    if [[ -z $2 ]]; then
+        TAIL_LINES="10"
+    else
+        TAIL_LINES="$2"
+    fi
+
     # -- if no log level passed, set to errors
-    if [[ $1 == "help" ]]; then
-        echo "Usage: report <all|errors|warnings|alerts|logs>"
+    if [[ -z $LOG_LEVEL ]]; then
+        SHOW_LEVEL=("WARNING" "ALERT" "ERROR")
+        _loading3 "No log level specified"
+    elif [[ $LOG_LEVEL == "help" ]]; then
+        echo "Usage: report <all|error|warning|alert|notice|log>"
     elif [[ $LOG_LEVEL = "all" ]]; then        
-        SHOW_LEVEL=("errors" "warnings" "alerts" "logs")
-    elif [[ $LOG_LEVEL = "errors" ]]; then
-        SHOW_LEVEL=("errors")
-    elif [[ $LOG_LEVEL = "warnings" ]]; then
-        SHOW_LEVEL=("warnings")
-    elif [[ $LOG_LEVEL = "alerts" ]]; then
-        SHOW_LEVEL=("alerts")
-    elif [[ $LOG_LEVEL = "logs" ]]; then
-        SHOW_LEVEL=("logs")
+        SHOW_LEVEL=("ERROR" "WARNING" "ALERT" "LOG")
+    elif [[ $LOG_LEVEL = "error" ]]; then
+        SHOW_LEVEL=("ERROR")
+    elif [[ $LOG_LEVEL = "warning" ]]; then
+        SHOW_LEVEL=("WARNING")
+    elif [[ $LOG_LEVEL = "alert" ]]; then
+        SHOW_LEVEL=("ALERT")
+    elif [[ $LOG_LEVEL = "log" ]]; then
+        SHOW_LEVEL=("LOG")
+    elif [[ $LOG_LEVEL = "notice" ]]; then
+        SHOW_LEVEL=("NOTICE")
     else        
-        SHOW_LEVEL=("warnings" "alerts" "errors")
+        _error "Unknown $LOG_LEVEL"
     fi
 
     # -- start
     _debug_all
     _loading "-- zshbop report ------------"
-    echo ""    
-
+    _loading3 "Showing - ${SHOW_LEVEL[@]}"
     # -- print out logs
     for LOG in $SHOW_LEVEL; do
         _loading2 "-- $LOG ------------"
-        ZSHBOP_LOGLEVEL="ZSHBOP_$LOG"
-        for ENTRY in ${(kon)${(P)ZSHBOP_LOGLEVEL:u}}; do
-            echo "- $ENTRY"
-        done
+        _loading3 "Last $TAIL_LINES $LOG from - grep "\[${LOG}\]" $SCRIPT_LOG"
+        grep "\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES
     done
     echo ""
 }
