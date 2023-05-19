@@ -451,10 +451,10 @@ zshbop_load_custom () {
         _log "Checking for $HOME/.zshbop.conf"
         if [[ -f $HOME/.zshbop.conf ]]; then
             ZSHBOP_CUSTOM="$HOME/.zshbop.conf"
-            _loading_grey "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
+            _loading3 "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
             source $ZSHBOP_CUSTOM
         else
-            _error "No custom zshbop config found. Type zshbop custom for more information"
+            _warning "No custom zshbop config found. Type zshbop custom for more information"
         fi
     fi
 }

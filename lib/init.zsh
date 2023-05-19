@@ -105,7 +105,6 @@ init_detectos () {
     else
         MACHINE_OS_FLAVOUR="unknown"
     fi
-    _loading_grey "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
 }
 
 # ==============================================
@@ -177,7 +176,7 @@ function init_zsh_sweep () {
 # ==============================================
 # -- powerlevel10k customizations
 # ==============================================
-init_p10k () {
+function init_p10k () {
 	_log "Loading powerlevel10k configuration"
 	# shellcheck source=./.p10k.zsh
 	source $ZSH_ROOT/.p10k.zsh
@@ -189,7 +188,8 @@ init_p10k () {
 # ==============================================
 # -- fzf
 # ==============================================
-init_fzf () {
+# TODO need to fix
+function init_fzf () {
 	if _cexists fzf; then
 	    _debug "fzf is installed"
 	    antigen bundle andrewferrier/fzf-z
@@ -204,7 +204,7 @@ init_fzf () {
 # ==============================================
 # -- Initialize ZSH plugins
 # ==============================================
-init_plugins () {
+function init_plugins () {
 	_loading2 "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
 	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
 		init_antigen	
@@ -216,7 +216,7 @@ init_plugins () {
 # ==============================================
 # -- Initialize antidote plugin manager
 # ==============================================
-init_antidote () {
+function init_antidote () {
 	# -- plugin config
 	export AUTO_LS_CHPWD="false"
 	
@@ -240,7 +240,7 @@ init_antidote () {
 # ==============================================
 # -- Initialize antigen plugin manager
 # ==============================================
-init_antigen () {
+function init_antigen () {
 	_debug "Loading antigen"
 	_loading "Loading antigen"
     if [[ -e $ZSHBOP_ROOT/lib/antigen.zsh ]]; then
@@ -256,7 +256,7 @@ fi
 # ==============================================
 # -- Load os zsh scripts
 # ==============================================
-init_os () {
+function init_os () {
 	_debug_all
 	# -- Loading os defaults
 	_debug "Loading OS configuration"
@@ -286,7 +286,7 @@ init_os () {
 # ==============================================
 # -- Load default SSH keys into keychain
 # ==============================================
-init_sshkeys () {
+function init_sshkeys () {
 		_debug_all
 		_log "Loading SSH keys into keychain"
 		if (( $+commands[keychain] )); then
@@ -332,7 +332,7 @@ init_sshkeys () {
 # ==============================================
 # -- init_pkg_manager
 # ==============================================
-init_pkg_manager () {
+function init_pkg_manager () {
 	_debug_all
 	_debug "Running on $MACHINE_OS"
 	
@@ -376,19 +376,32 @@ init-app-config () {
 # ==============================================
 # -- init_cmds
 # ==============================================
-init_cmds () {
+function init_cmds () {
    	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
 	  source $CMD_FILE
 	done
 }
 
 # ==============================================
+# -- init_app_config
+# ==============================================
+function init_app_config () {
+    _debug_all
+    _log "Setting application configuration"
+    # git
+    git config --global init.defaultBranch main
+
+     # -- set .joe location
+    _joe_ftyperc
+}
+
+# ==============================================
 # -- init_zshbop -- initialize zshbop
 # ==============================================
-init_zshbop () {
+function init_zshbop () {
 	# -- Start init
 	_debug_all
-    echo "$bg[yellow]$fg[black]Initilizing zshbop${RSC} - $(zshbop_version)"
+    echo "$bg[yellow]$fg[black] * Initilizing zshbop${RSC} - $(zshbop_version)"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
     # -- Init zshbop
@@ -404,7 +417,8 @@ init_zshbop () {
     init_os              # -- Init os defaults # TODO Needs to be refactored
     init_zsh_sweep       # -- Init zsh-sweep if installed
     init_systemcheck     # -- Init systemcheck to confirm system status.
-        
+    init_app_config          # -- Init config
+    
   	# -- Init antigen
     [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload"
 
@@ -428,7 +442,7 @@ init_zshbop () {
 # ==============================================
 init_check_software () {
 	# -- Check services and software
-	_banner_yellow "-- Checking Software"
+	_loading2 "Checking Software"
 
     # -- check if atop is installed
     if _cexists atop; then 
@@ -447,7 +461,7 @@ init_check_software () {
 # ==============================================
 function init_check_services () {
     # -- Check system software versions
-    _banner_yellow "-- Checking Service Versions"
+    _loading "Checking Service Versions"
 
     # -- cloudflared
     if (( $+commands[cloudflared] )) && _alert "cloudflared: $(cloudflared -v)" || _log "cloudflared Server not installed"
@@ -477,7 +491,6 @@ function init_check_services () {
     else
     	_log "Netdata not installed"
     fi
-    	
 }
 
 # ==============================================
@@ -499,8 +512,8 @@ init_motd () {
 	# -- Start motd
     _debug_all
 
-    # -- set .joe location
-    _joe_ftyperc
+    # -- OS specific motd
+    _loading3 "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
 
     # -- check for old instances
     _debug "Old Instance Check"
@@ -513,7 +526,7 @@ init_motd () {
 
     # -- Show screen sessions
     _loading "Screen Sessions"
-    _cexists screen && _success "$(screen -list)" || _error "Screen not installed" ||
+    _cexists screen && _success "$(screen -list)" || _error "Screen not installed"
 
     # -- Running system checklist
 	init_check_software
@@ -521,12 +534,9 @@ init_motd () {
 	
 	# -- Check service software versions        
 	init_check_services
-	echo ""
-
-    # -- Check if in virtual environment
     init_check_vm
     echo ""
-	
+
     # -- Load motd
     source "${ZSHBOP_ROOT}/motd/motd.zsh"
 
@@ -561,11 +571,13 @@ function init_checkzsh () {
 function init_check_vm () {
     _debug "Checking if in virtual environment"
 
+    [[ $MACHINE_OS == "mac" ]] && { _success "VM: Running on Mac...no need to check"; return 0 }
+
     # -- check if dmidecode exists
     _cexists dmidecode
     if [[ $? == "0" ]]; then
         _debug "dmidecode exists"
-        alert "Running one $(dmidecode -s system-product-name)"
+        alert "VM: Running one $(dmidecode -s system-product-name)"
         return 0
     else
         _warning "dmidecode not installed"
@@ -575,13 +587,13 @@ function init_check_vm () {
     _cexists virt-what
     if [[ $? == "0" ]]; then
         _debug "virt-what exists"
-        _alert "Running on $(virt-what)"
+        _alert "VM: Running on $(virt-what)"
         return 0
     else
-        _warning "dmidecode not installed"
+        _warning "virtwhat not installed"
     fi
 
-    _alert "Unable to determine if in virtual environment"
+    _alert "Unable to determine if in virtual environment, please install virt-what or dmidecode"
 }
 
 # -- check if in virtual environment secondary method

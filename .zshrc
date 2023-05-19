@@ -10,7 +10,7 @@ if [ -z "$ZSHBOP_ROOT" ]; then
 	for ZBPATH in "${ZSHBOP_PATHS[@]}"; do
 		if [[ -f "$ZBPATH/zshbop.zsh" ]]; then
 			export ZSHBOP_ROOT=$ZBPATH;
-	        echo "\e[43;30m Loading from $ZSHBOP_ROOT\e[0m"
+	        echo "\e[43;30m * Loading from $ZSHBOP_ROOT\e[0m"
 	        break
 		fi
 	done

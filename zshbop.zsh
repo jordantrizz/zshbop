@@ -56,7 +56,7 @@ export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
 export ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
 
 # -- zshbop md5sum
-export ZSHBOP_LATEST_MD5="09fcdc31ca648bb15f7bb7ff90d0539a" # -- the md5 of .zshrc
+export ZSHBOP_LATEST_MD5="f126bfd02e37222c7e3b7218e944dd82" # -- the md5 of .zshrc
 export ZSHBOP_HOME_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $HOME
 export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $ZSHBOPROOT
 
@@ -91,7 +91,11 @@ setopt share_history          # share command history data
 # -- Debugging and Logging
 # ------------
 # -- Debug
-# \033[36mThis text is cyan!\033[0m
+# --\033[36mThis text is cyan!\033[0m
+# -- Debug Levels
+# -- 0 - error, warning, alert
+# -- 1 - +debug
+
 ZSH_DEBUG="0"
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
 _debug () { [[ $ZSH_DEBUG == 1 ]] && echo "\033[36m** DEBUG: $@\033[0m"; } # -- debug for core
@@ -115,11 +119,11 @@ ZSHBOP_ALERTS=()
 ZSH_VERBOSE="0"
 ZSHBOP_LOGS=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
-_log () { [[ $ZSH_VERBOSE == 1 ]] && echo "\033[30m** VERBOSE: ${*}\033[0m"; ZSHBOP_LOGS+=("${*}"); }
-_error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
-_error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@"); }
-_warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@"); }
-_alert () { echo "$bg[red] $fg[yellow] * $@ ${RSC}"; ZSHBOP_ALERTS+=("$@"); }
+_log () { [[ $ZSH_VERBOSE == 1 ]] && echo "\033[30m** VERBOSE: ${*}\033[0m"; ZSHBOP_LOGS+=("${*}") }
+_error () { echo  "$fg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@") }
+_error2 () { echo  "$bg[red] * $@ ${RSC}"; ZSHBOP_ERRORS+=("$@") }
+_warning () { echo "$fg[yellow] * $@ ${RSC}"; ZSHBOP_WARNINGS+=("$@") }
+_alert () { echo "$bg[red] $fg[yellow] * $@ ${RSC}"; ZSHBOP_ALERTS+=("$@") }
 
 # ---------------
 # -- Source files

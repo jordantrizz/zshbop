@@ -5,7 +5,7 @@
 # ----------------
 
 _cexists host_motd
-[[ $? == "0" ]] & { _loading "Found host motd"; host_motd }|| _notice "No host motd"
+[[ $? == "0" ]] && { _loading "Found host motd"; host_motd }|| _notice "No host motd"
 
 # ----------------
 # -- GridPane
