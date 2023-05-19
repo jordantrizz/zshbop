@@ -416,8 +416,8 @@ function init_zshbop () {
   	zshbop_load_custom   # -- Init custom zshbop  	
     init_os              # -- Init os defaults # TODO Needs to be refactored
     init_zsh_sweep       # -- Init zsh-sweep if installed
-    init_systemcheck     # -- Init systemcheck to confirm system status.
-    init_app_config          # -- Init config
+    zshbop_systemcheck   # -- zshbop systemcheck to confirm system status.
+    init_app_config      # -- Init config
     
   	# -- Init antigen
     [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload"
