@@ -502,8 +502,8 @@ init_motd () {
 
     # -- Show screen sessions
     _loading "Screen Sessions"
-    _cexists screen
-    [[ $? == "0" ]] && _success "$(screen -list)" || _error "Screen not installed"
+    _cexists screen # 1 == not installed ; 0 == installed
+    [[ $(_cexists screen) ]] && _error "Screen not installed" || _success "$(screen -list)" 
 
     # -- Running system checklist
 	init_check_software
