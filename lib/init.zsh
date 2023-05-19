@@ -478,16 +478,6 @@ function init_check_vm () {
 
     [[ $MACHINE_OS == "mac" ]] && { _success "VM: Running on Mac...no need to check"; return 0 }
 
-    # -- check if dmidecode exists
-    _cexists dmidecode
-    if [[ $? == "0" ]]; then
-        _debug "dmidecode exists"
-        _warning "VM-dmidecode: Running one $(dmidecode -s system-product-name)"
-        return 0
-    else
-        _warning "dmidecode not installed"
-    fi
-
     # -- check if virt-what exists
     _cexists virt-what
     if [[ $? == "0" ]]; then
@@ -502,11 +492,9 @@ function init_check_vm () {
             return 0
         fi
     else
-        _warning "virtwhat not installed"
+        _notice "Unable to determine if in virtual environment, please install virt-what"
     fi
-
-    _notice "Unable to determine if in virtual environment, please install virt-what or dmidecode"
-}
+    }
 
 # ==============================================
 # -- check if in virtual environment secondary method
