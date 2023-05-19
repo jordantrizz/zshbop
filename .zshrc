@@ -22,4 +22,3 @@ fi
 
 # - Initilize zshbop
 source $ZSHBOP_ROOT/zshbop.zsh
-init_zshbop

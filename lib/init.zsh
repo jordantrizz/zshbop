@@ -399,45 +399,11 @@ function init_app_config () {
 }
 
 # ==============================================
-# -- init_zshbop -- initialize zshbop
-# ==============================================
-function init_zshbop () {
-	# -- Start init
-	_debug_all
-    echo "$bg[yellow]$fg[black] * Initilizing zshbop${RSC} - $(zshbop_version)"
-	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
-
-    # -- Init zshbop
-    init_checkzsh        # -- Check zsh
-    init_path            # -- Set paths
-	init_detectos        # -- Detect operating system	
-	init_pkg_manager     # -- Init package manager
-    init_cmds            # -- Include commands
-    init-app-config      # -- Common application configuration
-  	init_omz_plugins     # -- Init OhMyZSH plugins
-  	init_p10k            # -- Init powerlevel10k
-  	zshbop_load_custom   # -- Init custom zshbop  	
-    init_os              # -- Init os defaults # TODO Needs to be refactored
-    init_app_config      # -- Init config
-    init_zsh_sweep       # -- Init zsh-sweep if installed
-
-    _debug "\$funcstack = $funcstack"
-    [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload" # -- Init antigen
-    [[ $funcstack[3] != "zshbop_reload" ]] && init_sshkeys || _loading_grey "Not loading SSH keys on Reload" # -- Init SSH keys
-    [[ $funcstack[3] != "zshbop_reload" ]] && init_motd || _loading_grey "Not loading MOTD on Reload" # -- Init MOTD
-    [[ $funcstack[3] != "zshbop_reload" ]] && zshbop_systemcheck || _loading_grey "Not running systemcheck on Reload" # -- zshbop systemcheck
-
-	# Remove Duplicates in $PATH
-	_debug "Removing duplicates in \$PATH"
-	typeset -U PATH
-}
-
-# ==============================================
 # -- init_checklist
 # ==============================================
 init_check_software () {
 	# -- Check services and software
-	_loading2 "Checking Software"
+	_loading "Checking Software"
 
     # -- check if atop is installed
     if _cexists atop; then 
@@ -489,56 +455,9 @@ function init_check_services () {
 }
 
 # ==============================================
-# -- init_motd - initial scripts to run on login
-# ==============================================
-init_motd () {
-	# -- Start motd
-    _debug_all
-
-    # -- OS specific motd
-    _loading3 "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
-
-    # -- check for old instances
-    _debug "Old Instance Check"
-    zshbop_migrate-check
-    zshbop_previous-version-check
-
-    # -- system details
-    _loading "System details"
-	sysfetch | _pipe_separate 3
-
-    # -- Show screen sessions
-    _loading "Screen Sessions"
-    _cexists screen && _success "$(screen -list)" || _error "Screen not installed"
-
-    # -- Running system checklist
-	init_check_software
-	echo ""
-	
-	# -- Check service software versions        
-	init_check_services
-    init_check_vm
-    echo ""
-
-    # -- Load motd
-    source "${ZSHBOP_ROOT}/motd/motd.zsh"
-
-	# -- Environment check
-	_loading "Run zshbop check or system-specs."
-    #env-install to install default and extra tools. Run system-specs for more system details."
-    # TODO - add system-specs
-	
-    # -- run report after exec zsh
-    if [[ $RUN_REPORT == "1" ]]; then
-        zshbop_report
-        export RUN_REPORT=0
-    fi
-    
-    # -- last echo to keep motd clean
-    echo ""
-}
-
 # -- check zsh version
+# ==============================================
+
 function init_checkzsh () {
 	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
 	_log "Running ZSH $ZSH_VERSION - Latest version is 5.9 as per https://zsh.sourceforge.io/News/"
@@ -550,7 +469,10 @@ function init_checkzsh () {
 	fi
 }
 
+# ==============================================
 # -- check if in virtual environment
+# ==============================================
+
 function init_check_vm () {
     _debug "Checking if in virtual environment"
 
@@ -560,7 +482,7 @@ function init_check_vm () {
     _cexists dmidecode
     if [[ $? == "0" ]]; then
         _debug "dmidecode exists"
-        alert "VM: Running one $(dmidecode -s system-product-name)"
+        _alert "VM: Running one $(dmidecode -s system-product-name)"
         return 0
     else
         _warning "dmidecode not installed"
@@ -579,7 +501,10 @@ function init_check_vm () {
     _alert "Unable to determine if in virtual environment, please install virt-what or dmidecode"
 }
 
+# ==============================================
 # -- check if in virtual environment secondary method
+# ==============================================
+
 function init_check_vm_2 () {
     _debug "Checking if in virtual environment"
     if [[ -d /sys/devices/virtual ]] || [[ -f /proc/vz ]] || [[ -d /proc/xen ]]; then
@@ -587,4 +512,94 @@ function init_check_vm_2 () {
     else
         _alert "You are not in a virtual machine."
     fi
+}
+
+###########################################################
+# ---- Leave this at the bottom. Do not move above. ------
+###########################################################
+
+# ==============================================
+# -- init_motd - initial scripts to run on login
+# ==============================================
+init_motd () {
+	# -- Start motd
+    _debug_all
+
+    # -- OS specific motd
+    _loading3 "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
+
+    # -- check for old instances
+    _debug "Old Instance Check"
+    zshbop_migrate-check
+    zshbop_previous-version-check
+
+    # -- system details
+    _loading "System details"
+	sysfetch | _pipe_separate 2 | sed 's/^/  /'
+
+    # -- zshbop_systemcheck
+    zshbop_systemcheck
+
+    # -- Show screen sessions
+    _loading "Screen Sessions"
+    _cexists screen && _success "$(screen -list)" || _error "Screen not installed"
+
+    # -- Running system checklist
+	init_check_software
+	echo ""
+	
+	# -- Check service software versions        
+	init_check_services
+    init_check_vm
+    echo ""
+
+    # -- Load motd
+    source "${ZSHBOP_ROOT}/motd/motd.zsh"
+
+	# -- Environment check
+	_loading2  "Run zshbop check or system-specs."
+    #env-install to install default and extra tools. Run system-specs for more system details."
+    # TODO - add system-specs
+	
+    # -- run report after exec zsh
+    if [[ $RUN_REPORT == "1" ]]; then
+        zshbop_report
+        export RUN_REPORT=0
+    fi
+    
+    # -- last echo to keep motd clean
+    echo ""
+}
+
+# ==============================================
+# -- init_zshbop -- initialize zshbop
+# ==============================================
+function init_zshbop () {
+	# -- Start init
+	_debug_all
+    echo "$bg[yellow]$fg[black] * Initilizing zshbop${RSC} - $(zshbop_version)"
+	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
+
+    # -- Init zshbop
+    init_checkzsh        # -- Check zsh
+    init_path            # -- Set paths
+	init_detectos        # -- Detect operating system	
+	init_pkg_manager     # -- Init package manager
+    init_cmds            # -- Include commands
+    init-app-config      # -- Common application configuration
+  	init_omz_plugins     # -- Init OhMyZSH plugins
+  	init_p10k            # -- Init powerlevel10k
+  	zshbop_load_custom   # -- Init custom zshbop  	
+    init_os              # -- Init os defaults # TODO Needs to be refactored
+    init_app_config      # -- Init config
+    init_zsh_sweep       # -- Init zsh-sweep if installed
+
+    _debug "\$funcstack = $funcstack"
+    [[ $funcstack[3] != "zshbop_reload" ]] && init_plugins || _loading_grey "Not loading Plugin Manager on Reload" # -- Init antigen
+    [[ $funcstack[3] != "zshbop_reload" ]] && init_sshkeys || _loading_grey "Not loading SSH keys on Reload" # -- Init SSH keys
+    [[ $funcstack[3] != "zshbop_reload" ]] && init_motd || _loading_grey "Not loading MOTD on Reload" # -- Init MOTD
+
+	# Remove Duplicates in $PATH
+	_debug "Removing duplicates in \$PATH"
+	typeset -U PATH
 }

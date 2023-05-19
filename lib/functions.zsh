@@ -530,23 +530,19 @@ zshbop_systemcheck () {
 
 	# -- check swappiness
 	_debug "Checking swappiness"
-    _loading3 "Checking swappiness"
-    swappiness | sed 's/^/  /'
+    echo "$(_loading3 "Swappiness") $(swappiness)"
 	
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"
-    _loading3 "Checking disk space"
-	check_diskspace | sed 's/^/  /'
+    echo "$(_loading3 "Checking disk space") $(check_diskspace)"
 
 	# -- check block devices
     _debug "Checking block devices"
-    _loading3 "Checking block devices"
-	check_blockdevices | sed 's/^/  /'
+    echo "$(_loading3 "Checking block devices") $(check_blockdevices)"
 
     # -- Quick CPU/Mem
     _debug "Checking CPU/Mem"
-    _loading3 "Checking CPU/Mem"
-    system-specs | sed 's/^/  /'
+    echo "$(_loading3 "Checking CPU/Mem") $(system-specs)"
 }
 
 # --------------

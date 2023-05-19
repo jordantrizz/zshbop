@@ -39,12 +39,11 @@ check_diskspace_mac () {
 
 # -- interfaces
 function interfaces_mac () {
+    local OUTPUT
     # Get a list of all network interfaces
-    interfaces=($(ifconfig | awk '/: flags/{print $1}' | grep -v 'utun0'))
+    interfaces=($(networksetup -listallhardwareports | awk '/Device:/{print $2}'))
 
     # Loop through each interface
-    #OUTPUT=$(_banner_grey "Interface IP Mac Speed")
-    OUTPUT="  Interface IP Mac Speed"
     for interface in $interfaces; do
         # Get IP address
         interface=${interface//:/}
@@ -55,16 +54,31 @@ function interfaces_mac () {
 
         # Get link speed
         speed=$(ifconfig $interface | awk '/media: /{print $2}')
+        networksetup -getairportnetwork "$interface" >>/dev/null
+        if [[ $? == "0" ]]; then
+            # Wi-Fi interface
+            INT_TYPE="wifi"
+            connection_speed=$(/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I | awk '/maxRate:/ {print $2}')
+        else
+            # Hardwired interface
+            INT_TYPE="ethernet"
+            connection_speed=$(ifconfig "$interface" | awk '/media: / {print $2}')
+        fi
+
 
         # Print interface information
         if [[ ! $ip == "" ]]; then
-            OUTPUT+="\n  $interface $ip $mac $speed"
-            OUTPUT=${OUTPUT%[$'  ']} # Remove trailing whitespace 
-
+            OUTPUT+="$interface:$ip"
+            if [[ ! $mac == "" ]]; then
+                OUTPUT+=" - $mac"
+            fi
+            if [[ ! $speed == "" ]]; then
+                OUTPUT+=" - $INT_TYPE/$speed/$connection_speed"
+            fi
         fi
     done 
-    #echo -E "$OUTPUT"
-    echo -e "$OUTPUT" | column -t
+    echo "$OUTPUT"
+    #echo -e "$OUTPUT" | column -t
 }
 
 # -- Show macos memory pressure
