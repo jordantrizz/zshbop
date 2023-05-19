@@ -508,7 +508,7 @@ zshbop_report () {
 # -- system_check - check usualy system stuff
 # ==============================================
 help_zshbop[systemcheck]='Print out errors and warnings'
-zsbhop_systemcheck () {
+zshbop_systemcheck () {
 	# -- start
 	_debug_all
 	_loading3 "System check on $MACHINE_OS"
