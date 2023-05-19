@@ -64,9 +64,9 @@ export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -
 typeset -gA help_custom # -- Set help_custom for custom help files
 
 # -- Default tools.
-default_tools=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
-default_tools+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
-extra_tools=('pip' 'npm' 'golang-go' 'net-tools')
+DEFAULT_TOOLS=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
+DEFAULT_TOOLS+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
+EXTRA_TOOLS=('pip' 'npm' 'golang-go' 'net-tools')
 pip_install=('ngxtop' 'apt-select' 'semgrep')
 
 # -- Take $EDITOR run it through alias and strip it down

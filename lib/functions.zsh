@@ -462,10 +462,10 @@ zshbop_load_custom () {
 # --------------
 # -- zshbop_help
 # --------------
-help_zshbop[help]='This help screen :)'
+help_zshbop[help]='zshbop help screen'
 zshbop_help () {
         _debug_all
-        echo "-- zshbop help ------------"
+        _loading "-- zshbop help ------------"
         echo ""
         for key in ${(kon)help_zshbop}; do
             printf '%s\n' "  ${(r:25:)key} - ${help_zshbop[$key]}"
@@ -530,6 +530,38 @@ zsbhop_systemcheck () {
 
     # -- Quick CPU/Mem
     check_specs
+}
+
+# --------------
+# -- zshbop_check
+# --------------
+help_zshbop[zshbop_check]='Check environment for installed software and tools'
+zsbhop_check () {
+    _debug_all
+    _loading "Checking environment"
+    _loading2 "Checking for default tools"
+    for i in $DEFAULT_TOOLS; do
+            _cexists $i
+            if [[ $? == "0" ]]; then
+                    echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
+            else
+                    echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
+            fi
+    done
+
+    _loading2 "Checking for extra tools"
+    for i in $EXTRA_TOOLS; do
+    _cexists $i
+    if [[ $? == "0" ]]; then
+                    echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
+            else
+                    echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
+    fi
+    done
+    echo "--------------------------------------------"
+    echo "Run env-install to install above tools"
+    echo "--------------------------------------------"
+
 }
 
 # --------------

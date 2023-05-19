@@ -512,12 +512,18 @@ init_motd () {
 	# -- Check service software versions        
 	init_check_services
 	echo ""
+
+    # -- Check if in virtual environment
+    init_check_vm
+    echo ""
 	
     # -- Load motd
     source "${ZSHBOP_ROOT}/motd/motd.zsh"
 
-	# -- env-install
-	_loading "Run env-install to install default and extra tools. Run system-specs for more system details."
+	# -- Environment check
+	_loading "Run zshbop check or system-specs."
+    #env-install to install default and extra tools. Run system-specs for more system details."
+    # TODO - add system-specs
 	
     # -- run report after exec zsh
     if [[ $RUN_REPORT == "1" ]]; then
@@ -539,4 +545,34 @@ function init_checkzsh () {
 	else
     	_log "Running close to latest ZSH"
 	fi
+}
+
+# -- check if in virtual environment
+function init_check_vm () {
+    _debug "Checking if in virtual environment"
+    _cexists dmidecode
+    if [[ $? == "0" ]]; then
+        _debug "dmidecode exists"
+        if [[ $(dmidecode -s system-product-name) == "VirtualBox" ]]; then
+            _alert "Running in VirtualBox"
+        elif [[ $(dmidecode -s system-product-name) == "VMware Virtual Platform" ]]; then
+            _alert "Running in VMware"
+        elif [[ $(dmidecode -s system-product-name) == "KVM" ]]; then
+            _alert "Running in KVM"
+        else
+            _alert "Running on $(dmidecode -s system-product-name)"
+        fi
+    else
+        _warning "dmidecode not installed"
+    fi
+}
+
+# -- check if in virtual environment secondary method
+function init_check_vm_2 () {
+    _debug "Checking if in virtual environment"
+    if [[ -d /sys/devices/virtual ]] || [[ -f /proc/vz ]] || [[ -d /proc/xen ]]; then
+        _alert "You are in a virtual machine."
+    else
+        _alert "You are not in a virtual machine."
+    fi
 }

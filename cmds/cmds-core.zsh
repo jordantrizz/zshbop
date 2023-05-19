@@ -35,39 +35,6 @@ add-path () {
 	fi
 }
 
-# -- checkenv - Check Environment for installed software
-help_core[env-check]='check environment for installed software and tools'
-env-check () {
-        echo "---------------------------"
-        echo "Looking for default tools.."
-        echo "---------------------------"
-        echo ""
-        for i in $default_tools; do
-				_cexists $i
-                if [[ $? == "0" ]]; then
-                        echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
-                else
-                        echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
-                fi
-        done
-        echo "---------------------------"
-        echo "Looking for extra tools.."
-        echo "---------------------------"
-        echo ""
-        for i in $extra_tools; do
-        _cexists $i
-        if [[ $? == "0" ]]; then
-                        echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
-                else
-                        echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
-        fi
-        done
-        echo "--------------------------------------------"
-        echo "Run env-install to install above tools"
-        echo "--------------------------------------------"
-
-}
-
 # -- env-install - Install tools into environment.
 help_core[env-install]='Install tools into environment'
 env-install () {
@@ -75,10 +42,10 @@ env-install () {
     echo "---------------------------"
     echo "Installing default tools.."
     echo "---------------------------"
-    echo "default_tools: $default_tools"
+    echo "DEFAULT_TOOLS: $DEFAULT_TOOLS"
     
     if read -q "Continue? (y/n)"; then
-	    sudo apt-get install --no-install-recommends postfix- $default_tools
+	    sudo apt-get install --no-install-recommends postfix- $DEFAULT_TOOLS
     else
 		echo "Skipping due to press 'n'"
     fi
