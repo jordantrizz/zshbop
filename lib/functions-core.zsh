@@ -17,8 +17,7 @@ help_files[corefunc]='Core functions for scripts'
 _echo () { echo "$@" }
 _success () { echo "$fg[green] * $@ ${RSC}" }
 _noticebg () { echo "$bg[magenta]$fg[white] * $@ ${RSC}" }
-_noticefg () { echo "$fg[magenta] * $@ ${RSC}" }
-alias _notice="_noticefg"
+_notice () { echo "$fg[magenta] * $@ ${RSC}" }
 _banner_red () { echo "$bg[red]$fg[white]${@}${RSC}" }
 _banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
 _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
