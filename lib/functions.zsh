@@ -611,7 +611,7 @@ help_zshbop[install-env]='Install environment tools'
 fucntion zshbop_install-env () {
     _log "${funcstack[1]}:start"
     _loading "Installing environment"
-    _loading2 "Required tools - ${REQUIRED_SOFTWARE[@]}"
+    _loading3 "Required tools - ${REQUIRED_SOFTWARE[@]}"
     _loading2 "Generating list of required tools that need to be installed"
     # -- install required tools
     for i in ${REQUIRED_SOFTWARE[@]}; do
