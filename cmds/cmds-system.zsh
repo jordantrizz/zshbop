@@ -53,18 +53,17 @@ function system-specs () {
     elif [[ $MACHINE_OS == "linux" ]]; then
         CPU_MHZ=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo | awk '{sum += $1} END {print sum/NR/1000}')
 
-        # -- Check if Mhz is higher than 3Ghz
-        # -- Check if bc is installed
+        # -- Check if Mhz is higher than 3Ghz using bc
         _cexists bc
         if [[ $? == "1" ]]; then
             _error "Please install the bc command"
         else
-            if (( $(echo "$mhz < 3" | bc -l) )); then
-                CPU_CHECK=$(_error "CPU Mhz = $mhz and is below 3Ghz")
-            elif (( $(echo "$mhz < 3.5" | bc -l) )); then
-                CPU_CHECK=$(__warning "CPU Mhz = $mhz and is between 3Ghz and 3.5Ghz")
+            if (( $(echo "$CPU_MHZ < 3" | bc -l) )); then
+                CPU_CHECK=$(_error "CPU Mhz = $CPU_MHZ and is below 3Ghz")
+            elif (( $(echo "$CPU_MHZ < 3.5" | bc -l) )); then
+                CPU_CHECK=$(__warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz")
             else
-                CPU_CHECK=$(__success "CPU Mhz = $mhz and is 3.5Ghz or above")
+                CPU_CHECK=$(__success "CPU Mhz = $CPU_MHZ and is 3.5Ghz or above")
             fi
         fi
 
