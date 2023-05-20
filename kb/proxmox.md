@@ -77,9 +77,13 @@ package_upgrade: true
 packages:
   - joe
   - zsh
+  - qemu-guest-agent
 
 ssh_pwauth: false
 disable_root: false
+
+runcmd:
+  - systemctl start qemu-guest-agent
 
 output:
   all: '| tee -a /var/log/cloud-init-output.log'
