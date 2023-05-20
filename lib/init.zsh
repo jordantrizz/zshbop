@@ -653,6 +653,7 @@ function init_zshbop () {
     init_zsh_sweep       # -- Init zsh-sweep if installed
     init_plugins         # -- Init plugins
     init_sshkeys         # -- Init ssh keys
+    zshbop_cleanup       # -- Cleanup  
     
     _debug "init_zshbop: \$funcstack = $funcstack"
     if [[ $ZSHBOP_RELOAD == "1" ]]; then
