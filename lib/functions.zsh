@@ -195,11 +195,6 @@ zshbop_update () {
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
     fi
 
-	# Check if .zshrc is out of date - Called from script directly versus cached functions
-    _loading2 "Previous version check"
-	source $ZBR/lib/functions.zsh 
-    zshbop_previous-version-check
-
     # Update repos
 	repos update
 	
