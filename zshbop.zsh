@@ -72,7 +72,7 @@ typeset -gA help_custom # -- Set help_custom for custom help files
 REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 
     'net-tools' 'dmidecode' 'virt-what' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
     'bc' 'whois' 'telnet' 'lynx' 'traceroute' 'mtr' 'mosh' 'tree' 'ncdu' 'fpart'
-    'jq')               
+    'jq' 'ethtool' 'lsblk' 'blkid' 'smartctl' 'hdparm' 'lshw' 'lspci' 'lscpu')
 
 # -- Default tools.
 DEFAULT_TOOLS=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
