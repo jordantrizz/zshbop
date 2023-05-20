@@ -15,7 +15,8 @@ typeset -gA help_git
 # - gc
 help_git[gcp]='Git commit + push'
 gc () {
-        git commit -am "$*" &&  git push
+        glint commit
+        git push
 }
 
 # - gbdc
