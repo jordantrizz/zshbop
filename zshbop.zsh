@@ -63,7 +63,6 @@ export ZSHBOP_RELOAD="0"
 export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
 export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
 export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
-export ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
 
 # -- zshbop md5sum
 export ZSHBOP_LATEST_MD5="595a039cd4fc6cd51cc1baf71a3d6b9c" # -- the md5 of .zshrc
@@ -196,10 +195,6 @@ source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedge Base
 if [[ -f $HOME/.zshbop.config ]]; then
 	source $HOME/.zshbop.config
 fi
-
-# -- Check for old versions
-zshbop_previous-version-check
-zshbop_migrate
 
 ###########################################################
 ###########################################################
