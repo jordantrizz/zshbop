@@ -7,6 +7,7 @@
 # ---------------------------
 # -- Initilize zshbop
 # ---------------------------
+ZSHBOP_ROOT=${0:a:h} # -- Current working directory
 
 # -- Potential zshbop paths, including old zsh path, left over from .zshrc removal
 ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
@@ -50,7 +51,7 @@ export ZSHBOP_NAME="zshbop" # -- Current zshbop branch
 export SCRIPT_DIR=${0:a:h} # -- Current working directory
 export ZSHBOP_CACHE_DIR="${HOME}/.zshbop_cache"
 export ZSHBOP_PLUGIN_MANAGER="init_antidote"
-export ZSHBOP_VERSION=$(<$ZSHBOP_ROOT/version) # -- Current version installed
+export ZSHBOP_VERSION=$(cat $ZSHBOP_ROOT/version) # -- Current version installed
 export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
 export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
 export KB="${ZSHBOP_ROOT}/kb"
