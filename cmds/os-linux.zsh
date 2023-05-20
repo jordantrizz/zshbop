@@ -28,9 +28,16 @@ help_linux[interfaces]="List interfaces ip, mac and link"
 interfaces_linux () {
 	local OUTPUT=""
     local INTERFACES=()
+
+    # -- Check if ifconfig commmand exists
+    _cexists ifconfig
+    if [[ $? -ge "1" ]]; then
+        _error "ifconfig command not found, required, run zshbop install-env"
+        return 1
+    fi
+
     # -- Get a list of all network interfaces
     INTERFACES=("${(f)$(ip -o link show | awk '{print $2}' | sed 's/://')}")
-
 
 	# -- Loop through each interface
     for INTERFACE in $INTERFACES; do
