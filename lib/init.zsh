@@ -327,7 +327,7 @@ function init_sshkeys () {
             eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
         fi
     else
-        _error "Command keychain doesn't exist, please install for SSH keys to work"
+        _notice "Command keychain doesn't exist, please install for SSH keys to work"
     fi
 }
 
