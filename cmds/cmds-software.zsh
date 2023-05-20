@@ -358,8 +358,8 @@ function bat-download() {
 # -- glint
 if [[ $MACHINE_OS == "linux" ]]; then
 	_cexists glint-linux
-	[[ $? -ge "0" ]] && alias glint=glint-linux || alias glint="echo 'VT not installed'"
+	[[ $? -ge "0" ]] && function glint () { glint-linux $* } || alias glint="echo 'VT not installed'"
 elif [[ $MACHINE_OS == "mac" ]]; then
 	_cexists glint-mac
-	[[ $? -ge "0" ]] && alias glint=glint-macos || alias glint="echo 'VT not installed'"
+	[[ $? -ge "0" ]] && function glint () { glint-macos $* } || alias glint="echo 'VT not installed'"
 fi
