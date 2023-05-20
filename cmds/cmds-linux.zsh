@@ -194,15 +194,13 @@ check_blockdevices () {
     if [[ $MACHINE_OS == "linux" ]]; then
         OUTPUT=""
         ALERT="98"
-        DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
-        OUTPUT="$fg[cyan]Device Type Size Used% MountPoint${reset_color}"
-        for DEVICE in $DEVICES
-        do
+        DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))    
+        for DEVICE in $DEVICES;do
                 TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
                 SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
                 MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
                 USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
-                OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
+                OUTPUT+=" - $DEVICE/$TYPE $SIZE $USED $MOUNT\n"
         done
         echo -e "$OUTPUT" | column -t
     else

@@ -163,7 +163,7 @@ function init_zsh_sweep () {
 
     if [[ -d $REPOS_DIR/zsh-sweep ]]; then
         _debug "$REPOS_DIR/zsh-sweep exists, loading"
-        export zs_set_path=1 # add to $PATH
+        zs_set_path=1 # add to $PATH
         source "${REPOS_DIR}/zsh-sweep/zsh-sweep.plugin.zsh" # Include script
     else
         _debug "There is no $REPOS_DIR/zsh-sweep, run repos pull zsh-sweep"

@@ -73,12 +73,11 @@ function interfaces_mac () {
                 OUTPUT+=" - $mac"
             fi
             if [[ ! $speed == "" ]]; then
-                OUTPUT+=" - $INT_TYPE/$speed/$connection_speed"
+                OUTPUT+=" - $INT_TYPE/$speed $connection_speed"
             fi
         fi
     done 
-    echo "$OUTPUT"
-    #echo -e "$OUTPUT" | column -t
+    echo "$OUTPUT"    
 }
 
 # -- Show macos memory pressure

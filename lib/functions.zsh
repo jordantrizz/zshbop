@@ -459,7 +459,8 @@ zshbop_systemcheck () {
 
 	# -- check block devices
     _debug "Checking block devices"
-    echo "$(_loading3 "Checking block devices") $(check_blockdevices)"
+    _loading3 "Checking block devices"
+    check_blockdevices | sed 's/^/  /'
 
     # -- Quick CPU/Mem
     _debug "Checking CPU/Mem"
