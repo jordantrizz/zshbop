@@ -7,8 +7,9 @@
 VERSION="0.0.3"
 SKIPDEP="0"
 HELP="0"
+# TODO - Add install to zshbop.zsh
 REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 
-    'net-tools' 'dmidecode' 'virtwhat' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
+    'net-tools' 'dmidecode' 'virt-what' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
     'bc' 'whois' 'telnet' 'lynx' 'traceroute' 'mtr' 'mosh' 'tree' 'ncdu' 'fpart'
     'jq')
 # -- Colors
