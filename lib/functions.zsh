@@ -568,12 +568,13 @@ function zshbop_cleanup () {
     OLD_ZSHRC_MD5SUM=(
         "09fcdc31ca648bb15f7bb7ff90d0539a"
     )
-    ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc)"
+    ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc | awk {' print $1'})"
     _loading "ZSH Cleanup"
     _log "Checking for old .zshrc against $ZSHRC_MD5SUM"
     if [[ -f $HOME/.zshrc ]]; then
-        _log "Found $HOME/.zshrc - md5sum:$(md5sum $HOME/.zshrc) vs $i"
+        _log "Found $HOME/.zshrc md5sum:$ZSHRC_MD5SUM"
         for i in $OLD_ZSHRC_MD5SUM; do
+            _log "CUR:$ZSHRC_MD5SUM vs OLD:$i"
             if [[ $i == $(md5sum $HOME/.zshrc) ]]; then
                 _log "md5sum matched - Removing old .zshrc"
                 rm $HOME/.zshrc
