@@ -1,11 +1,19 @@
 #!/usr/bin/env zsh
-# ------------------------
-# -- zshbop.zsh
-# -------------------------
+# =========================================================
+# -- zshbop.zsh -- zshbop main file
+# -- 
+# =========================================================
 
-###########################################################
+# ---------------------------
+# -- Initilize zshbop
+# ---------------------------
+
+# -- Potential zshbop paths, including old zsh path, left over from .zshrc removal
+ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
+
+# ---------------------------
 # ---- Variables
-###########################################################
+# ---------------------------
 
 # -- autoload
 autoload -Uz compinit compdef
