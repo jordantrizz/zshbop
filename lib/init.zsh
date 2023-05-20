@@ -553,7 +553,7 @@ function init_check_vm () {
             _debug "virt-what returned $VM"
             if [[ $VM == "kvm" ]]; then
                 if [[ $(pgrep qemu) ]] || [[ $(pgrep qemu-system) ]]; then
-                    _success "VM-virt-what: Running on KVM, and qemu guest tools is running"
+                    echo "$(_loading3 "VM-virt-what:) Running on KVM, and qemu guest tools is running"
                 else
                     _warning "VM-virt-what: Running on KVM, but qemu is not running"
                 fi                
@@ -561,7 +561,7 @@ function init_check_vm () {
                 _alert "VM-virt-what: Running on $VM"                
             fi
         else
-            _notice "Not running in a VM"
+            _loading3 "Not running in a VM"
             _debug "virt-what returned $VM"
         fi
     else
