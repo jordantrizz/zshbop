@@ -57,6 +57,39 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 
 # Setups
 
+## Cloud Init vendor.yaml
+Proxmox now supports vendor.yaml which will run on first boot.
+
+### Create snippets storage
+Create storage with ID: snippets and Directory: /var/lib/vz
+
+### Create vendor.yaml
+```
+```
+#cloud-config
+users:
+  - name: root
+    ssh_authorized_keys:
+      - ssh_authorized_keys:
+          - ssh-rsa AAAAB ....
+package_update: true
+package_upgrade: true
+packages:
+  - joe
+  - zsh
+
+ssh_pwauth: false
+disable_root: false
+
+output:
+  all: '| tee -a /var/log/cloud-init-output.log'
+```
+
+### Apply to VM
+```
+qm set 102 --cicustom "vendor=local:snippets/vendor.yaml"
+```
+
 ## Ubuntu 20 Template Setup
 * local-lvm is your lvm storage in proxmox
 * list vm config ```qm config 9000```
