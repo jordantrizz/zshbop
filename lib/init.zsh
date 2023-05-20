@@ -5,7 +5,8 @@
 # -- You can source this file to use the functions in your own scripts
 # --
 # -----------------------------------------------------------------------------------
-export ZSHBOP_ROOT="${0:a:h}/.." # -- Current working directory
+ZSHBOP_LIB="${0:a:h}"
+ZSHBOP_ROOT=$(dirname "$ZSHBOP_LIB")
 
 ###########################################################
 # -- Important Variables
@@ -27,6 +28,28 @@ _debug_load # -- debug load
 # -- Variables
 ###########################################################
 
+# -- zsh sepcific
+export ZDOTDIR="${HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
+
+# -- zshbop specific
+export ZSHBOP_NAME="zshbop" # -- Current zshbop branch
+export SCRIPT_DIR=${0:a:h} # -- Current working directory
+export ZSHBOP_CACHE_DIR="${HOME}/.zshbop_cache"
+export ZSHBOP_PLUGIN_MANAGER="init_antidote"
+export ZSHBOP_VERSION=$(cat $ZSHBOP_ROOT/version) # -- Current version installed
+export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
+export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
+export KB="${ZSHBOP_ROOT}/kb"
+export GIT_HOME="${HOME}/git"
+export REPOS_DIR="$ZSHBOP_ROOT/repos"
+export RUN_REPORT="0"
+export ZSHBOP_RELOAD="0"
+
+# -- zshbop git
+export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
+export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
+export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
+
 # -- autoload
 autoload -Uz compinit compdef
 compinit
@@ -47,8 +70,6 @@ source ${ZSHBOP_ROOT}/lib/help.zsh # -- include help functions
 source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedge Base
 
 _debug_load
-
-
 
 # ==============================================
 # -- init_path - setup all the required paths.

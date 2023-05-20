@@ -560,6 +560,33 @@ fucntion zshbop_install-env () {
     _log "${funcstack[1]}:stop"
 }
 
+# -- zshbop_cleanup
+help_zshbop[cleanup]='Cleanup old things'
+function zshbop_cleanup () {
+    _log "${funcstack[1]}:start"
+    # -- older .zshrc
+    ZSHRC_MD5SUM=(
+        "09fcdc31ca648bb15f7bb7ff90d0539a"
+    )
+    _loading "ZSH Cleanup"
+    _log "Checking for old .zshrc"
+    if [[ -f $HOME/.zshrc ]]; then
+        _log "Found .zshrc - Checking md5sum - md5sum - $HOME/.zshrc- $(md5sum $HOME/.zshrc)"
+        for i in $ZSHRC_MD5SUM; do
+            if [[ $i == $(md5sum $HOME/.zshrc) ]]; then
+                _log "md5sum matched - Removing old .zshrc"
+                rm $HOME/.zshrc
+                echo "source $ZSHBOP_ROOT/zshbop.zsh" > $HOME/.zshrc
+            else
+                _log "md5sum did not match"
+            fi
+        done
+    else
+        _log "No .zshrc found"
+    fi
+
+        
+}
 
 # ==============================================
 # ==============================================

@@ -41,28 +41,6 @@ export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/m
 export SSHK="$HOME/.ssh"
 export TMP="$HOME/tmp"
 
-# -- zsh sepcific
-export ZDOTDIR="${HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
-
-# -- zshbop specific
-export ZSHBOP_NAME="zshbop" # -- Current zshbop branch
-export SCRIPT_DIR=${0:a:h} # -- Current working directory
-export ZSHBOP_CACHE_DIR="${HOME}/.zshbop_cache"
-export ZSHBOP_PLUGIN_MANAGER="init_antidote"
-export ZSHBOP_VERSION=$(cat $ZSHBOP_ROOT/version) # -- Current version installed
-export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
-export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
-export KB="${ZSHBOP_ROOT}/kb"
-export GIT_HOME="${HOME}/git"
-export REPOS_DIR="$ZSHBOP_ROOT/repos"
-export RUN_REPORT="0"
-export ZSHBOP_RELOAD="0"
-
-# -- zshbop git
-export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
-export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
-export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
-
 # -- Associative Arrays
 typeset -gA help_custom # -- Set help_custom for custom help files
 
