@@ -1,8 +1,54 @@
 #!/usr/bin/env zsh
 # -----------------------------------------------------------------------------------
 # -- zshbop functions -- This file contains all the functions for initializing zshbop
+# -- 
+# -- You can source this file to use the functions in your own scripts
+# --
 # -----------------------------------------------------------------------------------
+export ZSHBOP_ROOT="${0:a:h}/.." # -- Current working directory
+
+###########################################################
+# -- Important Variables
+###########################################################
+SCRIPT_LOG_PATH="$HOME" # -- Default log path
+SCRIPT_LOG_FILE=".zshbop.log" # -- Default log file
+SCRIPT_LOG=${SCRIPT_LOG_PATH}/${SCRIPT_LOG_FILE} # -- Default log path and file
+
+###########################################################
+# -- Debugging and Logging functions
+###########################################################
+_debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$SCRIPT_LOG"; } || { echo "$DEBUG_MSG" >> "$SCRIPT_LOG"; } } # -- debug for core
+_debug_load () { _debug "Loading $funcstack" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) } # -- debug load
+source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
+source ${ZSHBOP_ROOT}/lib/logging.zsh # -- logging functions
+_debug_load # -- debug load
+
+###########################################################
+# -- Variables
+###########################################################
+
+# -- autoload
+autoload -Uz compinit compdef
+compinit
+
+# -- Help arrays
+typeset -gA help_files
+typeset -gA help_files_description
+typeset -gA help_corefunc
+typeset -gA help_zshbop
+
+###########################################################
+# -- Source required files
+###########################################################
+source ${ZSHBOP_ROOT}/lib/functions-core.zsh # -- include core functions
+source ${ZSHBOP_ROOT}/lib/functions.zsh # -- functions
+source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include functions
+source ${ZSHBOP_ROOT}/lib/help.zsh # -- include help functions
+source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedge Base
+
 _debug_load
+
+
 
 # ==============================================
 # -- init_path - setup all the required paths.
@@ -58,14 +104,14 @@ init_add_path () {
 	DIR="$@"
 	if [[ -d $DIR ]]; then
 		if [ "$(find "$DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
-	    _debug "Adding $DIR to \$PATH"
-	        i=0
-	        for NAME in $DIR/*; do
-	            _debug "$funcstack[1] - found $NAME, adding to \$PATH"
-	                export PATH=$PATH:$NAME
-	            i=$((i+1))
-	        done
-	        _log " Found $i folders and added them to \$PATH"
+            _debug "Adding $DIR to \$PATH"
+            i=0
+            for NAME in $DIR/*; do
+                _debug "$funcstack[1] - found $NAME, adding to \$PATH"
+                    export PATH=$PATH:$NAME
+                i=$((i+1))
+            done
+            _log " Found $i folders and added them to \$PATH"
 		fi
 	else
 		_debug "Can't find $DIR"

@@ -4,9 +4,32 @@
 # -----------------------------------------------------------------------------------
 _debug_load
 
-# -----------
-# -- ZSHBOP Aliases
-# -----------
+##########################################
+# -- Variables
+##########################################
+# -- System settings
+umask 022
+export TERM="xterm-256color"
+export LANG="C.UTF-8"
+export HISTSIZE=5000
+export PAGER='less -Q -j16'
+export EDITOR='joe'
+export BLOCKSIZE='K'
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export TERM="xterm-256color"
+export LANG="C.UTF-8"
+export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify # -- ohmyzsh specific environment variables
+export SSHK="$HOME/.ssh"
+export TMP="$HOME/tmp"
+
+# -- zsh sepcific
+export ZDOTDIR="${HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
+
+##########################################
+# -- zshbop Aliases
+##########################################
 alias update="zshbop_update"
 alias rld="zshbop_reload"
 alias urld="zshbop_update;zshbop_reload"
