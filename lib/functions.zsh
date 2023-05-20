@@ -575,7 +575,7 @@ function zshbop_cleanup () {
         _log "Found $HOME/.zshrc md5sum:$ZSHRC_MD5SUM"
         for i in $OLD_ZSHRC_MD5SUM; do
             _log "CUR:$ZSHRC_MD5SUM vs OLD:$i"
-            if [[ $i == $(md5sum $HOME/.zshrc) ]]; then
+            if [[ $i == $ZSHRC_MD5SUM ]]; then
                 _loading3 "md5sum matched - Removing old .zshrc"
                 rm $HOME/.zshrc
                 echo "source $ZSHBOP_ROOT/zshbop.zsh" > $HOME/.zshrc
