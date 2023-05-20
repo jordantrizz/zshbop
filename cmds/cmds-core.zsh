@@ -223,8 +223,8 @@ os-binary () {
 	unset LC_CHECK NULL OS_BINARY
 	_debug "Running $MACHINE_OS"
 	
-	if [[ $MACHINE_OS == "wsl" ||  $MACHINE_OS == "linux" ]]; then
-		_debug "Detected OS wsl || linux"
+	if [[ $MACHINE_OS == "linux" ]]; then
+		_debug "Detected OS linux"
 		OS_BINARY_TAG="linux_x86_64"
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		_debug "Detected OS mac"

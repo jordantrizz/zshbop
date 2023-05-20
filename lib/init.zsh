@@ -87,9 +87,9 @@ init_detectos () {
     esac
 
     # -- Check for WSL and set as MACHINE_OS
-    if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
-        MACHINE_OS="wsl"
-    fi
+    #if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
+        MACHINE_OS2="wsl"
+    #fi
 
     # -- Check for synology and set as MACHINE_OS
     if [[ $(uname -a) =~ "synology" ]]; then
@@ -274,11 +274,11 @@ function init_os () {
 	elif [[ $MACHINE_OS = "linux" ]] then
 		_loading3 "Loading cmds/os-linux.zsh"
     	source $ZSHBOP_ROOT/cmds/os-linux.zsh
-	# -- WSL Linux
-	elif [[ $MACHINE_OS = "wsl" ]]; then				
-	    _loading3 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
-        source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
-	    source $ZSHBOP_ROOT/cmds/os-wsl.zsh
+	    # -- WSL Linux
+	    if [[ $MACHINE_OS2 = "wsl" ]]; then				
+	        _loading3 "Loading cmds/os-wsl.zsh"        
+	        source $ZSHBOP_ROOT/cmds/os-wsl.zsh
+        fi
 	fi
 }
 
@@ -338,7 +338,7 @@ function init_pkg_manager () {
 	_debug_all
 	_debug "Running on $MACHINE_OS"
 	
-	if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
+	if [[ $MACHINE_OS == "linux" ]]; then
 		_debug "Checking for Linux package manager"
         _cexists apt-get
         if [[ $? == "0" ]]; then

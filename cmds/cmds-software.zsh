@@ -172,7 +172,7 @@ aws-cli () {
 
 # -- vt
 help_software[vt]="Virus Total CLI"
-if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
+if [[ $MACHINE_OS == "linux" ]]; then
 	_cexists vt-linux64
 	[[ $? -ge "0" ]] && alias vt=vt-linux64 || alias vt="echo 'VT not installed'"
 elif [[ $MACHINE_OS == "mac" ]]; then
@@ -182,7 +182,7 @@ fi
 
 # -- b2
 help_software[b2]="Backblaze CLI"
-if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
+if [[ $MACHINE_OS == "linux" ]]; then
 	_cexists b2-linux
     [[ $? -ge "1" ]] && alias b2=b2_download || alias b2=b2-linux
 elif [[ $MACHINE_OS == "mac" ]]; then
@@ -195,7 +195,7 @@ b2_download () {
 	_debug_all
 	echo "b2 not found, downloading"
 	# -- linux
-	if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
+	if [[ $MACHINE_OS == "linux" ]]; then
 		echo "Detected linux OS."
         if [[ -f $HOME/bin/b2-linux ]]; then
 			alias b2=b2-linux
@@ -350,13 +350,13 @@ function bat-download() {
     _loading "Installing bat"
     if [[ $MACHINE_OS == "mac" ]]; then
         brew install bat
-    elif [[ $MACHINE_OS == "linux" || $MACHINE_OS == "wsl" ]]; then
+    elif [[ $MACHINE_OS == "linux" ]]; then
         sudo apt install bat
     fi
 }
 
 # -- glint
-if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
+if [[ $MACHINE_OS == "linux" ]]; then
 	_cexists glint-linux
 	[[ $? -ge "0" ]] && alias glint=glint-linux || alias glint="echo 'VT not installed'"
 elif [[ $MACHINE_OS == "mac" ]]; then
