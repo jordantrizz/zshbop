@@ -179,6 +179,7 @@ elif [[ $MACHINE_OS == "mac" ]]; then
 	_cexists vt-macos
 	[[ $? -ge "0" ]] && alias vt=vt-macos || alias vt="echo 'VT not installed'"
 fi
+
 # -- b2
 help_software[b2]="Backblaze CLI"
 if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
@@ -343,11 +344,22 @@ function zsh-bin() {
 
 # -- bat
 help_software[bat]="Install bat"
-function bat() {
-    _loading "Installing bats"
+_cexists batcat
+[[ $? == "0" ]] && { alias bat=batcat; alias cat=batcat; } || alias bat=bat-download
+function bat-download() {
+    _loading "Installing bat"
     if [[ $MACHINE_OS == "mac" ]]; then
         brew install bat
-    elif [[ $MACHINE_OS == "linux" ]]; then
+    elif [[ $MACHINE_OS == "linux" || $MACHINE_OS == "wsl" ]]; then
         sudo apt install bat
     fi
 }
+
+# -- glint
+if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
+	_cexists glint-linux
+	[[ $? -ge "0" ]] && alias glint=glint-linux || alias glint="echo 'VT not installed'"
+elif [[ $MACHINE_OS == "mac" ]]; then
+	_cexists glint-mac
+	[[ $? -ge "0" ]] && alias glint=glint-macos || alias glint="echo 'VT not installed'"
+fi

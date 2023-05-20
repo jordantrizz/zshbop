@@ -5,6 +5,7 @@
 * Restart Proxmox ```systemctl restart pve-cluster```
 
 # Common Tasks
+
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
 ```
@@ -22,6 +23,7 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 ```
 * postmap /etc/postfix/sasl_passwd
 * systemctl restart postfix
+
 ## Filter Email and change root emails To:
 * joe /etc/postfix/smtp_header_checks
 ```
@@ -36,9 +38,11 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * systemctl restart postfix
 
 ## Forward 443 to 8006
-```/sbin/iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8006```
+* Ensure that you specify -d and use your proxmox servers public IP that you access with 8006
+```iptables -t nat -A PREROUTING -p tcp -d 192.168.1.6 --dport 443 -j REDIRECT --to-ports 8006```
+
 ## Changing Hostname
-* Edit /etc/hosts file from “proxmox1.sysadminote.com proxmox1″ to “proxmox2.sysadminote.com proxmox2″ 
+* Edit /etc/hosts file from “proxmox1.sysadminote.com proxmox1″ to “proxmox2.sysadminote.com proxmox2″
 * Edit /etc/hostname file from “proxmox1″ to “proxmox2″.
 * ```cp -R /etc/pve/nodes/oldhostname/ /root/```
 * ```mv /etc/pve/nodes/oldhostname/* /etc/pve/nodes/newhostname/*```
@@ -89,7 +93,7 @@ Note: User config will overwrite automatic config from proxmox, so vendor is pre
 3. Apply to VM
 ```
 qm set 102 --cicustom "user=snippets:snippets/cloud-init.yml"
-``` 
+```
 or
 ```
 qm set 100 --cicustom "vendor=local:snippets/vendor.yml"

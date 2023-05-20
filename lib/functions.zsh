@@ -235,24 +235,6 @@ zshbop_update () {
     _banner_yellow "**** END UPDATING ZSHBOP ****"
     echo ""
 }
-# -----------------------------------
-# -- zshbop_pervious-version-check ()
-# -----------------------------------
-help_zshbop[previous-version-check]='Checking if \$HOME/.zshrc is pre v1.1.3 and replacing.'
-zshbop_previous-version-check () {
-        _debug_all
-
-        # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
-        _debug " -- Current $HOME/.zshrc md5 is - $ZSHBOP_HOME_MD5"
-        _debug " -- zshbop .zshrc md5 is - $ZSHBOP_LATEST_MD5"
-        if [[ "$ZSHBOP_HOME_MD5" != "$ZSHBOP_LATEST_MD5" ]]; then
-                _error "-- Found old .zshrc"
-                _notice "-- Replacing $HOME/.zshrc"
-                cp $ZSHBOP_ROOT/.zshrc $HOME/.zshrc
-        else
-        	_debug " -- No need to fix .zshrc"
-        fi
-}
 
 # -----------------------
 # -- zshbop_migrate-check
