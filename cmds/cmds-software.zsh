@@ -340,3 +340,14 @@ function zsh-bin() {
     _loading "Running sh -c '$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)'"
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)"
 }
+
+# -- bat
+help_software[bat]="Install bat"
+function bat() {
+    _loading "Installing bats"
+    if [[ $MACHINE_OS == "mac" ]]; then
+        brew install bat
+    elif [[ $MACHINE_OS == "linux" ]]; then
+        sudo apt install bat
+    fi
+}
