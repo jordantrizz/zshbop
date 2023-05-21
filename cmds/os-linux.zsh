@@ -9,10 +9,10 @@ if [[ $? == "0" ]]; then
 	LC_CHECK="$?"
     _debug "exa run - out: $NULL \$?:$LC_CHECK"
 	if [[ $LC_CHECK -ge "1" ]]; then
-		_loading "exa failed, using default ls alias"
+		_warning "exa failed, using default ls alias"
 	else
-		_loading2 "Using exa"
-		alias ls="${EXA_LINUX} ${DEFAULT_EXA}"
+		_debug "Using exa"
+		alias ls="${EXA_LINUX}"
 		alias exa="${EXA_LINUX}"
 	fi		
 fi
@@ -23,10 +23,6 @@ alias ps="ps -auxwwf"
 # -- tran - https://github.com/abdfnx/tran/releases
 alias tran="tran_linux_amd64"
 
-# -- macchina
-alias macchine="macchina-linux-x86_64"
-alias os="macchine"
-
 # -- interfaces
 help_linux[interfaces]="List interfaces ip, mac and link"
 interfaces_linux () {
@@ -36,17 +32,32 @@ interfaces_linux () {
 	# Loop through each interface
 	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
 	for interface in $interfaces; do
-	    # Get IP address
-	    ip=$(ip -o addr show $interface | awk '{print $4}')
-	
+        _debug "Processing interface: $interface"
+        if [[ $interface == *NONE* ]] && { interface=$(echo $interface | sed 's/@NONE//g'); _debug "Found @NONE in \$interface, removing @NONE"; }        
+                
 	    # Get MAC address
-	    mac=$(ip -o link show $interface | awk '{print $6}')
+	    mac=$(ip -o link show $interface | awk '{print $17}')
 
 	    # Get link speed
 	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
+        [[ -z $speed ]] && speed="N/A"
 
-	    # Print interface information
-	    OUTPUT+="\n$interface $ip $mac $speed"
+	    # Get IP address
+        ip=$(ip -o addr show $interface | awk '{print $3","$4}')
+        if [[ "${ip%%\n*}" != "${ip}" ]]; then
+            _debug " -- Found multiple IP addresses for $interface"
+            while read -r ip; do
+                _debug "Interface: $interface IP: $ip MAC: $mac Speed: $speed"
+                OUTPUT+="\n$interface $ip $mac $speed"
+            done <<< "${ip}"
+        elif [[ -z $ip ]]; then
+            _debug " -- No IP address found for $interface"
+            OUTPUT+="\n$interface N/A $mac $speed"
+        else
+            # Print interface information
+            _debug "Interface: $interface IP: $ip MAC: $mac Speed: $speed"
+	        OUTPUT+="\n$interface $ip $mac $speed"
+        fi
 	done
 	echo -e "$OUTPUT" | column -t
 }
@@ -58,8 +69,8 @@ check_diskspace_linux () {
     # /run = not requires
     # wsl = wsl stuffs
     # /init = wsl stuffs
+    local DISKSPACE_ERROR=0
     DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|devfs' | awk '{ print $5 " " $1 }' )
-    #IFS=$'\n' read -rd '' DISKUSAGE <<< "$DF_COMMAND"
     DISKUSAGE=("${(@f)${DF_COMMAND}}")
     for OUT in ${DISKUSAGE[@]}; do
         PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
@@ -70,35 +81,14 @@ check_diskspace_linux () {
         if [[ $PERCENTAGE -ge $ALERT ]]; then
             _notice "$FIRSTMSG.."
             _error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
+            DISKSPACE_ERROR=1
         else
-            _notice "$FIRSTMSG.. - no issue."
+            _log "$FIRSTMSG.. - no issue."            
         fi
     done
+    [[ $DISKSPACE_ERROR == 1 ]] && _error "Disk space issue found, please check." || _success "No disk space issue found."
 }
 
-# -- system_check - check usualy system stuff
-system_check () {
-    # -- start
-    _debug_function
-    _banner_yellow "System check on $MACHINE_OS"
-
-    # -- network interfaces
-    _loading "Network interfaces"
-    interfaces
-
-    # -- check swappiness
-    _loading2 "Checking swappiness"
-    if [[ -f /proc/sys/vm/swappiness ]]; then
-        _notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
-    else
-        _error "Can't find swap"
-    fi
-
-    # -- check disk space
-    _loading2 "Checking disk space"
-    check_diskspace
-
-    # -- check block devices
-    _loading2 "Checking block devices"
-    check_blockdevices
-}
+# -- auto-ls
+export AUTO_LS_COMMANDS=('color' git-status)
+auto-ls-color () { ls -a --color=auto;echo "\n"; }

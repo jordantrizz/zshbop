@@ -1,10 +1,8 @@
 #!/usr/bin/env zsh
-# ------------------------
-# -- zshbop aliases file
-# -------------------------
-# This file contains all the aliases for zshbop
-
-_debug "Loading mypath=${0:a}"
+# -----------------------------------------------------------------------------------
+# -- aliases.zsh -- This file contains all the aliases for zshbop
+# -----------------------------------------------------------------------------------
+_debug_load
 
 # -----------------
 # -- Common aliases
@@ -59,6 +57,5 @@ alias sshc="ssh-connect"
 function sshr { ssh root@$1 }
 alias ssh-keygen="ssh-keygen -t ed25519"
 
-# - Litespeed
-alias lsphp74="/usr/local/lsws/lsphp74/bin/php"
-alias lsphp81="/usr/local/lsws/lsphp81/bin/php"
+# -- zsh
+alias checkzsh="init_checkzsh"

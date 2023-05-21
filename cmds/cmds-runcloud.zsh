@@ -7,7 +7,6 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_files[runcloud_description]="Common Runcloud Tools"
 help_files[runcloud]="Common Runcloud Tools"
 
 # - Init help array

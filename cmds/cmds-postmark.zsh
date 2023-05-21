@@ -7,7 +7,6 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_files[postmark_description]="Interface with the Postmark API"
 help_files[postmark]="Postmark API Commands"
 
 # - Init help array

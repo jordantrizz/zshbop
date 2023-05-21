@@ -34,10 +34,5 @@ if _cexists fzf; then
 else 
 	_debug "fzf is not installed, consider it"
 fi
-
-####-- AUTO_LS - Disabled for now
-#AUTO_LS_COMMANDS=('color' git-status)
-#auto-ls-color () { ls -al --color=tty;echo "\n"; }
-#antigen bundle desyncr/auto-ls
-
+   
 antigen apply

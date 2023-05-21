@@ -1,14 +1,13 @@
 # Logs and Analytics
 ## GoAccess
-'''
+```
 $ echo "deb https://deb.goaccess.io/ $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/goaccess.list
 $ wget -O - https://deb.goaccess.io/gnugpg.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/goaccess.gpg add -
 $ sudo apt-get update
 $ sudo apt-get install goaccess
-'''
+```
 
 # Maintenance Page
-
 ## Nginx Configuration Option #1 - File Exists
 ```
    error_page 503 @maintenance;
@@ -22,7 +21,6 @@ $ sudo apt-get install goaccess
 	    }
     	... # the rest of your config goes here
     }
-
 ```
 ## Nginx Configuration Option #2 - File Exists + IP
 ```
@@ -93,4 +91,28 @@ set_real_ip_from 2405:b500::/32;
 set_real_ip_from 2405:8100::/32;
 set_real_ip_from 2a06:98c0::/29;
 set_real_ip_from 2c0f:f248::/32;
+```
+
+# Secure Nginx PHP-FPM
+1. Create User
+```
+useradd site
+```
+2. Add www-data group (Nginx user) to site user
+```
+ usermod -a -G site www-data
+```
+3. Setup PHP-FPM
+```
+listen = /var/run/php-fpm74/site.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0666
+user = site
+group = site
+```
+4. Change /home and /home/site permissions
+```
+chmod 701 /home
+chmod 750 /home/site
 ```

@@ -8,13 +8,20 @@
 ## Update netdata
 * ```wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --dry-run```
 
+# Common Commands
+* Reload health ```netdatacli reload-health```
+
 # Install Notes
 ## Specify different temporary directory, instead of default /tmp
 * ```env TMPDIR=/root/tmp bash <(curl -Ss https://my-netdata.io/kickstart.sh)```
 
 # Configuration
 ## Editing Confg
+Copies default config to override directory.
 * ```./edit-config go.d/web_log.conf```
+
+# Cheatsheet
+* https://learn.netdata.cloud/docs/getting-started/manage-and-configure/
 
 # Alarms
 
@@ -28,6 +35,32 @@
 ```
 [health]
 enabled=no
+```
+
+## Agent Slack Notifications
+See https://learn.netdata.cloud/docs/alerts-and-notifications/notifications/agent-alert-notifications/slack
+### 1 - Open health_alarm_notify.conf
+```
+cd /etc/netdata
+./edit-config health_alarm_notify.conf
+```
+### 2 - Search and Replace
+* Set SEND_SLACK to YES.
+* Set SLACK_WEBHOOK_URL to your Slack app's webhook URL.
+* Set DEFAULT_RECIPIENT_SLACK to the Slack channel your Slack app is set to send messages to.
+
+### 3 - Example
+```
+SEND_SLACK="YES"
+SLACK_WEBHOOK_URL="https://hooks.slack.com/services/XXXXXXXX/XXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" 
+DEFAULT_RECIPIENT_SLACK="#alarms"
+```
+
+## Testing Alerts
+```
+sudo su -s /bin/bash netdata
+export NETDATA_ALARM_NOTIFY_DEBUG=1
+/usr/libexec/netdata/plugins.d/alarm-notify.sh test
 ```
 
 ## Silence Specific Alarms
@@ -54,4 +87,10 @@ lots of SYN packets and never completes the handshakes).
 * This can occur and be normal, so suggest disabling this alarm.
 ```
 ./edit-config health.d/web_log.conf
+```
+
+# Common Alarms to Silence
+```
+web_log_1m_unmatched
+web_log_1m_redirects
 ```

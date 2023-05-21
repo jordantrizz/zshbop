@@ -35,39 +35,6 @@ add-path () {
 	fi
 }
 
-# -- checkenv - Check Environment for installed software
-help_core[env-check]='check environment for installed software and tools'
-env-check () {
-        echo "---------------------------"
-        echo "Looking for default tools.."
-        echo "---------------------------"
-        echo ""
-        for i in $default_tools; do
-				_cexists $i
-                if [[ $? == "0" ]]; then
-                        echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
-                else
-                        echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
-                fi
-        done
-        echo "---------------------------"
-        echo "Looking for extra tools.."
-        echo "---------------------------"
-        echo ""
-        for i in $extra_tools; do
-        _cexists $i
-        if [[ $? == "0" ]]; then
-                        echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
-                else
-                        echo "$i is $bg[red]$fg[white] MISSING. $reset_color"
-        fi
-        done
-        echo "--------------------------------------------"
-        echo "Run env-install to install above tools"
-        echo "--------------------------------------------"
-
-}
-
 # -- env-install - Install tools into environment.
 help_core[env-install]='Install tools into environment'
 env-install () {
@@ -75,10 +42,10 @@ env-install () {
     echo "---------------------------"
     echo "Installing default tools.."
     echo "---------------------------"
-    echo "default_tools: $default_tools"
+    echo "DEFAULT_TOOLS: $DEFAULT_TOOLS"
     
     if read -q "Continue? (y/n)"; then
-	    sudo apt-get install --no-install-recommends postfix- $default_tools
+	    sudo apt-get install --no-install-recommends postfix- $DEFAULT_TOOLS
     else
 		echo "Skipping due to press 'n'"
     fi
@@ -108,6 +75,7 @@ env-install () {
 }
 
 # -- install-pkg - Install specific tool
+# TODO - why does this exist?
 help_core[install-pkg]='Install specific tool'
 install-pkg () {
 	# List of packages.
@@ -188,7 +156,6 @@ _debug " -- Loading \${(%):-%N}"
 typeset -gA help_$1
 
 # What help file is this?
-help_files[$1_description]="-- To install, run software <cmd>"
 help_files[$1]='Software related commands'
 
 TEMPLATE
@@ -276,8 +243,9 @@ os-binary () {
 		_debug "$OS_BINARY not installed"
 		return 1
 	else
-	    _loading2 "Using created alias ${BINARY} ${OS_BINARY}"
-	    alias ${BINARY}="${OS_BINARY}"
+	    _debug "Using created alias ${BINARY} ${OS_BINARY}"
+	    function ${BINARY} () { ${OS_BINARY} $@ }
+        eval "export ${(U)BINARY}_CMD=$OS_BINARY"
 	    return 0
 	fi
 }
@@ -292,4 +260,10 @@ function debugz() {
   set -x
   $func_name "$@"
   set +x
+}
+
+# -- os - return os
+help_core[os]='Return OS'
+function os() {
+  echo "$MACHINE_OS / $MACHINE_OS_FLAVOUR"
 }

@@ -18,7 +18,7 @@ INSERT INTO `databasename`.`wp_usermeta` (`umeta_id`, `user_id`, `meta_key`, `me
 ```
 define( 'WP_DEBUG', true )
 if ( WP_DEBUG ) {
-    define( 'WP_DEBUG_LOG', false );
+    define( 'WP_DEBUG_LOG', true );
     define( 'WP_DEBUG_DISPLAY', false);
     @ini_set( 'log_errors', true );
     @ini_set( 'error_log', dirname(__FILE__) . '/debug.log' );
@@ -41,3 +41,7 @@ rsync -avz public_html root@192.168.0.101 --exclude wp-content/cache --exclude w
 define( 'WP_HOME', 'http://example.com' );
 define( 'WP_SITEURL', 'http://example.com' );
 ```
+
+# wp-cli
+## Another Update is Currently in Progress
+```wp option delete core_updater.lock```
