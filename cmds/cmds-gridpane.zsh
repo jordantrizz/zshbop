@@ -7,7 +7,6 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_files[gridpane_description]="Common GridPane Tools"
 help_files[gridpane]="Common GridPane Tools"
 
 # - Init help array
@@ -70,7 +69,7 @@ check-fsl () {
 help_gridpane[gp-mysql]="Gridpane MYSQL command"
 gp-mysql () {
 	mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
-	mysql --user root --password="${mysqlrootpw}"
+	mysql --user root --password="${mysqlrootpw}" ${*}
 }
 
 # -- gp-mysqlps
@@ -96,6 +95,9 @@ gp-mysqlpass () {
 # -- gp-duplicacy-audit
 help_gridpane[gp-duplicacy-audit]="Audit Duplicacy backups"
 gp-duplicacy-audit () {
+    local duplicacy_repository=$(find /var/www -name ".duplicacy" | head -n 1)
+    echo "Found at ${duplicacy_repository}"
+    cd ${duplicacy_repository}
     duplicacy check -tabular | grep 'all' | awk {' print $1 " "$10 '} | sed 's/gridpane-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-//' | column -t
 }
 
@@ -182,3 +184,25 @@ gp-backupallsites () {
         tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' /var/www/${SITE}/htdocs
     done
 }
+
+# -- gp-oscheck
+help_gridpane[gp-oscheck]="Check the OS version"
+gp-oscheck () {
+    # Get the Ubuntu version
+    version=$(lsb_release -r | awk '{print $2}')
+
+    # Check if the version is not 20
+    if [[ "$version" != "20.04" ]]; then
+        _error2 "WARNING: Unsupported Ubuntu version ($version)."
+    else
+        _success "Running Ubuntu $version supported by GridPane"
+    fi
+}
+
+# -- gp-audit
+help_gridpane[gp-audit]="Run a GridPane Audit"
+if ! functions gp-audit >/dev/null; then
+  gp-audit () {
+    echo "Not available for free, see https://lmt.ca"
+  }
+fi

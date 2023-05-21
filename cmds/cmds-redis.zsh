@@ -7,7 +7,6 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_files[redis_description]="Redis commands"
 help_files[redis]="Redis Commands"
 
 # - Init help array

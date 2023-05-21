@@ -90,8 +90,11 @@ The default values are specified below, however the full list is at https://grid
 * gp stack mysql -thread-pool-size 4 - Based on CPU cores - This variable is inactive unless thread_handling is set to pool-of-threads
 * gp stack mysql -thread-pool-stall-limit 500
 
+## MySQL Slow Query Log
+* gp stack mysql -slow-query-log 0
+* gp stack mysql -long-query-time 0 
+
 MySQL slow query log output can be viewed in the following log: /var/log/mysql/slow.log
-* gp mysql restart
 
 # GridPane Fix Commands
 * Reset file permissions ```gpfix perms site.com```
@@ -120,18 +123,6 @@ The below example will set the redis maxmemory to 300MB
 gp stack redis -max-memory 300
 
 ```
-<<<<<<< HEAD
-
-# Redis Object Cache
-## Change Redis maxmemory
-* https://gridpane.com/kb/configure-redis/
-The below example will set the redis maxmemory to 300MB
-```
-gp stack redis -max-memory 300
-
-```
-=======
->>>>>>> bleeding
 
 # PHP
 ## Change PHP Settings
@@ -141,6 +132,7 @@ gp stack redis -max-memory 300
 ## Update PHP memory per site.
 * gp stack php -site-mem-limit 512 test.com
 ## Enable php-fpm slow log
+* gp stack php -site-slowlog true site.url
 * gp stack php -site-slowlog-timeout 5 site.url
 * gp stack php -site-slowlog-trace-depth 15 site.url
 ## PHP FPM pm.max-requests

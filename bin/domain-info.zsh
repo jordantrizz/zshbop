@@ -38,22 +38,24 @@ Usage: domain-info [-c] <domain name>
 
 # -- get_nameservers
 get_nameservers () {
-    NAMESERVERS=$(dig +short NS $DOMAIN)
+    NAMESERVERS=($(dig +short NS $DOMAIN))
 }
 
 # -- is_cloudflare
 is_cloudflare () {
-    IS_CF=0
-    if echo $NAMESERVERS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)"; then
+    local IS_CF
+    if [[ $(echo $NAMESERVERS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)") ]]; then
         IS_CF=1
+    else
+        IS_CF=0
     fi
 }
 
 # -- get_apex
 get_record () {
-    RECORD="$1"
-    RECORD=$(dig +short A $RECORD)
-    TEXT=""
+    RECORD="$1"    
+    RECORD=$(dig +short $RECORD)
+    TEXT=""    
     for IP in "${(f)RECORD}"; do
         if [[ $(grepcidr3 -D "$IP" <(echo "$CLOUDFLARE_IPS")) ]]; then
             TEXT+="$IP = $bg[yellow]$fg[black]CF${reset_color} "
@@ -62,6 +64,15 @@ get_record () {
         fi
     done
     echo $TEXT
+}
+
+get_mx () {
+    RECORD="$1"
+    RECORD=$(dig +short MX $RECORD)
+    TEXT=""    
+    for MX in "${(f)RECORD}"; do
+        MX_TEXT+=($MX)
+    done
 }
 
 # -------
@@ -81,19 +92,25 @@ get_nameservers
 is_cloudflare
 APEX_TEXT=$(get_record $DOMAIN)
 WWW_TEXT=$(get_record www.$DOMAIN)
+get_mx $DOMAIN
 
 if [[ $COMPACT ]]; then
-    echo -n "$DOMAIN - Nameservers: ${(f)NAMESERVERS}"
+    _loading2 "$DOMAIN - Nameservers: ${(f)NAMESERVERS}"
     if [[ $IS_CF ]]; then echo -n " = $bg[yellow]$fg[black]CF${reset_color}"; fi
     echo -n " $bg[red]$fg[black]||||||${reset_color} APEX@: $APEX_TEXT"
     echo -n " $bg[red]$fg[black]||||||${reset_color} WWW.: $WWW_TEXT"
 else
-    echo "Domain: $DOMAIN"
-    echo -n "-- Nameservers:" 
-    if [[ $IS_CF ]]; then echo " - $bg[yellow]$fg[black]Cloudflare Nameservers${reset_color}"; fi
-    echo "${NAMESERVERS}"
-    echo "-- DNS"
+    _loading "Domain: $DOMAIN"    
+    echo -n " Nameservers:"     
+    if [[ $IS_CF ]]; then echo " - $bg[yellow]$fg[black]Cloudflare Nameservers${reset_color}"; fi    
+    echo " ${NAMESERVERS}"
+    echo ""
+    _loading2 "DNS Records"
     echo " APEX@: $APEX_TEXT"
     echo " WWW.: $WWW_TEXT"
-    echo ""
+    echo " MX:"
+    for item in $MX_TEXT; do
+        echo "   - ${item}"
+    done     
 fi
+echo ""

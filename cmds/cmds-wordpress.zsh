@@ -1,15 +1,6 @@
-# --[6~
-# Mail commands
-#
-# Example help: help_wordpress[wp]='Generate phpinfo() file'
-#
-# --
+# -- WordPress
 _debug " -- Loading ${(%):-%N}"
-
-# What help file is this?
 help_files[wordpress]='WordPress related commands'
-
-# - Init help array
 typeset -gA help_wordpress
 
 # -- wp-cli but allow root ;)
@@ -99,11 +90,18 @@ wp-autoload () {
 }
 
 # -- wp-login
-help_wordpress[wp-login]='Install login module'
+help_wordpress[wp-login]='Install wp-cli-login-command module'
 wp-login () {
 	wp package install aaemnnosttv/wp-cli-login-command
 	wp login install --activate
 }
+
+# -- wp-force-login
+help_wordpress[wp-force-login]='Force login to WordPress site'
+wp-force-login () {
+    wp plugin install --activate wp-force-login
+}
+
 
 # -- wp-doctor
 help_wordpress[wp-doctor]='Install wp-doctor module'
@@ -138,4 +136,41 @@ wp-backupsite () {
     echo "Backing up ${SITE}..."
     /usr/local/bin/wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
     tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
+}
+
+# -- wp-skip
+help_wordpress[wp-admin-email]='Update admin email'
+function wp-admin-email () {
+    [[ -z $1 ]] && { echo "Usage: wp-admin-email <email>"; return 1 } || wp option update admin_email ${1}
+    
+}
+# -- wp-plugins
+help_wordpress[wp-plugins]='List plugins'
+function wp-plugins () {
+    wp plugin status
+}
+
+# -- wp-cronshim
+help_wordpress[wp-cronshim]='Run wp-cron via cron-shim.sh'
+function wp-cronshim () {
+    echo "Downloading cron-shim.sh... via https://raw.githubusercontent.com/managingwp/wp-shelltools/main/scripts/cron-shim.sh"
+    curl -O https://raw.githubusercontent.com/managingwp/wp-shelltools/main/scripts/cron-shim.sh
+    chmod u+x cron-shim.sh
+}
+
+# -- wp-cli-install
+help_wordpress[wp-cli-install]='Install wp-cli'
+function wp-cli-install () {
+    if [[ -f /usr/local/bin/wp ]]; then
+        echo "wp-cli already installed"
+        return 1
+    else
+        echo "Installing wp-cli..."
+        # https://wp-cli.org/#installing
+        # download via curl to /tmp
+        curl -o /tmp/wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar 
+        chmod +x /tmp/wp-cli.phar
+        mv /tmp/wp-cli.phar /usr/local/bin/wp
+        echo "wp-cli installed"
+    fi
 }

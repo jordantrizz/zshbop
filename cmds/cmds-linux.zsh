@@ -88,99 +88,21 @@ ps2 () {
     fi
 }
 
-# -- fork
-help_linux[fork]='Fork command into background'
-fork () { 
-	(setsid "$@" &); 
-}
-
-# -- sysr
-help_linux[sysr]='Systemctl restart shortcut'
-sysr () {
-	if [[ -z $@ ]]; then
-		echo "systemctl restart - Usage: sysr [service]"
-		return 1
-	else
-	    _noticebg "systemctl restart $@"
-        systemctl restart "$@"
-    fi
-}
-
-# -- sysrld
-help_linux[sysrld]='Systemctl reload shortcut'
-sysrld () {
-    if [[ -z $@ ]]; then
-        echo "systemctl reload - Usage: sysrld [service]"
-        return 1
-    else
-        _noticebg "systemctl reload $@"
-        systemctl reload $@
-    fi
-}
-
 # -- ps-cpu
 help_linux[ps-cpu]='Show top 5 CPU applications'
 ps-cpu () {
     ps aux --sort -pcpu | head -5
 }
 
-# -- usedspace
-help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
-usedspace () {
-	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
-}
-
-# -- check_diskspace
-help_linux[check_diskspace2]="Check diskspace based on OS"
-check_diskspace () {
-	check_diskspace_${MACHINE_OS}
-}
-
-# -- check_blockdevices
-check_blockdevices () {
-        OUTPUT=""
-        ALERT="98"
-        DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
-        OUTPUT="$fg[cyan]Device Type Size Used% MountPoint${reset_color}"
-        for DEVICE in $DEVICES
-        do
-                TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
-                SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
-                MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
-                USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
-                OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
-        done
-        echo -e "$OUTPUT" | column -t
-}
-
-# -- check_diskspace
-help_linux[check_diskspace2]="Check diskspace2"
-check_diskspace2 () {
-	OUTPUT=""
-    ALERT="98" # alert level
-	# Get a list of storage devices
-	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
-
-	# Loop through each device
-	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
-	for DEVICE in $DEVICES; do
-	    # Get device type
-	    TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
-
-	    # Get device size
-	    SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
-
-	    # Get mount point
-	    MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
-
-	    # Get used percentage
-	  	USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
-
-	    # Print device information
-	    OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
-	done
-	echo -e "$OUTPUT" | column -t
-
+# -- ps-mem2
+help_linux[ps-mem2]='Show memory as human readable and sort'
+function ps-mem2() {
+    local sortbyfield="rss"
+    local fsep="-o zzz:::zzz%% -o"
+    local ps_cmd="\ps ax o user:16 $fsep pid $fsep pcpu $fsep pmem $fsep vsz $fsep rss $fsep tty $fsep stat $fsep lstart $fsep time:16 $fsep cmd --sort -$sortbyfield"
+    local awk_cmd="awk 'function setprefix(num){{n_suffix=1; while(num > 1000 && n_suffix < suffixes_len) {num /= 1024; n_suffix++;}; num=int(100*num)/100suffixes[n_suffix]}; return num} BEGIN{suffixes_len=split(\"kB MB GB TB PB EB ZB\",suffixes);FS=\"zzz:::zzz%\";} NR>1 {\$5=setprefix(\$5);\$6=setprefix(\$6); }{ printf \"%-16s %6s %-5s %-5s %9s %9s %-8s %-8s %-25s %-18s %s\n\", \$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11;}'"
+    local cut_cmd="cut -c -250"
+    eval "$ps_cmd | $awk_cmd | $cut_cmd"
 }
 
 # -- ps-mem
@@ -222,6 +144,103 @@ ps-mem () {
 		echo "$PS_FINAL"
 	fi
 }
+
+
+# -- fork
+help_linux[fork]='Fork command into background'
+fork () { 
+	(setsid "$@" &); 
+}
+
+# -- sysr
+help_linux[sysr]='Systemctl restart shortcut'
+sysr () {
+	if [[ -z $@ ]]; then
+		echo "systemctl restart - Usage: sysr [service]"
+		return 1
+	else
+	    _noticebg "systemctl restart $@"
+        systemctl restart "$@"
+    fi
+}
+
+# -- sysrld
+help_linux[sysrld]='Systemctl reload shortcut'
+sysrld () {
+    if [[ -z $@ ]]; then
+        echo "systemctl reload - Usage: sysrld [service]"
+        return 1
+    else
+        _noticebg "systemctl reload $@"
+        systemctl reload $@
+    fi
+}
+
+
+# -- usedspace
+help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
+usedspace () {
+	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
+}
+
+# -- check_diskspace
+help_linux[check_diskspace2]="Check diskspace based on OS"
+check_diskspace () {
+	check_diskspace_${MACHINE_OS} $@
+}
+
+# -- check_blockdevices
+check_blockdevices () {
+    if [[ $MACHINE_OS == "linux" ]]; then
+        OUTPUT=""
+        ALERT="98"
+        DEVICES=($(lsblk -n -d -o NAME | egrep -v '^loop*'))
+        OUTPUT="$fg[cyan]Device Type Size Used% MountPoint${reset_color}"
+        for DEVICE in $DEVICES
+        do
+                TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
+                SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
+                MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
+                USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
+                OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
+        done
+        echo -e "$OUTPUT" | column -t
+    else
+        _error "check_blockdevices not supported on $MACHINE_OS"
+    fi
+}
+
+# -- check_diskspace
+help_linux[check_diskspace2]="Check diskspace2"
+check_diskspace2 () {
+	OUTPUT=""
+    ALERT="98" # alert level
+	# Get a list of storage devices
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
+
+	# Loop through each device
+	OUTPUT=$(_banner_grey "Device Type Size Used% MountPoint")
+	for DEVICE in $DEVICES; do
+	    # Get device type
+	    TYPE=$(lsblk -n -d -o TYPE /dev/$DEVICE)
+
+	    # Get device size
+	    SIZE=$(lsblk -n -d -o SIZE /dev/$DEVICE)
+
+	    # Get mount point
+	    MOUNT=$(lsblk -n -d -o MOUNTPOINT /dev/$DEVICE)
+
+	    # Get used percentage
+	  	USED=$(df -h /dev/$DEVICE | awk '{print $5}' | tail -1)
+
+	    # Print device information
+	    OUTPUT+="\n$DEVICE $TYPE $SIZE $USED $MOUNT"
+	done
+	echo -e "$OUTPUT" | column -t
+
+}
+
+
 
 # -- speed-convert
 help_linux[speed-convert]="Convert data speeds"
@@ -270,4 +289,38 @@ datetz () {
 	env TZ=":US/Central" date	
 	env TZ=":US/Eastern" date
 	env TZ="UTC" date
+}
+
+# -- swappiness
+help_linux[swappiness]="Display swappiness"
+swappiness () {
+    if [[ $MACHINE_OS == "linux" ]]; then
+    	if [[ -f /proc/sys/vm/swappiness ]]; then
+	    	_notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
+    	else
+    		_error "Can't find swap"
+    	fi
+    elif [[ $MACHINE_OS == "mac" ]]; then
+    	show_swap_mac
+    else 
+    	_error "Not a linux machine"
+    fi
+}
+
+# -- ubuntu-lts
+help_linux[ubuntu-lts]="Display Ubuntu LTS version"
+ubuntu-lts () {
+    lts_data=$(curl -s https://changelogs.ubuntu.com/meta-release-lts)
+    # Extract the versions and codenames
+    VERSION=$(echo "$lts_data" | grep Version: | awk '{print $2}')
+    NAME=$(echo "$lts_data" | grep Name: | awk '{print $2}')
+    DIST=$(echo "$lts_data" | grep Dist: | awk '{print $2}')
+    DATE=$(echo "$lts_data" | grep Date: | awk '{print $4"-"$3"-"$5}')
+    SUPPORTED=$(echo "$lts_data" | grep Supported: | awk '{print "Supported: " $2}')
+
+    # Combine the versions and codenames
+    combined=$(paste <(echo "$NAME") <(echo "$DIST") <(echo "$VERSION") <(echo "$DATE") <(echo "$SUPPORTED"))
+
+    # Print each version with its codename
+    echo "$combined"
 }

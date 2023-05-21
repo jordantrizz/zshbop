@@ -5,12 +5,7 @@
 # ----------------
 
 _cexists host_motd
-if [[ $? == "0" ]]; then
-    _loading "Found host motd"
-    host_motd
-else
-    _notice "No host motd"
-fi
+[[ $? == "0" ]] && { _loading "Found host motd"; host_motd }|| _notice "No host motd"
 
 # ----------------
 # -- GridPane

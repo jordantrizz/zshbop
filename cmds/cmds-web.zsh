@@ -19,12 +19,7 @@ _debug " -- Loading ${(%):-%N}"
 help_web[ttfb-rust]='Find out TTFB for a website. Rust app requires cargo from https://github.com/phip1611/ttfb updated frequently'
 ttfb-rust () {
 	_cexists ttfb
-	if [[ $? == "0" ]]; then
-		echo "ttfb existing in your path, simply run ttfb"
-		return
-	else
-		echo "ttfb not installed, run 'sudo install cargo;cargo install ttfb'"
-	fi
+    [[ $? == "0" ]] && echo "ttfb existing in your path, simply run ttfb" || echo "ttfb not installed, run 'sudo install cargo;cargo install ttfb'"
 }
 
 # -- curl-ttfb
@@ -89,37 +84,71 @@ web-toprequests_usage () {
 }
 
 web-toprequests () {
-	if [[ -z "$1" ]] && [[ -z "$2" ]]; then
-		web-toprequests_usage
+    if [[ -z "$1" ]] && [[ -z "$2" ]]; then
+        web-toprequests_usage
         _error "Unknown $@"
         return 1
-	else
+    else
         TYPE="$1"
         LOG="$2"
         LINES="$3"
-        
+        CAT="cat"
+
         # Set lines
         [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES=""
-        
-        # - Check if log exists        
+
+        # - Check if log exists
         [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
-        
+
+        # - Check if log ends in .gz
+        if [[ $(file -b --mime-type $LOG) == "application/gzip" ]]; then
+            echo "Processing $LOG which is gzip'd"
+            CAT="zcat"
+        else
+            echo "Processing $LOG which is text"
+            CAT="cat"
+        fi
+
         if [[ $1 == "ols" ]]; then
             _error "Not working"
             return 1
         elif [[ $1 == "nginx" ]]; then
             _error "Not working"
             return 1
-		elif [[ $1 == "gpols" ]]; then
-            cat ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
+        elif [[ $1 == "gpols" ]]; then
+            $CAT ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
         elif [[ $1 == "gpnginx" ]]; then
-            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
+            $CAT ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         elif [[ $1 == "rcols" ]]; then
             # "domain.com 127.0.0.1 - - [24/Mar/2023:14:47:33 +0000] "POST /wp-admin/admin-ajax.php?_fs_blog_admin=true HTTP/2" 200 36"
-            cat ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
+            $CAT ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
         else
            web-toprequests_usage
            _error "Unknown $@"
         fi
-	fi
+    fi
+}
+
+help_web[php-opcode]="Look for php.ini opcode settings in /etc/php"
+function php-opcode() {
+    if [[ -z $1 ]]; then
+        echo "Usage: ${funcstack[1]} <all|phpver>"
+        echo "   phpver = php80 or php73"
+        return 1
+    else
+        _loading "Looking for opcache settings in php.ini files located in /etc/php"
+        if [[ $1 == 'all' ]]; then
+            find /etc/php -name php.ini -type f -print0 | while IFS= read -r -d '' ini_file; do
+                _loading2 "==== $ini_file ===="
+                grep opcache "$ini_file" | egrep -v ';|^$'
+            done
+        else
+            _loading "Looking for opcache settings in php.ini for ${1}"
+            files=($(find /etc/php -name php.ini -type f | grep "${1}"))
+            for ini_file in ${files[@]}; do
+                _loading2 "==== $ini_file ===="
+                grep opcache "$ini_file" | egrep -v ';|^$'
+            done
+        fi
+    fi
 }

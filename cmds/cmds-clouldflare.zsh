@@ -10,7 +10,6 @@ _debug " -- Loading ${(%):-%N}"
 typeset -gA help_cloudflare
 
 # What help file is this?
-help_files[cloudflare_description]="Cloudflare commands"
 help_files[cloudflare]='Cloudflare Commands'
 
 # -- cfpurge

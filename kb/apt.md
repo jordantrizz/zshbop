@@ -3,12 +3,18 @@
 ```
 apt-get update --allow-releaseinfo-change
 ```
-
 # Common Commands
+
 ## Show Package Details
 ```apt-get show <package>```
+
 ## Get Source Package
 ```apt-get source {pkg1}```
-## 
+
 ## To see all possible upgrades, run a upgrade in verbose mode and (to be safe) with simulation
 * apt-get -V -s upgrade
+
+## What Package Provides File
+* ```dpkg -S /usr/bin/passwd```
+* ```apt-file search vim```
+* ```dpkg-query -S '/usr/sbin/useradd'```

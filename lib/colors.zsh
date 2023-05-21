@@ -1,3 +1,9 @@
+#!/usr/bin/env zsh
+# -----------------------------------------------------------------------------------
+# -- colors.zsh -- Generates color variables
+# -----------------------------------------------------------------------------------
+_debug_load
+
 # Put standard ANSI color codes in shell parameters for easy use.
 # Note that some terminals do not support all combinations.
 

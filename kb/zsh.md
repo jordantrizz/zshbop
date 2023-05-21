@@ -117,6 +117,66 @@ If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring
 * file1 -ot file2 = true if file1 exists and is older than file2.
 * file1 -ef file2 = true if file1 and file2 exist and refer to the same file.
 
+# True / False and IF Statements
+* https://rowannicholls.github.io/bash/intro/booleans.html
+
+```
+❯ if false; then echo "true $?"; else echo "false $?"; fi
+false 1
+❯ if true; then echo "true $?"; else echo "false $?"; fi
+true 0
+
+❯ if ls; then echo "true $?"; else echo "false $?"; fi
+true 0
+❯ if ls -0; then echo "true $?"; else echo "false $?"; fi
+ls: invalid option -- 0
+usage: ls [-@ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy1%,] [--color=when] [-D format] [file ...]
+false 1
+
+y=true
+n=false
+echo $y $n
+
+bool=false
+if $bool
+then
+    echo "The statement was true"
+fi
+
+if [ 1 ]
+then
+    echo "The statement evaluated as true"
+fi
+
+if false
+then
+    echo "The statement was true"
+else
+    echo "The statement was false"
+fi
+
+failed=0 # False
+jobdone=1 # True
+## more readable syntax ##
+failed=false 
+jobdone=true
+
+if [ foo ]; then ... # "if the string 'foo' is non-empty, return true"
+if foo; then ...     # "if the command foo succeeds, return true"
+
+if [ true  ] ; then echo "This text will always appear." ; fi;
+if [ false ] ; then echo "This text will always appear." ; fi;
+if true      ; then echo "This text will always appear." ; fi;
+if false     ; then echo "This text will never appear."  ; fi;
+
+f [ "$foo" = "$bar" ]   # true if the string values of $foo and $bar are equal
+if [ "$foo" -eq "$bar" ] # true if the integer values of $foo and $bar are equal
+if [ -f "$foo" ]         # true if $foo is a file that exists (by path)
+if [ "$foo" ]            # true if $foo evaluates to a non-empty string
+if foo                   # true if foo, as a command/subroutine,
+                         # evaluates to true/success (returns 0 or null)
+```
+
 # Execute Function in a Variable
 ```
 ARGS="-auwxxf"
@@ -141,8 +201,6 @@ done
 ```
 # while/do loop
 ```
-
-
 #!/bin/bash
 
 # This generates a file every 5 minutes
@@ -189,9 +247,7 @@ no value
 typeset -gA help_files
 help_files[kb]='knowledge base'
 
---------------------- 
-CODE SNIPPETS
----------------------
+# ------ CODE SNIPPETS ------
 
 # Code Snippets Large
 
