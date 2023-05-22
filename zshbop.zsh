@@ -182,11 +182,7 @@ STARTLOG
 # ---------------
 # -- Source files
 # ---------------
-source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
-source ${ZSHBOP_ROOT}/lib/functions-core.zsh #--
-source ${ZSHBOP_ROOT}/lib/functions.zsh # -- 
 source ${ZSHBOP_ROOT}/lib/init.zsh # -- include init
-source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include functions
 source ${ZSHBOP_ROOT}/lib/help.zsh # -- include help functions
 source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedge Base
 
