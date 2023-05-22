@@ -344,10 +344,56 @@ function zsh-bin() {
 # -- bat
 help_software[bat]="Install bat"
 function bat() {
-    _loading "Installing bats"
+    _loading "Installing bat"
     if [[ $MACHINE_OS == "mac" ]]; then
         brew install bat
     elif [[ $MACHINE_OS == "linux" ]]; then
         sudo apt install bat
     fi
 }
+
+# -- glint
+help_software[change]="Install glint - https://github.com/brigand/glint"
+if [[ $MACHINE_OS == "linux" ]]; then
+    _cexists glint-linux
+    if [[ $? == "0" ]]; then
+    	function glint () { glint-linux $* } 
+    	function software_glint { _success "Glint installed" }
+    else
+		function glint () { _error "Glint not installed, type software glint to install" }
+		function software_glint { 
+    		_loading "Installing glint"
+	    	curl -L -o $HOME/bin/glint-linux https://github.com/brigand/glint/releases/download/v6.3.4/glint-linux
+	    	chmod u+x $HOME/bin/glint-macos
+	    	_loading3 "Reload shell"
+    	}
+    fi
+elif [[ $MACHINE_OS == "mac" ]]; then
+    _cexists glint-macos
+    if [[ $? == "0" ]]; then
+    	function glint () { glint-macos $* } 
+    	function software_glint { _success "Glint installed" }
+    else 
+		function glint () { _error "Glint not installed, type software glint to install" }
+        function software_glint {
+            _loading "Installing glint"
+			curl -L -o $HOME/bin/glint-macos https://github.com/brigand/glint/releases/download/v6.3.4/glint-macos
+			chmod u+x $HOME/bin/glint-macos
+			_loading3 "Reload shell"
+        }
+    fi
+fi
+
+# -- change
+help_software[change]="Install change - https://raw.githubusercontent.com/adamtabrams/change"
+_cexists change
+if [[ $? == "1" ]]; then
+	function change () {
+		if [[ ! -f $BIN/home ]]; then
+			_zshbop_bin
+			curl -s "https://raw.githubusercontent.com/adamtabrams/change/master/change" -o $HOME/bin
+		else
+			_zshbop_bin
+		fi
+	}
+fi

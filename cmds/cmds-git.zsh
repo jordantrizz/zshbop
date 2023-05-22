@@ -15,7 +15,16 @@ typeset -gA help_git
 # - gc
 help_git[gcp]='Git commit + push'
 gc () {
-        git commit -am "$*" &&  git push
+	_cexists glint
+	if [[ $? == "0" ]]; then
+		_loading "Committing using glint"
+		glint commit
+		git push
+	else
+		_loading "Committing using git, consider glit (software glint)"
+        git commit -am "$*"
+        git push
+    fi
 }
 
 # - gbdc
