@@ -3,6 +3,10 @@
 # -- zshbop functions -- This file contains all the functions for initializing zshbop
 # -----------------------------------------------------------------------------------
 _debug_load
+source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
+source ${ZSHBOP_ROOT}/lib/functions-core.zsh # -- core functions
+source ${ZSHBOP_ROOT}/lib/functions.zsh # -- zshbop functions
+source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include aliases
 
 # ==============================================
 # -- init_path - setup all the required paths.
@@ -532,7 +536,7 @@ init_motd () {
 	sysfetch | _pipe_separate 2 | sed 's/^/  /'
     echo ""
     
-    g_loading "System check on $MACHINE_OS"
+    _loading "System check on $MACHINE_OS"
     zshbop_systemcheck
     init_check_vm
     echo ""
