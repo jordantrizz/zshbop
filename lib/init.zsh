@@ -531,7 +531,7 @@ init_motd () {
     echo ""
     
     _loading "System check on $MACHINE_OS"
-    zshbop_systemcheck
+    zshbop_check-system
     init_check_vm
     echo ""
 
@@ -584,7 +584,7 @@ function init_zshbop () {
     init-app-config      # -- Common application configuration
   	init_omz_plugins     # -- Init OhMyZSH plugins
   	init_p10k            # -- Init powerlevel10k
-  	zshbop_load_custom   # -- Init custom zshbop  	
+  	zshbop_custom-load   # -- Init custom zshbop  	
     init_os              # -- Init os defaults # TODO Needs to be refactored
     init_app_config      # -- Init config
     init_zsh_sweep       # -- Init zsh-sweep if installed

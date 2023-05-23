@@ -196,3 +196,9 @@ function gpa {
     _loading "Applying patch $1"
     git apply $1
 }
+
+# -- gl - Git log
+help_git[gl]="Git log"
+function gl {
+    git log
+}
