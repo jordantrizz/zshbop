@@ -96,14 +96,14 @@ help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
         _debug_all
 		if [[ -n $2 ]]; then
-	        _loading "	-- Switching to $2 branch"
+	        _loading "Switching to $2 branch"
     		GIT_CHECKOUT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2)
             _debug "GIT_CHECKOUT: $GIT_CHECKOUT"
             if [[ $? -eq "0" ]]; then
-                _success "	-- Switched to $2 branch, pulling latest changes"
-                git pull
+                _success " --Switched to $2 branch, pulling latest changes"
+                git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull 
             else
-                _error "	-- Failed to switch to $2 branch"
+                _error " -- Failed to switch to $2 branch"
             fi
         elif [[ $? -ge "1" ]]; then
             _error "Branch doesn't seem to exist"
@@ -349,7 +349,7 @@ zshbop_help () {
 # -- zshbop_report
 # --------------
 help_zshbop[report]='Print out errors and warnings'
-zshbop_report () {
+function zshbop_report () {
     local LOG_LEVEL="$1"
     local SHOW_LEVEL=()
     local TAIL_LINES=""
@@ -366,9 +366,7 @@ zshbop_report () {
         SHOW_LEVEL=("WARNING" "ALERT" "ERROR")
         _loading3 "No log level specified"
     elif [[ $LOG_LEVEL == "help" ]]; then
-        echo "Usage: report <all|debug|error|warning|alert|notice|log>"
-    elif [[ $LOG_LEVEL == "less" ]]; then
-        less $SCRIPT_LOG
+        echo "Usage: report <all|debug|error|warning|alert|notice|log|less|faults> <lines>"
     elif [[ $LOG_LEVEL = "all" ]]; then        
         SHOW_LEVEL=("ERROR" "WARNING" "ALERT" "LOG")
     elif [[ $LOG_LEVEL = "debug" ]]; then
@@ -379,10 +377,14 @@ zshbop_report () {
         SHOW_LEVEL=("WARNING")
     elif [[ $LOG_LEVEL = "alert" ]]; then
         SHOW_LEVEL=("ALERT")
-    elif [[ $LOG_LEVEL = "log" ]]; then
-        SHOW_LEVEL=("LOG")
     elif [[ $LOG_LEVEL = "notice" ]]; then
         SHOW_LEVEL=("NOTICE")
+    elif [[ $LOG_LEVEL = "log" ]]; then
+        SHOW_LEVEL=("LOG")
+    elif [[ $LOG_LEVEL == "less" ]]; then
+        less $SCRIPT_LOG
+    elif [[ $LOG_LEVEL = "faults" ]]; then
+        SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
     else        
         _error "Unknown $LOG_LEVEL"
     fi
@@ -390,11 +392,11 @@ zshbop_report () {
     # -- start
     _debug_all
     _loading "-- zshbop report ------------"
-    _loading3 "Showing - ${SHOW_LEVEL[@]}"
+    [[ $LOG_LEVEL != "faults" ]] && _loading3 "Showing - ${SHOW_LEVEL[@]}"
     # -- print out logs
     for LOG in $SHOW_LEVEL; do
-        _loading2 "-- $LOG ------------"
-        _loading3 "Last $TAIL_LINES $LOG from - grep "\[${LOG}\]" $SCRIPT_LOG"
+        [[ $LOG_LEVEL != "faults" ]] && _loading2 "-- $LOG ------------"
+        [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "\[${LOG}\]" $SCRIPT_LOG"
         grep "\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES
     done
     echo ""
@@ -404,14 +406,21 @@ zshbop_report () {
 # -- system_check - check usualy system stuff
 # ==============================================
 help_zshbop[check-system]='Print out errors and warnings'
-zshbop_check-system () {
+function zshbop_check-system () {
 	# -- start
 	_debug_all
+
+    # -- CPU
+    _debug "Checking CPU"
+    echo "$(_loading3 $(cpu))"
+
+    # -- MEM
+    _debug "Checking memory"
+    echo "$(_loading3 $(mem))"
 	
     # -- network interfaces
     _debug "Network interfaces"
-    _loading3 "Checking network interfaces"
-    interfaces | sed 's/^/  /'
+    _loading3 "Checking network interfaces - $(interfaces)"
 
 	# -- check swappiness
 	_debug "Checking swappiness"
@@ -425,9 +434,7 @@ zshbop_check-system () {
     _debug "Checking block devices"
     echo "$(_loading3 "Checking block devices") $(check_blockdevices)"
 
-    # -- Quick CPU/Mem
-    _debug "Checking CPU/Mem"
-    echo "$(_loading3 "Checking CPU/Mem") $(system-specs)"
+
 }
 
 # --------------

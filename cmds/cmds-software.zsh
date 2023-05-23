@@ -204,7 +204,7 @@ b2_download () {
 			chmod u+x $HOME/bin/b2-linux
 			if [[ $? -ge 1 ]]; then
 				_error "Download failed."
-			else 
+			else
 				_success "b2-linux downloaded to $HOME/bin, run the b2 command"
 				alias b2=b2-linux
 			fi
@@ -223,8 +223,8 @@ b2_download () {
 		        alias b2=b2-darwin
         	fi
 		fi
-	fi	
-}	
+	fi
+}
 
 # -- powershell
 help_software[powershell]="Powershell for Linux"
@@ -324,7 +324,7 @@ function software_jiq () {
 
 # -- plik-conf
 help_software[plik-conf]='Print out .plikrc'
-function plik-conf () {    
+function plik-conf () {
     if [[ ! -f $HOME/.plikrc ]]; then
         _error "No $HOME/.plikrc exists"
         return 1
@@ -353,28 +353,30 @@ function bat() {
 }
 
 # -- glint
-help_software[change]="Install glint - https://github.com/brigand/glint"
+help_software[glint]="Install glint - https://github.com/brigand/glint"
 if [[ $MACHINE_OS == "linux" ]]; then
+    _debug "Check for gblint-linux under $MACHINE_OS"
     _cexists glint-linux
     if [[ $? == "0" ]]; then
-    	function glint () { glint-linux $* } 
+    	function glint () { glint-linux $* }
     	function software_glint { _success "Glint installed" }
     else
-		function glint () { _error "Glint not installed, type software glint to install" }
-		function software_glint { 
+		function glint () { _error "Glint not installed, type software glint to install"; return 1; }
+		function software_glint {
     		_loading "Installing glint"
 	    	curl -L -o $HOME/bin/glint-linux https://github.com/brigand/glint/releases/download/v6.3.4/glint-linux
-	    	chmod u+x $HOME/bin/glint-macos
+	    	chmod u+x $HOME/bin/glint-linux
 	    	_loading3 "Reload shell"
     	}
     fi
 elif [[ $MACHINE_OS == "mac" ]]; then
+    _debug "Check for gblint-linux under $MACHINE_OS"
     _cexists glint-macos
     if [[ $? == "0" ]]; then
-    	function glint () { glint-macos $* } 
+    	function glint () { glint-macos $* }
     	function software_glint { _success "Glint installed" }
-    else 
-		function glint () { _error "Glint not installed, type software glint to install" }
+    else
+		function glint () { _error "Glint not installed, type software glint to install"; return 1; }
         function software_glint {
             _loading "Installing glint"
 			curl -L -o $HOME/bin/glint-macos https://github.com/brigand/glint/releases/download/v6.3.4/glint-macos
@@ -382,6 +384,8 @@ elif [[ $MACHINE_OS == "mac" ]]; then
 			_loading3 "Reload shell"
         }
     fi
+else
+    _debug "Couldn't detect OS for glint"
 fi
 
 # -- change

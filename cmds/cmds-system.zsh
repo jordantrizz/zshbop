@@ -11,42 +11,21 @@ help_files[system]='System commands'
 # - Init help array
 typeset -gA help_system
 
-# -- cpu
-help_system[cpu]='Get CPU cores and threads.'
-cpu () {
-    eval "lscpu | grep -E '^Thread|^Core|^Socket|^CPU\(|Model name|CPU MHz:|Hypervisor vendor:'"
-}
-
 # -- highcpu
 help_system[highcpu]='Get processes with high CPU usage.'
 alias highcpu="ps aux | sort -nrk 3,3 | head -n 5"
-
-# -- mem
-help_system[mem]='Get memory information'
-alias mem="free -m"
 
 # -- disk
 help_system[disk]='Get disk information'
 alias disk="lsblk"
 
 # -- sysinfo
-help_system[sysinfo]='Get system information'
-sysinfo () {
-    _loading "CPU"
-    cpu
-    _loading "Memory"
-    mem
-    _loading "Disk"
-    disk
-   _loading "Short Format"
-}
-
-# -- sysinfo
 help_system[yabs]='Run yabs'
 alias yabs="yabs.sh"
 
-help_system[system-specs]='Print system specs'
-function system-specs () {
+# -- cpu
+help_system[cpu]='CPU Information'
+function cpu () {
     # -- FreeBSD
     if [[ $MACHINE_OS == "freebsd" ]]; then
         mhz=$(sysctl -n hw.cpufrequency | awk '{print $1/1000000}')
@@ -59,11 +38,11 @@ function system-specs () {
             _error "Please install the bc command"
         else
             if (( $(echo "$CPU_MHZ < 3" | bc -l) )); then
-                CPU_CHECK=$(_error "CPU Mhz = $CPU_MHZ and is below 3Ghz")
+                CPU_CHECK=$(_error "CPU Mhz = $CPU_MHZ and is below 3Ghz" 0 )
             elif (( $(echo "$CPU_MHZ < 3.5" | bc -l) )); then
-                CPU_CHECK=$(_warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz")
+                CPU_CHECK=$(_warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz" 0)
             else
-                CPU_CHECK=$(_success "CPU Mhz = $CPU_MHZ and is 3.5Ghz or above")
+                CPU_CHECK="CPU Mhz = $CPU_MHZ and is 3.5Ghz or above"
             fi
         fi
 
@@ -71,12 +50,29 @@ function system-specs () {
         CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{print $4}')
         CPU_THREADS=$(lscpu | awk '/^CPU\(s\)/{print $2}')
         CPU_MODEL=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
-        echo " - $CPU_MODEL - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ}"
-        echo " - $CPU_CHECK" 
-        echo " - Memory: $(free -g | awk '/^Mem:/{print $2}')GB"
+        echo "CPU: $CPU_MODEL - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ} || $CPU_CHECK"
     else
         _error "system-specs not implemented for $MACHINE_OS"
     fi
+}
+
+# -- mem
+help_system[mem]='Get memory information'
+function mem () {
+    memory_info=$(free -m | awk 'NR==2 {printf "%s MB used, %s MB free, %s MB cached", $3, $4, $6}')
+    echo "Memory: $memory_info"
+}
+
+# -- sysinfo
+help_system[sysinfo]='Get system information'
+sysinfo () {
+    _loading "CPU"
+    cpu
+    _loading "Memory"
+    mem
+    _loading "Disk"
+    disk
+   _loading "Short Format"
 }
 
 help_system[count-files-directories]='Count files and directories'

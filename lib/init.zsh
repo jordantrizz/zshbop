@@ -90,9 +90,9 @@ init_detectos () {
         *)          MACHINE_OS="UNKNOWN:${UNAME}"
     esac
 
-    # -- Check for WSL and set as MACHINE_OS
+    # -- Check for WSL and set as MACHINE_OS2
     if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
-        MACHINE_OS="wsl"
+        MACHINE_OS2="wsl"
     fi
 
     # -- Check for synology and set as MACHINE_OS
@@ -406,14 +406,13 @@ function init_app_config () {
 # ==============================================
 init_check_software () {
 	# -- Check services and software
-	_loading "Checking Software"
 
     # -- check if atop is installed
     if _cexists atop; then 
         # -- check if atop is running using ps and pgrep
-        pgrep atop >> /dev/null && _success "atop installed and running" || _warning "atop installed but not running, if this is a server install it"
+        pgrep atop >> /dev/null && _success "atop installed and running" 0 || _warning "atop installed but not running, if this is a server install it" 0
     else
-        _warning "atop not installed, if this is a server install it" 
+        _warning "atop not installed, if this is a server install it" 0
     fi
 
     # -- check if broot is installed
@@ -425,7 +424,6 @@ init_check_software () {
 # ==============================================
 function init_check_services () {
     # -- Check system software versions
-    _loading "Checking Service Versions"
 
     # -- cloudflared
     if (( $+commands[cloudflared] )) && _alert "cloudflared: $(cloudflared -v)" || _log "cloudflared Server not installed"
@@ -487,21 +485,28 @@ function init_check_vm () {
         _debug "virt-what installed"
         VM=$(virt-what)
         if [[ -n $VM ]]; then
-            _warning "VM-virt-what: Running on $VM"
             _debug "virt-what returned $VM"
+            if [[ $VM == "kvm" ]]; then
+                if [[ $(pgrep qemu) ]] || [[ $(pgrep qemu-system) ]]; then
+                    echo "$(_loading3 VM-virt-what:) Running on KVM, and qemu guest tools is running"
+                else
+                    _warning "VM-virt-what: Running on KVM, but qemu is not running, install qemu-guest-agent" 0
+                fi
+            else
+                _alert "VM-virt-what: Running on $VM" 0
+            fi
         else
-            _notice "Not running in a VM"
+            _loading3 "Not running in a VM"
             _debug "virt-what returned $VM"
         fi
     else
-        _notice "Unable to determine if in virtual environment, please install virt-what"
+        _alert "Unable to determine if in virtual environment, please install virt-what" 0
     fi
-    }
+}
 
 # ==============================================
 # -- check if in virtual environment secondary method
 # ==============================================
-
 function init_check_vm_2 () {
     _debug "Checking if in virtual environment"
     if [[ -d /sys/devices/virtual ]] || [[ -f /proc/vz ]] || [[ -d /proc/xen ]]; then
@@ -511,8 +516,23 @@ function init_check_vm_2 () {
     fi
 }
 
+# ==============================================
+# -- init_home_bin - Make sure $HOME/bin exists
+# ==============================================
+function init_home_bin () {
+    # -- check if home bin exists
+    if [[ -d $HOME/bin ]]; then
+        _debug "Home bin exists"
+    else
+        _loading2 "\$HOME/bin does not exist...creating home bin"
+        mkdir $HOME/bin
+    fi
+}
+
+###########################################################
 ###########################################################
 # ---- Leave this at the bottom. Do not move above. ------
+###########################################################
 ###########################################################
 
 # ==============================================
@@ -521,29 +541,25 @@ function init_check_vm_2 () {
 init_motd () {
 	# -- Start motd
     _debug_all
+    _loading "System Information"
 
     # -- OS specific motd
     _loading3 "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
 
     # -- system details
-    _loading "System details"
-	sysfetch | _pipe_separate 2 | sed 's/^/  /'
-    echo ""
-    
-    _loading "System check on $MACHINE_OS"
+    _loading3 "System details $(sysfetch-short | tr '\n' '|' | sed "s/|/ | /g")"    
+
+    # -- system-details    
     zshbop_check-system
-    init_check_vm
-    echo ""
-
+    
     # -- Show screen sessions
-    _loading "Screen Sessions"
-    _cexists screen && _success "$(screen -list)" || _error "Screen not installed"
+    _loading3 "Screen Sessions $(_cexists screen && echo "$(screen -ls | head -n -1 | awk ' NR>2 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g')" || _error "Screen not installed" 0) "
 
-    # -- Running system checklist
+    # -- Check software
 	init_check_software
-	echo ""
 	
-	# -- Check service software versions        
+	# -- Check service software versions 
+    _loading3 "Checking Service Versions"
 	init_check_services
     echo ""
 
@@ -554,11 +570,14 @@ init_motd () {
 	_loading2  "Run zshbop check or system-specs."
     #env-install to install default and extra tools. Run system-specs for more system details."
     # TODO - add system-specs
+    echo ""
 	
     # -- run report after exec zsh
     if [[ $RUN_REPORT == "1" ]]; then
         zshbop_report
         export RUN_REPORT=0
+    else
+        zshbop_report faults
     fi
     
     # -- last echo to keep motd clean
@@ -578,6 +597,7 @@ function init_zshbop () {
     # -- Init zshbop
     init_checkzsh        # -- Check zsh
     init_path            # -- Set paths
+    init_home_bin        # -- Check if home bin exists
 	init_detectos        # -- Detect operating system	
 	init_pkg_manager     # -- Init package manager
     init_cmds            # -- Include commands
@@ -590,6 +610,8 @@ function init_zshbop () {
     init_zsh_sweep       # -- Init zsh-sweep if installed
     init_plugins         # -- Init plugins
     init_sshkeys         # -- Init ssh keys
+    
+    echo ""
     
     _debug "init_zshbop: \$funcstack = $funcstack"
     if [[ $ZSHBOP_RELOAD == "1" ]]; then
