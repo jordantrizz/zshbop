@@ -26,40 +26,39 @@ alias tran="tran_linux_amd64"
 # -- interfaces
 help_linux[interfaces]="List interfaces ip, mac and link"
 interfaces_linux () {
-	# Get a list of all network interfaces
-	interfaces=($(ip -o link show | awk '{print $2}' | tr -d ':'))
+    local OUTPUT=""
+    local INTERFACES=()
+    local INTERFACES_OUTPUT=""
 
-	# Loop through each interface
-	OUTPUT=$(_banner_grey "Interface IP Mac Speed")
-	for interface in $interfaces; do
-        _debug "Processing interface: $interface"
-        if [[ $interface == *NONE* ]] && { interface=$(echo $interface | sed 's/@NONE//g'); _debug "Found @NONE in \$interface, removing @NONE"; }        
-                
-	    # Get MAC address
-	    mac=$(ip -o link show $interface | awk '{print $17}')
+    # -- Check if ifconfig commmand exists
+    _cexists ifconfig
+    if [[ $? -ge "1" ]]; then
+        _error "ifconfig command not found, required, run zshbop install-env"
+        return 1
+    fi
 
-	    # Get link speed
-	    speed=$(ethtool $interface 2>>/dev/null | grep 'Speed: ' | awk '{print $2}')
-        [[ -z $speed ]] && speed="N/A"
+    # -- Get a list of all network interfaces
+    INTERFACES=("${(f)$(ip -o link show | awk '{print $2}' | sed 's/://')}")
 
-	    # Get IP address
-        ip=$(ip -o addr show $interface | awk '{print $3","$4}')
-        if [[ "${ip%%\n*}" != "${ip}" ]]; then
-            _debug " -- Found multiple IP addresses for $interface"
-            while read -r ip; do
-                _debug "Interface: $interface IP: $ip MAC: $mac Speed: $speed"
-                OUTPUT+="\n$interface $ip $mac $speed"
-            done <<< "${ip}"
-        elif [[ -z $ip ]]; then
-            _debug " -- No IP address found for $interface"
-            OUTPUT+="\n$interface N/A $mac $speed"
-        else
-            # Print interface information
-            _debug "Interface: $interface IP: $ip MAC: $mac Speed: $speed"
-	        OUTPUT+="\n$interface $ip $mac $speed"
-        fi
-	done
-	echo -e "$OUTPUT" | column -t
+    # -- Loop through each interface
+    for INTERFACE in $INTERFACES; do
+
+        # -- Get MAC address
+        INTERFACE_MAC=$(ifconfig $INTERFACE | awk '/ether/{print $2}')
+
+        # -- Get link speed
+        INTERFACE_SPEED=$(ethtool $INTERFACE 2> /dev/null | awk '/Speed:/ {print $2}')
+        [[ -z $INTERFACE_SPEED ]] && INTERFACE_SPEED="N/A"
+
+        # Get IP address
+        INTERFACE_IP=$(ifconfig $INTERFACE | awk '/inet /{print $2}')
+
+        # -- Print interface information
+        _debug "$INTERFACE:$INTERFACE_IP - $INTERFACE_MAC $INTERFACE_SPEED"
+        INTERFACES_OUTPUT+="$INTERFACE:$INTERFACE_IP - $INTERFACE_MAC $INTERFACE_SPEED || "
+    done
+    
+    echo "$INTERFACES_OUTPUT"
 }
 
 # -- check_diskspace_linux

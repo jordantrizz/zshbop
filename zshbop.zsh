@@ -59,6 +59,7 @@ export GIT_HOME="${HOME}/git"
 export REPOS_DIR="$ZSHBOP_ROOT/repos"
 export RUN_REPORT="0"
 export ZSHBOP_RELOAD="0"
+export ZSHBOP_UPDATE_GIT=""
 
 # -- zshbop git
 export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
@@ -159,12 +160,12 @@ ZSH_VERBOSE="0"
 ZSHBOP_LOGS=""
 LOG_MSG=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
-_log () { LOG_MSG="${*}"; [[ $ZSH_VERBOSE == 1 ]] && { echo "[LOG] \033[30m** : ${*}\033[0m" | tee -a "$SCRIPT_LOG"; } || { echo "[LOG] $LOG_MSG" >> "$SCRIPT_LOG"; } } # -- log for core
-_error () { echo "$fg[red] *[ERROR] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
-_error2 () { echo "$bg[red] *[ERROR] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
-_warning () { echo "$fg[yellow] *[WARNING] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
-_alert () { echo "$bg[red] $fg[yellow] *[ALERT] $@ ${RSC}" | tee -a "$SCRIPT_LOG"; }
-_notice () { NOTICE_MSG="$fg[blue] * $@ ${RSC}"; echo "$NOTICE_MSG";echo "[NOTICE] $NOTICE_MSG" >> "$SCRIPT_LOG"; }
+_log () { LOG_MSG="[LOG] ${1}"; [[ -z $2 ]] && { [[ $ZSH_VERBOSE == 1 ]] && { echo "$LOG_MSG" | tee -a "$SCRIPT_LOG"; } } || { echo "$LOG_MSG" >> "$SCRIPT_LOG"; } } # -- log for core
+_error () { ERROR_MSG="$fg[red] *[ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ERROR_MSG" >> "$SCRIPT_LOG"; }
+_error2 () { echo "$bg[red] *[ERROR] ${1} ${RSC}" | tee -a "$SCRIPT_LOG"; }
+_warning () { WARN_MSG="$fg[yellow] *[WARNING] ${1} ${RSC}"; [[ -z $2 ]] && { echo $WARN_MSG | tee -a "$SCRIPT_LOG"; } || echo "$WARN_MSG" >> "$SCRIPT_LOG" }
+_alert () { ALERT_MSG="$bg[red] $fg[yellow] *[ALERT] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ALERT_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ALERT_MSG" >> "$SCRIPT_LOG"; }
+_notice () { NOTICE_MSG="$fg[blue] * [NOTICE]${1} ${RSC}"; [[ -z $2 ]] && { echo $NOTICE_MSG | tee -a  "$SCRIPT_LOG"; } || echo "$NOTICE_MSG" >> "$SCRIPT_LOG"; }
 _dlog () { _log "${*}"; _debug "${*}" }
 _elog () { _log "${*}"; _error "${*}" }
 

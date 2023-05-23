@@ -14,10 +14,20 @@ typeset -gA help_git
 
 # - gc
 help_git[gc]='Git commit + push'
-gc () {
+function gc () {
 	_cexists glint
 	if [[ $? == "0" ]]; then
 		_loading "Committing using glint"
+        echo "build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+ci: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
+docs: Documentation only changes
+feat: A new feature
+fix: A bug fix
+perf: A code change that improves performance
+refactor: A code change that neither fixes a bug nor adds a feature
+style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+test: Adding missing tests or correcting existing tests
+"
 		glint commit
 		git push
 	else
@@ -29,7 +39,7 @@ gc () {
 
 # - gbdc
 help_git[gbdc]='git branch diff on commits'
-gbdc () {
+function gbdc () {
 	if [[ ! -n $1 ]] || [[ ! -n $2 ]]; then
 		echo "Usage: gbdc <branch> <branch>"
 	else
@@ -39,7 +49,7 @@ gbdc () {
 
 # -- git-config
 help_git[git-config]='Configure git name and email'
-git-config () {
+function git-config () {
         vared -p "Name? " -c GIT_NAME
         vared -p "Email? " -c GIT_EMAIL
         git config --global user.email $GIT_EMAIL

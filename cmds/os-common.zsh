@@ -19,7 +19,7 @@ os-binary "exa"
 os-binary "glow"
 
 # -- sysfetch
-sysfetch () {
+function sysfetch () {
     DEFAULT_SYSFETCH="neofetch"
     export FASTFETCH_CONFIG="--structure Title:OS:Host:Kernel:Uptime:Packages:CPU:GPU:Memory:Disk:Shell:Terminal:TerminalFont:Locale --logo none"
     _debug "Checking if fastfetch is installed"
@@ -31,6 +31,10 @@ sysfetch () {
         _debug "fastfetch succcess using for sysfetch and ${FASTFETCH_CONFIG}"
         eval "${FASTFETCH_CMD} ${FASTFETCH_CONFIG}"
     fi
+}
+
+function sysfetch-short () {
+    eval "${FASTFETCH_CMD} --structure Title:OS:Host:Kernel:Uptime --logo none"
 }
 
 # -- tran - https://github.com/abdfnx/tran/releases

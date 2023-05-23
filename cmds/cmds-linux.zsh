@@ -47,11 +47,11 @@ fi
 help_linux[broot]='Get an overview of a directory, even a big one'
 _cexists broot
 if [[ $? == "1" ]]; then
-	broot () {
+	function broot () {
 		check_broot
 	}
-	check_broot () {
-		_error "broot not installed"
+	function check_broot () {
+		_error "broot not installed" 0
 	}
 fi
 
