@@ -525,12 +525,6 @@ init_motd () {
     # -- OS specific motd
     _loading3 "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
 
-    # -- check for old instances
-    _debug "Old Instance Check"
-    zshbop_migrate-check
-    zshbop_previous-version-check
-    echo ""
-
     # -- system details
     _loading "System details"
 	sysfetch | _pipe_separate 2 | sed 's/^/  /'

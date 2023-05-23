@@ -7,8 +7,9 @@
 VERSION="0.0.3"
 SKIPDEP="0"
 HELP="0"
+# TODO - Add install to zshbop.zsh
 REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 
-    'net-tools' 'dmidecode' 'virtwhat' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
+    'net-tools' 'dmidecode' 'virt-what' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
     'bc' 'whois' 'telnet' 'lynx' 'traceroute' 'mtr' 'mosh' 'tree' 'ncdu' 'fpart'
     'jq')
 # -- Colors
@@ -193,21 +194,31 @@ clone_repository() {
 }
 
 # -- setup_home
-setup_home() {
-	if ! [ -f $HOME/.zshrc ]; then
-		if [[ $1 == "git" ]]; then
-			SETUP_PATH="$HOME/git"
-			echo "- Install path - $SETUP_PATH"
-		else
-			SETUP_PATH="$HOME"
-			echo "- Install path - $SETUP_PATH"
-		fi
-		clone_repository "$SETUP_PATH/zshbop"
-	       	cp $SETUP_PATH/zshbop/.zshrc $HOME/.zshrc
-	       	_success "- ZSH in-place at $SETUP_PATH, type zsh to start your shell\n"
+setup_home() {	
+    # -- Setup Home
+    if [[ $1 == "git" ]]; then
+		SETUP_PATH="$HOME/git"
 	else
-	       	_error "- There's already a .zshrc in-place, remove it and re-run\n"
-	       	exit 1
+        SETUP_PATH="$HOME"
+    fi
+    
+    # -- Clone Repository
+    echo "- Install path - $SETUP_PATH"
+	clone_repository "$SETUP_PATH/zshbop"
+	
+    # -- Setup .zshrc
+    if ! [ -f $HOME/.zshrc ]; then
+        echo "source $SETUP_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
+        _success "- ZSH in-place at $SETUP_PATH, type zsh to start your shell\n"
+	else
+        _error "- There's already a .zshrc in-place, exiting.\n"
+        echo "You can add the following to your .zshrc file:"
+        echo ""
+        echo "source $SETUP_PATH/zshbop/zshbop.zsh"
+        echo ""
+        echo "Then type zsh to start your shell"
+        echo ""
+        exit 1
 	fi
 }
 
