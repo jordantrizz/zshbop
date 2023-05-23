@@ -364,8 +364,7 @@ function _proxmox_createtemp () {
 # -- proxmox_info
 _proxmox_info () {
     _debug_all
-    _debug_all
-    _banner_green "Proxmox instance infornation"
+    _loading "Proxmox instance infornation"
     echo "----------------------------"
     echo "Version: $(pveversion)"
     echo "Storage: $(pvesm status -content images | awk {'if (NR!=1) print $1 '})"     

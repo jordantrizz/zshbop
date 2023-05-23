@@ -32,13 +32,13 @@ alias disk="lsblk"
 # -- sysinfo
 help_system[sysinfo]='Get system information'
 sysinfo () {
-    _banner_green "CPU"
+    _loading "CPU"
     cpu
-    _banner_green "Memory"
+    _loading "Memory"
     mem
-    _banner_green "Disk"
+    _loading "Disk"
     disk
-    _banner_green "Short Format"
+   _loading "Short Format"
 }
 
 # -- sysinfo

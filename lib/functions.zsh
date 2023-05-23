@@ -30,9 +30,9 @@ alias omz-plugins='escho "OMZ Plugins $OMZ_PLUGINS"'
 # --
 # -- clear cache for various tools
 # -------------------------------------
-help_zshbop[cc]='Clear cache for antigen + more'
-alias cc="zshbop_cacheclear"
-zshbop_cacheclear () {   
+help_zshbop[cache-clear]='Clear cache for antigen + more'
+alias cc="zshbop_cache-clear"
+zshbop_cache-clear () {   
     _log "${funcstack[1]}:start"
     _loading "**** Start ZSH cache clear ****" 
 	_loading2 "Clearing plugin manager cache"
@@ -53,10 +53,10 @@ zshbop_cacheclear () {
     echo ""
 }
 
-# -- zshbop_scc
-alias scc="zshbop_scc"
-help_zshbop[zshbop_scc]='Clear everything, including zsh autocompletion'
-zshbop_scc () {
+# -- cache-clear-super
+alias scc="cache-clear-super"
+help_zshbop[cache-clear-super]='Clear everything, including zsh autocompletion'
+zshbop_cache-clear-super () {
     _loading "Clearing rm ~/.zcompdump*"
     rm -f ~/.zcompdump*
 }
@@ -72,30 +72,19 @@ zshbop_reload () {
     if [[ $1 == "-q" ]]; then
         _loading "Quick reload of zshbop"
         export RUN_REPORT=0
-        zshbop_cacheclear
+        zshbop_cache-clear
         source $ZBR/lib/*.zsh
         source $ZBR/cmds/*.zsh
         _loading "Load zshbop custom config"
-        zshbop_load_custom
+        zshbop_custom-load
     else
         _loading "Reloading zshbop"
         export RUN_REPORT=1
         export ZSHBOP_RELOAD=1
-        zshbop_cacheclear
+        zshbop_cache-clear
         _log "Running exec zsh"
 	    exec zsh
     fi
-}
-
-# ---------------------
-# -- zshbop_startup ()
-# --
-# -- Run zshbop startup
-# ---------------------
-help_zshbop[startup]='Run zshbop startup'
-zshbop_startup () {
-	_debug_all
-	init_motd
 }
 
 # --------------------------
@@ -107,11 +96,17 @@ help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
         _debug_all
 		if [[ -n $2 ]]; then
-	        echo "	-- Switching to $2 branch"
+	        _loading "	-- Switching to $2 branch"
     		GIT_CHECKOUT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2)
-    		if [[ $? -ge "1" ]]; then
-    			_error "Branch doesn't seem to exist"
-    		fi
+            _debug "GIT_CHECKOUT: $GIT_CHECKOUT"
+            if [[ $? -eq "0" ]]; then
+                _success "	-- Switched to $2 branch, pulling latest changes"
+                git pull
+            else
+                _error "	-- Failed to switch to $2 branch"
+            fi
+        elif [[ $? -ge "1" ]]; then
+            _error "Branch doesn't seem to exist"
         elif [ -z $2 ]; then
                 echo "	-- zshbop: $ZSHBOP_ROOT branch: $ZSHBOP_BRANCH ----"
                 echo "	-- To switch branch type 'zshbop branch dev' or 'zshbop branch main'"
@@ -195,11 +190,6 @@ zshbop_update () {
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
     fi
 
-	# Check if .zshrc is out of date - Called from script directly versus cached functions
-    _loading2 "Previous version check"
-	source $ZBR/lib/functions.zsh 
-    zshbop_previous-version-check
-
     # Update repos
 	repos update
 	
@@ -235,36 +225,13 @@ zshbop_update () {
     _banner_yellow "**** END UPDATING ZSHBOP ****"
     echo ""
 }
-# -----------------------------------
-# -- zshbop_pervious-version-check ()
-# -----------------------------------
-help_zshbop[previous-version-check]='Checking if \$HOME/.zshrc is pre v1.1.3 and replacing.'
-zshbop_previous-version-check () {
-        _debug_all
-
-        # Replacing .zshrc previous to v1.1.2 256bb9511533e9697f639821ba63adb9
-        _debug " -- Current $HOME/.zshrc md5 is - $ZSHBOP_HOME_MD5"
-        _debug " -- zshbop .zshrc md5 is - $ZSHBOP_LATEST_MD5"
-        if [[ "$ZSHBOP_HOME_MD5" != "$ZSHBOP_LATEST_MD5" ]]; then
-                _error "-- Found old .zshrc"
-                _notice "-- Replacing $HOME/.zshrc"
-                cp $ZSHBOP_ROOT/.zshrc $HOME/.zshrc
-        else
-        	_debug " -- No need to fix .zshrc"
-        fi
-}
 
 # --------------------
 # -- zshbop_version ()
 # --------------------
 help_zshbop[version]='Get version information'
 zshbop_version () {
-        echo "zshbop Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}"
-}
-
-help_zshbop[commit]='Get commit information'
-zshbop_commit () {        
-        echo "zshbop Commit: ${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC}"
+        echo "zshbop Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}/$ZSHBOP_COMMIT${RSC}"
 }
 
 # ------------------
@@ -339,26 +306,25 @@ zshbop_colors () {
 # ----------------
 help_zshbop[custom]='Custom zshbop configuration'
 zshbop_custom () {
-	_banner_green "Instructions on how to utilize custom zshbop configuration."
+	_loading "Instructions on how to utilize custom zshbop configuration."
 	echo " - Create a file called .zshbop.custom in your /$HOME directory"
-	echo " - Done!"
 	echo " - You can also copy the .zshbop.custom file within this repository as a template"
 }
 
 # ---------------------
-# -- zshbop_load_custom
+# -- zshbop_custom-load
 # ---------------------
-help_zshbop[load_custom]='Load zshbop custom config'
-zshbop_load_custom () {
+help_zshbop[custom-load]='Load zshbop custom config'
+zshbop_custom-load () {
 	if [[ $1 == "-q" ]]; then
         [[ -f $HOME/.zshbop.conf ]] && source $HOME/.zshbop.conf
     else
         # -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
         _log "Checking for $HOME/.zshbop.conf"
         if [[ -f $HOME/.zshbop.conf ]]; then
-            ZSHBOP_CUSTOM="$HOME/.zshbop.conf"
-            _loading3 "Loaded custom zshbop config at $ZSHBOP_CUSTOM"
-            source $ZSHBOP_CUSTOM
+            ZSHBOP_CUSTOM_CFG="$HOME/.zshbop.conf"
+            _loading3 "Loaded custom zshbop config at $ZSHBOP_CUSTOM_CFG"
+            source $ZSHBOP_CUSTOM_CFG
         else
             _warning "No custom zshbop config found. Type zshbop custom for more information"
         fi
@@ -437,8 +403,8 @@ zshbop_report () {
 # ==============================================
 # -- system_check - check usualy system stuff
 # ==============================================
-help_zshbop[systemcheck]='Print out errors and warnings'
-zshbop_systemcheck () {
+help_zshbop[check-system]='Print out errors and warnings'
+zshbop_check-system () {
 	# -- start
 	_debug_all
 	
