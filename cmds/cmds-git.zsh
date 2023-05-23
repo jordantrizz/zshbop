@@ -13,7 +13,7 @@ help_files[git]='Git related commands'
 typeset -gA help_git
 
 # - gc
-help_git[gcp]='Git commit + push'
+help_git[gc]='Git commit + push'
 gc () {
 	_cexists glint
 	if [[ $? == "0" ]]; then
@@ -123,5 +123,76 @@ function gcab {
     fi
 }
 
+# -- gbd - Git branch delete
+help_git[gbd]="Delete local and remote branch"
+function gbd {
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: git-delete-branch branch"
+        return 1
+    fi
 
+    _loading "Deleting branch $1"
+    git branch -D $1
+    git push origin --delete $1
+}
 
+# -- gbl
+help_git[gbl]="Git branch list"
+function gbl {
+    _loading "Listing local branches"
+    git branch
+    echo ""
+    _loading "Listing remote branches"
+    git branch -a
+}
+
+# -- gtp - Git tag push
+help_git[gtp]="Git tag push"
+function gtp {
+    _loading "Pushing tags to origin"
+    git push origin --tags
+}
+
+# -- gpab - Git pull all branches
+help_git[gpab]="Git pull all branches"
+function gpab {
+    _loading "Pulling all branches"
+    git fetch --all
+    for branch in $(git branch -a | grep -v HEAD); do
+        git branch --track ${branch##*/} $branch
+    done
+    git pull --all
+}
+
+# -- gpuab - Git push all branches
+help_git[gpuab]="Git push all branches"
+function gpuab {
+    _loading "Pushing all branches"
+    git push --all -u
+}
+
+# -- gpm - Git patch multiple
+help_git[gpm]="Git patch multiple"
+function gpm {
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: git-patch-multiple commit"
+        return 1
+    fi
+
+    _loading "Creating patch for commit $1 and outputting to multi_commit.patch"
+    git format-patch -1 $1 --stdout > multi_commit.patch
+    _loading "Creating patch for commit $1 and outputting to multi_commit.patch"
+    git format-patch -1 $1 --stdout > multi_commit.patch
+}
+
+# -- gpa - Git patch apply
+help_git[gpa]="Git patch apply"
+function gpa {
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: git-patch-apply patch"
+        return 1
+    fi
+
+    _loading "Applying patch $1"
+    git apply $1
+}

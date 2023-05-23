@@ -254,80 +254,6 @@ zshbop_previous-version-check () {
         fi
 }
 
-# -----------------------
-# -- zshbop_migrate-check
-# -----------------------
-help_zshbop[migrate-check]='Check if running old zshbop.'
-zshbop_migrate-check () {
-	_debug_all
-        _log "Checking for legacy zshbop"        
-        FOUND="0"
-        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
-            if [ -d "$ZBPATH_MIGRATE" ]; then
-                    _error "Detected old zshbop under $ZBPATH_MIGRATE, run 'zshbop migrate'";
-                    FOUND="1"
-            fi
-        done
-        if [[ "$FOUND" == "0" ]]; then
-            _dlog "Don't need to migrate legacy zshbop"
-        fi
-
-        _log "-- Checking for github modules"
-        if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
-            _debug "Found old ultimate-linux-tool-box"
-            _warning "Found ultimate-linux-tool-box run 'zshbop migrate'"
-        else
-            _log "Didn't find ultimate-linux-tool-box"
-        fi
-
-        if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
-            _debug "Found old ultimate-wordpress-tools"
-            _warning "Found ultimate-wordpress-tools run 'zshbop migrate'"
-        else
-            _log "Didn't find ultimate-wordpress-tools"
-        fi
-        
-}
-# --------------------
-# -- zshbop_migrate ()
-# --------------------
-help_zshbop[migrate]='Migrate old zshbop to new zshbop'
-zshbop_migrate () {
-	_debug_all
-        _debug " -- Migrate old zshbop to legacy zshbop"
-        FOUND="0"
-        for ZBPATH_MIGRATE in "${ZSHBOP_MIGRATE_PATHS[@]}"; do
-                if [ -d "$ZBPATH_MIGRATE" ]; then
-                		_success "Found legacy zshbop...migrating"
-                        echo " -- Moving $ZBPATH_MIGRATE to ${ZBPATH_MIGRATE}bop"
-                        sudo mv $ZBPATH_MIGRATE ${ZBPATH_MIGRATE}bop
-                        echo " -- Copying ${ZBPATH_MIGRATE}bop/.zshrc to your $HOME/.zshrc"
-                        cp ${ZBPATH_MIGRATE}bop/.zshrc $HOME/.zshrc
-                        FOUND="1"
-                fi
-        done
-        if [[ "$FOUND" == "0" ]]; then
-                _debug " -- Don't need to migrate legacy zshbop"
-        fi
-        
-        _debug "-- Checking for github modules"
-        if [ -d "$ZSHBOP_ROOT/ultimate-linux-tool-box" ]; then
-                _debug "Found old ultimate-linux-tool-box"
-                _warning "Found ultimate-linux-tool-box, removing folder"
-                rm -r $ZSHBOP_ROOT/ultimate-linux-tool-box
-        else
-                _debug "Didn't find ultimate-linux-tool-box"
-        fi
-
-        if [ -d "$ZSHBOP_ROOT/ultimate-wordpress-tools" ]; then
-                _debug "Found old ultimate-wordpress-tools"
-                _warning "Found ultimate-wordpress-tools, removing folder."
-                rm -r $ZSHBOP_ROOT/ultimate-wordpress-tools
-        else
-                _debug "Didn't find ultimate-wordpress-tools"
-        fi
-}
-
 # --------------------
 # -- zshbop_version ()
 # --------------------
@@ -338,32 +264,7 @@ zshbop_version () {
 
 help_zshbop[commit]='Get commit information'
 zshbop_commit () {        
-        echo "zshbop Commit: ${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC} | Install .zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
-}
-
-# --------------------------
-# -- zshbop_version_check ()
-# --------------------------
-help_zshbop[version-check]='Check zshbop version'
-zshbop_version-check () {    		
-	# -- check .zshrc
-	_loading "zshbop Version Check"
-    zshbop_version
-    echo "-- Latest zshbop .zshrc: $fg[green]$ZSHBOP_LATEST_MD5${RSC}"
-    echo "-- \$ZSHBOP/.zshrc: $fg[green]$ZSHBOP_INSTALL_MD5${RSC}"
-    echo "-- \$HOME/.zshrc MD5: $fg[green]$ZSHBOP_HOME_MD5${RSC}"
-        
-    _loading2 "Checking if $HOME/.zshrc is the same as $ZSHBOP/.zshrc"
-    if [[ $ZSHBOP_HOME_MD5 == $ZSHBOP_INSTALL_MD5 ]]; then
-        _success "  \$HOME/.zshrc and  \$ZSHBOP/.zshrc are the same."
-    else
-        _error "  \$HOME/.zshrc and \$ZSHBOP/.zshrc are the different."
-    fi
-    
-    # -- checking branch git commit versus current commit
-    _loading "Checking for branch updates"
-    echo "-- Current Commit : $fg[green]"
-    
+        echo "zshbop Commit: ${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}${fg[green]}/$ZSHBOP_COMMIT${RSC}"
 }
 
 # ------------------
@@ -633,6 +534,35 @@ fucntion zshbop_install-env () {
     _log "${funcstack[1]}:stop"
 }
 
+# -- zshbop_cleanup
+help_zshbop[cleanup]='Cleanup old things'
+function zshbop_cleanup () {
+    _log "${funcstack[1]}:start"
+    # -- older .zshrc
+    OLD_ZSHRC_MD5SUM=(
+        "09fcdc31ca648bb15f7bb7ff90d0539a"
+        "256bb9511533e9697f639821ba63adb9"
+        "46c094ff2b56af2af23c5b848d46f997"
+    )
+    ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc | awk {' print $1'})"
+    _loading "ZSH Cleanup"
+    _log "Checking for old .zshrc against $ZSHRC_MD5SUM"
+    if [[ -f $HOME/.zshrc ]]; then
+        _log "Found $HOME/.zshrc md5sum:$ZSHRC_MD5SUM"
+        for i in $OLD_ZSHRC_MD5SUM; do
+            _log "CUR:$ZSHRC_MD5SUM vs OLD:$i"
+            if [[ $i == $ZSHRC_MD5SUM ]]; then
+                _alert "md5sum matched - Removing old .zshrc"
+                rm $HOME/.zshrc
+                echo "source $ZSHBOP_ROOT/zshbop.zsh" > $HOME/.zshrc
+            else
+                _log "md5sum did not match"
+            fi
+        done
+    else
+        _log "No .zshrc found"
+    fi
+}
 
 # ==============================================
 # ==============================================

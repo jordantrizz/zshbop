@@ -63,12 +63,6 @@ export ZSHBOP_RELOAD="0"
 export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
 export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
 export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
-export ZSHBOP_MIGRATE_PATHS=("/usr/local/sbin/zsh" "$HOME/zsh" "$HOME/git/zsh") # -- Previous zsbop paths
-
-# -- zshbop md5sum
-export ZSHBOP_LATEST_MD5="595a039cd4fc6cd51cc1baf71a3d6b9c" # -- the md5 of .zshrc
-export ZSHBOP_HOME_MD5=$(md5sum $HOME/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $HOME
-export ZSHBOP_INSTALL_MD5=$(md5sum $ZSHBOP_ROOT/.zshrc | awk {' print $1 '}) # -- Current .zshrc MD5 in $ZSHBOPROOT
 
 # -- Associative Arrays
 typeset -gA help_custom # -- Set help_custom for custom help files
@@ -105,7 +99,6 @@ setopt share_history          # share command history data
 ###########################################################
 # ---- Debugging and Logging
 ###########################################################
-
 
 # --------------------------------
 # -- Logging
@@ -193,9 +186,8 @@ if [[ -f $HOME/.zshbop.config ]]; then
 	source $HOME/.zshbop.config
 fi
 
-# -- Check for old versions
-zshbop_previous-version-check
-zshbop_migrate
+# -- Check for old bits
+zshbop_cleanup
 
 ###########################################################
 ###########################################################
