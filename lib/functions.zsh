@@ -396,8 +396,8 @@ function zshbop_report () {
     # -- print out logs
     for LOG in $SHOW_LEVEL; do
         [[ $LOG_LEVEL != "faults" ]] && _loading2 "-- $LOG ------------"
-        [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "\[${LOG}\]" $SCRIPT_LOG"
-        grep "\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES
+        [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "^\[${LOG}\]" $SCRIPT_LOG"
+        grep "^\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES
     done
     echo ""
 }
@@ -420,7 +420,8 @@ function zshbop_check-system () {
 	
     # -- network interfaces
     _debug "Network interfaces"
-    _loading3 "Checking network interfaces - $(interfaces)"
+    INTERFACES="$(interfaces)"
+    _loading3 "Checking network interfaces - $INTERFACES"
 	
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"

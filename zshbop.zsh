@@ -59,7 +59,7 @@ export GIT_HOME="${HOME}/git"
 export REPOS_DIR="$ZSHBOP_ROOT/repos"
 export RUN_REPORT="0"
 export ZSHBOP_RELOAD="0"
-export ZSHBOP_UPDATE_GIT=""
+typeset -a ZSHBOP_UPDATE_GIT=()
 
 # -- zshbop git
 export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
@@ -78,7 +78,7 @@ REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 
 # -- Default tools.
 DEFAULT_TOOLS=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
 DEFAULT_TOOLS+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
-EXTRA_TOOLS=('pip' 'npm' 'golang-go' 'net-tools')
+EXTRA_TOOLS=('pip' 'npm' 'golang-go' 'net-tools' 'aspell-en')
 pip_install=('ngxtop' 'apt-select' 'semgrep')
 
 # -- Take $EDITOR run it through alias and strip it down
@@ -155,17 +155,17 @@ _debug_all () {
 # --------------------------------
 # -- Logging errors and Warnings
 # --------------------------------
-#LOG_MSG="\033[30m** : ${*}\033[0m";
+# TODO - Allow color in logs while still being able to grep for errors
 ZSH_VERBOSE="0"
 ZSHBOP_LOGS=""
 LOG_MSG=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
 _log () { LOG_MSG="[LOG] ${1}"; [[ -z $2 ]] && { [[ $ZSH_VERBOSE == 1 ]] && { echo "$LOG_MSG" | tee -a "$SCRIPT_LOG"; } } || { echo "$LOG_MSG" >> "$SCRIPT_LOG"; } } # -- log for core
-_error () { ERROR_MSG="$fg[red] *[ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ERROR_MSG" >> "$SCRIPT_LOG"; }
-_error2 () { ERROR_MSG="$bg[red] *[ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ERROR_MSG" >> "$SCRIPT_LOG"; }
-_warning () { WARN_MSG="$fg[yellow] *[WARNING] ${1} ${RSC}"; [[ -z $2 ]] && { echo $WARN_MSG | tee -a "$SCRIPT_LOG"; } || echo "$WARN_MSG" >> "$SCRIPT_LOG" }
-_alert () { ALERT_MSG="$bg[red] $fg[yellow] *[ALERT] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ALERT_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ALERT_MSG" >> "$SCRIPT_LOG"; }
-_notice () { NOTICE_MSG="$fg[blue] * [NOTICE]${1} ${RSC}"; [[ -z $2 ]] && { echo $NOTICE_MSG | tee -a  "$SCRIPT_LOG"; } || echo "$NOTICE_MSG" >> "$SCRIPT_LOG"; }
+_error () { ERROR_MSG="$fg[red][ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG; echo "[ERROR] $1" >> "$SCRIPT_LOG" } || echo "[ERROR] $1" >> "$SCRIPT_LOG" }
+_error2 () { ERROR_MSG="$bg[red][ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG; echo "[ERROR] $1" >> "$SCRIPT_LOG" } || echo "[ERROR] $1" >> "$SCRIPT_LOG" }
+_warning () { WARN_MSG="$fg[yellow][WARNING] ${1} ${RSC}"; [[ -z $2 ]] && { echo $WARN_MSG; echo "[WARNING] $1" >> "$SCRIPT_LOG" } || echo "[WARNING] $1" >> "$SCRIPT_LOG" }
+_alert () { ALERT_MSG="$bg[red] $fg[yellow][ALERT] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ALERT_MSG; echo "[ALERT] $1" >> "$SCRIPT_LOG" } || echo "[ALERT] $1" >> "$SCRIPT_LOG" }
+_notice () { NOTICE_MSG="$fg[blue][NOTICE]${1} ${RSC}"; [[ -z $2 ]] && { echo $NOTICE_MSG; echo "[NOTICE] $1" >> "$SCRIPT_LOG" } || echo "[NOTICE] $1" >> "$SCRIPT_LOG" }
 _dlog () { _log "${*}"; _debug "${*}" }
 _elog () { _log "${*}"; _error "${*}" }
 
@@ -181,8 +181,6 @@ source ${ZSHBOP_ROOT}/lib/init.zsh # -- include init
 source ${ZSHBOP_ROOT}/lib/help.zsh # -- include help functions
 source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedge Base
 
-############################################################
-
 # -- Check for old bits
 zshbop_cleanup
 
@@ -193,4 +191,12 @@ zshbop_cleanup
 # -- Initialize ZSHBOP
 # -------------------------
 init_zshbop
+
+# -- Check if git-check-exit is set
+_log "Checking if \$ZSHBOP_GIT_CHECK is set"
+if [[ $ZSHBOP_GIT_CHECK == "1" ]]; then
+    _log "Running git-check-exit on logout to check for git changes"
+    trap "git-check-exit" EXIT
+fi 
+
 STOPLOG

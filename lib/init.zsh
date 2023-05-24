@@ -490,7 +490,7 @@ function init_check_vm () {
                 if [[ $(pgrep qemu) ]] || [[ $(pgrep qemu-system) ]]; then
                     echo "$(_loading3 VM-virt-what:) Running on KVM, and qemu guest tools is running"
                 else
-                    _warning "VM-virt-what: Running on KVM, but qemu is not running, install qemu-guest-agent" 0
+                    _warning "VM-virt-what: Running on KVM, but qemu is not running, install qemu-guest-agent"
                 fi
             else
                 _alert "VM-virt-what: Running on $VM" 0
@@ -500,7 +500,8 @@ function init_check_vm () {
             _debug "virt-what returned $VM"
         fi
     else
-        _alert "Unable to determine if in virtual environment, please install virt-what" 0
+        _warning "Unable to determine if in virtual environment, please install virt-what"
+        
     fi
 }
 
@@ -598,13 +599,14 @@ function init_zshbop () {
     init_checkzsh        # -- Check zsh
     init_path            # -- Set paths
     init_home_bin        # -- Check if home bin exists
-	init_detectos        # -- Detect operating system	
+	init_detectos        # -- Detect operating system
+    init_check_vm        # -- Check if in virtual environment
 	init_pkg_manager     # -- Init package manager
     init_cmds            # -- Include commands
     init-app-config      # -- Common application configuration
   	init_omz_plugins     # -- Init OhMyZSH plugins
   	init_p10k            # -- Init powerlevel10k
-  	zshbop_custom-load   # -- Init custom zshbop  	
+  	zshbop_custom-load   # -- Init custom zshbop
     init_os              # -- Init os defaults # TODO Needs to be refactored
     init_app_config      # -- Init config
     init_zsh_sweep       # -- Init zsh-sweep if installed

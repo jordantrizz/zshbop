@@ -61,11 +61,13 @@ sudo make -j 20 install
 
 # Conditionals
 ## Strings
-* string = pattern = true if string matches pattern. The two forms are exactly equivalent. The ‘=’ form is the traditional shell syntax (and hence the only one generally used with the test and [ builtins); the ‘==’ form provides compatibility with other sorts of computer language.
+* string = pattern = true if string matches pattern. The two forms are exactly equivalent. 
+* The ‘=’ form is the traditional shell syntax (and hence the only one generally used with the test and [ builtins); the ‘==’ form provides compatibility with other sorts of computer language.
+
 * string == pattern
 * string != pattern = true if string does not match pattern.
 * string =~ regexp
-```
+
 true if string matches the regular expression regexp. If the option RE_MATCH_PCRE is set regexp is tested as a PCRE regular expression using the zsh/pcre module, else it is tested as a POSIX extended regular expression using the zsh/regex module. Upon successful match, some variables will be updated; no variables are changed if the matching fails.
 
 If the option BASH_REMATCH is not set the scalar parameter MATCH is set to the substring that matched the pattern and the integer parameters MBEGIN and MEND to the index of the start and end, respectively, of the match in string, such that if string is contained in variable var the expression ‘${var[$MBEGIN,$MEND]}’ is identical to ‘$MATCH’. The setting of the option KSH_ARRAYS is respected. Likewise, the array match is set to the substrings that matched parenthesised subexpressions and the arrays mbegin and mend to the indices of the start and end positions, respectively, of the substrings within string. The arrays are not set if there were no parenthesised subexpressions. For example, if the string ‘a short string’ is matched against the regular expression ‘s(...)t’, then (assuming the option KSH_ARRAYS is not set) MATCH, MBEGIN and MEND are ‘short’, 3 and 7, respectively, while match, mbegin and mend are single entry arrays containing the strings ‘hor’, ‘4’ and ‘6’, respectively.
@@ -230,6 +232,7 @@ done
 ## String to Array
 ```
 ${(@f)SOME_VARIABLE}
+DIR_STATUS_ARRAY=("${(f)DIR_STATUS_CMD}")
 ```
 
 ## Associatve Arrays
@@ -277,20 +280,19 @@ You have to be the one to decide whether you want install_cmd to allow full shel
 * https://en.wikipedia.org/wiki/ANSI_escape_code
 
 ## Positional Arguments Command Line
+### zparseopts
 * https://xpmo.gitlab.io/post/using-zparseopts/
-
-Well, -D removes all the matched options from the parameter list, (supporting requirement 7) and -E tells zparseopts to expect options and parameters to be mixed in (supporting requirement 1; without it, it will stop like getopts does).
-
-What I find nice about zparseopts is that semantics like overriding vs stacking flags can be defined in the command, rather than managed after parsing.
-
-Here is a stacking example: -v increases verbosity, and -q decreases it:
+* -D removes all the matched options from the parameter list, (supporting requirement 7) 
+* -E tells zparseopts to expect options and parameters to be mixed in (supporting requirement 1; without it, it will stop like getopts does).
+* What I find nice about zparseopts is that semantics like overriding vs stacking flags can be defined in the command, rather than managed after parsing.
+* Here is a stacking example: -v increases verbosity, and -q decreases it:
 
 ```
 zparseopts -D -E - v+=flag_v -verbose+=flag_v q+=flag_q -quiet+=flag_q
 (( verbosity = $#flag_v - $#flag_q ))
 ```
 
-### Variables
+#### Example 1
 ```
 zparseopts -D -E h=help -help=help t+:=title o+:=opts r=result -result=result a=arrow -arrow=arrow
 
@@ -301,6 +303,52 @@ arrow=$arrow[2]
 
 IFS=$'\n' opts=($(echo "$opts" | tr "|" "\n"))
 ```
+#### Example 2
+```
+# Resources:
+# - https://xpmo.gitlab.io/post/using-zparseopts/
+# - https://zsh.sourceforge.io/Doc/Release/Zsh-Modules.html#index-zparseopts
+#
+# Features:
+# - supports short and long flags (ie: -v|--verbose)
+# - supports short and long key/value options (ie: -f <file> | --filename <file>)
+# - does NOT support short and long key/value options with equals assignment (ie: -f=<file> | --filename=<file>)
+# - supports short option chaining (ie: -vh)
+# - everything after -- is positional even if it looks like an option (ie: -f)
+# - once we hit an arg that isn't an option flag, everything after that is considered positional
+function zparseopts_demo() {
+  local flag_help flag_verbose
+  local arg_filename=(myfile)  # set a default
+  local usage=(
+    "zparseopts_demo [-h|--help]"
+    "zparseopts_demo [-v|--verbose] [-f|--filename=<file>] [<message...>]"
+  )
+
+  # -D pulls parsed flags out of $@
+  # -E allows flags/args and positionals to be mixed, which we don't want in this example
+  # -F says fail if we find a flag that wasn't defined
+  # -M allows us to map option aliases (ie: h=flag_help -help=h)
+  # -K allows us to set default values without zparseopts overwriting them
+  # Remember that the first dash is automatically handled, so long options are -opt, not --opt
+  zmodload zsh/zutil
+  zparseopts -D -F -K -- \
+    {h,-help}=flag_help \
+    {v,-verbose}=flag_verbose \
+    {f,-filename}:=arg_filename ||
+    return 1
+
+  [[ -z "$flag_help" ]] || { print -l $usage && return }
+  if (( $#flag_verbose )); then
+    print "verbose mode"
+  fi
+
+  echo "--verbose: $flag_verbose"
+  echo "--filename: $arg_filename[-1]"
+  echo "positional: $@"
+}
+```
+
+
 ## -- Functions
 ```
 usage () {

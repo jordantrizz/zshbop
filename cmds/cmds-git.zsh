@@ -212,3 +212,75 @@ help_git[gl]="Git log"
 function gl {
     git log
 }
+
+# -- git-check
+help_git[git-check]="Check for uncommitted changes and unpushed commits in all Git repositories"
+function git-check () {
+    local GIT_DIR
+    if [[ -n $1 ]]; then
+        _loading "Using \$1 as \$GIT_HOME: $1"
+        GIT_DIR="$1"
+        [[ -d $1 ]] || { _error "$1 is not a directory"; return 1; }
+        git-check-repos "$GIT_DIR"
+    elif [[ -n $GIT_HOME ]]; then
+        _loading "Found and using \$GIT_HOME: $GIT_HOME"
+        GIT_DIR="$GIT_HOME"
+        [[ -d $GIT_HOME ]] || { _error "$GIT_HOME is not a directory"; return 1; }
+        git-check-repos "$GIT_DIR"
+    else
+        echo "Usage: git-check <directory>"
+    fi
+}
+
+# -- git-check-repos
+function git-check-repos () {
+    local UNCOMMITED_CODE UNPUSHED_CODE
+    if [[ -z $1 ]];then
+        return 1
+    else
+        GIT_DIR="$1"
+    fi
+
+    # Find all directories containing a Git repository
+    FOUND_GIT_DIRS=($(find "$GIT_DIR" -name ".git" -type d -prune ))
+
+    # Iterate over the Git repositories
+    for DIR in ${FOUND_GIT_DIRS[@]}; do
+        DIR=$(dirname $DIR)
+        _debug "Checking $DIR"
+
+        # Check for uncommitted changes and untracked files
+        DIR_STATUS_CMD="$(git -C "$DIR/.git" --work-tree="$DIR" status --porcelain)"
+        DIR_STATUS_ARRAY=("${(f)DIR_STATUS_CMD}")
+        if [[ -n $DIR_STATUS_CMD ]]; then
+            UNCOMMITED_CODE=1
+            echo "   - Uncommited: ${bg[magenta]}${DIR}${RSC}"
+            for FILE in ${DIR_STATUS_ARRAY[@]} ; do
+                echo "      -- $FILE"
+            done
+        fi
+
+        # Check for unpushed commits
+        local AHEAD="$(git -C "$DIR" rev-list --count --left-only @{u}...HEAD)"
+        if [[ "$AHEAD" -gt 0 ]]; then
+            UNPUSHED_CODE=1
+            echo "   - Commits: $AHEAD - ${bg[magenta]}$DIR${RSC}"
+        fi
+    done
+
+    if [[ -n $UNCOMMITED_CODE || -n $UNPUSHED_CODE ]]; then
+        _warning "Uncommitted or unpushed code found"
+        return 1
+    fi
+}
+
+# -- git-check-exit
+help_git[git-check-exit]="Check for uncommitted changes and unpushed commits in all Git repositories and exit with error code if any are found"
+function git-check-exit () {
+    [[ ! -d $GIT_HOME ]] && return 0
+    git-check-repos $GIT_HOME
+    if [[ $? -ne 0 ]]; then
+        echo -n "Uncommited and unpushed changes found. Press enter to continue anyway. "
+        read response
+    fi
+}

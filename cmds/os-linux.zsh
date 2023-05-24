@@ -38,7 +38,9 @@ interfaces_linux () {
     fi
 
     # -- Get a list of all network interfaces
-    INTERFACES=("${(f)$(ip -o link show | awk '{print $2}' | sed 's/://')}")
+    _debug "Getting list of interfaces using ip -o link show and \$EXCLUDE_INTERFACES: $EXCLUDE_INTERFACES"
+    EXCLUDE_INTERFACES="^lo|^veth|^br-" # -- Exclude loopback, veth and br interfaces
+    INTERFACES=("${(f)$(ip -o link show | awk '{print $2}' | sed 's/://' | grep -vE "${EXCLUDE_INTERFACES}")}")
 
     # -- Loop through each interface
     for INTERFACE in $INTERFACES; do
