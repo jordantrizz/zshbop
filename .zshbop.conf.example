@@ -11,9 +11,9 @@
 #export ZSHBOP_ROOT="" # -- Override ZSHBOP Installation directory
 #export ZSHBOP_CUSTOM_SSHKEY="" # -- Set a custom SSH key to be loaded
 #export ZSHBOP_PLUGIN_MANAGER="init_antidote" # -- Override plugin manager, can be init_antidote or init_antigen
-
-# -- Git Repositores to update.
-#ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik)
+#export ZSHBOP_GIT_CHECK="1" # -- zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code.
+#export GIT_HOME="$HOME/git" # -- A location where you have all your git repositories.
+#ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik) # -- Git Repositores to update when running zshbop update
 #export -p ZSHBOP_UPDATE_GIT > /dev/null
 
 # -- Exbin

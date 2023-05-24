@@ -321,7 +321,7 @@ screen-sessions () {
         if [[ $SCREENS == *"No Sockets found in"* ]]; then
             echo "No screen sessions found"
         else
-            [[ $MACHINE_OS == "linux" ]] && $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g')
+            [[ $MACHINE_OS == "linux" ]] && { echo $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g') }
             if [[ $MACHINE_OS == "mac" ]]; then
                 SSESIONS=$(_remove_last_line "$(_remove_last_line "$(screen -ls)")")
                 echo $SSESIONS | awk ' NR>1 { print $1 " " $4 }' | tr '\n' '#' | sed 's/#/|| /g'
