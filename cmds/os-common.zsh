@@ -14,7 +14,7 @@ alias ls="${DEFAULT_LS}"
 DEFAULT_EXA="${EXA_CMD} --long --all --group"
 
 # -- os-binary
-os-binary fastfetch 
+os-binary "fastfetch"
 os-binary "exa"
 os-binary "glow"
 
@@ -33,8 +33,19 @@ function sysfetch () {
     fi
 }
 
-function sysfetch-short () {
-    eval "${FASTFETCH_CMD} --structure Title:OS:Host:Kernel:Uptime --logo none"
+function sysfetch-motd () {
+    #fastfetch --structure Title:OS:Host --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g" | sed "s/\n/ - /g"
+    #fastfetch --structure Kernel:Uptime --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"
+    # https://superuser.com/a/1570726
+    _loading3 "$(fastfetch --structure Title:OS:Host --logo none | sed -E $'s|\x1b\\[[0-\\?]*[ -/]*[@-~]||g;
+         s|\x1b[PX^_][^\x1b]*\x1b\\\\||g;
+         s:\x1b\\][^\x07]*(\x07|\x1b\\\\)::g;
+         s|\x1b[@-_]||g' | tr '\n' ' ')"
+    
+    _loading3 "$(fastfetch --structure Kernel:Uptime --logo none | sed -E $'s|\x1b\\[[0-\\?]*[ -/]*[@-~]||g;
+         s|\x1b[PX^_][^\x1b]*\x1b\\\\||g;
+         s:\x1b\\][^\x07]*(\x07|\x1b\\\\)::g;
+         s|\x1b[@-_]||g' | tr '\n' ' ')"
 }
 
 # -- tran - https://github.com/abdfnx/tran/releases

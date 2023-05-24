@@ -193,7 +193,7 @@ gp-oscheck () {
 
     # Check if the version is not 20
     if [[ "$version" != "20.04" ]]; then
-        _error2 "WARNING: Unsupported Ubuntu version ($version)."
+        _error2 "WARNING: Unsupported Ubuntu version ($version)." 0
     else
         _success "Running Ubuntu $version supported by GridPane"
     fi

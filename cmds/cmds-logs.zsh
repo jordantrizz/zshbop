@@ -21,7 +21,7 @@ maldet-scans () {
         MALDET_LOG_FILE="/usr/local/maldetect/logs/event_log"
         grep 'scan completed on' ${MALDET_LOG_FILE}
     else
-        _error "Couldn't access ${MALDET_LOG_FILE}"
+        _error "Couldn't access maldet file at ${MALDET_LOG_FILE}" 0
         return 1
     fi    
 }

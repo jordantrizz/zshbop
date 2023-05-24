@@ -412,19 +412,15 @@ function zshbop_check-system () {
 
     # -- CPU
     _debug "Checking CPU"
-    echo "$(_loading3 $(cpu))"
+    [[ $(cpu) == "0" ]] && echo "$(_loading3 $(cpu))"
 
     # -- MEM
     _debug "Checking memory"
-    echo "$(_loading3 $(mem))"
+    [[ $(mem) == "0" ]] && echo "$(_loading3 $(mem))"
 	
     # -- network interfaces
     _debug "Network interfaces"
     _loading3 "Checking network interfaces - $(interfaces)"
-
-	# -- check swappiness
-	_debug "Checking swappiness"
-    echo "$(_loading3 "Swappiness") $(swappiness)"
 	
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"

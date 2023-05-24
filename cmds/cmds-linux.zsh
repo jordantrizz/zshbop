@@ -145,7 +145,6 @@ ps-mem () {
 	fi
 }
 
-
 # -- fork
 help_linux[fork]='Fork command into background'
 fork () { 
@@ -293,19 +292,7 @@ datetz () {
 
 # -- swappiness
 help_linux[swappiness]="Display swappiness"
-swappiness () {
-    if [[ $MACHINE_OS == "linux" ]]; then
-    	if [[ -f /proc/sys/vm/swappiness ]]; then
-	    	_notice "/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)"
-    	else
-    		_error "Can't find swap"
-    	fi
-    elif [[ $MACHINE_OS == "mac" ]]; then
-    	show_swap_mac
-    else 
-    	_error "Not a linux machine"
-    fi
-}
+swappiness () { mem } # alias to mem
 
 # -- ubuntu-lts
 help_linux[ubuntu-lts]="Display Ubuntu LTS version"
@@ -323,4 +310,24 @@ ubuntu-lts () {
 
     # Print each version with its codename
     echo "$combined"
+}
+
+# -- Screen sessions
+help_linux[screen-sessions]="Display screen sessions"
+screen-sessions () {
+    _cexists screen 
+    if [[ $? == "0" ]]; then 
+        SCREENS=$(screen -ls)
+        if [[ $SCREENS == *"No Sockets found in"* ]]; then
+            echo "No screen sessions found"
+        else
+            [[ $MACHINE_OS == "linux" ]] && $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g')
+            if [[ $MACHINE_OS == "mac" ]]; then
+                SSESIONS=$(_remove_last_line "$(_remove_last_line "$(screen -ls)")")
+                echo $SSESIONS | awk ' NR>1 { print $1 " " $4 }' | tr '\n' '#' | sed 's/#/|| /g'
+            fi
+        fi
+    else
+        _error "Screen not installed" 0
+    fi
 }
