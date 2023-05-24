@@ -162,7 +162,7 @@ LOG_MSG=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
 _log () { LOG_MSG="[LOG] ${1}"; [[ -z $2 ]] && { [[ $ZSH_VERBOSE == 1 ]] && { echo "$LOG_MSG" | tee -a "$SCRIPT_LOG"; } } || { echo "$LOG_MSG" >> "$SCRIPT_LOG"; } } # -- log for core
 _error () { ERROR_MSG="$fg[red] *[ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ERROR_MSG" >> "$SCRIPT_LOG"; }
-_error2 () { echo "$bg[red] *[ERROR] ${1} ${RSC}" | tee -a "$SCRIPT_LOG"; }
+_error2 () { ERROR_MSG="$bg[red] *[ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ERROR_MSG" >> "$SCRIPT_LOG"; }
 _warning () { WARN_MSG="$fg[yellow] *[WARNING] ${1} ${RSC}"; [[ -z $2 ]] && { echo $WARN_MSG | tee -a "$SCRIPT_LOG"; } || echo "$WARN_MSG" >> "$SCRIPT_LOG" }
 _alert () { ALERT_MSG="$bg[red] $fg[yellow] *[ALERT] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ALERT_MSG | tee -a "$SCRIPT_LOG"; } || echo "$ALERT_MSG" >> "$SCRIPT_LOG"; }
 _notice () { NOTICE_MSG="$fg[blue] * [NOTICE]${1} ${RSC}"; [[ -z $2 ]] && { echo $NOTICE_MSG | tee -a  "$SCRIPT_LOG"; } || echo "$NOTICE_MSG" >> "$SCRIPT_LOG"; }

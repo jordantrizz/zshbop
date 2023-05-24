@@ -217,14 +217,16 @@ zshbop-install () {
 }
 
 # -- os-alias - return alias if binary exists for os
+# TODO find other commands and use os-binary such as glint
 help_core[os-alias]='Return alias if binary exists for os'
 os-binary () {
     BINARY="$1"
+    local OS_BINARY_TAG=""
 	unset LC_CHECK NULL OS_BINARY
 	_debug "Running $MACHINE_OS"
 	
-	if [[ $MACHINE_OS == "wsl" ||  $MACHINE_OS == "linux" ]]; then
-		_debug "Detected OS wsl || linux"
+	if [[ $MACHINE_OS == "linux" ]]; then
+		_debug "Detected OS linux"
 		OS_BINARY_TAG="linux_x86_64"
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		_debug "Detected OS mac"
@@ -244,7 +246,7 @@ os-binary () {
 		return 1
 	else
 	    _debug "Using created alias ${BINARY} ${OS_BINARY}"
-	    function ${BINARY} () { ${OS_BINARY} $@ }
+	    eval "function ${BINARY} () { ${OS_BINARY} \$@ }"
         eval "export ${(U)BINARY}_CMD=$OS_BINARY"
 	    return 0
 	fi

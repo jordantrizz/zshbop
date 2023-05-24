@@ -11,7 +11,6 @@ motd_gp () {
     # -- gp-oscheck
     _loading2 "Checking OS"    
     gp-oscheck
-    check-cpu-mhz
 
     # -- inform
     _notice "View more GridPane logs with the command gp-logs"

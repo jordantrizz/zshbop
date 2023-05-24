@@ -316,7 +316,7 @@ function init_sshkeys () {
                     _dlog "-- Loading -- $SSH_KEY"
                     eval `keychain -q --eval --agents ssh $SSH_KEY`
                 else
-                    _elog "-- Can't find $SSH_KEY, please check your CUSTOM_SSH_KEY array in .zshbop.conf"
+                    _error "-- Can't find $SSH_KEY, please check your CUSTOM_SSH_KEY array in .zshbop.conf" 0
                 fi
             done
         else
@@ -547,13 +547,13 @@ init_motd () {
     _loading3 "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
 
     # -- system details
-    _loading3 "System details $(sysfetch-short | tr '\n' '|' | sed "s/|/ | /g")"    
+    sysfetch-motd
 
     # -- system-details    
     zshbop_check-system
     
     # -- Show screen sessions
-    _loading3 "Screen Sessions $(_cexists screen && echo "$(screen -ls | head -n -1 | awk ' NR>2 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g')" || _error "Screen not installed" 0) "
+    _loading3 "Screen Sessions - $(screen-sessions)"
 
     # -- Check software
 	init_check_software

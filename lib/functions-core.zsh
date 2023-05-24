@@ -198,6 +198,7 @@ function _pipe_separate() {
     echo ""
 }
 
+# _detect_host_type
 _detect_host_type() {
   local dmi_output
   dmi_output=$(sudo dmidecode -s system-product-name 2>/dev/null)
@@ -211,4 +212,10 @@ _detect_host_type() {
   else
     echo "Unable to determine"
   fi
+}
+
+# -- _remove_last_line
+function _remove_last_line () {
+    local STRING="${@%$'\n'*}"
+    echo "$STRING"
 }

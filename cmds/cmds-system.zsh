@@ -52,15 +52,34 @@ function cpu () {
         CPU_MODEL=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
         echo "CPU: $CPU_MODEL - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ} || $CPU_CHECK"
     else
-        _error "system-specs not implemented for $MACHINE_OS"
+        _error "system-specs not implemented for $MACHINE_OS" 0
+        return 1
     fi
 }
 
 # -- mem
 help_system[mem]='Get memory information'
 function mem () {
-    memory_info=$(free -m | awk 'NR==2 {printf "%s MB used, %s MB free, %s MB cached", $3, $4, $6}')
-    echo "Memory: $memory_info"
+    if [[ $OS_MACHINE == "linux" ]]; then
+        # -- Memory
+        MEM=$(free -m | awk 'NR==2 {printf "%s MB used, %s MB free, %s MB cached", $3, $4, $6}')
+
+        # -- Swappiness
+        [[ -f /proc/sys/vm/swappiness ]] && SWAP="/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)" || _error "Can't find swap" 0
+
+        # -- Print out Memory and Swap
+        echo "Memory: $MEM | Swap: $SWAP"
+    elif [[ $OS_MACHINE == "mac" ]]; then
+        MEM=$(sysctl hw.memsize | awk '{print $2/1024/1024}')
+        MEM_USED=$(echo "scale=2; ${MEM} - $(memory_pressure | grep "Pages free" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages active" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages inactive" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages speculative" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages wired down" | awk '{print $4/1024}')" | bc)
+        MEM_CACHED=$(vm_stat | awk '/^Pages free:/ {free=$3} /^Pages speculative:/ {spec=$3} /^Pages inactive:/ {inactive=$3} /^Pages wired down:/ {wired=$4} END {printf "%.1f MB\n", (free+spec+inactive+wired)*4096/1048576}')
+        SWAP=$(sysctl vm.swapusage | awk '/vm.swapusage:/ {print $7}')
+        echo -n "Mem: ${MEM} | Used: ${MEM_USED} | Cached: ${MEM_CACHED} | Swap: ${SWAP}"
+        _notice "You can also run sysctl vm.swapusage or memory_pressure"
+    else
+        _error "system-specs not implemented for $MACHINE_OS" 0
+        return 1
+    fi
 }
 
 # -- sysinfo
