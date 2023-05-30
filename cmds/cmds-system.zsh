@@ -42,7 +42,7 @@ function cpu () {
             elif (( $(echo "$CPU_MHZ < 3.5" | bc -l) )); then
                 CPU_CHECK=$(_warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz" 0)
             else
-                CPU_CHECK="CPU Mhz = $CPU_MHZ and is 3.5Ghz or above"
+                CPU_CHECK=$(_success "CPU Mhz = $CPU_MHZ and is 3.5Ghz or above")
             fi
         fi
 
@@ -60,16 +60,16 @@ function cpu () {
 # -- mem
 help_system[mem]='Get memory information'
 function mem () {
-    if [[ $OS_MACHINE == "linux" ]]; then
+    if [[ $MACHINE_OS == "linux" ]]; then
         # -- Memory
-        MEM=$(free -m | awk 'NR==2 {printf "%s MB used, %s MB free, %s MB cached", $3, $4, $6}')
+        MEM=$(free -m | awk 'NR==2 {printf "Total: %s MB, Used:%s MB, Free: %s MB, Cached: %s MB",$2, $3, $4, $6}')
 
         # -- Swappiness
         [[ -f /proc/sys/vm/swappiness ]] && SWAP="/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)" || _error "Can't find swap" 0
 
         # -- Print out Memory and Swap
         echo "Memory: $MEM | Swap: $SWAP"
-    elif [[ $OS_MACHINE == "mac" ]]; then
+    elif [[ $MACHINE_OS == "mac" ]]; then
         MEM=$(sysctl hw.memsize | awk '{print $2/1024/1024}')
         MEM_USED=$(echo "scale=2; ${MEM} - $(memory_pressure | grep "Pages free" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages active" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages inactive" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages speculative" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages wired down" | awk '{print $4/1024}')" | bc)
         MEM_CACHED=$(vm_stat | awk '/^Pages free:/ {free=$3} /^Pages speculative:/ {spec=$3} /^Pages inactive:/ {inactive=$3} /^Pages wired down:/ {wired=$4} END {printf "%.1f MB\n", (free+spec+inactive+wired)*4096/1048576}')
@@ -85,13 +85,8 @@ function mem () {
 # -- sysinfo
 help_system[sysinfo]='Get system information'
 sysinfo () {
-    _loading "CPU"
     cpu
-    _loading "Memory"
     mem
-    _loading "Disk"
-    disk
-   _loading "Short Format"
 }
 
 help_system[count-files-directories]='Count files and directories'

@@ -550,6 +550,10 @@ init_motd () {
     # -- system details
     sysfetch-motd
 
+    # -- sysinfo
+    _loading3 $(cpu)
+    _loading3 $(mem)
+
     # -- system-details    
     zshbop_check-system
     

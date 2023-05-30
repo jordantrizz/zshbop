@@ -92,15 +92,6 @@ gp-mysqlpass () {
 	grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt
 }
 
-# -- gp-duplicacy-audit
-help_gridpane[gp-duplicacy-audit]="Audit Duplicacy backups"
-gp-duplicacy-audit () {
-    local duplicacy_repository=$(find /var/www -name ".duplicacy" | head -n 1)
-    echo "Found at ${duplicacy_repository}"
-    cd ${duplicacy_repository}
-    duplicacy check -tabular | grep 'all' | awk {' print $1 " "$10 '} | sed 's/gridpane-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-[[:alnum:]]*-//' | column -t
-}
-
 # gp-logs
 help_gridpane[gp-logs]="Tail GridPane Logs"
 gp-logs () {
