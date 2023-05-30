@@ -174,3 +174,9 @@ function wp-cli-install () {
         echo "wp-cli installed"
     fi
 }
+
+# -- wp-profile
+help_wordpress[wp-profile]='Install wp-cli-profile-command module'
+function wp-profile () {
+    wp package install wp-cli/profile-command
+}

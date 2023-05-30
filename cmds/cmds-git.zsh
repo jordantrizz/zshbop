@@ -207,6 +207,18 @@ function gpa {
     git apply $1
 }
 
+# -- grr - Git reset remote
+help_git[grr]="Git reset remote"
+function grr {
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: git-reset-remote branch"
+        return 1
+    fi
+
+    _loading "Resetting remote branch $1"
+    git reset --hard origin/$1
+}
+
 # -- gl - Git log
 help_git[gl]="Git log"
 function gl {
@@ -280,7 +292,19 @@ function git-check-exit () {
     [[ ! -d $GIT_HOME ]] && return 0
     git-check-repos $GIT_HOME
     if [[ $? -ne 0 ]]; then
-        echo -n "Uncommited and unpushed changes found. Press enter to continue anyway. "
+        echo -n "Uncommited and unpushed changes found. Press enter to continue anyway or 'r' to return to ZSH\n"
         read response
+        if [[ $response != "" ]]; then
+            zsh
+        else
+            exit 1
+        fi
     fi
+}
+
+# -- git-squash-commits
+help_git[git-squash-commits]="Squash commits"
+function git-squash-commits () {
+    GIT_LOG="$(git log --oneline)"
+    git reset $(git commit-tree HEAD^{tree} -m "$GIT_LOG")
 }

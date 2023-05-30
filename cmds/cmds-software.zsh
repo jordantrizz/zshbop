@@ -401,3 +401,46 @@ if [[ $? == "1" ]]; then
 		fi
 	}
 fi
+
+# -- ncdu
+help_software[ncdu]="Install ncdu"
+_cexists ncdu
+if [[ $? == "1" ]]; then
+    function ncdu () {
+        if [[ $MACHINE_OS == "mac" ]]; then
+            brew install ncdu
+        elif [[ $MACHINE_OS == "linux" ]]; then
+            sudo apt install ncdu
+        fi
+    }
+fi
+
+
+# -- php-relay
+help_software[php-relay]="Install php-relay"
+function php-relay () {
+    _loading "Installing php-relay"
+    _loading3 "Adding repo to apt"
+    curl -s https://repos.r2.relay.so/key.gpg | sudo apt-key add -
+    sudo add-apt-repository "deb https://repos.r2.relay.so/deb $(lsb_release -cs) main"
+    sudo apt update
+    _loading3 "Installing php-relay package"
+    sudo apt install php-relay
+    _success "Installed php-relay default PHP vesion"
+    echo "Other versions can be installed with 'apt-get install php8.1-relay'"
+    echo "Litespeed or Openlitespeed servers need additional configuration see kb php-relay.md"
+}
+
+# -- goaccess
+help_software[goaccess]="Install goaccess latest"
+function software_goaccess () {
+    if [[ $MACHINE_OS == "linux" && $MACHINE_OS_FLAVOUR == "debian" ]]; then
+        wget -O - https://deb.goaccess.io/gnugpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/goaccess.gpg >/dev/null
+        echo "deb [signed-by=/usr/share/keyrings/goaccess.gpg arch=$(dpkg --print-architecture)] https://deb.goaccess.io/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/goaccess.list
+        sudo apt-get update
+        sudo apt-get install goaccess
+    else
+        _error "goaccess not supported on $MACHINE_OS"
+    fi
+}
+
