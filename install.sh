@@ -3,7 +3,9 @@
 # -- zshbop Install script
 # ------------------------
 
+#---------------------------------
 # -- Variables
+#---------------------------------
 VERSION="0.0.3"
 SKIPDEP="0"
 HELP="0"
@@ -23,7 +25,10 @@ GREENBG="\033[0;42m"
 DARKGREYBG="\033[0;100m"
 ECOL="\033[0;0m"
 
-# -- Functions
+#---------------------------------
+# -- Core Functions
+#---------------------------------
+# -- Messages
 _error () { echo -e "${RED}** ERROR ** - ${*} ${ECOL}"; }
 _warning () { echo -e "${YELLOW}** ERROR ** - ${*} ${ECOL}"; }
 _success () { echo -e "${GREEN}** SUCCESS ** - ${*} ${ECOL}"; }
@@ -67,6 +72,10 @@ zshbop_banner () {
     echo "                               | |    ";
     echo "                               |_|    ";
 }
+
+#---------------------------------
+# -- Functions
+#---------------------------------
 
 # -- flight_check
 pre_flight_check () {
@@ -113,25 +122,13 @@ pre_flight_check () {
 	fi
 }
 
-# -- check_zsh_default
-check_zsh_default () {
-        # Check if zsh is the default shell
-        _running "Checking if zsh is the default shell...."
-        if ! [[ $SHELL == *"zsh" ]]; then
-                _warning " Your default shell isn't zsh, use chsh to change it to zsh."
-        else
-                _success -e "- ZSH is your default shell!"
-        fi
-
-}
-
 # -- pkg_install - install packafges.
 pkg_install () {
 	# Checking what package manager we have
     _running "Checking what package manager we have...."
     if [ -x "$(command -v apt-get)" ]; then
         echo " - We have apt!"
-        sudo apt install "${*}"
+        sudo apt install --no-install-recommends "${*}"
 	elif [ -x "$(command -v yum)" ]; then
         echo " - We have yum!"
         sudo yum install "${*}"
@@ -153,64 +150,83 @@ pkg_install () {
 
 # -- install_method - how do you want to install zshbop?
 install_method () {
+    # -- Print ZSHBOP banner
     zshbop_banner
 	echo ""
+    
+    # -- Install method
     _install "Starting zshbop install"
     echo "Install (d)efaults or (c)ustomize? (d/c)?"
 	read INSTALL
 
+    # -- Setup variables for install method choosen
 	if [ $INSTALL == "d" ];then
-		INSTALL_LOCATION=s
+        # -- Default install = system wide, main branch
+        INSTALL_LOCATION=system
 		BRANCH=m
 	elif [ $INSTALL == "c" ]; then
-	        echo "Do you want to install system wide or home only? (s/h)"
-	        read INSTALL_LOCATION
-	        echo "Branch (m)ain, (d)ev, (b)leeding Branch? (d/m/b)"
-	        read BRANCH
+        # -- Custom install
+        echo "Do you want to install system wide or home only? (s/h/g)"
+        read INSTALL_LOCATION
+        [[ $INSTALL_LOCATION == "s" ]] && INSTALL_LOCATION=system
+        [[ $INSTALL_LOCATION == "h" ]] && INSTALL_LOCATION=home
+        [[ $INSTALL_LOCATION == "g" ]] && INSTALL_LOCATION=git
+        
+        echo "Branch (m)ain, (d)ev, (n)ext-release Branch? (d/m/n)"
+        read BRANCH
 	fi
 }
 
 # -- clone_repository
 clone_repository() {
-        if ! [ -d $1 ];then
-                _running "Start Cloning repository into $1..."
-                if [[ $BRANCH == "d" ]]; then
-                    git clone --branch dev https://github.com/jordantrizz/zshbop.git $1
-                elif [[ $BRANCH == "m" ]]; then
-                    git clone https://github.com/jordantrizz/zshbop.git $1
-                elif [[ $BRANCH == "b" ]]; then
-                	git clone --branch bleeding https://github.com/jordantrizz/zshbop.git $1
-				fi
-				if [[ $? -ge "1" ]]; then
-					_error "Cloning failed"
-					exit 1
-				else
-					_succes "Cloning completed"
-				fi
-        else
-                _error "Directory $1 exists...exiting."
+    if ! [ -d $1 ];then
+            _running "Start Cloning repository into $1..."
+            if [[ $BRANCH == "d" ]]; then
+                git clone --branch dev https://github.com/jordantrizz/zshbop.git $1
+            elif [[ $BRANCH == "m" ]]; then
+                git clone https://github.com/jordantrizz/zshbop.git $1
+            elif [[ $BRANCH == "n" ]]; then
+                git clone --branch next-release https://github.com/jordantrizz/zshbop.git $1
+            fi
+            if [[ $? -ge "1" ]]; then
+                _error "Cloning failed"
                 exit 1
-        fi
+            else
+                _succes "Cloning completed"
+            fi
+    else
+            _error "Directory $1 exists...exiting."
+            exit 1
+    fi
 }
 
-# -- setup_home
-setup_home() {	
-    # -- Setup Home
-    if [[ $1 == "git" ]]; then
-		SETUP_PATH="$HOME/git"
-	else
-        SETUP_PATH="$HOME"
+
+# -- setup_zsh
+setup_zsh() {
+    # -- Setup ZSH
+    SETUP_SYSTEM_PATH="/usr/local/sbin"
+    SETUP_HOME_PATH="$HOME"
+    SETUP_GIT_PATH="$HOME/git"    
+
+    if [[ $INSTALL_LOCATION == "system" ]]; then
+        SETUP_PATH=$SETUP_SYSTEM_PATH
+    elif [[ $INSTALL_LOCATION == "home" ]]; then
+        SETUP_PATH=$SETUP_HOME_PATH
+    elif [[ $INSTALL_LOCATION == "git" ]]; then
+        SETUP_PATH=$SETUP_GIT_PATH
+    else
+        _error "Invalid install location"
+        exit 1
     fi
-    
+
     # -- Clone Repository
-    echo "- Install path - $SETUP_PATH"
-	clone_repository "$SETUP_PATH/zshbop"
-	
+    clone_repository "$SETUP_PATH/zshbop"
+
     # -- Setup .zshrc
     if ! [ -f $HOME/.zshrc ]; then
         echo "source $SETUP_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
         _success "- ZSH in-place at $SETUP_PATH, type zsh to start your shell\n"
-	else
+    else
         _error "- There's already a .zshrc in-place, exiting.\n"
         echo "You can add the following to your .zshrc file:"
         echo ""
@@ -219,36 +235,33 @@ setup_home() {
         echo "Then type zsh to start your shell"
         echo ""
         exit 1
-	fi
-}
+    fi
 
-# -- setup_system
-setup_system() {
-	# Confirm that /usr/local/sbin exists
+    # Confirm that /usr/local/sbin exists
 	_running "Setting up system based .zshrc..."
-	SYSTEM=/usr/local/sbin
-	if ! [ -d "$SYSTEM/zshbop" ]; then
-		echo " - Cloning into $SYSTEM/zshbop\n"
-		clone_repository "$SYSTEM/zshbop"
-	else
-		_error " - $SYSTEM/zshbop already exists\n"
-		exit 1
-	fi
-
-	_running "Copying $SYSTEM/zshbop/.zshrc into ~/"
-	cp $SYSTEM/zshbop/.zshrc ~/.zshrc
-	if [[ $? -ge "1" ]]; then
-		_error "Failed to copy $SYSTEM/zshbop/.zshrc into ~/"
-		exit 1
-	else
-		_success "Copied $SYSTEM/zshbop/.zshrc to ~/.zshrc"
-	fi
 }
 
+# -- check_zsh_default
+check_zsh_default () {
+        # Check if zsh is the default shell
+        _running "Checking if zsh is the default shell...."
+        if ! [[ $SHELL == *"zsh" ]]; then
+                _warning " Your default shell isn't zsh, use chsh to change it to zsh."
+        else
+                _success -e "- ZSH is your default shell!"
+        fi
 
-# -------
+}
+
+#---------------------------------
+#---------------------------------
 # -- Main
-# -------
+#---------------------------------
+#---------------------------------
+
+#---------------------------------
+# -- Parse Arguments
+#---------------------------------
 
 _debug "ARGS: ${*}"
 
@@ -309,13 +322,13 @@ elif [[ $CMD == "home" ]]; then
 	pre_flight_check
     INSTALL=c
     BRANCH=m
-    INSTALL_LOCATION=h
+    INSTALL_LOCATION=home
 # -- git
 elif [[ $CMD == "git" ]]; then
 	pre_flight_check
 	INSTALL=c
 	BRANCH=d
-	INSTALL_LOCATION=g
+	INSTALL_LOCATION=git
 elif [[ $CMD == "custom" ]]; then
 	_running "Doing a custom install"
 	if [[ -z $2 ]] || [[ -z $3 ]]; then
@@ -332,20 +345,16 @@ else
 	install_method
 fi
 
-# -- install start
+#---------------------------------
+# -- Start Install
+#---------------------------------
+
 _running "Begin Install - $INSTALL/$BRANCH/$INSTALL_LOCATION"
 
-
 if [[ $INSTALL == "d" ]]; then
-	setup_system
+	setup_zsh system
 elif [[ $INSTALL == "c" ]]; then
-	if [ $INSTALL_LOCATION == "s" ]; then
-	    setup_system
-	elif [ $INSTALL_LOCATION == "h" ]; then
-	    setup_home
-	elif [ $INSTALL_LOCATION == "g" ]; then
-		setup_home git
-	fi
+    setup_zsh $INSTALL_LOCATION
 fi
 
 _success "Installation complete."

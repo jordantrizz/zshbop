@@ -156,9 +156,9 @@ function gbl {
     git branch -a
 }
 
-# -- gtp - Git tag push
-help_git[gtp]="Git tag push"
-function gtp {
+# -- gtpush - Git tag push
+help_git[gtpush]="Git tag push"
+function gtpush {
     _loading "Pushing tags to origin"
     git push origin --tags
 }
@@ -307,4 +307,51 @@ help_git[git-squash-commits]="Squash commits"
 function git-squash-commits () {
     GIT_LOG="$(git log --oneline)"
     git reset $(git commit-tree HEAD^{tree} -m "$GIT_LOG")
+}
+
+# -- gtd - Git tag delete
+help_git[gtd]="Delete local and remote tag"
+function gtd {
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: git-delete-tag tag"
+        return 1
+    fi
+
+    _loading "Deleting tag $1"
+    git tag -d $1
+    git push origin :refs/tags/$1
+}
+
+# -- gtpull - Git tag pull
+help_git[gtpull]="Pull tags from remote"
+function gtpull {
+    _loading "Pulling tags from remote"
+    git fetch --tags
+}
+
+# -- gtlist - Git tag list local and remote
+help_git[gtlist]="List tags"
+function gtlist {
+    _loading "Listing tags"
+    git -P tag -l
+    _loading "Listing remote tags"
+    git ls-remote --tags
+}
+
+# -- gcapf - Git commit ammend push force
+help_git[gcapf]="Commit ammend push force"
+function gcapf {
+    _loading "Commit ammending"
+    git commit --amend --no-edit -a
+    _loading "Pushing force"
+    git push --force
+}
+
+# -- gprh - Git pull reset hard origin current branch
+help_git[gprh]="Pull reset hard origin current branch"
+function gprh {
+    _loading "Pulling"
+    git pull
+    _loading "Resetting hard"
+    git reset --hard origin/$(git rev-parse --abbrev-ref HEAD)
 }

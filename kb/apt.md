@@ -18,3 +18,12 @@ apt-get update --allow-releaseinfo-change
 * ```dpkg -S /usr/bin/passwd```
 * ```apt-file search vim```
 * ```dpkg-query -S '/usr/sbin/useradd'```
+
+## Don't install recommendations
+* ```apt-get install --no-install-recommends```
+
+Edit /etc/apt/apt.conf
+```
+APT::Install-Recommends "false";
+APT::Install-Suggests "false";
+```

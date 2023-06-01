@@ -36,7 +36,9 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * systemctl restart postfix
 
 ## Forward 443 to 8006
-```/sbin/iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8006```
+* Ensure you put in your interface for management otherwise all traffic will be redirected for all IP's
+```/sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.1.1 --dport 443 -j REDIRECT --to-ports 8006```
+
 ## Changing Hostname
 * Edit /etc/hosts file from “proxmox1.sysadminote.com proxmox1″ to “proxmox2.sysadminote.com proxmox2″ 
 * Edit /etc/hostname file from “proxmox1″ to “proxmox2″.
@@ -146,3 +148,9 @@ subnet 192.168.5.0 netmask 255.255.255.0 {
 ```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
 
+# Common Issues
+## Locale
+```
+dpkg-reconfigure locales
+```
+Select en_US.UTF8

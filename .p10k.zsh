@@ -97,10 +97,17 @@
       # =========================[ Line #2 ]=========================
       newline
       public_ip             # public IP address
+      ip					# LAN IP
+      vpn_ip				# VPN IP
+      wifi					# Wifi
       # proxy                 # system-wide http/https/ftp proxy
       battery               # internal battery
       # example               # example user-defined segment (see prompt_example function below)
   )
+
+ 	# Set IP interface
+ 	#typeset -g POWERLEVEL9K_IP_INTERFACE='eth0'
+ 	typeset -g POWERLEVEL9K_IP_INTERFACE=$(ip -o route get to 8.8.8.8 | awk {' print $5 '})
 
   # To disable default icons for all segments, set POWERLEVEL9K_VISUAL_IDENTIFIER_EXPANSION=''.
   #

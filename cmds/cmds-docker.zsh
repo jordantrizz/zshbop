@@ -17,7 +17,7 @@ dps () {
 
 # -- dops
 help_docker[dops]='Mikescher/better-docker-ps'
-alias dops=dops_linux-amd64
+alias dops=dops_linux-amd64-static
 
 # -- dc
 help_docker[dc]='docker-compose'
@@ -44,6 +44,8 @@ help_docker[dcv]='docker-compose version'
 alias dcv='docker-compose version ${*}'
 help_docker[dcrc]='docker-compose up --force-recreate -d'
 alias dcrc='docker-compose up --force-recreate -d ${*}'
+help_docker[dcrca]='docker-compose up --force-recreate'
+alias dcrca='docker-compose up --force-recreate ${*}'
 
 help_docker[dip]='Find docker ip address'
 function dip () {

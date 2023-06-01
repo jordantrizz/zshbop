@@ -69,3 +69,9 @@ help_ssh[ak]="Display ~/.ssh/authorized_keys"
 ak () {
 	cat ~/.ssh/authorized_keys
 }
+
+# -- ssho
+help_ssh[ssho]='Login with -o "IdentitiesOnly yes" when too may keys in keychain'
+ssho () {
+	ssh -o "IdentitiesOnly yes" $@
+}

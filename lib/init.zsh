@@ -100,14 +100,15 @@ init_detectos () {
         MACHINE_OS="synology"
     fi
     
-    # -- Detect OS flavour
-    if [[ -e /etc/redhat-release ]] && grep -q -i -e "Red Hat" -e "CentOS" /etc/redhat-release; then
-        MACHINE_OS_FLAVOUR="redhat"        
-    elif [[ -e /etc/os-release ]] && grep -q -i -e "debian" -e "ubuntu" /etc/os-release; then
-        MACHINE_OS_FLAVOUR="debian"
+    # -- Detect OS Flavour and Version    
+    if [[ -e /etc/os-release ]]; then
+        source /etc/os-release
+        MACHINE_OS_FLAVOUR=$ID
+        MACHINE_OS_VERSION=$VERSION_ID
     else
         MACHINE_OS_FLAVOUR="unknown"
     fi
+
 }
 
 # ==============================================
@@ -231,8 +232,11 @@ function init_antidote () {
 	export ANTIDOTE_PLUGINS="${ZBR}/.zsh_plugins.txt"
 	export ANTIDOTE_STATIC="${ZSHBOP_CACHE_DIR}/.zsh_plugins.zsh"
 	_debug "ANTIDOTE_PLUGINS: $ANTIDOTE_PLUGINS ANTIDOTE_STATIC:$ANTIDOTE_STATIC"
-	
-    # shellcheck source=./antidote/antidote.zsh
+
+    # Ensure NVM lazy loads
+    export NVM_COMPLETION=true
+
+    # Load antidote
     source $ANTIDOTE_DIR/antidote.zsh
 	_log "Generate antidote static file $ANTIDOTE_STATIC"
     antidote bundle < $ANTIDOTE_PLUGINS > $ANTIDOTE_STATIC
@@ -341,16 +345,20 @@ function init_sshkeys () {
 function init_pkg_manager () {
 	_debug_all
 	_debug "Running on $MACHINE_OS"
-	
+
+    # -- Check for package manager on Linux
 	if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
-		_debug "Checking for Linux package manager"
+        # -- Check for apt-get
+    	_debug "Checking for Linux package manager apt-get"
         _cexists apt-get
-        if [[ $? == "0" ]]; then
-            _debug "Found apt-get setting \$PKG_MANAGER to apt-get"
-            export PKG_MANAGER="sudo apt-get"
-        else
-            _debug "Didn't find apt-get"
-        fi
+        [[ $? == "0" ]] && _debug "Found apt-get setting \$PKG_MANAGER to apt-get" && export PKG_MANAGER="sudo apt-get" || _debug "apt-get not found"
+
+        # -- Check for yum
+        _debug "Checking for Linux package manager yum"
+        _cexists yum
+        [[ $? == "0" ]] && _debug "Found yum setting \$PKG_MANAGER to yum" && export PKG_MANAGER="sudo yum" || _debug "yum not found"
+
+    # -- Check for package manage on macos
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		_debug "Checking for Mac package manager"
         # -- Check for brew

@@ -15,18 +15,21 @@ ssl-check () {
 	if [[ -z $1 ]]; then
 		echo "Usage: ssl-check [-h hostname|-f file]"
 	elif [[ $1 == "-h" ]]; then
-		echo "-- Checking SSL Certificate on $2"
+		_loading "-- Checking SSL Certificate on $2"
 		output=$(echo | openssl s_client -showcerts -servername $2 -connect $2:443 2>/dev/null | openssl x509 -inform pem -noout -text)
 		echo $output
-		echo "---------------------------------------------------"
+		_loading2 "---------------------------------------------------"
 		echo ""
-		echo " -- Grabbing Validity"
+		_loading " -- Grabbing Validity"
 		echo $output | grep -A2 'Validity'
-		echo " -- Grabbing Subject: CN"
+		_loading " -- Grabbing Subject: CN"
 		echo $output | grep 'Subject: CN'
+		echo $output | grep 'DNS'
 	elif [[ $1 == "-f" ]]; then
-		echo "-- Checking SSL Certificate on $2"
+		_loading "-- Checking SSL Certificate on $2"
 		openssl x509 -in $2 -text -noout
+	else 
+		echo "Usage: ssl-check [-h hostname|-f file]"
 	fi
 }
 
@@ -37,3 +40,6 @@ gen-ssl-cert () {
 	openssl x509 -in cert.crt -out cert.pem
 	openssl rsa -in cert.key -out key.pem
 }
+
+# -- curl-vh
+help_ssl[curl-vh]='Curl with verbose headers and SSL checking'

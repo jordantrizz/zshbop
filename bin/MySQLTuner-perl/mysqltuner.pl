@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# mysqltuner.pl - Version 2.1.1
+# mysqltuner.pl - Version 2.1.3
 # High Performance MySQL Tuning Script
 # Copyright (C) 2006-2023 Major Hayden - major@mhtx.net
 # Copyright (C) 2015-2023 Jean-Marie Renouard - jmrenouard@gmail.com
@@ -57,7 +57,7 @@ use Cwd 'abs_path';
 #use Env;
 
 # Set up a few variables for use in the script
-my $tunerversion = "2.1.1";
+my $tunerversion = "2.1.3";
 my ( @adjvars, @generalrec );
 
 # Set defaults
@@ -111,6 +111,7 @@ my %opt = (
     "defaults-extra-file" => '',
     "protocol"            => '',
     "dumpdir"             => '',
+    "stop"  => 0,
 );
 
 # Gather the options from the command line
@@ -143,6 +144,7 @@ GetOptions(
     'idxstat',               'noidxstat',
     'server-log=s',          'protocol=s',
     'defaults-extra-file=s', 'dumpdir=s',
+    'stop'
   )
   or pod2usage(
     -exitval  => 1,
@@ -245,8 +247,6 @@ $opt{nocolor} = 0 if ( $opt{color} == 1 );
 # Setting up the colors for the print styles
 my $me = `whoami`;
 $me =~ s/\n//g;
-
-# Setting up the colors for the print styles
 my $good = ( $opt{nocolor} == 0 ) ? "[\e[0;32mOK\e[0m]"  : "[OK]";
 my $bad  = ( $opt{nocolor} == 0 ) ? "[\e[0;31m!!\e[0m]"  : "[!!]";
 my $info = ( $opt{nocolor} == 0 ) ? "[\e[0;34m--\e[0m]"  : "[--]";
@@ -1038,17 +1038,36 @@ sub select_array {
 }
 
 # MySQL Request Array
+sub select_array_with_headers {
+    my $req = shift;
+    debugprint "PERFORM: $req ";
+    my @result = `$mysqlcmd $mysqllogin -Bre "\\w$req" 2>>/dev/null`;
+    if ( $? != 0 ) {
+        badprint "Failed to execute: $req";
+        badprint "FAIL Execute SQL / return code: $?";
+        debugprint "CMD    : $mysqlcmd";
+        debugprint "OPTIONS: $mysqllogin";
+        debugprint `$mysqlcmd $mysqllogin -Bse "$req" 2>&1`;
+
+        #exit $?;
+    }
+    debugprint "select_array_with_headers: return code : $?";
+    chomp(@result);
+    return @result;
+}
+# MySQL Request Array
 sub select_csv_file {
     my $tfile = shift;
     my $req   = shift;
     debugprint "PERFORM: $req CSV into $tfile";
-    my @result = select_array($req);
+    my @result = select_array_with_headers($req);
     open( my $fh, '>', $tfile ) or die "Could not open file '$tfile' $!";
     for my $l (@result) {
         $l =~ s/\t/","/g;
         $l =~ s/^/"/;
-        $l =~ s/$/"/;
+        $l =~ s/$/"\n/;
         print $fh $l;
+        print $l if $opt{debug};
     }
     close $fh;
 }
@@ -1420,13 +1439,13 @@ sub log_file_recommendations {
         if ( $size > 0 ) {
             goodprint "Log file $myvar{'log_error'} is not empty";
             if ( $size < 32 * 1024 * 1024 ) {
-                goodprint "Log file $myvar{'log_error'} is smaller than 32 Mb";
+                goodprint "Log file $myvar{'log_error'} is smaller than 32 MB";
             }
             else {
-                badprint "Log file $myvar{'log_error'} is bigger than 32 Mb";
+                badprint "Log file $myvar{'log_error'} is bigger than 32 MB";
                 push @generalrec,
                   $myvar{'log_error'}
-                  . " is > 32Mb, you should analyze why or implement a rotation log strategy such as logrotate!";
+                  . " is > 32MB, you should analyze why or implement a rotation log strategy such as logrotate!";
             }
         }
         else {
@@ -1850,14 +1869,14 @@ sub get_system_info {
     infoprint "External IP           : " . $ext_ip;
     $result{'Network'}{'External Ip'} = $ext_ip;
     badprint
-      "External IP           : Can't check because of Internet connectivity"
+      "External IP           : Can't check, no Internet connectivity"
       unless defined($httpcli);
     infoprint "Name Servers          : "
       . infocmd_one "grep 'nameserver' /etc/resolv.conf \| awk '{print \$2}'";
     infoprint "Logged In users       : ";
     infocmd_tab "who";
     $result{'OS'}{'Logged users'} = `who`;
-    infoprint "Ram Usages in Mb      : ";
+    infoprint "Ram Usages in MB      : ";
     infocmd_tab "free -m | grep -v +";
     $result{'OS'}{'Free Memory RAM'} = `free -m | grep -v +`;
     infoprint "Load Average          : ";
@@ -1917,7 +1936,7 @@ sub system_recommendations {
               . $opt{'maxportallowed'}
               . "allowed.";
             push( @generalrec,
-"Consider dedicating a server for your database installation with less services running on !"
+"Consider dedicating a server for your database installation with fewer services running on it!"
             );
         }
         else {
@@ -1931,7 +1950,7 @@ sub system_recommendations {
         if ( is_open_port($banport) ) {
             badprint "Banned port: $banport is opened..";
             push( @generalrec,
-"Port $banport is opened. Consider stopping program handling this port."
+"Port $banport is opened. Consider stopping the program over this port."
             );
         }
         else {
@@ -1949,7 +1968,7 @@ sub security_recommendations {
     subheaderprint "Security Recommendations";
 
     if ( mysql_version_eq(8) ) {
-        infoprint "Skipped due to unsupported feature for MySQL 8";
+        infoprint "Skipped due to unsupported feature for MySQL 8.0+";
         return;
     }
 
@@ -2011,7 +2030,7 @@ sub security_recommendations {
     #exit 0;
     if (@mysqlstatlist) {
         push( @generalrec,
-                "Remove Anonymous User accounts - there are "
+                "Remove Anonymous User accounts: there are "
               . scalar(@mysqlstatlist)
               . " anonymous accounts." );
         foreach my $line ( sort @mysqlstatlist ) {
@@ -2254,6 +2273,8 @@ sub validate_mysql_version {
     $mysqlverminor ||= 0;
     $mysqlvermicro ||= 0;
 
+    prettyprint " ";
+
     if (   mysql_version_eq(8)
         or mysql_version_eq( 5,  7 )
         or mysql_version_eq( 10, 3 )
@@ -2406,7 +2427,7 @@ sub check_storage_engines {
     }
     elsif ( mysql_version_ge( 5, 1, 5 ) ) {
         my @engineresults = select_array
-"SELECT ENGINE,SUPPORT FROM information_schema.ENGINES WHERE ENGINE NOT IN ('performance_schema','MyISAM','MERGE','MEMORY') ORDER BY ENGINE ASC";
+"SELECT ENGINE, SUPPORT FROM information_schema.ENGINES WHERE ENGINE NOT IN ('MyISAM', 'MERGE', 'MEMORY') ORDER BY ENGINE";
         foreach my $line (@engineresults) {
             my ( $engine, $engineenabled );
             ( $engine, $engineenabled ) = $line =~ /([a-zA-Z_]*)\s+([a-zA-Z]+)/;
@@ -2547,7 +2568,7 @@ sub check_storage_engines {
         && defined $myvar{'have_innodb'}
         && $myvar{'have_innodb'} eq "YES" )
     {
-        badprint "InnoDB is enabled but isn't being used";
+        badprint "InnoDB is enabled, but isn't being used";
         push( @generalrec,
             "Add skip-innodb to MySQL configuration to disable InnoDB" );
     }
@@ -2555,7 +2576,7 @@ sub check_storage_engines {
         && defined $myvar{'have_bdb'}
         && $myvar{'have_bdb'} eq "YES" )
     {
-        badprint "BDB is enabled but isn't being used";
+        badprint "BDB is enabled, but isn't being used";
         push( @generalrec,
             "Add skip-bdb to MySQL configuration to disable BDB" );
     }
@@ -2563,7 +2584,7 @@ sub check_storage_engines {
         && defined $myvar{'have_isam'}
         && $myvar{'have_isam'} eq "YES" )
     {
-        badprint "MyISAM is enabled but isn't being used";
+        badprint "MyISAM is enabled, but isn't being used";
         push( @generalrec,
 "Add skip-isam to MySQL configuration to disable MyISAM (MySQL > 4.1.0)"
         );
@@ -2592,7 +2613,7 @@ sub check_storage_engines {
             push @generalrec, $generalrec;
         }
         push @generalrec,
-          "Total freed space after defragmentation : $total_free MiB";
+          "Total freed space after defragmentation: $total_free MiB";
     }
     else {
         goodprint "Total fragmented tables: $fragtables";
@@ -2653,6 +2674,7 @@ sub calculations {
         exit 2;
     }
 
+    # Per-thread memory
     # Per-thread memory
     if ( mysql_version_ge(4) ) {
         $mycalc{'per_thread_buffers'} =
@@ -3253,13 +3275,13 @@ sub mysql_stats {
             push( @adjvars, "skip-name-resolve=0" );
         }
     }
-    elsif ( $result{'Variables'}{'skip_name_resolve'} eq 'OFF' ) {
+    elsif ( $result{'Variables'}{'skip_name_resolve'} ne 'OFF' and $result{'Variables'}{'skip_name_resolve'} ne '0' ) {
         badprint
 "Name resolution is active: a reverse name resolution is made for each new connection which can reduce performance";
         push( @generalrec,
-"Configure your accounts with ip or subnets only, then update your configuration with skip-name-resolve=1"
+"Configure your accounts with ip or subnets only, then update your configuration with skip-name-resolve=OFF"
         );
-        push( @adjvars, "skip-name-resolve=1" );
+        push( @adjvars, "skip-name-resolve=OFF" );
     }
 
     # Query cache
@@ -3943,13 +3965,14 @@ sub mysqsl_pfs {
 
     # Store all sys schema in dumpdir if defined
     if ( defined $opt{dumpdir} and -d "$opt{dumpdir}" ) {
-        for my $pfs_view ( select_array('use sys;show tables;') ) {
-            infoprint "Dumping $pfs_view into $opt{dumpdir}";
+        for my $sys_view ( select_array('use sys;show tables;') ) {
+            infoprint "Dumping $sys_view into $opt{dumpdir}";
             select_csv_file(
-                "$opt{dumpdir}/pfs_$pfs_view.csv",
-                "select * from sys.$pfs_view"
+                "$opt{dumpdir}/sys_$sys_view.csv",
+                "select * from sys.\`$sys_view\`"
             );
         }
+      exit 0 if ( $opt{stop} == 1 );
     }
 
     # Top user per connection
@@ -6170,7 +6193,7 @@ sub mysql_innodb {
     $mystat{'Innodb_log_waits_computed'} = 0;
 
     if (    defined( $mystat{'Innodb_log_waits'} )
-        and defined( $mystat{'Innodb_log_writes'} ) )
+        and defined( $mystat{'Innodb_log_writes'} ) and $mystat{'Innodb_log_writes'} > 0.000001 )
     {
         $mystat{'Innodb_log_waits_computed'} =
           $mystat{'Innodb_log_waits'} / $mystat{'Innodb_log_writes'};
@@ -6475,6 +6498,7 @@ sub mysql_tables {
 
     }
 
+    infoprint("Dumpdir: $opt{dumpdir}");
     # Store all information schema in dumpdir if defined
     if ( defined $opt{dumpdir} and -d "$opt{dumpdir}" ) {
         for my $info_s_table (
@@ -6486,6 +6510,7 @@ sub mysql_tables {
                 "select * from information_schema.$info_s_table"
             );
         }
+        exit 0 if ( $opt{stop} == 1 );
     }
     foreach ( select_user_dbs() ) {
         my $dbname = $_;
@@ -6957,7 +6982,7 @@ __END__
 
 =head1 NAME
 
- MySQLTuner 2.1.1 - MySQL High Performance Tuning Script
+ MySQLTuner 2.1.3 - MySQL High Performance Tuning Script
 
 =head1 IMPORTANT USAGE GUIDELINES
 
