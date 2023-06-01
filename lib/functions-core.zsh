@@ -13,34 +13,41 @@ help_files[corefunc]='Core functions for scripts'
 # -- Internal Functions
 # ---------------------
 
-# -- Banners
+# -- Default
 _echo () { echo "$@" }
 _success () { echo "$fg[green] * $@ ${RSC}" }
 _noticebg () { echo "$bg[magenta]$fg[white] * $@ ${RSC}" }
 _notice () { echo "$fg[magenta] * $@ ${RSC}" }
+# -- Banners
 _banner_red () { echo "$bg[red]$fg[white]${@}${RSC}" }
 _banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
 _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
 _banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
+# -- loading
 _loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
 _loading2 () { echo " $bg[bright-grey]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
 _loading3 () { echo " - $fg[bright-grey]${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG})}
 _loading4 () { echo "   -- $fg[bright-grey]${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
 alias _loading_grey=_loading2
-
-COLOR_FUNCTIONS=(_error _warning _success _noticebg _noticefg _banner_red _banner_green _banner_grey _loading _loading2 _loading3 _loading4)
+# -- dividers
+_divider_white () { echo "$fg[black]$bg[white]                 $@               ${RSC}" }
+_divider_grey () { echo "$bg[bright-grey]                 $@               ${RSC}" }
+_divider_dash () { echo "$fg[bright-grey]-----------------$@---------------${RSC}" }
 
 # -- Text Colors
 _grey () { echo "$bg[bright-gray]$fg[black] $@ ${RSC}" }
 RSC=$reset_color # To replace $reset_color :)
 
+# -- Used for formatting function to print out all formatting
+COLOR_FUNCTIONS=(_error _warning _success _noticebg _banner_red _banner_green _banner_grey _loading _loading2 _loading3 _loading4 _grey _divider_white _divider_grey _divider_dash)
+COLOR_NAMES=(black red green yellow blue magenta cyan white bright-black bright-red bright-green bright-yellow bright-blue bright-magenta bright-cyan bright-white bright-grey)
+
 # -- colors-print
 help_corefunc[colors-print]='Print all colors'
 function colors-print () {
-  for k in ${(k)color}; do
-    if [[ ! $k =~ ^(fg|bg|[[:digit:]]{1,3}|no-|none|normal|italic|underline|reverse|bold|conceal|faint|default|blink) ]]; then
-        echo "${k}: ${fg[$k]} Foreground ${RSC} - ${bg[$k]}Background${RSC}"                  
-    fi
+  for k in ${(k)COLOR_NAMES}; do
+    #if [[ ! $k =~ ^(fg|bg|[[:digit:]]{1,3}|no-|none|normal|italic|underline|reverse|bold|conceal|faint|default|blink) ]]; then
+        echo "${k}: ${fg[$k]} Foreground ${RSC} - ${bg[$k]}Background${RSC}"                      
   done
 }
 

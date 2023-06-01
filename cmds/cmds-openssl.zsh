@@ -9,7 +9,7 @@ _debug " -- Loading ${(%):-%N}"
 # - Init help array
 typeset -gA help_openssl
 
-# -- curl-vh
+# -- checkcert
 help_curl[checkcert]="Check .pem file for certificate"
 checkcert () { 
 	if [[ -z $1 ]]; then

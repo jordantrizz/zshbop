@@ -20,6 +20,8 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 antigen bundle command-not-found
 antigen bundle desyncr/auto-ls
 antigen bundle zsh-users/zsh-autosuggestions
+export NVM_COMPLETION=true
+antigen bundle lukechilds/zsh-nvm
 
 #antigen bundle djui/alias-tips # Disabled for now, requires python
 #antigen bundle viasite-ansible/zsh-ansible-server

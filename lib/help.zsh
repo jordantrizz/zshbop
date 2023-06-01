@@ -80,11 +80,11 @@ function get_category_commands_custom () {
 
 # -- Help
 help () {
-		# Full help command into $HCMD
+		# All arguments $@ into $HCMD
         HCMD=$@
         _debug "\$HCMD: $HCMD"
         
-        # Aliases
+        # Common Aliases
         if [[ $HCMD == "wp" ]]; then; HCMD="wordpress";fi
         if [[ $HCMD == "cf" ]]; then; HCMD="cloudflare";fi
         _debug "After aliases \$HCMD: $HCMD"

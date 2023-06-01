@@ -9,7 +9,7 @@ _debug " -- Loading ${(%):-%N}"
 # -- repos - Install popular github.com Repositories
 help_core[repos]='Install popular github.com repositories.'
 
-repos () {
+function repos () {
 	# debug
 	_debug_all $@
 
@@ -65,6 +65,10 @@ repos () {
     # -- wp-umbrella-cli-bash
     GIT_REPOS[wp-umbrella-cli-bash]="wp-umbrella-cli-bash"
     GIT_REPOS_URL[wp-umbrella-cli-bash]="https://github.com/managingwp/wp-umbrella-cli-bash"
+    
+    # -- docker-autocompose
+    GIT_REPOS[docker-autocompose]="docker-autocompose"
+    GIT_REPOS_URL[docker-autocompose]="https://github.com/Red5d/docker-autocompose.git"
 
     # =====================================
     # -- Functions
@@ -143,6 +147,12 @@ repos () {
 		else
 			_loading2 "No repos to update"
 		fi
+	# ---------------
+	# -- repos dir
+	# ---------------
+	elif [[ $1 == 'dir' ]]; then
+		_debug "Changing directory to $REPOS_DIR"
+		cd $REPOS_DIR
 	else
     	echo "Usage: repos <pull <repo>|list|update>"
         echo ""
@@ -155,6 +165,7 @@ repos () {
 		echo "    list                     - List pulled repositories"
 		echo "    branch <repo> <branch>   - Change branch for repository"
 		echo "    update                   - Update repositories"
+		echo "    dir  				       - Change directory to repos directory"
         echo ""
         echo "Available Repositories"
         echo ""

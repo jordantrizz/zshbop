@@ -232,19 +232,24 @@ _cexists pwsh
 [[ $? -ge "1" ]] && alias pwsh=powershell_download || alias pwsh=pwsh
 
 powershell_download () {
-	echo "Installing Powershell on Ubuntu"
-	# Update the list of packages
-	sudo apt-get update
-	# Install pre-requisite packages.
-	sudo apt-get install -y wget apt-transport-https software-properties-common
-	# Download the Microsoft repository GPG keys
-	wget -q -O $TMP/packages-microsoft-prod.deb "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
-	# Register the Microsoft repository GPG keys
-	sudo dpkg -i $TMP/packages-microsoft-prod.deb
-	# Update the list of packages after we added packages.microsoft.com
-	sudo apt-get update
-	# Install PowerShell
-	sudo apt-get install -y powershell
+	if [[ $MACHINE_OS == "mac" ]]; then
+		echo "Installing Powershell on Mac using brew"
+		brew install --cask powershell
+	else
+		echo "Installing Powershell on Ubuntu"
+		# Update the list of packages
+		sudo apt-get update
+		# Install pre-requisite packages.
+		sudo apt-get install -y wget apt-transport-https software-properties-common
+		# Download the Microsoft repository GPG keys
+		wget -q -O $TMP/packages-microsoft-prod.deb "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+		# Register the Microsoft repository GPG keys
+		sudo dpkg -i $TMP/packages-microsoft-prod.deb
+		# Update the list of packages after we added packages.microsoft.com
+		sudo apt-get update
+		# Install PowerShell
+		sudo apt-get install -y powershell
+	fi
 }
 
 # -- maldet
@@ -361,7 +366,6 @@ if [[ $MACHINE_OS == "linux" ]]; then
     	function glint () { glint-linux $* }
     	function software_glint { _success "Glint installed" }
     else
-		function glint () { _error "Glint not installed, type software glint to install"; return 1; }
 		function software_glint {
     		_loading "Installing glint"
 	    	curl -L -o $HOME/bin/glint-linux https://github.com/brigand/glint/releases/download/v6.3.4/glint-linux

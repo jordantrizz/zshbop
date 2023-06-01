@@ -1,5 +1,5 @@
 # --
-# Proxmox
+# Proxmox helper commands
 # --
 _debug " -- Loading ${(%):-%N}"
 help_files[proxmox]='Proxmox commands'
@@ -12,31 +12,48 @@ function proxmox-restart () {
     systemctl restart pve-cluster pvedaemon pvestatd pveproxy pve-ha-lrm pve-firewall pvefw-logger
 }
 
+#####################################################################
+#####################################################################
 
-
-# -------------------
-# -- register proxmox
-# -------------------
+# -------------------------------------------------------------------
+# -- proxmox
+# -------------------------------------------------------------------
 help_proxmox[proxmox]="Proxmox helper"
 alias pmox='proxmox'
-proxmox () {
+function proxmox () {
         if [[ $1 == "help" ]] || [[ -z $1 ]]; then
-                proxmox_help
+            _proxmox_help
         elif [[ -n $1 ]]; then
-	        _debug "-- Running pmox $1"
-                proxmox_init $@
+	        _debugf "-- Running pmox $1"
+            proxmox_init $@
         fi
 }
 
+# -------------------------------------------------------------------
 # -- proxmox_init
-proxmox_init () {
+# -------------------------------------------------------------------
+function proxmox_init () {
     # -- debug
     _debug_all
-    ALLARGS="$@"
-    zparseopts -D -E d=DEBUG -name=NAME -memory=MEM -network=NET -storage=STORAGE -disksize=DISKSIZE -os=OS_RELEASE -dhcpnet=DHCP_NET -tempdir=TEMP_DIR -sshkey=SSH_KEY -vmid=VMID -ip=IP -bridge=BRIDGE
+    ALL_ARGS="$@"
+    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VMID ip:=IP bridge:=BRIDGE
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
+    NAME=${NAME[2]}
+    [[ -z $MEM ]] && MEM="2048" || MEM=${MEM[2]}
+    [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
+    [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
+    [[ -z $DISKSIZE ]] && DISKSIZE="20" || DISKSIZE=$DISKSIZE[2]
+    [[ -z $OS_RELEASE ]] && OS_RELEASE="focal" || OS_RELEASE=$OS_RELEASE[2]
+    [[ -z $DHCP_NET ]] && DHCP_NET="vmbr0" || DHCP_NET=$DHCP_NET[2]
+    [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
+    [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]
+    [[ -z $VMID ]] && { VM_ID=$(pvesh get /cluster/nextid); _debug "\pvesh /cluster/nextid: $VM_ID"} || VMID=$VMID[2]
+    [[ -z $IP ]] && IP="dhcp" || IP=$IP[2]
+    [[ -z $BRIDGE ]] && BRIDGE="vmbr0" || BRIDGE=$BRIDGE[2]
+
     _debugf "ALL_ARGS: $ALL_ARGS"
     _debugf "DEBUG: $DEBUG"
+    _debugf "DRYRUN: $DRYRUN"
     _debugf "HELP: $HELP"
     _debugf "NAME: $NAME"
     _debugf "MEM: $MEM"
@@ -52,32 +69,46 @@ proxmox_init () {
     _debugf "BRIDGE: $BRIDGE"
 
     REQUIRED_PKG=('curl' 'libguestfs-tools')
-    _debug $REQUIRED_PKG
+    _debugf $REQUIRED_PKG
 	_require_pkg $REQUIRED_PKG
 
     # -- Check command
     if [[ $1 == "createvm" ]]; then
+        _debugf "Creating VM"
         _proxmox_check || return 1
         _proxmox_createvm
     elif [[ $1 == "createtemp" ]]; then
+        _debugf "Creating template"
         _proxmox_check || return 1
         _proxmox_createtemp
+    # -- Clone template
     elif [[ $1 == "clonetemp" ]]; then
+        _debugf "Cloning template"
         _proxmox_check || return 1
         _proxmox_clonetemp
+    # -- Setup vendor cloudinit.yaml
+    elif [[ $1 == "vendorci" ]]; then
+        _debugf "Setting up vendor cloudinit.yaml"    
+        _proxmox_vendorci
     elif [[ $1 == "info" ]]; then
+        _debugf "Getting info"
         _proxmox_check || return 1
         _proxmox_info
     elif [[ $1 == help ]]; then
+        _debugf "Getting help"
         _proxmox_help
     else
+        _debugf "Unknown command $1"        
         _proxmox_help
+        _error "Unknown command $1"
     fi
 
 }
 
+# -------------------------------------------------------------------
 # -- proxmox_help
-_proxmox_help () {
+# -------------------------------------------------------------------
+function _proxmox_help () {
 	_loading "Proxmox Helper"
     echo \
 "
@@ -87,11 +118,13 @@ Commands:
   createvm      - Create VM
   createtemp    - Create template
   clonetemp     - Clone template
+  vendorci      - Setup vendor cloudinit.yaml
   info          - Info about Proxmox instance
   help          - This help
 
 Global Options:
   -d            - Debug mode
+  -dr           - Dry run
 
 Command Options:
 
@@ -120,7 +153,7 @@ Command Options:
   clonetemp <options>
   -------------------
     -name <name>              Name of the VM
-    -vmid [vmid]              VM ID to use (Default: random)
+    -vmid [vmid]              VM ID to use (Default: 9000)
     -ip [ip]                  IP address to use (Default: dhcp)
 
   OS:
@@ -133,128 +166,121 @@ Command Options:
 # -- check if proxmox is installed and other checks
 function _proxmox_check () {
     # -- check for pvesh
-	[[ -x $(command -v pvesh) ]] && _success "Proxmox is installed" || { _error "No pvesh present, not running proxmox"; return 1 }
-    [[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required for info command"; return 1 }
+    if [[ $DRYRUN == "1" ]]; then
+        _loading3 "Doing a dryrun"
+	else
+        # -- Ensure commands are present
+        [[ -x $(command -v pvesh) ]] && _success "Proxmox is installed" || { _error "No pvesh present, not running proxmox or other issue."; return 1 }
+        [[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required."; return 1 }
+        [[ -x $(command -v virt-customize) ]] && _success "lshw is installed" || { _error "No virt-customize present, required."; return 1 }
+    fi
 }
 
+# -------------------------------------------------------------------
+# -- _proxmox_download_cloudimage
+# -------------------------------------------------------------------
+function _proxmox_download_cloudimage () {
+    # -- Check if $OS is valid
+    _loading2 "Checking if $OS is a valid OS"
+    AVAIL_OS=("focal" "bionic" "jammy")
+    _if_marray "$OS" AVAIL_OS
+    if [[ $MARRAY_VALID == "1" ]]; then
+        _error "Couldn't get Ubuntu Image for $OS"
+        return
+    else
+        _loading2 "OS: $OS is valid"
+    fi
+    echo ""
+
+    # -- Download OS Image
+    IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
+    IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${}"
+    IMAGE_FILE_PATH="${TEMP_DIR}/${IMAGE_FILE}"
+    
+    _loading3 "Fetching $OS Image from $IMAGE_URL into $TEMP_DIR"
+    _loading4 "Checking if $IMAGE_FILE exists in $TEMP_DIR"
+    if [[ -f ${IMAGE_FILE_PATH} ]]; then
+        _loading4 "Found $IMAGE_FILE_PATH"
+        _loading4 "Checking MD5"
+        IMAGE_URL_MD5=$(curl -s https://cloud-images.ubuntu.com/$OS/current/MD5SUMS | grep "$OS-server-cloudimg-amd64.img" | awk {' print $1 '})
+        _loading4 "\$OS_URL_MD5: $IMAGE_URL_MD5"
+        IMAGE_FILE_MD5=$(md5sum $IMAGE_FILE_PATH | awk {'print $1'})
+        _loading4 "\$OS_FILE_MD5: $IMAGE_FILE_MD5"
+        if [[ $IMAGE_URL_MD5 == $IMAGE_FILE_MD5 ]]; then
+            _loading4 "Local file $IMAGE_FILE_PATH matches remote MD5, continuing build"
+        else
+            _error "Local file $IMAGE_FILE_PATH MD5 does not match remote MD5."
+            _loading4 "Downloading $IMAGE_URL into $TEMP_DIR"
+            _debugf "curl --output $IMAGE_FILE_PATH $IMAGE_URL"
+            curl --output $IMAGE_FILE_PATH $IMAGE_URL
+        fi
+    else
+        _debugf "curl --output $IMAGE_FILE_PATH $IMAGE_URL"
+        curl --output $IMAGE_FILE_PATH $IMAGE_URL
+    fi
+    echo ""
+}
+
+# -------------------------------------------------------------------
 # -- proxmox_createvm
-_proxmox_createvm () {    
-
-
-    NAME=$2
-    MEM=$3
-    NET=$4
-    STORAGE=$5
-    DISKSIZE=$6
-    OS_RELEASE=$7
-    DHCP_NET="$8"
-
-    # -- Clear variables
-    OS_IMG=""
-
-    if [[ -n $9 ]]; then
-        TEMP_DIR=$9
-    else
-        TEMP_DIR="/tmp"
+# -------------------------------------------------------------------
+function_proxmox_createvm () {
+    # -- Check if storage exists
+    IFS=$'\n' proxmox_STORAGE=($(pvesm status | awk {' print $1 '}))
+    _if_marray "$STORAGE" proxmox_STORAGE
+    if [[ $MARRAY_VALID == "1" ]]; then
+        _error "Storage $STORAGE doesn't exist, type pmox info"            
+        return
     fi
-    _debug "\$TEMP_DIR=$TEMP_DIR"
 
-    _debug "\$NAME:$NAME \$MEM:$MEM \$NET:NET \$STORAGE:$STORAGE \$DISKSIZE:$DISKSIZE \$OS_RELEASE:$OS_RELEASE \$DHCP_NET:$DHCP_NET"
-
-    if [[ -z $NAME ]] || [[ -z $MEM ]] || [[ -z $NET ]] || [[ -z $STORAGE ]] || [[ -z $DISKSIZE ]] || [[ -z $OS_RELEASE ]]; then
-        _proxmox_help
+    # -- Download cloudimage
+    _proxmox_download_cloudimage
+    
+    # -- Enable internal nic with DHCP
+    if [[ -n $DHCP_NET ]]; then
+        DHCP_NET_INT="--net1"
+        DHCP_NET_QM="virtio,bridge=${DHCP_NET},firewall=1"
+        DHCP_IP="--ipconfig1"
+        DHCP_IP_CFG="ip=dhcp"
     else
-        # -- Check if storage exists
-        IFS=$'\n' proxmox_STORAGE=($(pvesm status | awk {' print $1 '}))
-        _if_marray "$STORAGE" proxmox_STORAGE
-        if [[ $MARRAY_VALID == "1" ]]; then
-            _error "Storage $STORAGE doesn't exist, type pmox info"            
-            return
-        fi
-
-        # -- check if provided OS release is correct
-        AVAIL_RELEASES=("focal" "bionic" "jammy")
-        _if_marray "$OS_RELEASE" AVAIL_RELEASES
-        if [[ $MARRAY_VALID == "1" ]]; then
-            _error "Couldn't get OS Image"
-            return
-        fi
-
-        # -- set $OS_URL and $OS_FILE
-        OS_URL="https://cloud-images.ubuntu.com/$OS_RELEASE/current/$OS_RELEASE-server-cloudimg-amd64.img"
-        OS_FILE="$OS_RELEASE-server-cloudimg-amd64.img"
-
-        # -- Check if $OS_FILE exists in $TEMP_DIR
-        _debug "Checking if $OS_FILE exists in $TEMP_DIR"
-        if [[ -e $TEMP_DIR/$OS_FILE ]]; then
-            echo "-- $OS_FILE already in $TEMP_DIR"
-            echo "-- Checking MD5"
-            OS_URL_MD5=$(curl -s https://cloud-images.ubuntu.com/$OS_RELEASE/current/MD5SUMS | grep "$OS_RELEASE-server-cloudimg-amd64.img" | awk {' print $1 '})
-            _debug "\$OS_URL_MD5: $OS_URL_MD5"
-            OS_FILE_MD5=$(md5sum $TEMP_DIR/$OS_FILE | awk {'print $1'})
-            _debug "\$OS_FILE_MD5:$OS_FILE_MD5"
-
-            # -- Check MD5
-            if [[ $OS_URL_MD5 == $OS_FILE_MD5 ]]; then
-                echo "-- Local file matches remote MD5, continuing build"
-            else
-                _error "Local file MD5 does not match remote MD5."
-                echo "-- Downloading $OS_URL into $TEMP_DIR"
-                curl $OS_URL --output $TEMP_DIR/$OS_FILE
-            fi
-        else
-            echo "-- Downloading $OS_URL into $TEMP_DIR"
-            curl $OS_URL --output $TEMP_DIR/$OS_FILE
-        fi
-        
-        # -- Enable internal nic with DHCP
-        if [[ -n $DHCP_NET ]]; then
-            DHCP_NET_INT="--net1"
-            DHCP_NET_QM="virtio,bridge=${DHCP_NET},firewall=1"
-            DHCP_IP="--ipconfig1"
-            DHCP_IP_CFG="ip=dhcp"
-        else
-            DHCP_NET_INT=""
-            DHCP_NET_QM=""
-        fi
-
-        # -- Insert guest tools into image
-        ( set -x; virt-customize -a $TEMP_DIR/$OS_FILE --install qemu-guest-agent )
-
-        # -- Start build
-        VM_ID=$(set -x;pvesh get /cluster/nextid)
-        _debug "\$VM_PID:$VM_ID"
-        
-        # -- QM Config Variables
-
-        # -- Run QM Command
-        echo "-- Creating VM with ID:$VM_ID"
-        (set -x;qm create $VM_ID --name $NAME --memory $MEM \
-        $DHCP_NET_INT $DHCP_NET_QM \
-        $DHCP_IP $DHCP_IP_CFG \
-        --net0 virtio,bridge=$NET,firewall=1 \
-        --bootdisk scsi0 \
-        --scsihw virtio-scsi-pci \
-        --ide2 media=cdrom,file=none \
-        --ide0 ${STORAGE}:cloudinit,size=4M \
-        --boot cdn \
-        --ostype l26 \
-        --onboot 1 \
-        --cpu host
-        --agent enabled=1,fstrim_cloned_disks=1 \
-        #--cicustom "user=local:/userconfig.yaml" \
-        )
-        ( set -x;qm importdisk $VM_ID /tmp/${OS_FILE} ${STORAGE} )
-        ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
-        ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
-        ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
-
-        _notice "Completed creation of VM with ID of $VM_ID"
+        DHCP_NET_INT=""
+        DHCP_NET_QM=""
     fi
+
+    # -- Insert guest tools into image
+    ( set -x; virt-customize -a $TEMP_DIR/$OS_FILE --install qemu-guest-agent )
+    
+    # -- QM Config Variables
+
+    # -- Run QM Command
+    echo "-- Creating VM with ID:$VM_ID"
+    (set -x;qm create $VM_ID --name $NAME --memory $MEM \
+    $DHCP_NET_INT $DHCP_NET_QM \
+    $DHCP_IP $DHCP_IP_CFG \
+    --net0 virtio,bridge=$NET,firewall=1 \
+    --bootdisk scsi0 \
+    --scsihw virtio-scsi-pci \
+    --ide2 media=cdrom,file=none \
+    --ide0 ${STORAGE}:cloudinit,size=4M \
+    --boot cdn \
+    --ostype l26 \
+    --onboot 1 \
+    --cpu host \
+    --agent enabled=1,fstrim_cloned_disks=1 \
+    --cicustom "user=local:/userconfig.yaml"
+    )
+    ( set -x;qm importdisk $VM_ID /tmp/${OS_FILE} ${STORAGE} )
+    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
+    ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
+    ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
+
+    _notice "Completed creation of VM with ID of $VM_ID"
+    _notice "To start the VM run: qm start $VM_ID"
 }
 
+# -------------------------------------------------------------------
 # -- proxmox_createtemp
-# $OS $BRIDGE $STORAGE $VM_ID
+# -------------------------------------------------------------------
 function _proxmox_createtemp () {
     _loading "Creating template"
 
@@ -268,44 +294,8 @@ function _proxmox_createtemp () {
     _loading2 "OS:$OS BRIDGE:$BRIDGE STORAGE:$STORAGE VM_ID:$VM_ID"
     _debugf "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
-    # -- Check if $OS is valid
-    _loading2 "Checking if $OS is a valid OS"
-    AVAIL_OS=("focal" "bionic" "jammy")
-    _if_marray "$OS" AVAIL_OS
-    if [[ $MARRAY_VALID == "1" ]]; then
-        _error "Couldn't get OS Image"
-        return
-    else
-        _loading2 "OS: $OS is valid"
-    fi
-    echo ""
-
-    # -- Download OS Image
-    IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
-    IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${IMAGE_FILE}"
-    TEMP_DIR="/tmp"
-    _loading2 "Fetching $OS Image from $IMAGE_URL into $TEMP_DIR"
-    _loading3 "Checking if $IMAGE_FILE exists in $TEMP_DIR"
-    if [[ -f ${TEMP_DIR}/${IMAGE_FILE} ]]; then
-        _loading3 "$IMAGE_FILE already in $TEMP_DIR"
-        _loading3 "Checking MD5"
-        OS_URL_MD5=$(curl -s https://cloud-images.ubuntu.com/$OS_RELEASE/current/MD5SUMS | grep "$OS_RELEASE-server-cloudimg-amd64.img" | awk {' print $1 '})
-        _loading4 "\$OS_URL_MD5: $OS_URL_MD5"
-        OS_FILE_MD5=$(md5sum $TEMP_DIR/$OS_FILE | awk {'print $1'})
-        _loading4 "\$OS_FILE_MD5:$OS_FILE_MD5"
-        if [[ $OS_URL_MD5 == $OS_FILE_MD5 ]]; then
-            _loading4 "Local file matches remote MD5, continuing build"
-        else
-            _error "Local file MD5 does not match remote MD5."
-            _loading4 "Downloading $IMAGE_URL into $TEMP_DIR"
-            _debugf "curl --output /tmp/$IMAGE_FILE $IMAGE_URL"
-            curl --output /tmp/$IMAGE_FILE $IMAGE_URL
-        fi
-    else
-        _debugf "curl --output /tmp/$IMAGE_FILE $IMAGE_URL"
-        curl --output /tmp/$IMAGE_FILE $IMAGE_URL
-    fi
-    echo ""
+    # -- Download cloudimage
+    _proxmox_download_cloudimage
 
     # -- Check if VM_ID is taken
     _loading2 "Checking if VMID $VM_ID is taken"
@@ -324,9 +314,9 @@ function _proxmox_createtemp () {
     [[ $? -ne 0 ]] && return 1
 
     # -- Import OS Image
-    _loading2 "Importing OS Image"
-    _debugf "qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}"
-    qm importdisk ${VM_ID} /tmp/${IMAGE_FILE} ${STORAGE}
+    _loading3 "Importing OS Image"
+    _debugf "qm importdisk ${VM_ID} ${IMAGE_FILE_PATH} ${PROXMOX_STORAGE}"
+    qm importdisk ${VM_ID} ${IMAGE_FILE_PATH} ${PROXMOX_STORAGE}
     [[ $? -ne 0 ]] && return 1
 
     # -- Set VM Options
@@ -335,10 +325,12 @@ function _proxmox_createtemp () {
     qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw
     [[ $? -ne 0 ]] && return 1
 
-    # -- Set VM Options
-    _loading2 "Setting VM cloudinit"
-    _debugf "qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit"
-    qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit
+    # -- Set VM Cloudinit
+    _loading3 "Setting VM cloudinit"
+    _debugf "qm set ${VM_ID} --ide2 ${PROXMOX_STORAGE}:cloudinit"
+    _debugf "qm set ${VM_ID} --cicustom 'vendor=local:snippets/vendor.yaml'"
+    qm set ${VM_ID} --ide2 ${PROXMOX_STORAGE}:cloudinit
+    qm set ${VM_ID} --cicustom 'vendor=local:snippets/vendor.yaml'
     [[ $? -ne 0 ]] && return 1
 
     # -- Set VM boot options
@@ -360,9 +352,21 @@ function _proxmox_createtemp () {
     [[ $? -ne 0 ]] && return 1
 }
 
+# -------------------------------------------------------------------
+# -- _proxmox_clonetemp
+# -------------------------------------------------------------------
+function _proxmox_clonetemp () {
+    # -- Confirm template exists        
+    _loading2 "Checking if template ${CLONE_ID} exists"
+    _debugf "qm list | grep ${CLONE_ID} | awk {'print \$1 '}"
+    CID=$(qm list | grep ${CLONE_ID} | awk {'print $1 '})
+    [[ $CLONE_ID != $CID ]] && { _loading2 "Template ${CLONE_ID} does not exist."; return 1; } || { _loading2 "Template ${CLONE_ID} exists."; }
+}
 
-# -- proxmox_info
-_proxmox_info () {
+# -------------------------------------------------------------------
+# -- _proxmox_info
+# -------------------------------------------------------------------
+function _proxmox_info () {
     _debug_all
     _loading "Proxmox instance infornation"
     echo "----------------------------"
@@ -371,7 +375,9 @@ _proxmox_info () {
     echo "Network: $(lshw -class network -short | egrep -v 'tap|fwln|fwpr|fwbr')"
 }
 
+# -------------------------------------------------------------------
 # -- _proxmox_create_lxc
+# -------------------------------------------------------------------
 function _proxmox_create_lxc () {
         # -- Update container template database
         _loading3 "Update container template database"
@@ -390,5 +396,45 @@ function _proxmox_create_lxc () {
         [[ $? -eq 0 ]] && _loading3 "Ubuntu 22.10 Container created successfully" || { _error "Ubuntu 22.10 Container creation failed"; return 1 }
 }
 
+# -------------------------------------------------------------------
+# -- _proxmox_vendorci
+# -------------------------------------------------------------------
+function _proxmox_vendorci () {
+    # -- Create vendor.yaml file
+    _loading "Creating vendor.yaml file at /var/lib/vz/snippets"
+    if [[ ! -d /var/lib/vz/snippets ]]; then
+        _error "/var/lib/vz/snippets doesn't exist."
+        exit 1
+    else
+        _loading3 "Found /var/lib/vz/snippets, creating /var/lib/vz/snippets/vendor.yaml file"
+cat << EOF > /var/lib/vz/snippets/vendor.yaml
+#cloud-config
+users:
+  - name: root
+    ssh_authorized_keys:
+      - ssh_authorized_keys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIyaSjx2adBrDbvYMTVoWnUfog4UsZK67wI3OumnArIDlzEjwse3aOx8dj79R1G0wTLrjKEu1kAsO0jSoGdkV4Lujub4oLm3j240nn1HhXHUWfv3ZqU7eSThBI7lCuHwDcj0r5nJm5GkCtLLplnweLqLxfd8fgPj+a8Cey4euxAE3rtSpQI9M3mrcAUtw9TgXGK7N/tgA9yBSxCM5GT4AvKjbedoxEvAH7QfqUrSoF4zc85EvwjS8QmYdPaVahyYafuJOT2KsmiCFJWAh/rHQuxcG5352svOJRQaaS/LbOAsAz3FwcxulagwefAW7C7h2+j5i2q0rMCAeQ34cS2HFD root@srv01
+
+package_update: true
+package_upgrade: true
+packages:
+  - joe
+  - zsh
+  - qemu-guest-agent
+
+ssh_pwauth: false
+disable_root: false
+
+runcmd:
+  - systemctl start qemu-guest-agent
+
+output:
+  all: '| tee -a /var/log/cloud-init-output.log'
+EOF
+    fi
+}
+
+# -------------------------------------------------------------------
 # -- proxmox-backup.sh
+# -------------------------------------------------------------------
 help_proxmox[proxmox-backup.sh]='Backup proxmox database'

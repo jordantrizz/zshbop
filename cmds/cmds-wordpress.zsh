@@ -180,3 +180,84 @@ help_wordpress[wp-profile]='Install wp-cli-profile-command module'
 function wp-profile () {
     wp package install wp-cli/profile-command
 }
+
+# -- wp-find
+help_wordpress[wp-find]='Find WordPress instances'
+function wp-find () {
+	echo "Install wp-cli find-command"
+	echo "wp package install wp-cli/find-command:@stable"
+}
+
+# -- wp-find2
+help_wordpress[wp-find2]='Find WordPress instances'
+function wp-find2 () {
+	if [[ -z $1 ]]; then
+		echo "Usage: wp-find <directory>"
+		echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
+		return 1
+	fi
+	DIR="$1"
+
+	WP_CHECK=$(wp --allow-root core is-installed)
+	if [[ $? == "1" ]]; then
+		_error "$WP_CHECK"
+	fi
+
+	echo "Finding WordPress instances in ${DIR}..."
+	find ${DIR} -type f -name 'wp-config.php' -exec grep -H 'DB_NAME' {} \;
+}
+
+# -- wp-find-check
+help_wordpress[wp-find-check]='Find WordPress instances and check for core file changes'
+function wp-find-check () {
+	if [[ -z $1 ]]; then
+		echo "Usage: wp-find-check <path> [verbose]"
+		return 1
+	else
+		# -- Check if wp-cli is installed
+		_cexists wp
+		if [[ $? == "1" ]]; then
+			_error "Can't find wp-cli:"
+			return 1
+		fi
+
+		# -- Check if find package is installed
+		WPCLI_FIND_CHECK=$(wp package list | grep find-command)
+		if [[ $? == "1" ]]; then
+			_loading "Installing wp-cli find-command package"
+			wp package install wp-cli/find-command:@stable
+		else
+			_loading "wp-cli find-command package already installed"
+		fi
+
+		# -- Set Variables
+		SEARCH_PATH="$1"
+		VERBOSE="$2"
+		
+		_loading "Checking for WordPress sites at $SEARCH_PATH"
+		# -- Find WordPress Sites
+		FOUND_SITES_WPPATH=($(wp --allow-root find $SEARCH_PATH --fields=wp_path | grep -v '^wp_path$'))
+		
+		# -- Check WordPress sites for core file changes
+		for SITE_WPPATH in ${FOUND_SITES_WPPATH[@]}; do
+			VERIFY_CHECKSUMS=""
+			_loading2 "Checking Site: $SITE_WPPATH"
+			VERIFY_CHECKSUMS=$(wp --allow-root --path="$SITE_WPPATH" core verify-checksums 2>&1)
+			
+			# -- Check if site has been modified
+			if [[ $(echo $VERIFY_CHECKSUMS | grep -i 'Error:') ]]; then
+				# -- Count number of files affected
+				NUM_FILES_VERIFY_CHECKSUMS=$(echo $VERIFY_CHECKSUMS | wc -l)
+				
+				# -- Print out verbose output if requested
+				if [[ $VERBOSE ]]; then
+					echo $VERIFY_CHECKSUMS
+				fi
+				_error "    Error: Site doesn't verify checksums, files affected $NUM_FILES_VERIFY_CHECKSUMS"
+			else
+				_success "Success: Site not modified"
+			fi
+		_divider_dash
+		done
+	fi
+}

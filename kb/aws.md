@@ -1,3 +1,6 @@
+# SSH Key Fingerprint
+```openssl pkcs8 -in ssh-key-file -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c```
+
 # AWS CLI
 ## Login
 ```aws configure```

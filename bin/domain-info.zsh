@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # -- include zbr core
-source ${ZBR}/zshbop.zsh
+source ${ZBR}/lib/include.zsh
 
 # -- Cloudflare IPS
         CLOUDFLARE_IPS=(

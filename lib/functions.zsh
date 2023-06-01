@@ -281,8 +281,9 @@ zshbop_debug () {
 # ------------------
 # -- zshbop_color ()
 # ------------------
-help_zshbop[colors]='List variables for using color'
-zshbop_colors () {
+help_zshbop[formatting]='List variables for using color'
+alias formatting=zshbop_formatting
+zshbop_formatting () {
     _debug_all
 	
     _loading "How to use color"
@@ -336,13 +337,20 @@ zshbop_custom-load () {
 # --------------
 help_zshbop[help]='zshbop help screen'
 zshbop_help () {
-        _debug_all
-        _loading "-- zshbop help ------------"
-        echo ""
-        for key in ${(kon)help_zshbop}; do
-            printf '%s\n' "  ${(r:25:)key} - ${help_zshbop[$key]}"
-        done
-        echo ""
+    _debug_all
+    _loading "-- zshbop ------------"
+    echo ""
+
+    # -- Print out version and other details
+    zshbop_version
+    echo "Plugin Manager: $ZSHBOP_PLUGIN_MANAGER"
+
+    echo ""
+    _loading "-- zshbop commands --------------"
+    for key in ${(kon)help_zshbop}; do
+        printf '%s\n' "  ${(r:25:)key} - ${help_zshbop[$key]}"
+    done
+    echo ""
 }
 
 # --------------
@@ -513,6 +521,7 @@ function zshbop_cleanup () {
         "09fcdc31ca648bb15f7bb7ff90d0539a"
         "256bb9511533e9697f639821ba63adb9"
         "46c094ff2b56af2af23c5b848d46f997"
+        "3ce94ed5c5c5fe671a5f0474468d5dd3"
     )
     ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc | awk {' print $1'})"
     _loading "ZSH Cleanup"

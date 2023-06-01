@@ -266,6 +266,14 @@ function debugz() {
 
 # -- os - return os
 help_core[os]='Return OS'
-function os() {
-  echo "$MACHINE_OS / $MACHINE_OS_FLAVOUR"
+function os () {
+  echo "\$MACHINE_OS: $MACHINE_OS / \$MACHINE_OS_FLAVOUR: $MACHINE_OS_FLAVOUR / \$MACHINE_OS_VERSION:$MACHINE_OS_VERSION"
+  echo "\$OSTYPE: $OSTYPE"
+}
+
+# -- remove ansi color
+help_core[remove-ansi]='Remove ansi color'
+function remove-ansi () {
+  #sed -E "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g"
+  sed -e 's/\x1b\[[0-9;]*m//g'
 }

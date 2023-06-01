@@ -3,93 +3,64 @@
 # ------------
 # -- Variables
 # ------------
-VERSION=0.0.1
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-DEBUG="0"
-
-# -- Colors
-RED="\e[31m"
-GREEN="\e[32m"
-CYAN="\e[36m"
-BLUEBG="\e[44m"
-YELLOWBG="\e[43m"
-GREENBG="\e[42m"
-DARKGREYBG="\e[100m"
-ECOL="\e[0m"
+source $ZBR/lib/include.zsh
 
 # ------------
 # -- Functions
 # ------------
 
-# -- _error
-_error () {
-    echo  "${RED}** ERROR ** - ${@} ${ECOL}"
-}
-
-_success () {
-    echo  "${GREEN}** SUCCESS ** - ${@} ${ECOL}"
-}
-
-_running () {
-    echo  "${BLUEBG} ${@} ${ECOL}"
-}
-
-_creating () {
-    echo  "${DARKGREYBG} ${@} ${ECOL}"
-}
-
-_separator () {
-    echo  "${YELLOWBG}****************${ECOL}"
-}
-
-_debug () {
-    if [[ $DEBUG == "1" ]]; then
-        echo "${CYAN}** DEBUG: ${@} ${ECOL}"
-    fi
-}
-
+# -- url_to_domain
 url_to_domain () {
 	_debug "\$1 = ${1}"
 	DOMAIN=$(echo "${1}" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
 }
 
+# -- usage
 usage () {
-        echo "Usage: ./$0 [-ip=|-port=|-ssl] <url>"
-        echo "  -port       Port to resolve DNS, defaults to 44"
-        echo "  -ip         IP of server, defaults to 127.0.0.1"
-        echo "  -ssl        will disply SSL certficate information."
-        echo "  -v          Displays curl verbose"
-        echo "  -f          Follows location, aka redirects"
-        echo "  -c          Don't show just headers, show content"
-        echo "  -d          Debug"
-        echo ""
+        echo "\
+Usage: ./$0 [-ip 127.0.0.1|-port 443|-ssl] <url>
+-port       Port to resolve DNS, defaults to 44
+-ip         IP of server, defaults to 127.0.0.1
+-ssl        will disply SSL certficate information.
+-v          Displays curl verbose
+-f          Follows location, aka redirects
+-c          Don't show just headers, show content
+-d          Debug
+Example: ./curl-vh -ip 127.0.0.1 -port 443 -ssl https://google.com
+"
 }
 
+# -- do_curl
 do_curl (){
-    _running "Running: curl --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} ${EXTRA_ARGS} -k 2>&1 ${GREP_ARGS}"
-	echo ""
-	eval "curl --resolve \"${URL}:${PORT}:${SERVERIP}\" ${URL} ${EXTRA_ARGS} -k 2>&1 ${GREP_ARGS}"
+    _loading2 "Running: curl --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} ${EXTRA_ARGS} -k 2>&1"
+
+    if [[ -n $O_SSL ]]; then
+        _loading "Getting SSL certificate information from curl"            
+        CURL_CMD="curl --head -vvv --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} -k --cert-status 2>&1 | grep -A10 'SSL connection'"
+        _loading3 "Running - $CURL_CMD"
+        eval $CURL_CMD
+
+        _loading "Getting SSL certificate information from openssl"
+        openssl s_client -connect $DOMAIN:443 </dev/null 2>/dev/null | openssl x509 -noout -text | grep DNS:
+    else
+        eval "curl --head --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} ${EXTRA_ARGS} -k 2>&1"
+    fi
 }
 
+ALLARGS="$@"
 # -- Gather options
 zparseopts -D -E ip:=O_IP port:=O_PORT ssl=O_SSL v=O_VERBOSE f=O_FOLLOW c=O_CONTENT d=O_DEBUG
 
 # -- Debug
 if [[ -n $O_DEBUG ]]; then
-    DEBUG="1"
+    DEBUGF="1"
     _success "Debug enabled"
 fi
 
-# -- Clear Variables
-IP=""
-PORT=""
-GREP_ARGS=""
-EXTRA_ARGS=""
-
 # -- IP
-_debug "\$O_IP = $O_IP"
+_debugf "\$O_IP = $O_IP"
 if [[ -z $O_IP ]]; then
-	_debug "No IP provided using 127.0.0.1"
+	_debugf "No IP provided using 127.0.0.1"
 	SERVERIP="127.0.0.1"
 elif [[ $O_IP == "" ]]; then
 	usage
@@ -99,7 +70,7 @@ else
 fi
 
 # -- Port
-_debug "\$O_PORT = $O_PORT"
+_debugf "\$O_PORT = $O_PORT"
 if [[ -z $O_PORT ]]; then
     PORT="443"
 else
@@ -108,19 +79,16 @@ else
 fi
 
 # -- SSL
-_debug "\$O_SSL = $O_SSL"
-if [[ -n $O_SSL ]]; then
-    GREP_ARGS="| grep -A10 'SSL connection'"
-    EXTRA_ARGS=" -vvv"
-    SSL="1"
-fi
+[[ -n $O_SSL ]] && SSL="1"
 
 # -- Verbose
-_debug "\$O_VERBOSE = $O_VERBOSE"
 if [[ -n $O_VERBOSE ]]; then
 	EXTRA_ARGS=" -vvv"
 	VERBOSE="1"
+elif [[ -n $O_SSL ]]; then
+    EXTRA_ARGS=" -vvv"    
 fi
+
 
 # -- Follow
 if [[ -n $O_FOLLOW ]]; then
@@ -146,5 +114,3 @@ else
     _debug "vars - \$URL=$URL \$DOMAIN=$DOMAIN \$SERVERIP=$SERVERIP \$PORT=$PORT \$SSL=$SSL \$VERBOSE=$VERBOSE \$EXTRA_ARGS=$EXTRA_ARGS \$GREP_ARGS=$GREP_ARGS"	
     do_curl
 fi
-
-

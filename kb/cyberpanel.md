@@ -1,21 +1,23 @@
-# Error log
+# Upgrading CyberPanel
+* See https://community.cyberpanel.net/t/02-upgrading-cyberpanel/81
+```
+sh <(curl https://raw.githubusercontent.com/usmannasir/cyberpanel/stable/preUpgrade.sh || wget -O - https://raw.githubusercontent.com/usmannasir/cyberpanel/stable/preUpgrade.sh)
+```
+
+# Logs
+## Error log
 * /home/cyberpanel/error-logs.txt
 
-# SSL Renewals
+## SSL Renewals
 * /root/.acme
 * /root/.acme.sh/acme.sh.log
 
-# Setup Cloudflare Real Visitor IP
-* https://openlitespeed.org/kb/show-real-visitor-ip-instead-of-cloudflare-ips/
-
-# Setting up SSL for Admin URL
-* https://blog.cyberpanel.net/2018/12/25/how-to-remove-port-8090-from-cyberpanel/
-
-# Reset Admin Password
+# Tasks
+## Reset Admin Password
 * Login via ssh as root
 *```adminPass newpassword```
 
-# Password Protection
+## Password Protection
 1. Setup webadmin console if you haven't already: https://forums.cyberpanel.net/discussion/87/tutorial-how-to-setup-and-login-to-openlitespeed-webadmin-console
 2. Go to Virtual Hosts->Example->Security
 3. In a new tab, go to Virtual Hosts->YOUR DOMAIN->Security
@@ -31,5 +33,13 @@
 13. Set permissions to the file by typing "chmod +rwx htpasswd"
 14. Done
 
-# Change PHP Settings per Site
+## Change PHP Settings per Site
 * See openlitespeed KB
+
+## Setup Cloudflare Real Visitor IP
+* https://openlitespeed.org/kb/show-real-visitor-ip-instead-of-cloudflare-ips/
+
+## Setting up SSL for Admin URL
+* https://blog.cyberpanel.net/2018/12/25/how-to-remove-port-8090-from-cyberpanel/
+
+## Regenerate OLS Config

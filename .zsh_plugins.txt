@@ -8,3 +8,4 @@ zpm-zsh/mysql-colorize
 zsh-users/zsh-syntax-highlighting
 # marlonrichert/zsh-autocomplete
 zsh-users/zsh-autosuggestions
+lukechilds/zsh-nvm
