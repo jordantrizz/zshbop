@@ -14,7 +14,7 @@ if [[ $? == "0" ]]; then
 		_debug "Using exa"
 		alias ls="${EXA_LINUX}"
 		alias exa="${EXA_LINUX}"
-	fi		
+	fi
 fi
 
 # -- ps
@@ -25,7 +25,7 @@ alias tran="tran_linux_amd64"
 
 # -- interfaces
 help_linux[interfaces]="List interfaces ip, mac and link"
-interfaces_linux () {
+function interfaces_linux () {
     local OUTPUT=""
     local INTERFACES=()
     local INTERFACES_OUTPUT=""
@@ -39,8 +39,9 @@ interfaces_linux () {
 
     # -- Get a list of all network interfaces
     _debug "Getting list of interfaces using ip -o link show and \$EXCLUDE_INTERFACES: $EXCLUDE_INTERFACES"
-    EXCLUDE_INTERFACES="^lo|^veth|^br-" # -- Exclude loopback, veth and br interfaces
+    EXCLUDE_INTERFACES="^lo|^veth|^br-|^fwpr|^fwln|^fwbr|^tap" # -- Exclude loopback, veth and br interfaces
     INTERFACES=("${(f)$(ip -o link show | awk '{print $2}' | sed 's/://' | grep -vE "${EXCLUDE_INTERFACES}")}")
+    OUTBOUND_INTERFACE=$(ip -o route get to 8.8.8.8 | awk {' print $5 '})
 
     # -- Loop through each interface
     for INTERFACE in $INTERFACES; do
@@ -57,9 +58,13 @@ interfaces_linux () {
 
         # -- Print interface information
         _debug "$INTERFACE:$INTERFACE_IP - $INTERFACE_MAC $INTERFACE_SPEED"
-        INTERFACES_OUTPUT+="$INTERFACE:$INTERFACE_IP - $INTERFACE_MAC $INTERFACE_SPEED || "
+        if [[ $INTERFACE == $OUTBOUND_INTERFACE ]]; then
+            PRIMARY_INTERFACES_OUTPUT="\e[1;32m$INTERFACE:$INTERFACE_IP - $INTERFACE_MAC $INTERFACE_SPEED\e[0m"
+        else
+            INTERFACES_OUTPUT+="\t$INTERFACE:$INTERFACE_IP - $INTERFACE_MAC $INTERFACE_SPEED \n"
+        fi
     done
-    
+    echo "$PRIMARY_INTERFACES_OUTPUT"
     echo "$INTERFACES_OUTPUT"
 }
 
@@ -84,7 +89,7 @@ check_diskspace_linux () {
             _error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
             DISKSPACE_ERROR=1
         else
-            _log "$FIRSTMSG.. - no issue."            
+            _log "$FIRSTMSG.. - no issue."
         fi
     done
     [[ $DISKSPACE_ERROR == 1 ]] && _error "Disk space issue found, please check." || _success "No disk space issue found."

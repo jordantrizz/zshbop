@@ -107,8 +107,8 @@ pre_flight_check () {
             if [ "$choice" == "y" ] || [ "$choice" == "Y" ]; then
                 echo ""
                 echo "${YELLOW}****************************************************${ECOL}"
-                apt-get update
-                apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"
+                sudo apt-get update
+                sudo apt-get install -y --no-install-recommends "${TOOLS_INSTALL[@]}"
                 echo "${YELLOW}****************************************************${ECOL}"
                 echo ""
             elif [ "$choice" == "n" ] || [ "$choice" == "N" ]; then

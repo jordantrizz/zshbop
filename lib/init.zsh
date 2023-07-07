@@ -461,6 +461,9 @@ function init_check_services () {
     else
     	_log "Netdata not installed"
     fi
+
+    # -- cyberpanel
+    if (( $+commands[cyberpanel] )) && _success "Cyberpanel Installed." || _log "Cyberpanel not installed"
 }
 
 # ==============================================
@@ -572,7 +575,7 @@ init_motd () {
 	init_check_software
 	
 	# -- Check service software versions 
-    _loading3 "Checking Service Versions"
+    _loading "Checking Service Versions"
 	init_check_services
     echo ""
 

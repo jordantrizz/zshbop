@@ -27,14 +27,36 @@ function pk () {
 }
 
 # -- List public keys fingerprint 
-awsfp () { 
-	openssl pkcs8 -in $1 -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c
+help_ssh[pk]='List SSH Key Fingerprint'
+ssh-fingerprint () { 
+	if [[ -z $1 ]]; then
+        echo "Usage: ssh-fingerprint <ssh-key>"
+        echo "Example: ssh-fingerprint ~/.ssh/id_rsa.pub"
+        return
+    else
+        _loading "Listing fingerprint for $1"
+        # -- remove (stdin)=
+	    openssl pkcs8 -in $1 -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c | sed 's/^.* //'
+    fi
 }
 
+# -- ssh-fingerprint-all
+help_ssh[ssh-fingerprint-all]='List all SSH Key Fingerprint'
+ssh-fingerprint-all () {
+    # -- Find all non .pub files in $HOME/.ssh
+    local SSH_PUBLIC_KEYS SSHKEY_FINGERPRINT
+    SSH_PUBLIC_KEYS=($(find $HOME/.ssh -type f -not -name "*.pub"))
+    _loading "Listing all public keys in /$HOME/.ssh"
+    for PUBKEY in ${SSH_PUBLIC_KEYS}; do        
+        # -- remove (stdin)=
+        SSHKEY_FINGERPRINT=$(openssl pkcs8 -in $PUBKEY -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c | sed 's/^.* //')
+        echo "$PUBKEY - $SSHKEY_FINGERPRINT"
+    done	
+}
 
 # - Add SSH Key to keychain
-help_ssh[addsshkey]='add ssh private key to keychain'
-addsshkey () {
+help_ssh[ssh-addkey]='add ssh private key to keychain'
+ssh-addkey () {
         echo "-- Adding $1 to keychain"
         keychain -q --eval --agents ssh $HOME/.ssh/$1
 }

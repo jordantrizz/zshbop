@@ -45,3 +45,11 @@ define( 'WP_SITEURL', 'http://example.com' );
 # wp-cli
 ## Another Update is Currently in Progress
 ```wp option delete core_updater.lock```
+
+# Error Logging for 'There has been a critical error on your website.' errors
+```
+<?php
+add_filter('wp_php_error_message', function ($message,$error) {
+    error_log("Error-".print_r($message,true));
+});
+```

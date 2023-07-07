@@ -156,7 +156,10 @@ _checkroot () {
         _debug_all
     if [[ $EUID -ne 0 ]]; then
         _error "Requires root...exiting."
-    return
+        return 1
+    else
+        _debug "Running as root"
+        return 0
     fi
 }
 

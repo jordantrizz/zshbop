@@ -12,11 +12,17 @@ function proxmox-restart () {
     systemctl restart pve-cluster pvedaemon pvestatd pveproxy pve-ha-lrm pve-firewall pvefw-logger
 }
 
+# -------------------------------------------------------------------
+# -- proxmox-backup.sh
+# -------------------------------------------------------------------
+help_proxmox[proxmox-backup.sh]='Backup proxmox database'
+
+
 #####################################################################
 #####################################################################
 
 # -------------------------------------------------------------------
-# -- proxmox
+# -- proxmox helper
 # -------------------------------------------------------------------
 help_proxmox[proxmox]="Proxmox helper"
 alias pmox='proxmox'
@@ -36,9 +42,8 @@ function proxmox_init () {
     # -- debug
     _debug_all
     ALL_ARGS="$@"
-    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VMID ip:=IP bridge:=BRIDGE
+    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW 
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
-    NAME=${NAME[2]}
     [[ -z $MEM ]] && MEM="2048" || MEM=${MEM[2]}
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
@@ -47,9 +52,13 @@ function proxmox_init () {
     [[ -z $DHCP_NET ]] && DHCP_NET="vmbr0" || DHCP_NET=$DHCP_NET[2]
     [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
     [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]
-    [[ -z $VMID ]] && { VM_ID=$(pvesh get /cluster/nextid); _debug "\pvesh /cluster/nextid: $VM_ID"} || VMID=$VMID[2]
+    [[ -z $VM_ID ]] && { VM_ID=$(pvesh get /cluster/nextid); _debug "\pvesh /cluster/nextid: $VM_ID"} || VM_ID=$VM_ID[2]
+    [[ -z $NAME ]] && NAME="VM-${VM_ID}" || NAME=$NAME[2]
     [[ -z $IP ]] && IP="dhcp" || IP=$IP[2]
     [[ -z $BRIDGE ]] && BRIDGE="vmbr0" || BRIDGE=$BRIDGE[2]
+    [[ -z $CLONE_ID ]] && CLONE_ID="9000" || CLONE_ID=$CLONE_ID[2]
+    [[ -z $MAC ]] && MAC="" || MAC=$MAC[2]
+    [[ -z $GW ]] && GW="" || GW=$GW[2]
 
     _debugf "ALL_ARGS: $ALL_ARGS"
     _debugf "DEBUG: $DEBUG"
@@ -64,9 +73,12 @@ function proxmox_init () {
     _debugf "DHCP_NET: $DHCP_NET"
     _debugf "TEMP_DIR: $TEMP_DIR"
     _debugf "SSH_KEY: $SSH_KEY"
-    _debugf "VMID: $VMID"
+    _debugf "VM_ID: $VM_ID"
     _debugf "IP: $IP"
     _debugf "BRIDGE: $BRIDGE"
+    _debugf "CLONE_ID: $CLONE_ID"
+    _debugf "MAC: $MAC"
+    _debugf "GW: $GW"
 
     REQUIRED_PKG=('curl' 'libguestfs-tools')
     _debugf $REQUIRED_PKG
@@ -77,6 +89,7 @@ function proxmox_init () {
         _debugf "Creating VM"
         _proxmox_check || return 1
         _proxmox_createvm
+    # -- Create template
     elif [[ $1 == "createtemp" ]]; then
         _debugf "Creating template"
         _proxmox_check || return 1
@@ -140,6 +153,12 @@ Command Options:
     -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
     -sshkey [sshkey]          SSH key to add to VM, optional. (Default: ~/.ssh/id_rsa.pub)
     -vmid [vmid]              VM ID to use, (Default: random)
+    -cloneid [vmid]           VM ID to clone, (Default: 9000)
+    -mac [mac]                MAC address to use, optional.
+    -ip [ip]                  IP address to use, optional. (Default: dhcp)
+    -gw [gw]                  Gateway to use, optional.
+    -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)
+
 	
 	Example: createvm -name server -memory 2048 -network vmbr0 -storage local -disksize 80 -os focal
   
@@ -174,38 +193,45 @@ function _proxmox_check () {
         [[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required."; return 1 }
         [[ -x $(command -v virt-customize) ]] && _success "lshw is installed" || { _error "No virt-customize present, required."; return 1 }
     fi
+
+    # -- Get Proxmox node name
+    PROXMOX_NODE_NAME=$(pvesh ls nodes | awk '{ print $2}')
 }
 
 # -------------------------------------------------------------------
 # -- _proxmox_download_cloudimage
 # -------------------------------------------------------------------
 function _proxmox_download_cloudimage () {
-    # -- Check if $OS is valid
-    _loading2 "Checking if $OS is a valid OS"
+    # -- Check if $OS_RELEASE is valid
+    _loading2 "Checking if $OS_RELEASE is a valid OS"
     AVAIL_OS=("focal" "bionic" "jammy")
-    _if_marray "$OS" AVAIL_OS
+    _if_marray "$OS_RELEASE" AVAIL_OS
     if [[ $MARRAY_VALID == "1" ]]; then
-        _error "Couldn't get Ubuntu Image for $OS"
+        _error "Couldn't get Ubuntu Image for $OS_RELEASE"
         return
     else
-        _loading2 "OS: $OS is valid"
+        _loading2 "OS: $OS_RELEASE is valid"
     fi
     echo ""
 
-    # -- Download OS Image
-    IMAGE_FILE="${OS}-server-cloudimg-amd64.img"
-    IMAGE_URL="https://cloud-images.ubuntu.com/focal/current/${}"
+    # -- Generate OS download URL and path
+    IMAGE_FILE="${OS_RELEASE}-server-cloudimg-amd64.img"
+    IMAGE_URL="https://cloud-images.ubuntu.com/${OS_RELEASE}/current/${IMAGE_FILE}"
     IMAGE_FILE_PATH="${TEMP_DIR}/${IMAGE_FILE}"
-    
-    _loading3 "Fetching $OS Image from $IMAGE_URL into $TEMP_DIR"
+    _loading3 "Fetching $OS_RELEASE Image from $IMAGE_URL into $IMAGE_FILE_PATH"
+
+    # -- Check if $IMAGE_FILE exists
     _loading4 "Checking if $IMAGE_FILE exists in $TEMP_DIR"
     if [[ -f ${IMAGE_FILE_PATH} ]]; then
         _loading4 "Found $IMAGE_FILE_PATH"
+        
+        # -- Check if $IMAGE_FILE has a valid MD5SUM hash
         _loading4 "Checking MD5"
-        IMAGE_URL_MD5=$(curl -s https://cloud-images.ubuntu.com/$OS/current/MD5SUMS | grep "$OS-server-cloudimg-amd64.img" | awk {' print $1 '})
-        _loading4 "\$OS_URL_MD5: $IMAGE_URL_MD5"
+        IMAGE_URL_MD5=$(curl -s https://cloud-images.ubuntu.com/$OS_RELEASE/current/MD5SUMS | grep "$OS_RELEASE-server-cloudimg-amd64.img" | awk {' print $1 '})
         IMAGE_FILE_MD5=$(md5sum $IMAGE_FILE_PATH | awk {'print $1'})
-        _loading4 "\$OS_FILE_MD5: $IMAGE_FILE_MD5"
+        _loading4 "\$OS_URL_MD5: $IMAGE_URL_MD5 \$OS_FILE_MD5: $IMAGE_FILE_MD5"
+
+        # -- Check if $IMAGE_FILE_MD5 matches $IMAGE_URL_MD5
         if [[ $IMAGE_URL_MD5 == $IMAGE_FILE_MD5 ]]; then
             _loading4 "Local file $IMAGE_FILE_PATH matches remote MD5, continuing build"
         else
@@ -215,6 +241,7 @@ function _proxmox_download_cloudimage () {
             curl --output $IMAGE_FILE_PATH $IMAGE_URL
         fi
     else
+        # -- Download $IMAGE_URL into $IMAGE_FILE_PATH if it doesn't exist
         _debugf "curl --output $IMAGE_FILE_PATH $IMAGE_URL"
         curl --output $IMAGE_FILE_PATH $IMAGE_URL
     fi
@@ -224,13 +251,16 @@ function _proxmox_download_cloudimage () {
 # -------------------------------------------------------------------
 # -- proxmox_createvm
 # -------------------------------------------------------------------
-function_proxmox_createvm () {
+function _proxmox_createvm () {
     # -- Check if storage exists
+    _loading2 "Checking if $STORAGE exists"
     IFS=$'\n' proxmox_STORAGE=($(pvesm status | awk {' print $1 '}))
     _if_marray "$STORAGE" proxmox_STORAGE
     if [[ $MARRAY_VALID == "1" ]]; then
         _error "Storage $STORAGE doesn't exist, type pmox info"            
         return
+    else
+        _loading2 "Storage $STORAGE exists"
     fi
 
     # -- Download cloudimage
@@ -285,14 +315,11 @@ function _proxmox_createtemp () {
     _loading "Creating template"
 
     # -- Set Variables if not set
-    [[ -z ${VM_ID} ]] && VM_ID="9000"
-    [[ -z ${OS} ]] && OS="focal"
-    [[ -z ${BRIDGE} ]] && BRIDGE="vmbr0"
     if [[ -z ${STORAGE} ]]; then
         STORAGE=$(pvesm status -content images | awk {'if (NR!=1) print $1 '})
     fi
-    _loading2 "OS:$OS BRIDGE:$BRIDGE STORAGE:$STORAGE VM_ID:$VM_ID"
-    _debugf "\$OS:$OS \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
+    _loading2 "\OS_RELEASE:$OS_RELEASE BRIDGE:$BRIDGE STORAGE:$STORAGE VM_ID:$VM_ID"
+    _debugf "\$OS_RELEASE:$OS_RELEASE \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
     # -- Download cloudimage
     _proxmox_download_cloudimage
@@ -309,14 +336,14 @@ function _proxmox_createtemp () {
 
     # -- Create VM
     _loading2 "Creating VM with ID:$VM_ID"
-    _debugf "qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}"
-    qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE}
+    _debugf "qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE} --name ${NAME}"
+    qm create ${VM_ID} --memory 2048 --net0 virtio,bridge=${BRIDGE} --name ${NAME}
     [[ $? -ne 0 ]] && return 1
 
     # -- Import OS Image
     _loading3 "Importing OS Image"
-    _debugf "qm importdisk ${VM_ID} ${IMAGE_FILE_PATH} ${PROXMOX_STORAGE}"
-    qm importdisk ${VM_ID} ${IMAGE_FILE_PATH} ${PROXMOX_STORAGE}
+    _debugf "qm importdisk ${VM_ID} ${IMAGE_FILE_PATH} ${STORAGE}"
+    qm importdisk ${VM_ID} ${IMAGE_FILE_PATH} ${STORAGE}
     [[ $? -ne 0 ]] && return 1
 
     # -- Set VM Options
@@ -325,13 +352,23 @@ function _proxmox_createtemp () {
     qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw
     [[ $? -ne 0 ]] && return 1
 
-    # -- Set VM Cloudinit
-    _loading3 "Setting VM cloudinit"
-    _debugf "qm set ${VM_ID} --ide2 ${PROXMOX_STORAGE}:cloudinit"
+    # -- Set VM clount-init
+    _loading3 "Setting VM cloud-init"
+    _debugf "qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit"
+    qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit
+    
+    # -- Setting up vendor.yaml if exists
     _debugf "qm set ${VM_ID} --cicustom 'vendor=local:snippets/vendor.yaml'"
-    qm set ${VM_ID} --ide2 ${PROXMOX_STORAGE}:cloudinit
-    qm set ${VM_ID} --cicustom 'vendor=local:snippets/vendor.yaml'
-    [[ $? -ne 0 ]] && return 1
+    if [[ -f /var/lib/vz/snippets/vendor.yaml ]]; then
+        qm set ${VM_ID} --cicustom 'vendor=local:snippets/vendor.yaml'
+        if [[ $? == 0 ]]; then
+            _success "Set VM cloud-init vendor.yaml - $(qm config ${VM_ID} | grep cicustom)"
+        else
+            _error "Setting VM cloud-init vendor.yaml failed"
+            return 1
+        fi
+        
+    fi
 
     # -- Set VM boot options
     _loading2 "Setting VM boot options"
@@ -343,6 +380,18 @@ function _proxmox_createtemp () {
     _loading2 "Setting VM display options"
     _debugf "qm set ${VM_ID} --serial0 socket --vga serial0"
     qm set ${VM_ID} --serial0 socket --vga serial0
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Set VM to autoboot
+    _loading2 "Setting VM to autoboot"
+    _debugf "qm set ${VM_ID} --onboot 1"
+    qm set ${VM_ID} --autostart 1
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Enable QEMU Guest Agent
+    _loading2 "Enabling QEMU Guest Agent"
+    _debugf "qm set ${VM_ID} --agent enabled=1"
+    qm set ${VM_ID} --agent enabled=1
     [[ $? -ne 0 ]] && return 1
 
     # -- Create VM template
@@ -361,6 +410,77 @@ function _proxmox_clonetemp () {
     _debugf "qm list | grep ${CLONE_ID} | awk {'print \$1 '}"
     CID=$(qm list | grep ${CLONE_ID} | awk {'print $1 '})
     [[ $CLONE_ID != $CID ]] && { _loading2 "Template ${CLONE_ID} does not exist."; return 1; } || { _loading2 "Template ${CLONE_ID} exists."; }
+
+    # -- Clone template
+    _loading2 "Cloning template ${CLONE_ID} to ${VM_ID}"
+    
+    # -- Check if VM_ID is taken
+    _loading3 "Checking if VMID $VM_ID is taken"
+    QM_LIST=$(qm list | awk '{print $1}')
+    if echo "$QM_LIST" | grep -q "$VM_ID"; then
+        echo "VMID $VM_ID is taken."
+        return 1
+    else
+        _loading3 "VMID $VM_ID is available."
+    fi
+
+    # -- Clone template
+    _loading3 "Cloning ${CLONE_ID} to ${VM_ID} with name ${NAME}"
+    _debugf "qm clone ${CLONE_ID} ${VM_ID} --name ${NAME}"
+    qm clone ${CLONE_ID} ${VM_ID} --name ${NAME} --full
+    if [[ $? == 0 ]]; then
+        _success "Cloned ${CLONE_ID} to ${VM_ID} with name ${NAME}"
+    else
+        _error "Cloning ${CLONE_ID} to ${VM_ID} with name ${NAME} failed"
+        return 1
+    fi
+
+    # -- Set VM to autoboot
+    _loading2 "Setting VM to autoboot"
+    _debugf "qm set ${VM_ID} --onboot 1"
+    qm set ${VM_ID} --autostart 1
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Enable QEMU Guest Agent
+    _loading2 "Enabling QEMU Guest Agent"
+    _debugf "qm set ${VM_ID} --agent enabled=1"
+    qm set ${VM_ID} --agent enabled=1
+    [[ $? -ne 0 ]] && return 1
+
+    # -- Check if network mac is set
+    _loading3 "Checking if network mac is set"
+    if [[ -n $MAC ]]; then
+        _loading3 "Setting network to ${MAC}"
+        _debugf "qm set ${VM_ID} --net0 virtio,macaddr=${MAC},bridge=${BRIDGE}"
+        qm set ${VM_ID} --net0 virtio,macaddr=${MAC},bridge=${BRIDGE}
+    fi
+
+    # Checking if IP and GW is set
+    _loading3 "Checking if IP and GW is set"
+    if [[ -n $IP ]] && [[ -n $GW ]]; then
+        # -- Make sure IP has CIDR
+        _loading3 "Checking if IP has CIDR"
+        if [[ $IP != *"/"* ]]; then
+            _loading3 "Adding CIDR to IP"
+            IP="${IP}/24"
+        fi
+        _loading3 "Setting IP to ${IP} and GW to ${GW}"
+        _debugf "qm set ${VM_ID} --ipconfig0 ip=${IP},gw=${GW}"
+        qm set ${VM_ID} --ipconfig0 ip=${IP},gw=${GW}
+    fi
+
+    # -- Change cloud-init default password
+    GEN_RAND_PASS=$(genpass-monkey)
+    RAND_PASS=${GEN_RAND_PASS:0:6}
+    _loading3 "Changing cloud-init default password"
+    _debugf "qm set ${VM_ID} --cipassword ${RAND_PASS}"
+    qm set ${VM_ID} --cipassword ${RAND_PASS}
+    if [[ $? == 0 ]]; then
+        _success "Changed cloud-init default password to ${RAND_PASS}"
+    else
+        _error "Changing cloud-init default password to ${RAND_PASS} failed"
+        return 1
+    fi
 }
 
 # -------------------------------------------------------------------
@@ -391,50 +511,7 @@ function _proxmox_create_lxc () {
 
         # -- Create Ubuntu 22.10 Container
         _loading3 "Create Ubuntu 22.10 Container for DHCP on vmbr1 network with ip 10.0.0.2 and 16GB rootfs"
-        _debugf "pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${PROXMOX_STORAGE}:16 --storage ${PROXMOX_STORAGE} --unprivileged 1 --onboot 1"
-        pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${PROXMOX_STORAGE}:16 --storage ${PROXMOX_STORAGE} --unprivileged 1 --onboot 1
+        _debugf "pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${STORAGE}:16 --storage ${STORAGE} --unprivileged 1 --onboot 1"
+        pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${STORAGE}:16 --storage ${STORAGE} --unprivileged 1 --onboot 1
         [[ $? -eq 0 ]] && _loading3 "Ubuntu 22.10 Container created successfully" || { _error "Ubuntu 22.10 Container creation failed"; return 1 }
 }
-
-# -------------------------------------------------------------------
-# -- _proxmox_vendorci
-# -------------------------------------------------------------------
-function _proxmox_vendorci () {
-    # -- Create vendor.yaml file
-    _loading "Creating vendor.yaml file at /var/lib/vz/snippets"
-    if [[ ! -d /var/lib/vz/snippets ]]; then
-        _error "/var/lib/vz/snippets doesn't exist."
-        exit 1
-    else
-        _loading3 "Found /var/lib/vz/snippets, creating /var/lib/vz/snippets/vendor.yaml file"
-cat << EOF > /var/lib/vz/snippets/vendor.yaml
-#cloud-config
-users:
-  - name: root
-    ssh_authorized_keys:
-      - ssh_authorized_keys:
-          - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIyaSjx2adBrDbvYMTVoWnUfog4UsZK67wI3OumnArIDlzEjwse3aOx8dj79R1G0wTLrjKEu1kAsO0jSoGdkV4Lujub4oLm3j240nn1HhXHUWfv3ZqU7eSThBI7lCuHwDcj0r5nJm5GkCtLLplnweLqLxfd8fgPj+a8Cey4euxAE3rtSpQI9M3mrcAUtw9TgXGK7N/tgA9yBSxCM5GT4AvKjbedoxEvAH7QfqUrSoF4zc85EvwjS8QmYdPaVahyYafuJOT2KsmiCFJWAh/rHQuxcG5352svOJRQaaS/LbOAsAz3FwcxulagwefAW7C7h2+j5i2q0rMCAeQ34cS2HFD root@srv01
-
-package_update: true
-package_upgrade: true
-packages:
-  - joe
-  - zsh
-  - qemu-guest-agent
-
-ssh_pwauth: false
-disable_root: false
-
-runcmd:
-  - systemctl start qemu-guest-agent
-
-output:
-  all: '| tee -a /var/log/cloud-init-output.log'
-EOF
-    fi
-}
-
-# -------------------------------------------------------------------
-# -- proxmox-backup.sh
-# -------------------------------------------------------------------
-help_proxmox[proxmox-backup.sh]='Backup proxmox database'

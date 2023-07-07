@@ -106,9 +106,18 @@
   )
 
  	# Set IP interface
- 	#typeset -g POWERLEVEL9K_IP_INTERFACE='eth0'
- 	typeset -g POWERLEVEL9K_IP_INTERFACE=$(ip -o route get to 8.8.8.8 | awk {' print $5 '})
-
+ 	case $OSTYPE in
+ 	darwin*)
+    	typeset -g POWERLEVEL9K_IP_INTERFACE=$(route get 8.8.8.8 | awk '/interface:/{print $2}')
+    ;;
+    linux*)
+    	typeset -g POWERLEVEL9K_IP_INTERFACE=$(ip -o route get to 8.8.8.8 | awk {' print $5 '})
+    ;;
+	*)
+    	typeset -g POWERLEVEL9K_IP_INTERFACE='eth0'
+  	;;
+	esac
+ 	
   # To disable default icons for all segments, set POWERLEVEL9K_VISUAL_IDENTIFIER_EXPANSION=''.
   #
   # To enable default icons for all segments, don't define POWERLEVEL9K_VISUAL_IDENTIFIER_EXPANSION
@@ -644,6 +653,7 @@
   typeset -g POWERLEVEL9K_CONTEXT_BACKGROUND=0
 
   # Fix for %M not providing a fully qualified hostname
+  # Todo utilize $_p9k_os
   if [[ $MACHINE_OS == "Linux" ]]; then
   	if [[ $(hostname -af) == "localhost" ]]; then
     	HOSTNAME=$(hostname)
