@@ -1,3 +1,7 @@
+# PHP API Versions to Versions
+* 20190902 ->  7.4.33
+* 20200930 -> 8.0.29
+
 # PHP Timezones
 * https://www.php.net/manual/en/timezones.php
 

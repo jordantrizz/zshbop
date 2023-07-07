@@ -69,7 +69,7 @@ check-fsl () {
 help_gridpane[gp-mysql]="Gridpane MYSQL command"
 gp-mysql () {
 	mysqlrootpw=$(grep -oP '^mysql-root:\K.*' /root/gridenv/promethean.env | openssl enc -d -a -salt);
-	mysql --user root --password="${mysqlrootpw}" ${*}
+	mysql --user root --password="${mysqlrootpw}" ${*} 2>&1
 }
 
 # -- gp-mysqlps

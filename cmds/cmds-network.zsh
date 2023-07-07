@@ -16,7 +16,7 @@ _debug " -- Loading ${(%):-%N}"
 
 # -- paths
 help_network[interfaces]='Print out network interfaces'
-interfaces () {
+function interfaces () {
 	if [[ $MACHINE_OS == "mac" ]]; then
 		interfaces_mac
 	else
@@ -26,13 +26,13 @@ interfaces () {
 
 # -- listen
 help_network[listen]="Show all tcp/tcp6 ports listening"
-listen () {
+function listen () {
 	netstat -anp | grep 'LISTEN' | egrep 'tcp|tcp6'
 }
 
 # -- whatismyip
 help_network[whatismyip]="Get current machines internet facing IP Addres"
-whatismyip () {
+function whatismyip () {
 	dig @resolver1.opendns.com A myip.opendns.com +short -4
 	dig @resolver1.opendns.com AAAA myip.opendns.com +short -6
 }

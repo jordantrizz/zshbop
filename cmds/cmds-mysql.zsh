@@ -32,7 +32,7 @@ mysql-allrowsize () {
 
 # - mysql-dbrowsize
 help_mysql[mysql-dbrowsize]='Get number of rows in a table'
-mysql-dbrowsize () { 
+mysql-dbrowsize () {
 	if [[ -n $1 ]]; then
 		mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
@@ -43,9 +43,9 @@ mysql-dbrowsize () {
 
 # - mysql-dbtablesize
 help_mysql[mysql-dbtablesize]='Get size of all tables in database'
-mysql-dbtablesize () { 
+mysql-dbtablesize () {
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;" 
+		mysql -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;"
 	else
 		echo "Usage: $0 <database name>"
 		return 1
@@ -54,19 +54,19 @@ mysql-dbtablesize () {
 
 # - mysql-datafree
 help_mysql[mysql-datafree]='List tables that have white space'
-mysql-datafree () { 
+mysql-datafree () {
 	mysql -e "SELECT TABLE_SCHEMA, ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables where DATA_FREE > 0 ORDER by DATA_FREE DESC;"
 }
 
 # - mysql-msds
 help_mysql[mysql-msds]='Undocumented, dont use.'
-mysql-msds () { 
-	zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g" 
+mysql-msds () {
+	zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g"
 }
 
 # - mysql-myisam
 help_mysql[mysql-myisam]='Locate myisam tables in MySQL'
-mysql-myisam () { 
+mysql-myisam () {
     _loading "Checking all databases for MyISAM Tables"
 	mysql_output=$(mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';")
     if [[ $mysql_output ]]; then
@@ -80,8 +80,8 @@ mysql-myisam () {
 
 # - mysql-maxmem
 help_mysql[mysql-maxmem]="Maximum potential memory usage by via mysqltuner.pl"
-mysql-maxmem() { 
-	mysqltuner.pl | grep -A3 "Maximum possible memory usage" 
+mysql-maxmem() {
+	mysqltuner.pl | grep -A3 "Maximum possible memory usage"
 }
 
 # -- mysql-currentmem
@@ -98,9 +98,9 @@ mysql-currentmem () {
 		else
 			mysql_config_editor set --login-path=local --host=localhost --user=root --password
 			MYSQL_CMD="--login-path=local"
-		fi			
+		fi
 	fi
-	
+
 	TMP_TABLE_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.tmp_table_size)/1024/1024')
 	KEY_BUFFER_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from@@global.key_buffer_size)/1024/1024')
 	INNODB_BUFFER_POOL_SIZE=$(mysql ${MYSQL_CMD} --skip-column-names --silent --raw -e 'select TRIM(LEADING '0' from @@global.innodb_buffer_pool_size)/1024/1024')
@@ -141,14 +141,14 @@ mysql-currentmem () {
 	echo "  join_buffer_size          = ${JOIN_BUFFER_SIZE} K"
 	echo ""
 
-	mysql ${MYSQL_CMD} -e "select 
+	mysql ${MYSQL_CMD} -e "select
         # -- GLOBAL_BUFFER_SIZE
         (@@GLOBAL.TMP_TABLE_SIZE + \
         @@GLOBAL.KEY_BUFFER_SIZE + \
         @@GLOBAL.INNODB_BUFFER_POOL_SIZE + \
         @@GLOBAL.INNODB_LOG_BUFFER_SIZE + \
         @@GLOBAL.NET_BUFFER_LENGTH)/1024/1024 as GLOBAL_BUFFER_SIZE, \
-          # -- GLOBAL_THREAD_BUFFER_SIZE 
+          # -- GLOBAL_THREAD_BUFFER_SIZE
         (@@GLOBAL.READ_BUFFER_SIZE + \
         @@GLOBAL.READ_RND_BUFFER_SIZE + \
         @@GLOBAL.SORT_BUFFER_SIZE + \
@@ -203,7 +203,7 @@ mysql-currentmem () {
         @@GLOBAL.MAX_CONNECTIONS)/1024/1024/1024 AS TOTAL_MEMORY_SIZE_GB\G;"
         echo "Done."
         echo ""
-        
+
     _loading2 "Total connection counts"
     mysql ${MYSQL_CMD} -e 'show global status like "%Max_used%"'
 
@@ -279,7 +279,7 @@ mysql-backupall () {
 	else
 		MYSQL_BACKUP_USER="root"
 	fi
-	echo "Running backup of all DB's"	
+	echo "Running backup of all DB's"
 	mysql $MYSQL_BACKUP_HOST $MYSQL_BACKUP_USER -N -h -e 'show databases' | while read dbname; do mysqldump $MYSQL_BACKUP_HOST $MYSQL_BACKUP_USER --complete-insert --routines --triggers --single-transaction "$dbname" > "$dbname".sql; done;
 }
 
@@ -365,4 +365,112 @@ mysql-uptime () {
 help_mysql[mysql-config]='Output MySQL running configuration'
 mysql-config () {
       mysql --raw -B -N -e 'SHOW VARIABLES;'
+}
+
+# -- mysql-adddb
+help_mysql[mysql-adddb]='Add a database'
+function mysql-adddb () {
+
+		# -- Check if user is root
+		if [[ _checkroot == 1 ]]; then
+		echo "This script must be run as root"
+		return 1
+		fi
+
+		# -- Set variables
+		MYSQL_USER="$1"
+		MYSQL_DB="$2"
+		MYSQL_PASS="$3"
+
+		# Check for arguments
+		if [[ -z $MYSQL_USER ]] && [[ -z $MYSQL_PASS ]]; then
+			echo "Usage: mysql-adddb <user> <database name> <optional-password>"
+			return 1
+		fi
+
+		# -- Check if $MYSQL_USER is less than 16 characters.
+		if [[ ${#MYSQL_USER} -gt 16 ]]; then
+			echo "Username has to be 16 or less. Please shorten the username"
+			return 1
+		fi
+
+		# -- Check databsae name for "-".
+		if [[ $MYSQL_DB == *-* ]]; then
+			echo "Database Name has a \"-\" in it, not allowed."
+			return 1
+		fi
+
+		# -- Check if database exists
+		if [[ $(mysql -e "SHOW DATABASES LIKE '${MYSQL_DB}';" -s --skip-column-names) == $MYSQL_DB ]]; then
+			echo "Database ${MYSQL_DB} already exists"
+			return 1
+		fi
+
+		# -- Check if user exists
+		if [[ $(mysql -e "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${MYSQL_USER}');" -s --skip-column-names) == 1 ]]; then
+			echo "User ${MYSQL_USER} already exists"
+			return 1
+		fi
+
+		# -- Check if password is provided
+		if [[ -z $MYSQL_PASS ]]; then
+			_loading3 "No password provided, generating random password"
+			MYSQL_PASS=$(genpass-monkey)
+		else
+			_loading3 "Using provided password"
+		fi
+
+		# -- Print out what is going to happen
+		echo "Creating database ${MYSQL_DB} for user ${MYSQL_USER} with password ${MYSQL_PASS}"
+		echo "Proceed? [y/n]"
+		read REPLY
+
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+		echo "Proceeding..."
+
+		# -- Create database
+		mysql -e "CREATE DATABASE ${MYSQL_DB};"
+		if [[ $? == 1 ]]; then
+			echo "Error creating database ${MYSQL_DB}"
+			return 1
+		else
+			echo "Database ${MYSQL_DB} created successfully"
+		fi
+
+		# -- Create user
+		mysql -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASS}';"
+		if [[ $? == 1 ]]; then
+			echo "Error creating user ${MYSQL_USER}"
+			return 1
+		else
+			echo "User ${MYSQL_USER} created successfully"
+		fi
+
+		# -- Grant Permissions
+		mysql -e "GRANT ALL PRIVILEGES ON ${MYSQL_DB}.* TO '${MYSQL_USER}'@'localhost';"
+		if [[ $? == 1 ]]; then
+			echo "Error granting permissions to ${MYSQL_USER}"
+			return 1
+		else
+			echo "Permissions granted successfully"
+		fi
+
+		# -- Flush privileges
+		mysql -e "FLUSH PRIVILEGES;"
+		if [[ $? == 1 ]]; then
+			echo "Error flushing privileges"
+			return 1
+		else
+			echo "Privileges flushed successfully"
+		fi
+
+		# -- Return password
+		echo "Successfully created database ${MYSQL_DB} for user ${MYSQL_USER} with password ${MYSQL_PASS}"
+
+		# -- Return 0
+		return 0
+	else
+		echo "Aborting..."
+		return 1
+	fi
 }

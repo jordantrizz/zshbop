@@ -128,24 +128,29 @@ Run the following command ```pveam update``` it should return update successful
 * Set a ssh-key and password which will be for root@
 * Add the host to the bridge and give it an ip of 192.168.5.2/24
 * DNS can be 8.8.8.8
+
 ### Setup DHCP Server
-1. Login to DHCP server via ssh
-2. Install dhcp server ```apt install isc-dhcp-server -y```
-3. Edit /etc/dhcp/dhcpd.conf
-3.2 Make the server authoratative, uncomment this line.
+You can either setup a DHCP server on the main proxmox host or you can create an linux container.
+
+1. Install dhcp server ```apt install isc-dhcp-server -y```
+2. Edit /etc/dhcp/dhcpd.conf
+2.2 Make the server authoratative, uncomment this line.
 ```
 #authoritative;
 ```
-3.3 Add to bottom of file
+2.3 Add to bottom of file
+* Adding a route or DNS will affect the virtual machines routing.
+
 ```
 subnet 192.168.5.0 netmask 255.255.255.0 {
-    option domain-name "domain.com";
-    option domain-name-servers 8.8.8.8;
     range 192.168.5.10 192.168.5.254;
-    option routers 192.168.5.2;
 }
 
 ```
+3. Set listen interface vmbr1 (internal bridge network) in /etc/default/isc-dhcp-server
+```
+INTERFACESv4="vmbr1"
+``
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
 
 # Common Issues
@@ -154,3 +159,10 @@ subnet 192.168.5.0 netmask 255.255.255.0 {
 dpkg-reconfigure locales
 ```
 Select en_US.UTF8
+
+## Booting into Single User Mode (Ubuntu)
+1. Set Display to Default, serial will not work well when trying to navigate the boot menu
+2. Hold down escape
+3. Choose "Advanced Options for Ubuntu"
+4. Choose a "recovery mode" image
+5. Choose "root"

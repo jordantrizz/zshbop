@@ -279,11 +279,12 @@ zshbop_debug () {
 }
 
 # ------------------
-# -- zshbop_color ()
+# -- zshbop_formatting ()
 # ------------------
 help_zshbop[formatting]='List variables for using color'
 alias formatting=zshbop_formatting
-zshbop_formatting () {
+function zshbop_color () { zshbop_formatting $@; }
+function zshbop_formatting () {
     _debug_all
 	
     _loading "How to use color"
@@ -429,7 +430,8 @@ function zshbop_check-system () {
     # -- network interfaces
     _debug "Network interfaces"
     INTERFACES="$(interfaces)"
-    _loading3 "Checking network interfaces - $INTERFACES"
+    _loading2 "Checking network interfaces"
+    echo "   $INTERFACES"
 	
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"
@@ -552,7 +554,7 @@ function zshbop_cleanup () {
 # -- Always Last
 # --------------
 
-zshbop () {
+function zshbop () {
 	_debug_all 
     if [[ -z $1 ]]; then
 		zshbop_help
@@ -561,7 +563,11 @@ zshbop () {
     elif [[ -n $1 ]]; then
 		_debug "-- Running zshbop $1"
         zshbop_cmd=(zshbop_${1})
-        $zshbop_cmd $@
+        if [[ -n ${functions[$zshbop_cmd]} ]]; then
+            $zshbop_cmd $@
+        else
+            echo "Function $1 does not exist."
+        fi
     fi
 }
 
