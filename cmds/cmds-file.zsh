@@ -35,3 +35,16 @@ function zipc () {
 
     zip -r "$ZIPNAME" "$DIR"
 }
+
+# -- gzip-files
+help_files[gzip-files]="Gzip all files in a directory"
+gzip-files() {
+    if [[ $1 == "-h" || $1 == "--help" || -z $1 ]]; then
+        echo "Usage: gzip-files <dir>"
+        return 1
+    fi
+
+    for file in "$@"; do
+        gzip "$file"
+    done
+}

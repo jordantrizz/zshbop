@@ -18,3 +18,10 @@
 ```
 ./Geekbench-5.4.6-Linux/geekbench5
 ```
+
+# Phoronix Test Suite
+## Install
+### Ubuntu 22
+```
+sudo apt-get install php8.1-xml
+```

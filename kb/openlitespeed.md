@@ -30,3 +30,13 @@ pecl channel-update pecl.php.net
 pear config-set temp_dir /root/tmp
 pecl install timezonedb
 ```
+
+# Notes
+
+## Block WordPress xmlrpc.php via .htaccess
+```
+# Block WordPress xmlrpc.php requests
+<IfModule mod_rewrite.c>
+ RewriteRule xmlrpc - [F,L]
+</IfModule>
+```

@@ -258,29 +258,35 @@ mysql-logins () {
 }
 
 # -- mysql-backupall
-help_mysql[mysql-backupall]='Backup all databases on server'
-mysql-backupall () {
-	if [[ -z $1 ]];then
-		echo "Usage: mysql-backupdbs [host] [username] [askforpass]"
-		echo ""
-		echo "	Example: mysql-backupdbs 127.0.0.1 root yes"
-		echo "   By default use ~/.my.cnf or specify host and username which is optional"
-		echo "	 Default host = localhost, default username = root"
-		echo ""
-		return
+help_mysql[mysql-backup-all-dbs]='Backup all databases on server'
+mysql-backup-all-dbs () {
+    local MYSQL_BACKUP_HOST="127.0.0.1"
+    local MYSQL_BACKUP_USER="root"
+    
+	_mysql-backup-all-dbs-usage () {
+		echo "Usage: mysql-backupall [host] [username] [askforpass]"
+        echo ""
+        echo "  Example: mysql-backupdbs 127.0.0.1 root yes"
+        echo "   By default use ~/.my.cnf or specify host and username which is optional"
+        echo "   Default host = 127.0.0.1, default username = root"
+        echo ""
+	}
+
+	if [[ -z $1 ]]; then
+		_mysql-backup-all-dbs-usage
+		return 1
 	fi
-	if [[ -n $1 ]]; then
-		MYSQL_BACKUP_HOST="-h $1"
-	else
-		MYSQL_BACKUP_HOST=""
-	fi
-	if [[ -n $2 ]]; then
-		MYSQL_BACKUP_USER="-u $2"
-	else
-		MYSQL_BACKUP_USER="root"
-	fi
-	echo "Running backup of all DB's"
-	mysql $MYSQL_BACKUP_HOST $MYSQL_BACKUP_USER -N -h -e 'show databases' | while read dbname; do mysqldump $MYSQL_BACKUP_HOST $MYSQL_BACKUP_USER --complete-insert --routines --triggers --single-transaction "$dbname" > "$dbname".sql; done;
+
+	# -- Start backup of all DB's
+    _loading "Running backup of all DB's"
+    echo "mysql -h ${MYSQL_BACKUP_HOST} -u ${MYSQL_BACKUP_USER} -N -e 'show databases'"
+    DB_NAMES=($(mysql -h ${MYSQL_BACKUP_HOST} -u ${MYSQL_BACKUP_USER} -N -e 'show databases;'))
+    _loading2 "Found Databases - ${DB_NAMES[@]}"
+
+    for dbname in "${DB_NAMES[@]}"; do
+        echo "Backing up $dbname"
+        mysqldump -h $MYSQL_BACKUP_HOST -u $MYSQL_BACKUP_USER --complete-insert --routines --triggers --single-transaction "$dbname" > "$dbname.sql"
+    done
 }
 
 # -- mysql-backupdb

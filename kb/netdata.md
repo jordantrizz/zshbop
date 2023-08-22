@@ -71,6 +71,14 @@ export NETDATA_ALARM_NOTIFY_DEBUG=1
 3. Set the to: line to silent
 ```to: slient```
 
+## Silent Web Logs
+Theres are common alerts you'll get that might not be of concern
+
+* web_log_1m_unmatched
+* web_log_1m_redirects
+* web_log_1m_bad_requests
+* web_log_1m_successful
+
 ## 1m_tcp_syn_queue_cookies
 ```
 SYN queue
@@ -94,3 +102,16 @@ lots of SYN packets and never completes the handshakes).
 web_log_1m_unmatched
 web_log_1m_redirects
 ```
+# Common Tasks
+## Change Hostname
+1. Edit netdata.conf (usually found in /etc/netdata )
+2. Add hostname="ENTER_NEW_NODE_NAME" under [global]
+3. Restart netdata with sudo systemctl restart netdata or the relevant command for your system.
+
+## Netdata on Synology Startup Script
+1. Add this file as /etc/rc.netdata. Make it executable with chmod 0755 /etc/rc.netdata.
+2. Add or edit /etc/rc.local and add a line calling /etc/rc.netdata to have it start on boot:
+```
+[ -x /etc/rc.netdata ] && /etc/rc.netdata start
+```
+3. Make sure /etc/rc.netdata is executable: chmod 0755 /etc/rc.netdata.

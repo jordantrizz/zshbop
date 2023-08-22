@@ -1,8 +1,11 @@
+<!-- Top Image -->
 <p align="center"><img src="https://user-images.githubusercontent.com/345869/228565610-dbd52f13-ee2a-454a-84f8-9d3e0b2438c7.png" alt="ZSHBOP"></p>
 
 This is my custom ZSH configuration. It uses antidote to install ZSH plugins.
 
 <a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+<!-- Top Image -->
+
 
 <!--ts-->
 Table of Contents
@@ -43,111 +46,137 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 <!--te-->
 
+# zshbop
+zshbop is a frankenstien project to improve my own workflow. It utilizes a number of third party software an scripts. At the core the following are used.
+
+* Oh My ZSH
+* Antidote
+* Antigen
+* Powerlevel10k
+
+## Features
+
+* Customized Powerlevel10k prompt
+* A knowledge base of common topics
+* A library of alises, functions for common tasks for various workflows around the following.
+    * Cloudflare
+    * Docker
+    * Git
+    * WordPress
+    * Linux
+    * AWS
+    * curl
+    * php
+    
+## Branches
+
+* main - production releases, fully functional.
+* next-release - Next release branch, may be broken.
+
+## Commands
+Ive designed zshbop to have a number of commands
+### Core Commands
+These commands are available as just commands in the shell
+
+* `help` - zshbop help screen
+* `init` - Initialize zshbop
+* `kb` - Knowledge Base
+* `motd` - Print out motd
+* `os` - Return OS
+* `report` - Print out errors and warnings
+* `repos` - Install popular github.com repositories.
+
+### zshbop Quick Commands
+These commands are shortened aliases for zshbop commands
+
+* `zb` - zshbop main command and list of commands
+* `zbd` - Change directory to $ZBR
+* `zbqr` - Quick reload zshbop
+* `zbr` - Reload zshbop
+* `zbu` - Update zshbop
+* `zbuf` - Update and reset zshbop
+* `zbuqr` - Update and quick reload zshbop
+* `zbur` - Update and reload zshbop
+
+### zshbop Commands
+* `zb` - zshbop main command and list of commands
+* `zb branch` - Switch between main and next-release branch
+* `zb cache-clear` - Clear cache for antigen + more
+* `zb cache-clear-super` - Clear everything, including zsh autocompletion
+* `zb check` - Check environment for installed software and tools
+* `zb check-system` - Print out errors and warnings
+* `zb check-updates` - Check for zshbop update, not completed yet
+* `zb cleanup` - Cleanup old things
+* `zb custom` - Custom zshbop configuration
+* `zb custom-load` - Load zshbop custom config
+* `zb debug` - Turn debug on and off
+* `zb formatting` - List variables for using color
+* `zb help` - zshbop help screen
+* `zb install-env` - Install environment tools
+* `zb issue` - Create zshbop issue on Github
+* `zb reload` - Reload zshbop
+* `zb report` - Print out errors and warnings
+* `zb update` - Update zshbop
+* `zb version` - Get version information
+
+
 # Installation
+
+## Install Guided
+
+ There is an included install.sh bash script that will guide you through the installation process. It will ask you questions and install the required packages, such as zsh which is a requirement.
 
 | Install Method      | Command       |
 |---------------------|---------------|
 | Quick Install       | ```bash <(curl -sL https://zshrc.pl)``` |
 | Fallback Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/master/install.sh)```  |
-| Development Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/develop/install.sh)``` |
-| Bleeding Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/bleeding/install.sh)```|
+| Next Release Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/next-release/install.sh)``` |
 
-# Branches
-* main - production releases, fully functional.
-* dev - development releases that are somewhat functional.
-* bleeding - bleeding releases that most likely won't work.
-
-# Advanced Install
-<details><summary>Click to Reveal Advanced Install</summary>
-<p>
-If you don't want to have zsh within your home directory, then use the following.
-1. Ensure you have zsh shell
-```apt-get install zsh```
-2. Clone repository to the directory of your choise
-```git clone https://github.com/jordantrizz/zshbop```
-3. Copy .zshrc_install to ~/.zshrc or $HOME/.zshrc
-```cp zsh/.zshrc_install ~/.zshrc```
-4. Edit $ZSH_ROOT variable in your new ~/.zshrc to the path to the git cloned repository
-***WARNING: don't use ~ use $HOME instead, as tilde doesn't work with zsh***
-```sed -i 's/CHANGEME/zshbop/g' .zshrc```
-5. Restart your terminal/shell
-</p>
-</details>
-
-# Custom Configuration File
-* Override zshbop functions, settings and variables
-* Create own custom functions, variables and zsh scripts
-* Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as needed.
-
-## Custom Configuration Examples
-### zshbop Overrides
-| Variable        	| Description                                                | Values                     	| Default     	 |
-|----------------	|------------------------------------------------------------|-------	|---------------|
-| `ZSHBOP_ROOT`| Location of zshbop installation                            | String | Detected      |
-| `CUSTOM_SSHKEY`| Load custom SSH key into Keychian                          | String | Detected      |
-| `PLUGIN_MANAGER`| Choose plugin manager either init_antidote or init_anitgen | String | init_antidote |
-
-### Exbin
-* Exbin https://exbin.call-cc.be
-
-| Variable | Description                                                      | Values                     	| Default     	|
-|-----------------	|------------------------------------------------------------------|---------------------	|---------	|
-| `EXBIN_TYPE`| Choose either `netcat` or `api` for exbin posting.| String | `netcat`|
-| `EXBIN_HOST`| Exbin host, for netcat just the hostname and for api the full URL.| String| `exbin.call-cc.be`|
-| `EXBIN_PORT`|  If you don't use the standard 9999 port for exbin.| Number| `9999`|
-
-# Commands/Aliases
-You can start by typeing ```help``` which will give you some top level commands.
-You can also review [help/commands.md](Commands) @@ISSUE needs updating
-
-# Installation Notes
-## macOS Installation Notes
-Nothing at this time!
-
-## Windows Installation Notes
-### WSL 1 vs WSL 2
-Don't know much now. But I needed to upgrade and this is the way to do it!
-
-Open a command prompt on Windows 10 and run the following command to confirm what version of WSL you're running.
+## Install Usage
 ```
-wsl --list --verbose
+Usage: install -h|-s (clean|skipdeps|default|home|git|)|(custom <branch> <location>)
+
+  Options
+    -h          - This help screen
+    -s          - Skip all dependencies
+    -o          - Skip optional software check
+    -d          - Debug mode
+
+  Commands
+
+    clean                         - Remove zshbop
+    default                       - Default install
+    home                          - Install in home directory
+    git                           - Install in ~/git with dev branch
+    custom <branch> <location>    - Custom install
+    
+  Custom Install: * Note: Custom install skips optional software check
+    branch (main|next-release)
+    location (home|system|git) 
+        - home = $HOME/zshbop
+        - systen = /usr/local/sbin/zshbop
+        - git = $HOME/git/zshbop
 ```
-### Upgrade WSL 1 to WSL 2
-I used this guide https://www.tenforums.com/tutorials/164301-how-update-wsl-wsl-2-windows-10-a.html
-
-1.  Upgrade WSL via elevated PowerShell 
-    ```dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart```
-2. Install VMP via elevated PowerShell. The following enables the Virtual Machine Platform. This is important for WSL 2 for some reason. https://docs.microsoft.com/en-us/windows/wsl/faq#does-wsl-2-use-hyper-v--will-it-be-available-on-windows-10-home-
-    ```dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart```
-3. Restart your Computer
-4. Set WSL to version 2
-    ```wsl --set-default-version 2```
-5. Convert your existing linux distro from WSL 1 to 2
-    ``` wsl --set-version <distro_name> 2```
-Note: If you have an error converting your distro, look at this thread https://github.com/microsoft/WSL/issues/4929
-### WSL Subsystem
-You'll need the WSL Subsystem installed.
-* Open PowerShell as Administrator and run
+## Install Examples
+### Install main branc into home directory
 ```
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+bash <(curl -sL https://zshrc.pl) custom main home
 ```
-### Windows Terminal
-Windows Terminal is a means to manage the various terminals installed in Windows.
-
-* WSL
-* Command Prompt
-* Powershell
-* Custom Powershell (Azure + Exchange)
-
-It's a great and I suggest you install it!
-
-### VcXsrv (WSL Gui)
-If you want to run Xserver for a GUI under WSL, this guide will help.
-
-* https://medium.com/@dhanar.santika/installing-wsl-with-gui-using-vcxsrv-6f307e96fac0
+### Install next-release branch into system directory /usr/local/sbin
+```
+bash <(curl -sL https://zshrc.pl) custom next-release system
+```
+### Install main branch into git directory ~/git
+```
+bash <(curl -sL https://zshrc.pl) custom main git
+```
+### Install next-release branch into system and skip optional software check
+```
+bash <(curl -sL https://zshrc.pl) -o custom next-release system
+```
 
 # Font Installation Notes
-So if you've used Powerlevel9k, you'd need the powerline fonts. With Powerline10k you need patched font files. The patch font files are "MesloLGS NF" and are located on the following Github repository.
+The most important part of zshbop is the powerlevel10k prompt, which requires a specific font. With Powerline10k you need patched font files. The patch font files are "MesloLGS NF" and are located on the following Github repository.
 
 * https://github.com/romkatv/powerlevel10k/blob/master/font.md
 
@@ -156,7 +185,6 @@ As per the font.md file above.
 
 >Automatic font installation
 >If you are using iTerm2 or Termux, `p10k configure` can install the recommended font for you. Simply answer Yes when asked whether to install Meslo Nerd Font.
-
 
 ## Manual Font Install
 
@@ -179,6 +207,86 @@ You can simply run this command within WSL
 ```
 bash -c "$(curl -fsSL https://gist.githubusercontent.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b/raw/install_meslo_wsl.sh)"
 ```
+
+# Configuration and Customization
+You can create a custom configuration file to override zshbop settings and variables. This is useful if you want to use a different plugin manager or override zshbop settings.
+## Using zshbop Configuration File
+Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as needed.
+
+### Configuration Options
+| Variable        	| Description                                                | Values                     	| Default     	 |
+|----------------	|------------------------------------------------------------|-------	|---------------|
+| `ZSHBOP_ROOT`| Location of zshbop installation                            | String | Detected      |
+| `ZSHBOP_CUSTOM_SSHKEY` | Set a custom SSH key to be loaded | String | Detected |
+| `ZSHBOP_PLUGIN_MANAGER` | Override plugin manager, can be init_antidote or init_anitgen | String | init_antidote |
+| `ZSHBOP_GIT_CHECK` | zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code. | Number | 1 |
+| `GIT_HOME` | A location where you have all your git repositories. | String | $HOME/git |
+| `ZSHBOP_UPDATE_GIT` | Git Repositores to update when running zshbop update | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |
+
+### Exbin
+* Exbin https://exbin.call-cc.be
+
+| Variable | Description                                                      | Values                     	| Default     	|
+|-----------------	|------------------------------------------------------------------|---------------------	|---------	|
+| `EXBIN_TYPE`| Choose either `netcat` or `api` for exbin posting.| String | `netcat`|
+| `EXBIN_HOST`| Exbin host, for netcat just the hostname and for api the full URL.| String| `exbin.call-cc.be`|
+| `EXBIN_PORT`|  If you don't use the standard 9999 port for exbin.| Number| `9999`|
+
+##  Custom Startup Scripts
+You can create a custom startup script to run when zshbop starts. This is useful if you want to run a script that's not included in zshbop.
+
+Uncomment the following in ```$HOME/.zshbop.config```
+
+```
+function init_custom_startup () {
+
+}
+```
+
+# Installation Notes
+## Operating System Installation Notes
+### macOS Installation Notes
+Nothing at this time!
+
+### Windows Installation Notes
+#### Windows Terminal
+Windows Terminal is a means to manage the various terminals installed in Windows.
+
+* WSL
+* Command Prompt
+* Powershell
+* Custom Powershell (Azure + Exchange)
+
+#### WSL Subsystem
+You'll need the WSL Subsystem installed.
+* Open PowerShell as Administrator and run
+```
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+```
+
+#### WSL 1 vs WSL 2
+Open a command prompt on Windows 10 and run the following command to confirm what version of WSL you're running.
+```
+wsl --list --verbose
+```
+#### Upgrade WSL 1 to WSL 2
+I used this guide https://www.tenforums.com/tutorials/164301-how-update-wsl-wsl-2-windows-10-a.html
+
+1.  Upgrade WSL via elevated PowerShell 
+    ```dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart```
+2. Install VMP via elevated PowerShell. The following enables the Virtual Machine Platform. This is important for WSL 2 for some reason. https://docs.microsoft.com/en-us/windows/wsl/faq#does-wsl-2-use-hyper-v--will-it-be-available-on-windows-10-home-
+    ```dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart```
+3. Restart your Computer
+4. Set WSL to version 2
+    ```wsl --set-default-version 2```
+5. Convert your existing linux distro from WSL 1 to 2
+    ``` wsl --set-version <distro_name> 2```
+Note: If you have an error converting your distro, look at this thread https://github.com/microsoft/WSL/issues/4929
+
+#### VcXsrv (WSL Gui)
+If you want to run Xserver for a GUI under WSL, this guide will help.
+
+* https://medium.com/@dhanar.santika/installing-wsl-with-gui-using-vcxsrv-6f307e96fac0
 
 # ZSH Installation Issues
 ## CentOS 7 + zsh 5.1.1

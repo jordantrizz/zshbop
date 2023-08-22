@@ -43,7 +43,7 @@ sudo make -j 20 install
 ## ZSH Trace
 ```zsh -xv```
 ## ZSH Trace + Log
-```zsh -xv 2> debug.err.txt``
+```zsh -xv 2> debug.err.txt```
 
 # ZSH Expansion + Pattern Matching
 * https://thevaluable.dev/zsh-expansion-guide-example/
@@ -73,7 +73,7 @@ true if string matches the regular expression regexp. If the option RE_MATCH_PCR
 If the option BASH_REMATCH is not set the scalar parameter MATCH is set to the substring that matched the pattern and the integer parameters MBEGIN and MEND to the index of the start and end, respectively, of the match in string, such that if string is contained in variable var the expression ‘${var[$MBEGIN,$MEND]}’ is identical to ‘$MATCH’. The setting of the option KSH_ARRAYS is respected. Likewise, the array match is set to the substrings that matched parenthesised subexpressions and the arrays mbegin and mend to the indices of the start and end positions, respectively, of the substrings within string. The arrays are not set if there were no parenthesised subexpressions. For example, if the string ‘a short string’ is matched against the regular expression ‘s(...)t’, then (assuming the option KSH_ARRAYS is not set) MATCH, MBEGIN and MEND are ‘short’, 3 and 7, respectively, while match, mbegin and mend are single entry arrays containing the strings ‘hor’, ‘4’ and ‘6’, respectively.
 
 If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring that matched the pattern followed by the substrings that matched parenthesised subexpressions within the pattern.
-```
+
 * string -eq string
 * string1 < string2
 * string1 > string2
@@ -87,7 +87,6 @@ If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring
 * ! exp = true if exp is false.
 * exp1 && exp2 = true if exp1 and exp2 are both true.
 * exp1 || exp2 = true if either exp1 or exp2 is true.
-
 
 ## Switches
 * -a file = true if file exists.
@@ -122,44 +121,16 @@ If the option BASH_REMATCH is set the array BASH_REMATCH is set to the substring
 # True / False and IF Statements
 * https://rowannicholls.github.io/bash/intro/booleans.html
 
+## Example 1
 ```
 ❯ if false; then echo "true $?"; else echo "false $?"; fi
 false 1
 ❯ if true; then echo "true $?"; else echo "false $?"; fi
 true 0
+```
 
-❯ if ls; then echo "true $?"; else echo "false $?"; fi
-true 0
-❯ if ls -0; then echo "true $?"; else echo "false $?"; fi
-ls: invalid option -- 0
-usage: ls [-@ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy1%,] [--color=when] [-D format] [file ...]
-false 1
-
-y=true
-n=false
-echo $y $n
-
-bool=false
-if $bool
-then
-    echo "The statement was true"
-fi
-
-if [ 1 ]
-then
-    echo "The statement evaluated as true"
-fi
-
-if false
-then
-    echo "The statement was true"
-else
-    echo "The statement was false"
-fi
-
-failed=0 # False
-jobdone=1 # True
-## more readable syntax ##
+## Example 2
+```
 failed=false 
 jobdone=true
 
@@ -219,6 +190,7 @@ done
 ARRAY=()
 ARRAY+=('foo')
 ARRAY+=('bar')
+```
 
 ### Iterate through Array
 ```
@@ -249,20 +221,21 @@ no value
 ```
 typeset -gA help_files
 help_files[kb]='knowledge base'
+```
 
 # ------ CODE SNIPPETS ------
 
-# Code Snippets Large
+## Code Snippets Large
 
-# Code Snippets Small
-## Ask question and read input
+## Code Snippets Small
+### Ask question and read input
 ```
 _warning "*** WARNING: This will re-install WordPress core files ***"
 _warning "*** Please make sure this is the correct directory $1 ***"
 read -q "REPLY?Continue? (y/n)"
 ```
 
-## Run a command stored in a variable
+### Run a command stored in a variable
 * https://stackoverflow.com/questions/13665172/zsh-run-a-command-stored-in-a-variable
 ```
 I believe you have two problems here - the first is that your install_cmd is being interpreted as a single string, instead of a command (sudo) with 3 arguments.
@@ -272,10 +245,9 @@ Your final attempt $=install_cmd actually does solve that problem correctly (tho
 That's also why it worked to do eval ${install_cmd} - because that's literally treating the whole string as a thing to be evaluated, possibly containing multiple commands (e.g. if install_cmd contained echo foo; sudo rm -rf / it would be happy to wipe your system).
 
 You have to be the one to decide whether you want install_cmd to allow full shell semantics, including variable interpolation, path expansion, multiple commands, etc. or whether it should just expand the words out and run them as a single command.
-
 ```
 
-## Colors
+### Colors
 * PS1=$'\e[0;31m$ \e[0m'
 * https://en.wikipedia.org/wiki/ANSI_escape_code
 
@@ -347,7 +319,6 @@ function zparseopts_demo() {
   echo "positional: $@"
 }
 ```
-
 
 ## -- Functions
 ```

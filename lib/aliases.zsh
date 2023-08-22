@@ -41,16 +41,7 @@ alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
 
 # -- Software
 alias yabs='yabs.sh'
-
-# -- Screen
-alias screen="screen -c $ZSHBOP_ROOT/.screenrc"
-alias screens="screen -list"
-alias scrl="screen -list"
-alias scra="screen -r ${1}"
-function scrc {
-	screen -dmS ${1}
-	screen -rd ${1}
-}
+alias mysqltuner='mysqltuner.pl'
 
 # - ssh
 alias sshc="ssh-connect"

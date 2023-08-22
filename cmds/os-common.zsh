@@ -22,23 +22,29 @@ os-binary "glow"
 function sysfetch () {
     DEFAULT_SYSFETCH="neofetch"
     export FASTFETCH_CONFIG="--structure Title:OS:Host:Kernel:Uptime:Packages:CPU:GPU:Memory:Disk:Shell:Terminal:TerminalFont:Locale --logo none"
+    
+    # -- Check if fastfetch is installed
     _debug "Checking if fastfetch is installed"
-    os-binary fastfetch    
+    os-binary fastfetch 
+     
     if [[ $? == "1" ]]; then
+        # https://superuser.com/a/1570726
         _debug "fastfetch not found, using ${DEFAULT_SYSFETCH}"
         eval ${DEFAULT_SYSFETCH}
     else
+        # -- fastfetch is installed
         _debug "fastfetch succcess using for sysfetch and ${FASTFETCH_CONFIG}"
-        eval "${FASTFETCH_CMD} ${FASTFETCH_CONFIG}"
+        #fastfetch --structure Title:OS:Host --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g" | sed "s/\n/ - /g"
+        #fastfetch --structure Kernel:Uptime --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"
+        _loading3 "$(fastfetch --structure Title:OS:Host --logo none | tr '\n' ' ')"
+        _loading3 "$(fastfetch --structure Kernel:Uptime --logo none | tr '\n' ' ')"
+        
+        #eval "${FASTFETCH_CMD} ${FASTFETCH_CONFIG}"
     fi
 }
 
 function sysfetch-motd () {
-    #fastfetch --structure Title:OS:Host --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g" | sed "s/\n/ - /g"
-    #fastfetch --structure Kernel:Uptime --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"
-    # https://superuser.com/a/1570726
-    _loading3 "$(fastfetch --structure Title:OS:Host --logo none | tr '\n' ' ')"
-    _loading3 "$(fastfetch --structure Kernel:Uptime --logo none | tr '\n' ' ')"
+    sysfetch
 }
 
 # -- tran - https://github.com/abdfnx/tran/releases

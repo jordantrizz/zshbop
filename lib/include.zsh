@@ -1,14 +1,16 @@
 # =========================================================
+# =========================================================
 # -- include.zsh -- zshbop include file
+# =========================================================
 # =========================================================
 
 # -- Potential zshbop paths, including old zsh path, left over from .zshrc removal
 ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
 export ZSHBOP_VERSION=$(cat ${ZSHBOP_ROOT}/VERSION) # -- Current version installed
 
-# ---------------------------
+# =========================================================
 # ---- Variables
-# ---------------------------
+# =========================================================
 
 # -- autoload
 autoload -Uz compinit compdef
@@ -18,7 +20,10 @@ compinit
 typeset -gA help_files
 typeset -gA help_files_description
 typeset -gA help_corefunc
+typeset -gA help_core
 typeset -gA help_zshbop
+typeset -gA help_zshbop_quick
+typeset -gA help_checks
 
 # -- System settings
 umask 022
@@ -55,24 +60,26 @@ export ZSHBOP_RELOAD="0"
 typeset -a ZSHBOP_UPDATE_GIT=()
 
 # -- zshbop git
-export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
-export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
 export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
 
 # -- Associative Arrays
 typeset -gA help_custom # -- Set help_custom for custom help files
 
-# -- Required Tools
-REQUIRED_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'md5sum' 'sudo' 'screen' 'git' 'joe' 'dnsutils' 
-    'net-tools' 'dmidecode' 'virt-what' 'wget' 'unzip' 'zip' 'python3' 'python3-pip'
-    'bc' 'whois' 'telnet' 'lynx' 'traceroute' 'mtr' 'mosh' 'tree' 'ncdu' 'fpart'
-    'jq')               
+# -- Required Software
+REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
 
-# -- Default tools.
-DEFAULT_TOOLS=('mosh' 'traceroute' 'mtr' 'pwgen' 'tree' 'ncdu' 'fpart' 'whois' 'pwgen' 'python3-pip' 'joe' )
-DEFAULT_TOOLS+=('keychain' 'dnsutils' 'whois' 'gh' 'php-cli' 'telnet' 'lynx' 'jq' 'shellcheck' 'sudo' 'fzf')
-EXTRA_TOOLS=('pip' 'npm' 'golang-go' 'net-tools' 'aspell-en')
-pip_install=('ngxtop' 'apt-select' 'semgrep')
+# -- Optional Software
+OPTIONAL_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'sudo' 'screen' 'wget' 'joe')
+OPTIONAL_SOFTWARE+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
+OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'lynx' 'ncdu')
+OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'md5sum')
+OPTIONAL_SOFTWARE+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
+
+# -- Extra Software
+EXTRA_SOFTWARE=('fzf' 'shellcheck' 'npm' 'golang-go' 'aspell-en' 'ngxtop')
+EXTRA_SOFTWARE+=('apt-select' 'semgrep' 'mosh' 'keychain' 'gh' 'pwgen')
+EXTRA_SOFTWARE+=('python3' 'python3-pip' 'php-cli')
+
 
 # -- Take $EDITOR run it through alias and strip it down
 EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
@@ -91,14 +98,12 @@ setopt hist_verify            # show command with history expansion to user befo
 setopt share_history          # share command history data
 
 
-###########################################################
-# ---- Debugging and Logging
-###########################################################
+# =========================================================
+# -- Debugging and Logging
+# =========================================================
 
-# --------------------------------
 # -- Logging
-# --------------------------------
-# -- Logging variables for path and file
+# Logging variables for path and file
 SCRIPT_LOG_PATH="$HOME" # -- Default log path
 SCRIPT_LOG_FILE=".zshbop.log" # -- Default log file
 SCRIPT_LOG=${SCRIPT_LOG_PATH}/${SCRIPT_LOG_FILE} # -- Default log path and file
@@ -115,6 +120,7 @@ function STARTLOG() {
 }
 export STARTLOG
 
+# -- Stop log
 function STOPLOG() {
  SCRIPT_NAME=$(basename "$0")
  SCRIPT_NAME="${SCRIPT_NAME%.*}"
@@ -145,9 +151,8 @@ _debug_all () {
         _debug "--------------------------"
 }
 
-# --------------------------------
+
 # -- Logging errors and Warnings
-# --------------------------------
 # TODO - Allow color in logs while still being able to grep for errors
 ZSH_VERBOSE="0"
 ZSHBOP_LOGS=""

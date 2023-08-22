@@ -47,6 +47,11 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * ```restart```
 * Update /etc/pve/storage.cfg with the new hostname.
 
+## Restarting Proxmox Services
+```
+systemctl restart corosync.service pvedaemon.service pve-firewall.service pve-ha-crm.service pve-ha-lrm.service pvestatd.service
+```
+
 # Troubleshooting
 ## Backup Stuck
 * Unmount storage that is affected with unmount -f or -l

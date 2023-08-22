@@ -5,16 +5,37 @@ INSERT INTO `databasename`.`wp_users` (`ID`, `user_login`, `user_pass`, `user_ni
 INSERT INTO `databasename`.`wp_usermeta` (`umeta_id`, `user_id`, `meta_key`, `meta_value`) VALUES (NULL, '4', 'wp_capabilities', 'a:1:{s:13:"administrator";s:1:"1";}');
 INSERT INTO `databasename`.`wp_usermeta` (`umeta_id`, `user_id`, `meta_key`, `meta_value`) VALUES (NULL, '4', 'wp_user_level', '10');
 ```
+
+## Clear out Scheduled Actions
+
+* Clear out all scheduled actions based on time.
+```
+DELETE FROM `wp_bspr_actionscheduler_actions` WHERE `scheduled_date_gmt` < NOW() - INTERVAL 1 WEEK;
+```
+* Clear out all scheduled actions based on time and status. 
+```
+DELETE FROM `wp_bspr_actionscheduler_actions` WHERE `status` = 'complete' AND `scheduled_date_gmt` < NOW() - INTERVAL 1 WEEK;
+```
+* Clear out all scheduled actions based on time and status.
+```
+DELETE FROM `wp_bspr_actionscheduler_actions` WHERE `status` = 'complete';
+```
+
 # wp-cli Commands
 ## Update Administrator Email
 * ```wp option update admin_email user@example.com```
+
+## Another Update is Currently in Progress
+```wp option delete core_updater.lock```
+
 
 ## Temporary Login
 * wp package install aaemnnosttv/wp-cli-login-command
 * wp login install
 * wp login create 1
 
-# WordPress Debug
+# WordPress Configuration File
+## WordPress Debug
 ```
 define( 'WP_DEBUG', true )
 if ( WP_DEBUG ) {
@@ -24,29 +45,23 @@ if ( WP_DEBUG ) {
     @ini_set( 'error_log', dirname(__FILE__) . '/debug.log' );
 };
 ```
-
-# Tar Backup Directory
-```
-tar -cvf public_html-01-01-2023.tar --exclude wp-content/cache --exclude wp-content/ai1wm-backups
-```
-
-# Rsync Backup
-```
-rsync -avz public_html root@192.168.0.101 --exclude wp-content/cache --exclude wp-content/ai1wm-backups
-```
-
-# Change Site URL
+## Change Site URL
 * Add wp-config.php
 ```
 define( 'WP_HOME', 'http://example.com' );
 define( 'WP_SITEURL', 'http://example.com' );
 ```
 
-# wp-cli
-## Another Update is Currently in Progress
-```wp option delete core_updater.lock```
+# Linux Commands
+## Tar Backup Directory
+```tar -cvf public_html-01-01-2023.tar --exclude wp-content/cache --exclude wp-content/ai1wm-backups```
 
-# Error Logging for 'There has been a critical error on your website.' errors
+## Rsync Backup
+```rsync -avz public_html root@192.168.0.101 --exclude wp-content/cache --exclude wp-content/ai1wm-backups```
+
+# WordPress Code Snippets
+## Error Logging for 'There has been a critical error on your website.' errors
+Use this code snippet to print the actualy critical error
 ```
 <?php
 add_filter('wp_php_error_message', function ($message,$error) {
