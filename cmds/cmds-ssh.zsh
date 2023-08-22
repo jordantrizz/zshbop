@@ -14,44 +14,104 @@ typeset -gA help_ssh
 
 # - List public ssh-keys
 help_ssh[pk]='List public ssh-keys'
-function pk () { 
-	# SSH_PUBLIC_KEYS=$(ls -1 ~/.ssh/*.pub)
-	SSH_PUBLIC_KEYS=("${(@f)$(\ls -1 ~/.ssh/*.pub)}")
-	_loading "Listing all public keys in /$HOME/.ssh"
-	for PUBKEY in ${SSH_PUBLIC_KEYS}; do
-		 _banner_grey "-- $PUBKEY --"
-		cat "$PUBKEY"
-		echo ""
+function pk () {
+    function _pk_usage() {
+        echo "Usage: pk <ssh-key>"
+        echo "   -p : print public key"
+        echo "   -h : help"
+        echo "   Examples:"
+        echo "      pk ~/.ssh/id_rsa"
+        echo "      pk -p ~/.ssh/id_rsa"
+        return
+    }
+	
+    local SSHKEY_FILE SSHKEY_MODE="echo"
+
+    # -- Check Vars
+    if [[ $SSHKEY_FILE == "-h" ]]; then
+        _pk_usage
+        return
+    fi
+
+    # -- Check if print
+    if [[ $1 == "-p" ]]; then
+        SSHKEY_MODE="cat"
+        SSHKEY_FILE="$2"
+    fi
+
+    # -- Check if file
+    if [[ -z $2 ]]; then
+        SSHKEY_FILE=("${(@f)$(\ls -1 $HOME/.ssh/*.pub)}")                 
+    else        
+        if [[ ! -f $SSHKEY_FILE ]]; then
+            _error "Can't find $SSHKEY_FILE"
+            _pk_usage
+            return
+        fi
+    fi
+
+    # -- Print    
+    _loading "Action listing public keys"
+	for PUBKEY in ${SSHKEY_FILE}; do
+		if [[ $SSHKEY_MODE == "cat" ]]; then
+            _banner_grey "-- $PUBKEY --"
+            $SSHKEY_MODE "$PUBKEY"
+            echo ""
+		else            
+            $SSHKEY_MODE "$PUBKEY"
+        fi
 	done	
 	# | xargs -L 1 -I {} sh -c 'echo {};cat {};_banner_grey '-----------------------------''
 }
 
 # -- List public keys fingerprint 
-help_ssh[pk]='List SSH Key Fingerprint'
+help_ssh[ssh-fingerprint]='List SSH Key Fingerprint'
 ssh-fingerprint () { 
-	if [[ -z $1 ]]; then
-        echo "Usage: ssh-fingerprint <ssh-key>"
-        echo "Example: ssh-fingerprint ~/.ssh/id_rsa.pub"
+    # If you created using AWS console - openssl pkcs8 -in path_to_private_key -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c
+    # (RSA key pairs only) If you imported the public key to Amazon EC2 - openssl rsa -in path_to_private_key -pubout -outform DER | openssl md5 -c
+    # If you created an OpenSSH key pair using OpenSSH 7.8 or later and imported the public key to Amazon EC2
+    #  RSA: ssh-keygen -ef path_to_private_key -m PEM | openssl rsa -RSAPublicKey_in -outform DER | openssl md5 -c
+    #  ssh-keygen -l -f path_to_private_key
+    function _ssh_fingerprint_usage() {
+        echo "Usage: ssh-fingerprint -aws <ssh-key>|<ssh-key>"
+        echo "   -aws: use AWS format"
+        echo "   -h : help"
+        echo "   Examples:"
+        echo "      ssh-fingerprint ~/.ssh/id_rsa"
+        echo "      ssh-fingerprint -aws ~/.ssh/id_rsa"
         return
-    else
-        _loading "Listing fingerprint for $1"
-        # -- remove (stdin)=
-	    openssl pkcs8 -in $1 -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c | sed 's/^.* //'
+    }
+    
+    local SSHKEY_FINGERPRINT_FILE=$1
+    local SSHKEY_FINGERPRINT_MODE="default"
+	
+    # -- Check if aws format
+    if [[ $1 == "-aws" ]]; then
+        SSHKEY_FINGERPRINT_FILE=$2
+        SSHKEY_FINGERPRINT_MODE="aws"
     fi
-}
 
-# -- ssh-fingerprint-all
-help_ssh[ssh-fingerprint-all]='List all SSH Key Fingerprint'
-ssh-fingerprint-all () {
-    # -- Find all non .pub files in $HOME/.ssh
-    local SSH_PUBLIC_KEYS SSHKEY_FINGERPRINT
-    SSH_PUBLIC_KEYS=($(find $HOME/.ssh -type f -not -name "*.pub"))
-    _loading "Listing all public keys in /$HOME/.ssh"
-    for PUBKEY in ${SSH_PUBLIC_KEYS}; do        
-        # -- remove (stdin)=
-        SSHKEY_FINGERPRINT=$(openssl pkcs8 -in $PUBKEY -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c | sed 's/^.* //')
-        echo "$PUBKEY - $SSHKEY_FINGERPRINT"
-    done	
+    if [[ -z $SSHKEY_FINGERPRINT_FILE ]]; then
+        _error "Missing <ssh-key> or -aws"
+        _ssh_fingerprint_usage
+        return
+    elif [[ $SSHKEY_FINGERPRINT_FILE == "-h" ]]; then
+        _ssh_fingerprint_usage
+        return
+    elif [[ ! -f $SSHKEY_FINGERPRINT_FILE ]]; then
+        _error "Can't find $SSHKEY_FINGERPRINT_FILE"
+        _ssh_fingerprint_usage
+        return
+    fi
+    
+    # -- remove (stdin)=
+    if [[ $SSHKEY_FINGERPRINT_MODE == "aws" ]]; then    
+        OPENSSL_DATA=$(openssl pkcs8 -in $SSHKEY_FINGERPRINT_FILE -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c | sed 's/^.* //')
+        echo "$SSHKEY_FINGERPRINT_FILE,$OPENSSL_DATA"
+    else
+        SSHKEY_FINGERPRINT=$(ssh-keygen -ef $SSHKEY_FINGERPRINT_FILE -m PEM | openssl rsa -RSAPublicKey_in -outform DER | openssl md5 -c)
+        echo $SSHKEY_FINGERPRINT_FILE,$SSHKEY_FINGERPRINT
+    fi
 }
 
 # - Add SSH Key to keychain

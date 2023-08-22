@@ -79,6 +79,7 @@ function get_category_commands_custom () {
 }
 
 # -- Help
+help_core[help]="Display help information for commands"
 help () {
 		# All arguments $@ into $HCMD
         HCMD=$@

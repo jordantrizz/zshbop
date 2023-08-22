@@ -89,10 +89,11 @@
       # midnight_commander    # midnight commander shell (https://midnight-commander.org/)
       vi_mode                 # vi mode (you don't need this if you've enabled prompt_char)
       # vpn_ip                # virtual private network indicator
-      # ram                   # free RAM
+       ram                   # free RAM
       load                    # CPU load
       disk_usage	      # disk_usage
       todo                    # todo items (https://github.com/todotxt/todo.txt-cli)
+      date					  # date
       time                    # current time
       # =========================[ Line #2 ]=========================
       newline
@@ -179,7 +180,7 @@
   typeset -g POWERLEVEL9K_ICON_BEFORE_CONTENT=
 
   # Add an empty line before each prompt.
-  typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=false
+  typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
 
   # Connect left prompt lines with these symbols. You'll probably want to use the same color
   # as POWERLEVEL9K_MULTILINE_FIRST_PROMPT_GAP_FOREGROUND below.
@@ -264,6 +265,7 @@
   # If directory is too long, shorten some of its segments to the shortest possible unique
   # prefix. The shortened directory can be tab-completed to the original.
   typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
+  
   # Replace removed segment suffixes with this symbol.
   typeset -g POWERLEVEL9K_SHORTEN_DELIMITER=
   # Color of the shortened directory segments.
@@ -293,7 +295,7 @@
   )
   typeset -g POWERLEVEL9K_SHORTEN_FOLDER_MARKER="(${(j:|:)anchor_files})"
   # Don't shorten this many last directory segments. They are anchors.
-  typeset -g POWERLEVEL9K_SHORTEN_DIR_LENGTH=1
+  typeset -g POWERLEVEL9K_SHORTEN_DIR_LENGTH=
   # Shorten directory if it's longer than this even if there is space for it. The value can
   # be either absolute (e.g., '80') or a percentage of terminal width (e.g, '50%'). If empty,
   # directory will be shortened only when prompt doesn't fit or when other parameters demand it
@@ -662,6 +664,10 @@
     fi
   else
   		HOSTNAME=$(hostname -f)
+  fi
+  
+  if (( ${+HIDE_HOSTNAME} )); then
+	HOSTNAME="hidden"
   fi
   
   # Context format when running with privileges: user@hostname.
@@ -1155,7 +1161,7 @@
   #   - always:   Trim down prompt when accepting a command line.
   #   - same-dir: Trim down prompt when accepting a command line unless this is the first command
   #               typed after changing current working directory.
-  typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=always
+  typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=off
 
   # Instant prompt mode.
   #

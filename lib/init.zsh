@@ -1,16 +1,32 @@
 #!/usr/bin/env zsh
-# -----------------------------------------------------------------------------------
-# -- zshbop functions -- This file contains all the functions for initializing zshbop
-# -----------------------------------------------------------------------------------
-_debug_load
-source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
-source ${ZSHBOP_ROOT}/lib/functions-core.zsh # -- core functions
-source ${ZSHBOP_ROOT}/lib/functions.zsh # -- zshbop functions
-source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include aliases
+# =========================================================
+# =========================================================
+# -- init.zsh - zshbop functions 
+# =========================================================
+# =========================================================
+# =========================================================
+# -- init_core - core functions
+# =========================================================
+init_core () {
+    _debug_all
+    _debug "Loading zshbop core"
+    export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
+    export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
+}
+init_core
 
-# ==============================================
+_debug_load
+init_include () {
+    source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
+    source ${ZSHBOP_ROOT}/lib/functions-core.zsh # -- core functions
+    source ${ZSHBOP_ROOT}/lib/functions.zsh # -- zshbop functions
+    source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include aliases
+}
+init_include
+
+# =========================================================
 # -- init_path - setup all the required paths.
-# ==============================================
+# =========================================================
 init_path () {
 	_debug_all
 
@@ -30,7 +46,7 @@ init_path () {
 	export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
 	export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
     export PATH=$PATH:/root/.acme.sh/ # acme.sh
-	
+    export PATH=$PATH:/opt/netdata/bin # netdata alternative path
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
 	_log "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
@@ -380,8 +396,7 @@ function init_pkg_manager () {
 # ==============================================
 # -- init-app-config - set some application configuration
 # ==============================================
-init-app-config () {
-    
+init-app-config () {    
 	_log "Setting application configuration"
 	# git
 	git config --global init.defaultBranch main
@@ -390,8 +405,9 @@ init-app-config () {
 # ==============================================
 # -- init_cmds
 # ==============================================
-function init_cmds () {
-   	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*; do
+function init_zbr_cmds () {
+    _loading3 "Loading zshbop cmds...."
+   	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*.zsh; do
 	  source $CMD_FILE
 	done
 }
@@ -441,6 +457,9 @@ function init_check_services () {
  
 	# - mysql	    
 	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || { _log "MySQL Server not installed";_warning "MySQL not installed, but could be using remote database" }
+
+    # -- mongodb
+    if (( $+commands[mongod] )) && _success "MongoDB: $(mongod --version | head 1)" || _log "MongoDB Server not installed"
 	
 	# - nginx
 	if (( $+commands[nginx] )) && _success "Nginx: $(nginx -v 2>&1 >/dev/null)" || _log "Nginx not installed"	
@@ -467,68 +486,6 @@ function init_check_services () {
 }
 
 # ==============================================
-# -- check zsh version
-# ==============================================
-
-function init_checkzsh () {
-	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/
-	_log "Running ZSH $ZSH_VERSION - Latest version is 5.9 as per https://zsh.sourceforge.io/News/"
-	autoload is-at-least
-	if ! is-at-least 5.7 $ZSH_VERSION; then
-		_warning "Running older ZSH Version, please upgrade https://github.com/lmtca/zsh-installs"
-	else
-    	_log "Running close to latest ZSH"
-	fi
-}
-
-# ==============================================
-# -- check if in virtual environment
-# ==============================================
-
-function init_check_vm () {
-    _debug "Checking if in virtual environment"
-
-    [[ $MACHINE_OS == "mac" ]] && { _success "VM: Running on Mac...no need to check"; return 0 }
-
-    # -- check if virt-what exists
-    _cexists virt-what
-    if [[ $? == "0" ]]; then
-        _debug "virt-what installed"
-        VM=$(virt-what)
-        if [[ -n $VM ]]; then
-            _debug "virt-what returned $VM"
-            if [[ $VM == "kvm" ]]; then
-                if [[ $(pgrep qemu) ]] || [[ $(pgrep qemu-system) ]]; then
-                    echo "$(_loading3 VM-virt-what:) Running on KVM, and qemu guest tools is running"
-                else
-                    _warning "VM-virt-what: Running on KVM, but qemu is not running, install qemu-guest-agent"
-                fi
-            else
-                _alert "VM-virt-what: Running on $VM" 0
-            fi
-        else
-            _loading3 "Not running in a VM"
-            _debug "virt-what returned $VM"
-        fi
-    else
-        _warning "Unable to determine if in virtual environment, please install virt-what"
-        
-    fi
-}
-
-# ==============================================
-# -- check if in virtual environment secondary method
-# ==============================================
-function init_check_vm_2 () {
-    _debug "Checking if in virtual environment"
-    if [[ -d /sys/devices/virtual ]] || [[ -f /proc/vz ]] || [[ -d /proc/xen ]]; then
-        _alert "You are in a virtual machine."
-    else
-        _alert "You are not in a virtual machine."
-    fi
-}
-
-# ==============================================
 # -- init_home_bin - Make sure $HOME/bin exists
 # ==============================================
 function init_home_bin () {
@@ -539,6 +496,26 @@ function init_home_bin () {
         _loading2 "\$HOME/bin does not exist...creating home bin"
         mkdir $HOME/bin
     fi
+}
+
+# ==============================================
+# -- init_checks
+# ==============================================
+function init_checks () {
+    # Source checks
+    typeset -gA help_checks
+    for CHECK_FILE in "${ZSHBOP_ROOT}/checks/"checks-*; do
+	    source $CHECK_FILE
+	done
+    
+    # Detect OS and run checks.
+    if [[ $MACHINE_OS == "mac" ]]; then
+        _loading "Running Mac Checks"
+        mac-checks        
+    fi
+
+    # Detect if VM
+    vm-check     
 }
 
 ###########################################################
@@ -567,16 +544,25 @@ init_motd () {
 
     # -- system-details    
     zshbop_check-system
+    echo ""
     
     # -- Show screen sessions
-    _loading3 "Screen Sessions - $(screen-sessions)"
+    _loading "Checking Screen Sessions"
+    screen-sessions
+    echo ""    
 
     # -- Check software
 	init_check_software
+    echo ""
 	
 	# -- Check service software versions 
     _loading "Checking Service Versions"
 	init_check_services
+    echo ""
+
+    # -- Check raid
+    _loading "Checking RAID"
+    software-raid-check
     echo ""
 
     # -- Load motd
@@ -605,29 +591,46 @@ init_motd () {
 # ==============================================
 function init_zshbop () {
     _log "${funcstack[1]}:start"
+
 	# -- Start init
 	_debug_all
     echo "$bg[yellow]$fg[black] * Initilizing zshbop${RSC} - $(zshbop_version)"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
     # -- Init zshbop
-    init_checkzsh        # -- Check zsh
+    init_core
+    if [[ $ZSHBOP_RELOAD == "1" ]]; then
+        _loading3 "Loading includes...." 
+        init_include        # -- Include files
+    fi
+    init_checks          # -- Init checks
+    zsh-check-version    # -- Check zsh
     init_path            # -- Set paths
     init_home_bin        # -- Check if home bin exists
-	init_detectos        # -- Detect operating system
-    init_check_vm        # -- Check if in virtual environment
-	init_pkg_manager     # -- Init package manager
-    init_cmds            # -- Include commands
+	init_detectos        # -- Detect operating system    
+	init_pkg_manager     # -- Init package manager 
+    init_zbr_cmds        # -- Include commands
     init-app-config      # -- Common application configuration
-  	init_omz_plugins     # -- Init OhMyZSH plugins
-  	init_p10k            # -- Init powerlevel10k
+  	if [[ $ZSHBOP_RELOAD == "0" ]]; then
+        init_omz_plugins     # -- Init OhMyZSH plugins
+  	    init_plugins         # -- Init plugins
+    fi
+    init_p10k            # -- Init powerlevel10k
   	zshbop_custom-load   # -- Init custom zshbop
-    init_os              # -- Init os defaults # TODO Needs to be refactored
+    init_os              # -- Init os defaults # TODO Needs to be refactored    
     init_app_config      # -- Init config
-    init_zsh_sweep       # -- Init zsh-sweep if installed
-    init_plugins         # -- Init plugins
+    init_zsh_sweep       # -- Init zsh-sweep if installed    
     init_sshkeys         # -- Init ssh keys
+    # -- Check if init_custom_startup is defined as a function and then execute it
     
+    _debug "Checking if init_custom_startup is defined as a function"
+    if whence -f init_custom_startup > /dev/null; then
+        _debug "init_custom_startup is defined"
+        init_custom_startup
+    else
+        _debug "init_custom_startup is not defined"
+    fi
+
     echo ""
     
     _debug "init_zshbop: \$funcstack = $funcstack"
