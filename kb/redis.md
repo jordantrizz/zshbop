@@ -13,3 +13,10 @@
 maxmemory <systemmemorybased>
 maxmemory-policy allkeys-lru
 ```
+
+# WordPress Redis Config
+## Socket Connections
+```
+define('WP_REDIS_PATH','/var/run/redis/redis-server.sock');
+define('WP_REDIS_SCHEME','unix');
+```

@@ -1,40 +1,74 @@
 #!/usr/bin/env zsh
-# -----------------------------------------------------------------------------------
-# -- functions.zsh -- This file contains all the required zshbop functions for the main .zshrc script.
-# -----------------------------------------------------------------------------------
+# =========================================================
+# -- functions.zsh
+# -- Required zshbop functions for the main .zshrc script.
+# =========================================================
 _debug_load
 
-# -----------
+# --------------------------------------------------
 # -- ZSHBOP Aliases
-# -----------
-alias update="zshbop_update"
-alias rld="zshbop_reload"
-alias urld="zshbop_update;zshbop_reload"
-alias qrld="zshbop_reload -q"
-alias qurld="zshbop_update;zshbop_reload -q"
+# --------------------------------------------------
+# zbd
+help_zshbop_quick[zbd]='Change directory to $ZBR'
+alias zbd="cd $ZBR"
+# zbu
+help_zshbop_quick[zbu]='Update zshbop'
+alias zbu="zshbop_update"
+# zbr
+help_zshbop_quick[zbr]='Reload zshbop'
+alias zbr="zshbop_reload"
+# zbur
+help_zshbop_quick[zbur]='Update and reload zshbop'
+alias zbur="zshbop_update;zshbop_reload"
+# zbqr
+help_zshbop_quick[zbqr]='Quick reload zshbop'
+alias zbqr="zshbop_reload -q"
+# zbuqr
+help_zshbop_quick[zbuqr]='Update and quick reload zshbop'
+alias zbuqr="zshbop_update;zshbop_reload -q"
+
+# zbuf
+help_zshbop_quick[zbuf]='Update and reset zshbop'
+alias zbuf="git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull;git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$ZSHBOP_BRANCH"
+
+# zb
+help_zshbop_quick[zb]='zshbop main command'
 alias zb="zshbop"
+
+# --------------------------------------------------
+# -- Core aliases
+# --------------------------------------------------
+
+# init
+help_core[init]='Initialize zshbop'
 alias init="init_zshbop"
-alias zbr="cd $ZBR"
+
+# motd
+help_core[motd]='Print out motd'
 alias motd="init_motd"
+
+# report
+help_core[report]='Print out errors and warnings'
 alias report="zshbop_report"
-alias omz-plugins='escho "OMZ Plugins $OMZ_PLUGINS"'
 
-##########################################
-# -------------------
+# =========================================================
 # -- zshbop functions
-# -------------------
-##########################################
+# =========================================================
 
-# -------------------------------------
+# omz-plugins
+help_zshbop[omz-plugins]='Print out enabled OMZ plugins'
+alias omz-plugins='echo "OMZ Plugins $OMZ_PLUGINS"'
+
+# =========================================================
 # -- cc ()
 # --
 # -- clear cache for various tools
-# -------------------------------------
+# =========================================================
 help_zshbop[cache-clear]='Clear cache for antigen + more'
 alias cc="zshbop_cache-clear"
-zshbop_cache-clear () {   
+zshbop_cache-clear () {
     _log "${funcstack[1]}:start"
-    _loading "**** Start ZSH cache clear ****" 
+    _loading "**** Start ZSH cache clear ****"
 	_loading2 "Clearing plugin manager cache"
 	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
       _loading2 $(antigen reset)
@@ -52,8 +86,10 @@ zshbop_cache-clear () {
     _loading "**** End ZSH cache clear ****"
     echo ""
 }
-
+# =========================================================
 # -- cache-clear-super
+# =========================================================
+
 alias scc="cache-clear-super"
 help_zshbop[cache-clear-super]='Clear everything, including zsh autocompletion'
 zshbop_cache-clear-super () {
@@ -61,37 +97,35 @@ zshbop_cache-clear-super () {
     rm -f ~/.zcompdump*
 }
 
-# -------------------
+# =========================================================
 # -- zshbop_reload ()
 # --
 # -- reload zshbop
-# -------------------
+# =========================================================
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _log "${funcstack[1]}:start"
-    if [[ $1 == "-q" ]]; then
-        _loading "Quick reload of zshbop"
-        export RUN_REPORT=0
-        zshbop_cache-clear
-        source $ZBR/lib/*.zsh
-        source $ZBR/cmds/*.zsh
-        _loading "Load zshbop custom config"
-        zshbop_custom-load
-    else
+    if [[ $1 == "-m" ]]; then
         _loading "Reloading zshbop"
         export RUN_REPORT=1
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
         _log "Running exec zsh"
 	    exec zsh
+    else
+        _loading "Quick reload of zshbop"
+        export RUN_REPORT=0
+        export ZSHBOP_RELOAD=1
+        zshbop_cache-clear
+        init_zshbop
     fi
 }
 
-# --------------------------
+# =========================================================
 # -- zshbop_branch ($branch)
 # --
 # -- Change branch of zshbop
-# --------------------------
+# =========================================================
 help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
         _debug_all
@@ -101,7 +135,7 @@ zshbop_branch  () {
             _debug "GIT_CHECKOUT: $GIT_CHECKOUT"
             if [[ $? -eq "0" ]]; then
                 _success " --Switched to $2 branch, pulling latest changes"
-                git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull 
+                git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
             else
                 _error " -- Failed to switch to $2 branch"
             fi
@@ -115,69 +149,71 @@ zshbop_branch  () {
         fi
 }
 
-# ----------------------------
+# =========================================================
 # -- zshbop_check-updates ()
 # --
 # -- Check for zshbop updates.
-# ----------------------------
+# =========================================================
 help_zshbop[check-updates]='Check for zshbop update, not completed yet'
 zshbop_check-updates () {
 	_debug_all
 
     # Sources for version check
-	MAIN_UPDATE="https://raw.githubusercontent.com/$ZSHBOP_REPO/main/version"
-	DEV_UPDATE="https://raw.githubusercontent.com/$ZSHBOP_REPO/dev/version"
+	local ZSHBOP_GH_COMMIT_URL="https://api.github.com/repos/jordantrizz/zshbop/commits/$ZSHBOP_BRANCH"
+    local ZSHBOP_GH_RELEASE_URL="https://api.github.com/repos/jordantrizz/zshbop/releases/latest"
 
+    # Check for updates
+    _loading "Checking for updates"
     _notice "-- Running $ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT checking $ZSHBOP_BRANCH for updates."
-    if [[ "$ZSHBOP_BRANCH" = "main" ]]; then
-		echo "-- Checking version on $MAIN_UPDATE"
-        NEW_MAIN_VERSION=$(curl -s $MAIN_UPDATE)
-        if [[ $NEW_MAIN_VERSION != $ZSHBOP_VERSION ]]; then
-        	_warning "Update available $NEW_MAIN_VERSION"
-		else
-        	_success "Running current version $NEW_MAIN_VERSION"
-        fi
-     elif [[ "$ZSHBOP_BRANCH" = "dev" ]]; then
-		# Get repository dev commit.
-        ZSHBOP_REMOTE_COMMIT=$(curl -s https://api.github.com/repos/jordantrizz/zshbop/branches/dev | jq -r '.commit.sha')
+    _loading3 "Checking for release update at $ZSHBOP_GH_RELEASE_URL"
+    _loading3 "Checking for new commits at $ZSHBOP_GH_COMMIT_URL"
 
-		# Check remote github.com repository
-        echo "-- Checking version on $DEV_UPDATE"
-        NEW_DEV_VERSION=$(curl -s $DEV_UPDATE)
+    # -- Get data
+    ZSHBOP_LATEST_RELEASE=$(curl -s $ZSHBOP_GH_RELEASE_URL | jq -r '.name')
+    typeset -A ZSHBOP_LATEST_DATA
+    ZSHBOP_LATEST_DATA[sha]=$(curl -s $ZSHBOP_GH_COMMIT_URL | jq -r '.sha')
+    ZSHBOP_LATEST_DATA[author_name]=$(curl -s $ZSHBOP_GH_COMMIT_URL | jq -r '.commit.author.name')
+    ZSHBOP_LATEST_DATA[commit_message]=$(curl -s $ZSHBOP_GH_COMMIT_URL | jq -r '.commit.message')
 
-        # Compare versions
-        if [[ $NEW_DEV_VERSION != $ZSHBOP_VERSION ]]; then
-	    	_warning "Update available $NEW_DEV_VERSION"
-	    else
-	    	_success "Running current version $NEW_DEV_VERSION"
-	    fi
+    # Access and print elements from the associative array
+    _loading2 "Latest Release: $ZSHBOP_LATEST_RELEASE | Latest Commit: ${ZSHBOP_LATEST_DATA[sha]}"
+    _loading3 "Author Name: ${ZSHBOP_LATEST_DATA[author_name]}"
+    _loading3 "Commit Message: ${ZSHBOP_LATEST_DATA[commit_message]}"
 
-	    # Compare commits
-	    echo "-- Checking commit on branch $ZSHBOP_BRANCH "
-        if [[ $ZSHBOP_COMMIT != $ZSHBOP_REMOTE_COMMIT ]]; then
-	    	_warning "Not on $ZSHBOP_BRANCH latest commit - Local: $ZSHBOP_COMMIT / Remote: $ZSHBOP_REMOTE_COMMIT"
-	    else
-        	_success "On $ZSHBOP_BRANCH latest commit - Local: $ZSHBOP_COMMIT / Remote: $ZSHBOP_REMOTE_COMMIT"
-        fi
-	else
-    	_error "Don't know what branch zshbop is on"
+    # --  Compare releases
+    # If not equal update available, if greater than, update available, if less than, running current version
+    if [[ $ZSHBOP_VERSION > $ZSHBOP_LATEST_RELEASE ]]; then
+            _warning "Woops, we're ahead $ZSHBOP_LATEST_RELEASE is less than $ZSHBOP_VERSION"
+    elif [[ $ZSHBOP_VERSION < $ZSHBOP_LATEST_RELEASE ]]; then
+            _warning "Update available $ZSHBOP_LATEST_RELEASE"
+    elif [[ $ZSHBOP_VERSION != $ZSHBOP_LATEST_RELEASE ]]; then
+            _warning "Update available $ZSHBOP_LATEST_RELEASE"
+    else
+            _success "Running current version $ZSHBOP_LATEST_RELEASE"
+    fi
+
+	# -- Compare commits
+    if [[ $ZSHBOP_COMMIT != ${ZSHBOP_LATEST_DATA[sha]} ]]; then
+           	_warning "Update available ${ZSHBOP_LATEST_DATA[sha]} on $ZSHBOP_BRANCH"
+    else
+           	_success "No update, on latest ${ZSHBOP_LATEST_DATA[sha]}"
     fi
 }
 
-# -------------------
+# =========================================================
 # -- zshbop_update ()
 # --
 # -- Update ZSHBOP
-# -------------------
+# =========================================================
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
     _log "${funcstack[1]}:start"
 	_debug_all
     _loading "START UPDATING ZSHBOP"
-        
+
     # -- print out zshbop version
     zshbop_version
-        
+
     # -- Pull zshbop down from git using current branch
     _loading2 "Pulling zshbop updates"
 
@@ -192,7 +228,7 @@ zshbop_update () {
 
     # Update repos
 	repos update
-	
+
 	# Update $ZBC aka custom zshbop directory
 	_loading2 "Updating custom zshbop directory $ZBC"
 	if [[ $ZBC ]]; then
@@ -211,7 +247,7 @@ zshbop_update () {
             [[ -d "$HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             [[ -d "$GIT_HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             [[ -d $GIT ]] && ZUG="$GIT"
-            if [[ -d ${ZUG} ]]; then 
+            if [[ -d ${ZUG} ]]; then
                 _loading2 "Updating ${ZUG}"
                 git --git-dir=${ZUG}/.git --work-tree=${ZUG} pull
             else
@@ -226,36 +262,36 @@ zshbop_update () {
     echo ""
 }
 
-# --------------------
+# =========================================================
 # -- zshbop_version ()
-# --------------------
+# =========================================================
 help_zshbop[version]='Get version information'
 zshbop_version () {
         echo "zshbop Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}/$ZSHBOP_COMMIT${RSC}"
 }
 
-# ------------------
+# =========================================================
 # -- zshbop_debug ()
-# ------------------
+# =========================================================
 help_zshbop[debug]='Turn debug on and off'
 alias debug=zshbop_debug
 zshbop_debug () {
-    _debug_all        
+    _debug_all
     echo "test $@"
     if [[ $1 == "on" ]] || [[ $2 == "on" ]]; then
             echo "Turning debug on"
             _debug "Turning debug on"
             touch $ZSHBOP_ROOT/.debug
             echo "Reloading to enable debug"
-            rld
+            zshbop_reload
     elif [[ $1 == "off" ]] || [[ $2 == "off" ]]; then
             echo "Turning debug off"
             _debug "Turning debug off"
             if [[ -f $ZSHBOP_ROOT/.debug ]]; then
-                rm $ZSHBOP_ROOT/.debug    	            
+                rm $ZSHBOP_ROOT/.debug
             else
                 _error "$ZSHBOP_ROOT/.debug doesn't exist"
-                rld
+                zshbop_reload
             fi
             if [[ -f $ZSHBOP_ROOT/.verbose ]]; then
                 rm $ZSHBOP_ROOT/.verbose
@@ -263,14 +299,14 @@ zshbop_debug () {
                 _error "$ZSHBOP_ROOT/.verbose doesn't exist"
             fi
             echo "Reloading to disable debug"
-            rld
+            zshbop_reload
     elif [[ $1 == "verbose" ]] || [[ $2 == "verbose" ]]; then
             echo "Turning debug verbose on"
             _debug "Turning debug verbose on"
             touch $ZSHBOP_ROOT/.verbose
             touch $ZSHBOP_ROOT/.debug
             echo "Reloading to enable debug verbose"
-            rld
+            zshbop_reload
     else
             _error "nothing passed"
             echo "Usage: debug <on|off|verbose>"
@@ -278,15 +314,15 @@ zshbop_debug () {
     fi
 }
 
-# ------------------
+# =========================================================
 # -- zshbop_formatting ()
-# ------------------
+# =========================================================
 help_zshbop[formatting]='List variables for using color'
 alias formatting=zshbop_formatting
 function zshbop_color () { zshbop_formatting $@; }
 function zshbop_formatting () {
     _debug_all
-	
+
     _loading "How to use color"
     echo "  Foreground \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
     echo "  Background \$fg[blue] \$fg[red] \$fg[yellow] \$fg[green]"
@@ -298,14 +334,14 @@ function zshbop_formatting () {
 		${=func} "$func"
 	done
     echo ""
-    
+
     _loading "Listing colors available"
     colors-print
 }
 
-# ----------------
+# =========================================================
 # -- zshbop_custom
-# ----------------
+# =========================================================
 help_zshbop[custom]='Custom zshbop configuration'
 zshbop_custom () {
 	_loading "Instructions on how to utilize custom zshbop configuration."
@@ -313,9 +349,9 @@ zshbop_custom () {
 	echo " - You can also copy the .zshbop.custom file within this repository as a template"
 }
 
-# ---------------------
+# =========================================================
 # -- zshbop_custom-load
-# ---------------------
+# =========================================================
 help_zshbop[custom-load]='Load zshbop custom config'
 zshbop_custom-load () {
 	if [[ $1 == "-q" ]]; then
@@ -333,9 +369,9 @@ zshbop_custom-load () {
     fi
 }
 
-# --------------
+# =========================================================
 # -- zshbop_help
-# --------------
+# =========================================================
 help_zshbop[help]='zshbop help screen'
 zshbop_help () {
     _debug_all
@@ -347,16 +383,40 @@ zshbop_help () {
     echo "Plugin Manager: $ZSHBOP_PLUGIN_MANAGER"
 
     echo ""
+    _loading "-- core commands --------------"
+    echo ""
+    echo "These commands are available as just commands in the shell"
+    echo ""
+    for key in ${(kon)help_core}; do
+        printf '%s\n' "  ${(r:25:)key} - ${help_core[$key]}"
+    done
+    echo ""
+
+    echo ""
+    _loading "-- zshbop quick --------------"
+    echo ""
+    echo "These commands are shortened aliases for zshbop commands"
+    echo ""
+    for key in ${(kon)help_zshbop_quick}; do
+        printf '%s\n' "  ${(r:25:)key} - ${help_zshbop_quick[$key]}"
+    done
+    echo ""
+
+
+    echo ""
     _loading "-- zshbop commands --------------"
+    echo ""
+    echo "These commands are available as zshbop commands in the shell"
+    echo ""
     for key in ${(kon)help_zshbop}; do
-        printf '%s\n' "  ${(r:25:)key} - ${help_zshbop[$key]}"
+        printf '%s\n' "  zshbop ${(r:25:)key} - ${help_zshbop[$key]}"
     done
     echo ""
 }
 
-# --------------
-# -- zshbop_report
-# --------------
+# =========================================================
+# -- zshbop_report ($LOG_LEVEL, $TAIL_LINES)
+# =========================================================
 help_zshbop[report]='Print out errors and warnings'
 function zshbop_report () {
     local LOG_LEVEL="$1"
@@ -376,7 +436,7 @@ function zshbop_report () {
         _loading3 "No log level specified"
     elif [[ $LOG_LEVEL == "help" ]]; then
         echo "Usage: report <all|debug|error|warning|alert|notice|log|less|faults> <lines>"
-    elif [[ $LOG_LEVEL = "all" ]]; then        
+    elif [[ $LOG_LEVEL = "all" ]]; then
         SHOW_LEVEL=("ERROR" "WARNING" "ALERT" "LOG")
     elif [[ $LOG_LEVEL = "debug" ]]; then
         SHOW_LEVEL=("DEBUG")
@@ -394,7 +454,7 @@ function zshbop_report () {
         less $SCRIPT_LOG
     elif [[ $LOG_LEVEL = "faults" ]]; then
         SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
-    else        
+    else
         _error "Unknown $LOG_LEVEL"
     fi
 
@@ -406,9 +466,9 @@ function zshbop_report () {
     for LOG in $SHOW_LEVEL; do
         [[ $LOG_LEVEL != "faults" ]] && _loading2 "-- $LOG ------------"
         [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "^\[${LOG}\]" $SCRIPT_LOG"
-        grep "^\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES
+        ZSHBOP_REPORT+=$(grep "^\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES)
     done
-    echo ""
+    echo "$ZSHBOP_REPORT"
 }
 
 # ==============================================
@@ -426,27 +486,27 @@ function zshbop_check-system () {
     # -- MEM
     _debug "Checking memory"
     [[ $(mem) == "0" ]] && echo "$(_loading3 $(mem))"
-	
+
     # -- network interfaces
     _debug "Network interfaces"
     INTERFACES="$(interfaces)"
     _loading2 "Checking network interfaces"
     echo "   $INTERFACES"
-	
+
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"
-    echo "$(_loading3 "Checking disk space") $(check_diskspace)"
+    _loading2 "Checking disk space"
+    check_diskspace
 
 	# -- check block devices
     _debug "Checking block devices"
-    echo "$(_loading3 "Checking block devices") $(check_blockdevices)"
-
-
+    _loading2 "Checking block devices"
+    check_blockdevices
 }
 
-# --------------
+# =========================================================
 # -- zshbop_check
-# --------------
+# =========================================================
 help_zshbop[check]='Check environment for installed software and tools'
 function zshbop_check () {
     _log "${funcstack[1]}:start"
@@ -484,9 +544,9 @@ function zshbop_check () {
     _log "${funcstack[1]}:end"
 }
 
-# --------------------------------
+# =========================================================
 # -- zshbop_install-env
-# --------------------------------
+# =========================================================
 help_zshbop[install-env]='Install environment tools'
 fucntion zshbop_install-env () {
     _log "${funcstack[1]}:start"
@@ -498,7 +558,7 @@ fucntion zshbop_install-env () {
         _cexists $i
         if [[ $? == "1" ]]; then
             _debug "Adding $i to list of tools to install"
-            PKG_TO_INSTALL+=("$i")  
+            PKG_TO_INSTALL+=("$i")
         fi
     done
     _loading3 "Packages to install - $PKG_TO_INSTALL"
@@ -510,11 +570,13 @@ fucntion zshbop_install-env () {
     else
         _loading3 "Not installing - $PKG_TO_INSTALL"
     fi
-    
+
     _log "${funcstack[1]}:stop"
 }
-
+# =========================================================
 # -- zshbop_cleanup
+# =========================================================
+
 help_zshbop[cleanup]='Cleanup old things'
 function zshbop_cleanup () {
     _log "${funcstack[1]}:start"
@@ -545,21 +607,111 @@ function zshbop_cleanup () {
     fi
 }
 
-# ==============================================
-# ==============================================
-# ==============================================
-# ==============================================
+# =========================================================
+# -- zshbop_issue
+# =========================================================
+help_zshbop[issue]='Create zshbop issue on Github, must have gh installed and configured'
+function zshbop_issue () {
+    local ISSUE_TITLE ISSUE_BODY
+    _log "${funcstack[1]}:start"
+    _loading "Creating zshbop issue on Github"
+    _cexists "gh"
+    if [[ $? == "0" ]]; then
+        _loading2 "Creating issue on github for jordantrizz/zshbop"
+        # Ask for title, enter will accept input
+        echo -n "Title (press Enter when done): "
+        read ISSUE_TITLE
 
-# --------------
+        # Ask for the body
+        echo "Enter body (type >> on a new line to finish):"
+        body=""
+        while IFS= read -r line; do
+            # Check for the end character/string
+            if [[ "$line" == ">>" ]]; then
+                break
+            fi
+            # Append the line to the body
+            ISSUE_BODY+="$line\n"
+        done
+
+        # Print out and ask to create issue
+        echo "===================================================================================================="
+        echo "Title: $ISSUE_TITLE"
+        echo "--------------------"
+        echo "Body:"
+        echo "$ISSUE_BODY"
+        echo "===================================================================================================="
+        echo ""
+        read -q "REPLY?Create issue? [y/n] "
+        echo ""
+
+        # Create issue
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            _loading2 "Creating issue"
+            gh issue create --repo jordantrizz/zshbop --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
+        else
+            _loading2 "Not creating issue"
+        fi
+    else
+        _error "gh not installed"
+    fi
+}
+
+# -- zshbop_software - Install softare into environment.
+help_zshbop[install-software]='Install software into environment'
+zshbop_install-software () {
+	sudo apt-get update
+    _loading "Installing Software..."
+    echo ""    
+    _loading2 "Installing required software.."
+    echo "REQUIRED_SOFTWARE: $REQUIRED_SOFTWARE"
+    if read -q "Continue? (y/n)"; then
+        sudo apt-get install --no-install-recommends $required_software
+    else
+        echo "Skipping due to press 'n'"
+    fi
+
+    _loading2 "Installing optional software"
+    echo "OPTIONAL_SOFTWARE: $OPTIONAL_SOFTWARE"
+    if read -q "Continue? (y/n)"; then
+        sudo apt-get install --no-install-recommends $OPTIONAL_SOFTWARE
+    else
+        echo "Skipping due to press 'n'"
+    fi
+
+    _loading2 "Installing extra software"
+    echo "EXTRA_SOFTWARE: $EXTRA_SOFTWARE"
+    if read -q "Continue? (y/n)"; then
+        sudo apt-get install --no-install-recommends $OPTIONAL_SOFTWARE
+    else
+        echo "Skipping due to press 'n'"
+    fi
+
+    #TODO FIX
+    echo "---------------------------"
+    echo "Manual installs"
+    echo "---------------------------"
+    echo " mdv       - pip install mdv"
+    echo " gnomon    - via npm"
+    echo " lsd       - https://github.com/Peltoche/lsd"
+    echo ""
+}
+
+# =========================================================
+# =========================================================
+# =========================================================
+# =========================================================
+
+# =========================================================
 # -- Always Last
-# --------------
+# =========================================================
 
 function zshbop () {
-	_debug_all 
+	_debug_all
     if [[ -z $1 ]]; then
 		zshbop_help
-    elif [[ $1 == "help" ]]; then    
-		zshbop_help        	
+    elif [[ $1 == "help" ]]; then
+		zshbop_help
     elif [[ -n $1 ]]; then
 		_debug "-- Running zshbop $1"
         zshbop_cmd=(zshbop_${1})
