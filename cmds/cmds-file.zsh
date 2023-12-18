@@ -62,3 +62,9 @@ findw () {
     echo ""
     find . -iname "$query*" | tee /dev/tty | wc -l | xargs echo -e "\nFound files:"
 }
+
+# -- find-empty-dirs
+help_file[find-empty-dirs]="Find empty directories"
+function find-empty-dirs () {
+    find . -type d -empty
+}
