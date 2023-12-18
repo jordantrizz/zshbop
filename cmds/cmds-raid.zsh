@@ -61,14 +61,12 @@ function software-raid-check () {
             fi
         done
         OUTPUT+=" | "
-    done
-
-    echo $OUTPUT
+    done    
 
     if $all_good; then
-        _success "All RAID devices are good."
+        _success "All RAID devices are good - $OUTPUT"
     else
         echo ""
-        _error "One or more RAID devices reported bad status."
+        _error "One or more RAID devices reported bad status - $OUTPUT"
     fi
 }
