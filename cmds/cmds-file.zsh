@@ -1,10 +1,10 @@
 # -- file
 _debug " -- Loading ${(%):-%N}"
-help_files[files]="Commands working with files in Linux" # Help file description
+help_files[file]="Commands working with files in Linux" # Help file description
 typeset -gA help_file # Init help array.
 
 # -- Compare two directories
-help_files[compare-dirs]="Compare two directories"
+help_file[compare-dirs]="Compare two directories"
 function compare-dirs () {
     local DIR1=$1
     local DIR2=$2
@@ -18,7 +18,7 @@ function compare-dirs () {
 }
 
 # -- zipc
-help_files[zipc]="Zip a directory"
+help_file[zipc]="Zip a directory"
 function zipc () {
     local DIR=$1
     local ZIPNAME=$2
@@ -37,7 +37,7 @@ function zipc () {
 }
 
 # -- gzip-files
-help_files[gzip-files]="Gzip all files in a directory"
+help_file[gzip-files]="Gzip all files in a directory"
 gzip-files() {
     if [[ $1 == "-h" || $1 == "--help" || -z $1 ]]; then
         echo "Usage: gzip-files <dir>"
@@ -50,7 +50,7 @@ gzip-files() {
 }
 
 # -- findw
-help_files[findw]="Find a file with wildcard keywords"
+help_file[findw]="Find a file with wildcard keywords"
 findw () {
     local query=""
     for word in "$@"; do
