@@ -48,7 +48,7 @@ function software-raid-check () {
             mdadm --detail /dev/$raid
         fi
 
-        echo -n "Checking $raid.."
+        echo -n "$raid = "
 
         for state in $raid_states; do
             if [[ $state == *degraded* ]]; then
@@ -59,7 +59,7 @@ function software-raid-check () {
                 echo -n "$state"
             fi
         done
-        echo -n " -- "
+        echo -n " | "
     done
 
     if $all_good; then
