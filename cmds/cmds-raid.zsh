@@ -8,6 +8,7 @@ typeset -gA help_raid
 # -- software-raid-check
 help_raid[software-raid-check]='Check the status of software RAID devices'
 function software-raid-check () {
+    local OUTPUT=""
     DEBUG_MODE=false
 
     # Parse command line arguments
@@ -48,19 +49,21 @@ function software-raid-check () {
             mdadm --detail /dev/$raid
         fi
 
-        echo -n "$raid = "
+        OUTPUT+="$raid = "
 
         for state in $raid_states; do
             if [[ $state == *degraded* ]]; then
                 all_good=false
-                echo -n "$state"
+                OUTPUT+="$state"
                 break
             else
-                echo -n "$state"
+                OUTPUT+="$state"
             fi
         done
-        echo -n " | "
+        OUTPUT+=" | "
     done
+
+    echo $OUTPUT
 
     if $all_good; then
         _success "All RAID devices are good."
