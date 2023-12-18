@@ -1,22 +1,19 @@
-# --
-# WSL commands
-#
-# Example help: help_wsl[wp]='Generate phpinfo() file'
-#
-# --
+# ====================================================================================================
+# -- WSL commands
+# ====================================================================================================
 _debug " -- Loading ${(%):-%N}"
-
-# What help file is this?
 help_files[wsl]='Windows Subsystem for Linux commands'
-
-# - Init help array
 typeset -gA help_wsl
 
-# ----------------
-# -- Run Commands
-# ----------------
+# ==================================================
+# -- Aliases
+# ==================================================
 # -- traceroute - fixes WSL traceroute command
 alias traceroute="sudo traceroute -M icmp"
+
+# ==================================================
+# -- Functions
+# ==================================================
 
 # -- wsl-fixscreen - Fix screen when in WSL.
 help_wsl[wsl-fixscreen]='Fix screen under WSL'
@@ -27,20 +24,20 @@ function wsl-fixscreen () {
 		sudo /etc/init.d/screen-cleanup start
 	fi
 }
-wsl-fixscreen
-
-# ------------
-# -- Functions
-# ------------
 
 # -- wsl-fixes
 help_wsl[wsl-fixes]='Fix issues under WSL'
 function wsl-fixes () {
 	# -- Fix traceroute on WSL
-	echo "-- Fixing traceroute under WSL"
-	sudo apt-get update
-	sudo apt install inetutils-traceroute
-	sudo apt install traceroute
+	_cexists traceroute
+	if [[ $? -eq 0 ]]; then
+		_debug " -- traceroute already installed"
+	else
+		_debug " -- Installing traceroute"
+		sudo apt-get update
+		sudo apt install inetutils-traceroute
+		sudo apt install traceroute
+	fi
 }
 
 # -- wsl-backupwtc 
@@ -62,4 +59,25 @@ function check_diskspace_wsl () {
     
 }
 
+# -- wsl-shortcuts
+help_wsl[wsl-shortcuts]='Create Downloads and Desktop shortcuts for WSL'
+function wsl-shortcuts () {
+	# -- Create shortcuts
+	_loading3 "WSL -- Creating shortcuts for Downloads and Desktop"
+	if [[ ! -d "$HOME/Downloads" ]]; then		
+		ln -s /mnt/c/Users/$USER/Downloads ~/Downloads	
+		_loading3 "Created Downloads shortcut"
+	fi
+	if [[ ! -d "$HOME/Desktop" ]]; then		
+		ln -s /mnt/c/Users/$USER/Desktop ~/Desktop
+		_loading3 "Created Downloads shortcut"
+	fi
+}
 
+# ==================================================
+# -- Run Commands
+# --
+# -- These commands run on WSL startup
+# ==================================================
+wsl-fixscreen
+wsl-shortcuts
