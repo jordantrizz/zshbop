@@ -12,38 +12,37 @@ help_files[git]='Git related commands'
 # - Init help array
 typeset -gA help_git
 
-# - gc
+# -- gc
 help_git[gc]='Git commit + push'
 function gc () {
-	_cexists glint
-	if [[ $? == "0" ]]; then
-		_loading "Committing using glint"
-        echo "build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
-ci: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
-docs: Documentation only changes
-feat: A new feature
-fix: A bug fix
-perf: A code change that improves performance
-refactor: A code change that neither fixes a bug nor adds a feature
-style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-test: Adding missing tests or correcting existing tests
-"
+    _loading "Committing using git, consider using glc"
+    git commit -am "$*"
+    git push
+}
+
+# ==============================================================================
+# -- glc
+# ==============================================================================
+help_git[glc]='Glint commit and push'
+function glc () {
+	_cmd_exists glint
+	if _cmd_exists glint; then
+        _loading "Committing using glint"
 		glint commit
 		git push
 	else
-		_loading "Committing using git, consider glit (software glint)"
-        git commit -am "$*"
-        git push
+		_error  "Glint not installed use software glint to install"
     fi
 }
 
 # - gbdc
 help_git[gbdc]='git branch diff on commits'
 function gbdc () {
+    log_lines=${3:-5}
 	if [[ ! -n $1 ]] || [[ ! -n $2 ]]; then
-		echo "Usage: gbdc <branch> <branch>"
+		echo "Usage: gbdc <branch> <branch> [log-lines]"
 	else
-		git log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative $1..$2
+		git log -n $log_lines --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative $1..$2
 	fi
 }
 
@@ -77,8 +76,9 @@ function grp {
 # -- gcb
 help_git[gcb]='Compare two branches'
 function gcb {
+    local BRANCH1=$1 BRANCH2=$2 LINES=${3:-15}
     if [[ $# -ne 2 ]]; then
-        echo "Usage: git-compare-branches branch1 branch2"
+        echo "Usage: git-compare-branches <branch1> <branch2> [lines]"
         return 1
     fi
 
@@ -92,10 +92,11 @@ function gcb {
         echo "Both branches are at the same commit: $branch1_commit"
     else
         _loading2 "Last 5 commits from $1:"
-        git log --pretty=format:"%h - %s (%ad)" --date=short "$1" | head -5
+        git log --pretty=format:"%h - %s (%ad)" --date=short "$1" | head -15
+        echo ""
         echo ""
         _loading2 "Last 5 commits from $2:"
-        git log --pretty=format:"%h - %s (%ad)" --date=short "$2" | head -5
+        git log --pretty=format:"%h - %s (%ad)" --date=short "$2" | head -15
     fi
 }
 
@@ -149,11 +150,8 @@ function gbd {
 # -- gbl
 help_git[gbl]="Git branch list"
 function gbl {
-    _loading "Listing local branches"
-    git branch
-    echo ""
-    _loading "Listing remote branches"
-    git branch -a
+    _loading "Listing local and remote branches"
+    git --no-pager branch -a
 }
 
 # -- gtpush - Git tag push
@@ -229,7 +227,9 @@ function gl {
 help_git[git-check]="Check for uncommitted changes and unpushed commits in all Git repositories"
 function git-check () {
     local GIT_DIR
-    if [[ -n $1 ]]; then
+    if [[ $1 == "-h" ]]; then
+        echo "Usage: git-check <directory>"
+    elif [[ -n $1 ]]; then
         _loading "Using \$1 as \$GIT_HOME: $1"
         GIT_DIR="$1"
         [[ -d $1 ]] || { _error "$1 is not a directory"; return 1; }
@@ -273,7 +273,7 @@ function git-check-repos () {
         fi
 
         # Check for unpushed commits
-        local AHEAD="$(git -C "$DIR" rev-list --count --left-only @{u}...HEAD)"
+        local AHEAD="$(git -C "$DIR" rev-list --count --right-only @{u}...HEAD)"
         if [[ "$AHEAD" -gt 0 ]]; then
             UNPUSHED_CODE=1
             echo "   - Commits: $AHEAD - ${bg[magenta]}$DIR${RSC}"
@@ -283,6 +283,46 @@ function git-check-repos () {
     if [[ -n $UNCOMMITED_CODE || -n $UNPUSHED_CODE ]]; then
         _warning "Uncommitted or unpushed code found"
         return 1
+    fi
+}
+
+# -- git-repos-updates
+help_git[git-repos-updates]="Check for updates in all Git repositories"
+function git-repos-updates () {
+    # -- git-repos-updates_do $GIT_PATH
+    _git-repos_updates_do () {
+        local GIT_PATH="$1" FOUND_GIT_DIRS=()
+        FOUND_GIT_DIRS=($(find "$GIT_PATH" -name ".git" -type d -prune ))
+        for DIR in ${FOUND_GIT_DIRS[@]}; do
+            # Check for unpushed commits
+            local AHEAD="$(git -C "$DIR" rev-list --count --left-only @{u}...HEAD)"
+            if [[ "$AHEAD" -gt 0 ]]; then
+                UNPUSHED_CODE=1
+                echo "   - New Commits: $AHEAD - ${bg[magenta]}$DIR${RSC}"
+            fi
+        done
+
+        if [[ -n $UNCOMMITED_CODE || -n $UNPUSHED_CODE ]]; then
+            _warning "Uncommitted or unpushed code found"
+            return 1
+        fi
+    }
+
+    local GIT_DIR=${1}
+
+    # -- Pick a directory to check
+    if [[ -n $GIT_DIR ]]; then
+        _loading "Using \$1 as \$GIT_HOME: $1"
+        GIT_DIR="$1"
+        [[ -d $1 ]] || { _error "$1 is not a directory"; return 1; }
+        _git-repos_updates_do "$GIT_DIR"
+    elif [[ -n $GIT_HOME ]]; then
+        _loading "Found and using \$GIT_HOME: $GIT_HOME"
+        GIT_DIR="$GIT_HOME"
+        [[ -d $GIT_HOME ]] || { _error "$GIT_HOME is not a directory"; return 1; }
+        _git-repos_updates_do "$GIT_DIR"
+    else
+        echo "Usage: git-repos-updates <directory>"
     fi
 }
 
@@ -354,4 +394,22 @@ function gprh {
     git pull
     _loading "Resetting hard"
     git reset --hard origin/$(git rev-parse --abbrev-ref HEAD)
+}
+
+# ==============================================================================
+# -- gcldupe - Git commit log remove duplicates
+# ==============================================================================
+help_git[gcldupe]="Remove duplicate commits from git log"
+function gcldupe () {
+    local GIT_COMMIT="$1"
+    # Remove first column
+    _usage_gcldupe () {
+        echo "Usage: gcldupe <last-commit>"
+    }
+
+    [[ -z $GIT_COMMIT ]] && { _usage_gcldupe; return 1; }
+
+    GIT_LOG="$(git log $GIT_COMMIT..HEAD --oneline | awk '{$1=""; sub(/^ /, ""); print $0}' | sort -u)"
+    
+    echo "$GIT_LOG"
 }

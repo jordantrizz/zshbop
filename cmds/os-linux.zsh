@@ -1,9 +1,11 @@
-# Aliases
+# ===================================
+# -- Linux specific commands
+# ===================================
 
 # -- ls/exa
 unset LC_CHECK NULL
 EXA_LINUX="exa-linux_x86_64"
-_cexists ${EXA_LINUX}
+_cmd_exists ${EXA_LINUX}
 if [[ $? == "0" ]]; then
     NULL=$(exa-linux_x86_64 2>&1 >> /dev/null)
 	LC_CHECK="$?"
@@ -12,8 +14,8 @@ if [[ $? == "0" ]]; then
 		_warning "exa failed, using default ls alias"
 	else
 		_debug "Using exa"
-		alias ls="${EXA_LINUX}"
-		alias exa="${EXA_LINUX}"
+		alias ls="${EXA_LINUX} -agl"
+		alias exa="${EXA_LINUX} -agl"
 	fi
 fi
 
@@ -23,15 +25,17 @@ alias ps="ps -auxwwf"
 # -- tran - https://github.com/abdfnx/tran/releases
 alias tran="tran_linux_amd64"
 
-# -- interfaces
+# ===================================
+# -- _interfaces_linux
+# ===================================
 help_linux[interfaces]="List interfaces ip, mac and link"
-function interfaces_linux () {
+function _interfaces_linux () {
     local OUTPUT=""
     local INTERFACES=()
     local INTERFACES_OUTPUT=""
 
     # -- Check if ifconfig commmand exists
-    _cexists ifconfig
+    _cmd_exists ifconfig
     if [[ $? -ge "1" ]]; then
         _error "ifconfig command not found, required, run zshbop install-env"
         return 1
@@ -39,7 +43,7 @@ function interfaces_linux () {
 
     # -- Get a list of all network interfaces
     _debug "Getting list of interfaces using ip -o link show and \$EXCLUDE_INTERFACES: $EXCLUDE_INTERFACES"
-    EXCLUDE_INTERFACES="^lo|^veth|^br-|^fwpr|^fwln|^fwbr|^tap" # -- Exclude loopback, veth and br interfaces
+    EXCLUDE_INTERFACES="^lo|^veth|^br-|^fwpr|^fwln|^fwbr|^tap|^sit" # -- Exclude loopback, veth and br interfaces
     INTERFACES=("${(f)$(ip -o link show | awk '{print $2}' | sed 's/://' | grep -vE "${EXCLUDE_INTERFACES}")}")
     OUTBOUND_INTERFACE=$(ip -o route get to 8.8.8.8 | awk {' print $5 '})
 
@@ -69,14 +73,15 @@ function interfaces_linux () {
 }
 
 # -- check_diskspace_linux
-check_diskspace_linux () {
+help_linux[linux-checkdiskspace]="Check disk space"
+function linux-checkdiskspace () {
     ALERT="98" # alert level
     # :\\ = wsl drive letters
     # /run = not requires
     # wsl = wsl stuffs
     # /init = wsl stuffs
     local DISKSPACE_ERROR=0
-    DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|devfs' | awk '{ print $5 " " $1 }' )
+    DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|devfs|snapfuse' | awk '{ print $5 " " $1 }' )
     DISKUSAGE=("${(@f)${DF_COMMAND}}")
     for OUT in ${DISKUSAGE[@]}; do
         PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
@@ -98,3 +103,12 @@ check_diskspace_linux () {
 # -- auto-ls
 export AUTO_LS_COMMANDS=('color' git-status)
 auto-ls-color () { ls -a --color=auto;echo "\n"; }
+
+# =================================================================================================
+# -- last-boots
+# =================================================================================================
+help_linux[last-boot]="Get last boot times"
+function last-boots () {
+    _loading "Running journalctl --list-boots"
+    journalctl --list-boots
+}

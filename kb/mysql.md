@@ -68,3 +68,15 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'test';
 ```
 mysql -s
 ```
+
+# Common issues
+## Unknown table 'COLUMN_STATISTICS' in information_schema (1109)
+For reference, mysqldump 8 is now expecting a information_schema.COLUMN_STATISTICS table.
+
+On MariaDB there is no such column in information_schema: https://jira.mariadb.org/browse/MDEV-16555
+
+This one seems pretty big and very surprising to me, mysqldump8 just broke the MariadDB compatibility and there's not even a fix in the new Ubuntu LTS.
+
+Workaround: snipe/snipe-it#6800 (comment)
+
+* https://stackoverflow.com/questions/11657829/unknown-table-column-statistics-in-information-schema-1109

@@ -1,13 +1,53 @@
+# =========================================================
 # -- WordPress
+# =========================================================
 _debug " -- Loading ${(%):-%N}"
 help_files[wordpress]='WordPress related commands'
 typeset -gA help_wordpress
+help_files[wordpress_func]='WordPress internal functions'
+typeset -gA help_inc_wordpress
 
-# -- wp-cli but allow root ;)
+
+# =========================================================
+# -- wp wrapper
+# =========================================================
 help_wordpress[wp]='Run wp-cli with --allow-root'
 alias wp="wp --allow-root"
 
+# =========================================================
+# -- _wp-cli-check
+# =========================================================
+help_inc_wordpress[_wp-cli-check]='Check if wp-cli is installed'
+_wp-cli-check () {
+	# Check if wp-cli is installed
+	_cmd_exists wp
+	if [[ $? == "1" ]]; then
+		_error "Can't find wp-cli:"
+		return 1
+	fi
+}
+
+# =========================================================
+# -- _wp-install-check
+# =========================================================
+help_inc_wordpress[_wp-install-check]='Check if WordPress is installed'
+_wp-install-check () {
+	# Check if WordPress is installed
+	WP_EXISTS=$(wp core is-installed 2> /dev/null)
+	if [[ $? == 1 ]]; then
+		_error "WordPress is not installed in the current directory."
+		return 1
+	fi
+}
+
+# =========================================================
+# =========================================================
+# =========================================================
+# =========================================================
+
+# =========================================================
 # -- wp-db
+# =========================================================
 help_wordpress[wp-db]='Echo WordPress database credentials'
 wp-db () {
 	if [ -f wp-config.php ]; then
@@ -115,33 +155,98 @@ alias wp-skip="wp --skip-themes --skip-plugins"
 
 # -- wp-backupsite
 help_wordpress[wp-backupsite]="Backup WordPress site on server to ~/backups"
-wp-backupsite () {
-    if [[ -z $1 ]]; then
-        echo "Usage: wp-backupsite <domain>"
-        echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
-        return 1
-    fi
-    SITE="$1"
+function wp-backupsite () {
+	local SITE=${1} ACTION=${2}	
+	local CURR_DIR=$(pwd)
+	local DRYRUN=${3:=0}
+	_wp_backupsite_usge () {
+		echo "Usage: wp-backupsite <domain> <action> <dryrun>"
+		echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
+		echo ""
+		echo "  Options:"
+		echo "	domain <site.com>      - domain name of the site"
+		echo "	action <db|files|all>  - db, files, all (optional)"
+		echo "	dryrun <1>             - dryrun mode (optional)"
+		echo ""
+		echo "  Example: wp-backupsite example.com"
+	}
 
-    WP_CHECK=$(wp --allow-root core is-installed)
+	# -- Check if site is defined
+    if [[ -z $SITE ]]; then
+		_wp_backupsite_usge
+		return 1
+	fi
+	
+	# -- Check if action is defined
+	if [[ -z $ACTION ]]; then
+		ACTION="all"		
+	elif [[ $ACTION != "db" && $ACTION != "files" && $ACTION != "all" ]]; then
+		_wp_backupsite_usge
+		_error "Invalid action: $ACTION"
+		return 1
+	fi
+	
+
+	_loading "Backing up $ACTION for $SITE to $HOME/backups"
+	[[ $DRYRUN == "1" ]] && _loading3 "Dryrun mode enabled"
+	
+	# -- check if wp-cli is installed
+	_loading3 "Checking if wp-cli is installed"
+	_cmd_exists wp
+	if [[ $? == "1" ]]; then
+		_error "Can't find wp-cli:"
+		[[ $DRYRUN == "0" ]] && return 1
+	else
+		_loading3 "wp-cli is installed"
+	fi
+
+	_loading3 "Checking if WordPress is installed in the current directory $CURR_DIR"
+    WP_CHECK=$(wp --allow-root core is-installed)	
     if [[ $? == "1" ]]; then
-        _error "$WP_CHECK"
-    fi
+        _error "WordPress is not installed in $CURR_DIR"
+		echo "$WP_CHECK"
+		[[ $DRYRUN == "0" ]] && return 1
+    else
+		_loading3 "WordPress is installed in $CURR_DIR"
+	fi
 
     if [[ ! -d $HOME/backups ]]; then
         echo "$HOME/backups directory doesn't exist...creating..."
         mkdir $HOME/backups
     fi
 
-    echo "Backing up ${SITE}..."
-    /usr/local/bin/wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
-    tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
+	if [[ $ACTION == "db" || $ACTION == "all" ]]; then
+    	_loading "Exporting database for ${SITE}..."
+		_loading3 "wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz"
+    	[[ $DRYRUN == "0" ]] && wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
+	fi
+
+	if [[ $ACTION == "files" || $ACTION == "all" ]]; then
+		_loading "Backing up files for ${SITE}..."
+    	[[ $DRYRUN == "0" ]] && tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
+	fi
 }
 
+# =========================================================
 # -- wp-skip
+# =========================================================
 help_wordpress[wp-admin-email]='Update admin email'
 function wp-admin-email () {
-    [[ -z $1 ]] && { echo "Usage: wp-admin-email <email>"; return 1 } || wp option update admin_email ${1}
+	_wp-admin-email-usage () {
+		echo "Usage: wp-admin-email (get|set <email>)"
+	}
+
+	[[ -z $1 ]] && { _wp-admin-email-usage; return 1 }		
+	
+	_wp-cli-check && _wp-install-check || return 1
+	if [[ $1 == "set" ]]; then
+		[[ -z $2 ]] && { _wp-admin-email-usage; return 1 }
+		wp option update admin_email ${2}
+	elif [[ $1 == "get" ]]; then
+		wp option get admin_email
+	else
+		_wp-admin-email-usage
+	fi
 
 }
 # -- wp-plugins
@@ -226,7 +331,7 @@ function wp-find-check () {
 		return 1
 	else
 		# -- Check if wp-cli is installed
-		_cexists wp
+		_cmd_exists wp
 		if [[ $? == "1" ]]; then
 			_error "Can't find wp-cli:"
 			return 1
@@ -390,7 +495,7 @@ function wp-wordfence-scan () {
 	fi
 
 	# -- Check if wordfence is installed
-	_cexists wordfence
+	_cmd_exists wordfence
 	if [[ $? == "1" ]]; then
 		_wp-wordfence-scan-usage
 		_error "Can't find wordfence-cli, please install"
@@ -509,7 +614,7 @@ function wp-updates() {
     fi
 
 	# -- Check if jq is installed
-	_cexists jq
+	_cmd_exists jq
 	if [[ $? == 1 ]]; then
 		_error "jq is not installed. Please install it first."
 		return 1
@@ -722,4 +827,159 @@ function wp-delete-wp-themes () {
     done
 
     _success "Theme deletion completed."
+}
+
+# =========================================================
+# -- wp-domain
+# =========================================================
+help_wordpress[wp-domain]='Get domain name from WordPress site'
+function wp-domain () {
+	local SITE_PATH="$1"
+	if [[ -z $SITE_PATH ]]; then
+		# Use current directory
+		SITE_PATH=$(pwd)
+	fi
+	if [[ ! -d $SITE_PATH ]]; then
+		echo "Path $SITE_PATH doesn't exist"
+		return 1
+	fi
+	if ! wp core is-installed --path="$SITE_PATH" &>/dev/null; then
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+	wp --allow-root option get siteurl --path="$SITE_PATH"
+}
+
+# =========================================================
+# -- wp-plugin-install
+# =========================================================
+help_wordpress[wp-plugin-install]='Install WordPress plugin'
+function wp-plugin-install () {
+	local PLUGIN_NAME="$1"
+	local SITE_PATH="$2"
+	if [[ -z $PLUGIN_NAME ]]; then
+		echo "Usage: wp-plugin-install <plugin-name> [path]"
+		return 1
+	fi
+	if [[ -z $SITE_PATH ]]; then
+		# Use current directory
+		SITE_PATH=$(pwd)
+	fi
+	if [[ ! -d $SITE_PATH ]]; then
+		echo "Path $SITE_PATH doesn't exist"
+		return 1
+	fi
+	if ! wp core is-installed --path="$SITE_PATH" &>/dev/null; then
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+
+
+	_loading "Installing $PLUGIN_NAME in $SITE_PATH"
+	# -- Install plugin
+	_loading3 "Running - wp --allow-root plugin install $PLUGIN_NAME --path=$SITE_PATH --activate"
+	wp --allow-root plugin install "$PLUGIN_NAME" --path="$SITE_PATH" --activate
+	# -- Chown the plugin directory in $SITE_PATH to the wp-content/plugins user and group
+	# Get the user and group of the wp-content directory
+	local WP_CONTENT_USER=$(stat -c '%U' "$SITE_PATH/wp-content")
+	local WP_CONTENT_GROUP=$(stat -c '%G' "$SITE_PATH/wp-content")
+	# Chown the plugin directory to the user and group of the wp-content directory
+	_loading3 "Running - chown -R $WP_CONTENT_USER:$WP_CONTENT_GROUP $SITE_PATH/wp-content/plugins/$PLUGIN_NAME"
+	chown -R "$WP_CONTENT_USER:$WP_CONTENT_GROUP" "$SITE_PATH/wp-content/plugins/$PLUGIN_NAME"
+
+}
+
+# =========================================================
+# -- wp-list-transients
+# =========================================================
+help_wordpress[wp-list-transients]='List all transients in wp_options table'
+function wp-list-transients () {
+	local SITE_PATH="$1"
+	if [[ -z $SITE_PATH ]]; then
+		# Use current directory
+		SITE_PATH=$(pwd)
+	fi
+	if [[ ! -d $SITE_PATH ]]; then
+		echo "Path $SITE_PATH doesn't exist"
+		return 1
+	fi
+	if ! wp core is-installed --path="$SITE_PATH" &>/dev/null; then
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+	_loading "Listing transients in $SITE_PATH"
+	wp --allow-root transient list --path="$SITE_PATH"
+}
+
+# =========================================================
+# -- wp-delete-transients
+# =========================================================
+help_wordpress[wp-delete-transients]='Delete all transients in wp_options table'
+function wp-delete-transients () {
+	local SITE_PATH="$1"
+	if [[ -z $SITE_PATH ]]; then
+		# Use current directory
+		SITE_PATH=$(pwd)
+	fi
+	if [[ ! -d $SITE_PATH ]]; then
+		echo "Path $SITE_PATH doesn't exist"
+		return 1
+	fi
+	if ! wp core is-installed --path="$SITE_PATH" &>/dev/null; then
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+	_loading "Deleting transients in $SITE_PATH"
+	wp --allow-root transient delete --all --path="$SITE_PATH"
+}
+
+# =========================================================
+# -- wp-list-transients-duplicate
+# =========================================================
+help_wordpress[wp-list-transients-duplicate]='List duplicate transients in wp_options table'
+function wp-list-transients-duplicate () {
+	local SITE_PATH="$1"
+	if [[ -z $SITE_PATH ]]; then
+		# Use current directory
+		SITE_PATH=$(pwd)
+	fi
+	if [[ ! -d $SITE_PATH ]]; then
+		echo "Path $SITE_PATH doesn't exist"
+		return 1
+	fi
+	if ! wp core is-installed --path="$SITE_PATH" &>/dev/null; then
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+	_loading "Listing duplicate transients in $SITE_PATH"
+	wp --allow-root db query "SELECT LEFT(option_name, LENGTH(option_name) - LOCATE('_', REVERSE(option_name))) AS base_option_name,
+COUNT(*) AS duplicate_count
+FROM wp_options
+WHERE option_name LIKE '_transient_%' 
+   OR option_name LIKE '_transient_timeout_%'
+GROUP BY base_option_name
+ORDER BY duplicate_count DESC;"
+
+}
+
+# =========================================================
+# -- wp-user-count
+# =========================================================
+help_wordpress[wp-user-count]='Count users in wp_users table'
+function wp-user-count () {
+	local SITE_PATH="$1"
+	[[ -z $SITE_PATH ]] && SITE_PATH=$(pwd)
+	[[ ! -d $SITE_PATH ]] && { echo "Path $SITE_PATH doesn't exist"; return 1; }
+	
+	# Check if WordPress is installed using wp-cli
+	_wp-install-check $SITE_PATH
+	if [[ $? == 0 ]]; then
+		_loading "Counting users in $SITE_PATH"
+		# Use mysql
+		USER_COUNT=$(wp db query "SELECT COUNT(*) FROM wp_users" --path="$SITE_PATH" --skip-plugins --skip-themes --skip-column-names)
+		echo "User count: $USER_COUNT"
+	else
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
 }

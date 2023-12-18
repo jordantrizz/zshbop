@@ -9,23 +9,23 @@
 _debug_load
 
 # -- auto completion - needs to be at the end of this file.
-function _help  {    
+function _help  {
     compadd $(help auto)
 }
 compdef _help help
 
 # -- Help header
-help_sub_header () {	
+help_sub_header () {
     loading "$HCMD"
 }
 
 # -- get_category_commands ($category)
-get_category_commands () {	
+get_category_commands () {
+    local ACTION=$1
 	_debug_all
-	
-	# If help all is used
-	_debug "Finding category: $HCMD"
-    if [[ $HCMD == "all" ]]; then
+    # If help all is used
+	_debug "Finding category: $ACTION"
+    if [[ $ACTION == "all" ]]; then
 		output_all=$(_loading "All Commands\n")
         for key in ${(kon)help_files}; do
             help_all_cat=(help_${key})
@@ -35,18 +35,25 @@ get_category_commands () {
             done
             output_all+="\n"
 		done
-		echo $output_all | less        
-    elif [[ $HCMD == "auto" ]]; then		
-
-        for key in ${(kon)help_files}; do                        
-            echo "$key"
-		done
+		echo $output_all | less
+    elif [[ $ACTION == "auto" ]]; then
+        echo ${ALL_HELP_CATEGORIES[@]}
+    elif [[ $ACTION == "auto-cmd" ]]; then
+        echo ${ALL_HELP_COMMANDS[@]}
 	elif [[ -z ${(P)HELP_CAT} ]]; then
         _debug "\${(P)HELP_CAT}: ${(P)HELP_CAT}"
-        _error "No command category $HCMD, try running kb $HCMD"
-        echo ""		
+        _loading "-- $ACTION - Core --------"
+        _error "No command or category $ACTION, try running kb $ACTION"
+        echo ""
+        _loading2 "Potential Matches"    
+        for key in ${(kon)ALL_HELP_COMMANDS}; do
+            if [[ $key == *"$ACTION"* ]]; then
+                echo "$key"
+            fi
+        done
+        echo ""
 	else
-		_loading "-- $HCMD -------- $help_files[${HCMD}] --------"	
+		_loading "-- $ACTION -------- $help_files[${ACTION}] --------"
         echo ""
 		for key in ${(kon)${(P)HELP_CAT}}; do
             printf '%s\n' "  ${(r:25:)key} - ${${(P)HELP_CAT}[$key]}"
@@ -54,27 +61,35 @@ get_category_commands () {
         echo ""
     fi
 }
-    
+
 # -- get_category_commands_custom ($category)
 function get_category_commands_custom () {
-    if [[ $cmdsc_files[$HCMD] ]]; then
-        CMDSC_CMDS=(cmdsc_$HCMD)
+    local ACTION=$1
+    if [[ $cmdsc_files[$ACTION] ]]; then
+        CMDSC_CMDS=(cmdsc_$ACTION)
         echo ""
-        _loading2 "-- $HCMD - Custom - $cmdsc_files[$HCMD] --------"
+        _loading2 "-- $ACTION - Custom - $cmdsc_files[$ACTION] --------"
         echo ""
         for key in ${(kon)${(P)CMDSC_CMDS}}; do
             printf '%s\n' "  ${(r:25:)key} - ${${(P)CMDSC_CMDS}[$key]}"
         done
         echo ""
-    elif [[ $HCMD == "auto" ]]; then
-        CMDSC_CMDS=(cmdsc_$HCMD)
-        for key in ${(kon)${(P)CMDSC_CMDS}}; do
-            echo $key
-        done
-    else    
-        _error "No custom command category $HCMD, try running kb $HCMD"
+    elif [[ $ACTION == "auto" ]]; then
+        echo ${ALL_HELP_CATEGORIES_CUSTOM[@]}
+    elif [[ $ACTION == "auto-cmd" ]]; then
+        echo ${ALL_HELP_COMMANDS_CUSTOM[@]}
+    else
+        _loading "-- $ACTION - Custom --------"
+        _error "No custom command or category $ACTION, try running kb $ACTION"
         echo ""
+        _loading2 "Potential Matches"    
+        for key in ${(kon)ALL_HELP_COMMANDS_CUSTOM}; do
+            if [[ $key == *"$ACTION"* ]]; then
+                echo "$key"
+            fi
+        done
 		return
+        echo ""
     fi
 }
 
@@ -84,7 +99,7 @@ help () {
 		# All arguments $@ into $HCMD
         HCMD=$@
         _debug "\$HCMD: $HCMD"
-        
+
         # Common Aliases
         if [[ $HCMD == "wp" ]]; then; HCMD="wordpress";fi
         if [[ $HCMD == "cf" ]]; then; HCMD="cloudflare";fi
@@ -96,6 +111,9 @@ help () {
         elif [[ $HCMD == "auto" ]]; then
         	get_category_commands auto
             get_category_commands_custom auto
+        elif [[ $HCMD == "auto" ]]; then
+        	get_category_commands auto-cmd
+            get_category_commands_custom auto-cmd
         else
         	HELP_CAT=(help_${HCMD})
 			get_category_commands $HCMD
@@ -113,7 +131,7 @@ help_intro () {
 
 	# -- Go through help_zshbop
     _loading2 "    zshbop    "
-    echo ""        
+    echo ""
     for key in ${(kon)help_zshbop}; do
     	printf '%s\n' "  zshbop ${(r:25:)key} - ${help_zshbop[$key]}"
     done
@@ -122,7 +140,7 @@ help_intro () {
     echo ""
     _loading2 "    Core    "
     echo ""
-	
+
     for key in ${(kon)help_core}; do
         printf '%s\n' "  ${(r:25:)key} - ${help_core[$key]}"
     done
@@ -134,7 +152,7 @@ help_intro () {
     for key in ${(kon)help_files}; do
 		printf '%s\n' "  ${(r:25:)key} - $help_files[$key]"
     done
-	
+
 	# -- Custom help files.
 	echo ""
 	_loading "Checking for \$cmdsc_files"
@@ -152,10 +170,52 @@ help_intro () {
 	fi
 
 	# -- Examples
-	
+
 	echo ""
     _loading2 "    Examples    "
     echo "$> help mysql"
     echo "$> help tools"
     echo ""
+}
+
+init_help () {
+    _debug "Loading help commands into array"
+    ALL_HELP_CATEGORIES=()
+    ALL_HELP_COMMANDS=()
+    ALL_HELP_CATEGORIES_CUSTOM=()
+    ALL_HELP_COMMANDS_CUSTOM=()
+
+    # -- Load help file categories into array
+    for key in ${(kon)help_files}; do
+        ALL_HELP_CATEGORIES+=($key)
+	done
+
+    # -- Load help file categories into array
+    for key in ${(kon)help_files}; do
+        help_all_cat=(help_${key})
+        for key in ${(kon)${(P)help_all_cat}}; do
+            ALL_HELP_COMMANDS+=($key)
+        done
+    done
+
+    # -- Custom help categories
+    if [[ -n $cmdsc_files ]]; then
+        for key value in ${(kv)cmdsc_files}; do
+            ALL_HELP_CATEGORIES_CUSTOM+=($key)
+        done
+    fi
+
+    # -- Custom help commands
+    for key value in ${(kv)cmdsc_files}; do
+        CMDSC_CMDS=(cmdsc_$key)
+        for key in ${(kon)${(P)CMDSC_CMDS}}; do
+            ALL_HELP_COMMANDS_CUSTOM+=($key)
+        done
+    done
+
+    export ALL_HELP_CATEGORIES
+    export ALL_HELP_COMMANDS
+
+    # -- Print out commands and categories count
+    _log "Loaded help - Categories ${#ALL_HELP_CATEGORIES} - Commands ${#ALL_HELP_COMMANDS} - Custom Categories ${#ALL_HELP_CATEGORIES_CUSTOM} - Custom Commands ${#ALL_HELP_COMMANDS_CUSTOM}"
 }

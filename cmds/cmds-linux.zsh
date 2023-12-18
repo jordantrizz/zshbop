@@ -1,21 +1,15 @@
-# --
-# Linux commands
-#
-# Example help: help_wordpress[wp]='Generate phpinfo() file'
-#
-# --
+# -- Linux commands
 _debug " -- Loading ${(%):-%N}"
 
-# What help file is this?
 help_files[linux]='Linux related commands'
 
 # - Init help array
 typeset -gA help_linux
 
-# -- findswap - find what's using swap.
-help_linux[findswap]='Find what processes are using swap.'
-findswap () { 
-	find /proc -maxdepth 2 -path "/proc/[0-9]*/status" -readable -exec awk -v FS=":" '{process[$1]=$2;sub(/^[ \t]+/,"",process[$1]);} END {if(process["VmSwap"] && process["VmSwap"] != "0 kB") printf "%10s %-30s %20s\n",process["Pid"],process["Name"],process["VmSwap"]}' '{}' \; | awk '{print $(NF-1),$0}' | sort -h | cut -d " " -f2- 
+# -- swap-find - find what's using swap.
+help_linux[swap-find]='Find what processes are using swap.'
+swap-find () {
+	find /proc -maxdepth 2 -path "/proc/[0-9]*/status" -readable -exec awk -v FS=":" '{process[$1]=$2;sub(/^[ \t]+/,"",process[$1]);} END {if(process["VmSwap"] && process["VmSwap"] != "0 kB") printf "%10s %-30s %20s\n",process["Pid"],process["Name"],process["VmSwap"]}' '{}' \; | awk '{print $(NF-1),$0}' | sort -h | cut -d " " -f2-
 }
 
 # -- dir-filecount
@@ -33,7 +27,7 @@ vhwinfo () {
 
 # -- needrestart - check if system needs a restart
 help_linux[needrestart]='Check if system needs a restart'
-_cexists needrestart
+_cmd_exists needrestart
 if [[ $? == "1" ]]; then
 	needrestart () {
 		_debug "needrestart not installed"
@@ -45,13 +39,13 @@ fi
 
 # -- broot -
 help_linux[broot]='Get an overview of a directory, even a big one'
-_cexists broot
+_cmd_exists broot
 if [[ $? == "1" ]]; then
 	function broot () {
 		check_broot
 	}
 	function check_broot () {
-		_error "broot not installed" 0
+		_error "broot not installed"
 	}
 fi
 
@@ -73,7 +67,7 @@ backup () {
 		echo ""
 		echo "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar"
 	fi
-}		
+}
 
 # -- ps2
 help_linux[ps2]='Show long usernames in ps :)'
@@ -147,8 +141,8 @@ ps-mem () {
 
 # -- fork
 help_linux[fork]='Fork command into background'
-fork () { 
-	(setsid "$@" &); 
+fork () {
+	(setsid "$@" &);
 }
 
 # -- sysr
@@ -160,6 +154,17 @@ sysr () {
 	else
 	    _noticebg "systemctl restart $@"
         systemctl restart "$@"
+    fi
+}
+# -- syss
+help_linux[syss]='Systemctl status shortcut'
+syss () {
+	if [[ -z $@ ]]; then
+		echo "systemctl status - Usage: syss [service]"
+		return 1
+	else
+	    _noticebg "systemctl status $@"
+        systemctl status "$@"
     fi
 }
 
@@ -182,10 +187,14 @@ usedspace () {
 	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
 }
 
-# -- check_diskspace
-help_linux[check_diskspace2]="Check diskspace based on OS"
-check_diskspace () {
-	check_diskspace_${MACHINE_OS} $@
+# -- check-diskspace
+help_linux[check-diskspace]="Check diskspace based on OS"
+check-diskspace () {
+	if [[ $MACHINE_OS == "linux" ]]; then
+		linux-checkdiskspace
+	else
+		_error "check-diskspace not supported on $MACHINE_OS"
+	fi
 }
 
 # -- check_blockdevices
@@ -239,8 +248,6 @@ check_diskspace2 () {
 
 }
 
-
-
 # -- speed-convert
 help_linux[speed-convert]="Convert data speeds"
 speed-convert () {
@@ -251,7 +258,7 @@ speed-convert () {
 		echo ""
 		echo "  Example,   ./speedconvert 1123 MB/s"
 		echo ""
-	else 
+	else
 		# Convert value to bytes/second
 		case $UNIT in
 			"Mbit/s") VALUE=$(echo "$VALUE * 131072" | bc) ;;
@@ -260,7 +267,7 @@ speed-convert () {
 			"GB/s") VALUE=$(echo "$VALUE * 1073741824" | bc -l) ;;
 		*) echo "Invalid unit $UNIT" && return 1
 		esac
-	
+
 		# Convert value to other units
 		mbit_s=$(echo "$VALUE / 131072" | bc)
 		mb_s=$(echo "$VALUE / 1048576" | bc)
@@ -285,7 +292,7 @@ function utc () {
 help_linux[datetz]="Display specified timezone date and time"
 datetz () {
 	env TZ=":US/Pacific" date
-	env TZ=":US/Central" date	
+	env TZ=":US/Central" date
 	env TZ=":US/Eastern" date
 	env TZ="UTC" date
 }
@@ -315,29 +322,34 @@ ubuntu-lts () {
 # -- Screen sessions
 help_linux[screen-sessions]="Display screen sessions"
 screen-sessions () {
+	local SSESSIONS_OUTPUT SSESSIONS
 	# -- Check if on WSL
 	if [[ $MACHINE_OS2 == "wsl" && ! -d "/run/screen" ]]; then
-		_loading3 "Detect wsl, running wsl-screen fix"	
+		_loading3 "Detect wsl, running wsl-screen fix"
 		wsl-screen
 	fi
 
-    _cexists screen 
-    if [[ $? == "0" ]]; then 
+    _cmd_exists screen
+    if [[ $? == "0" ]]; then
         SCREENS=$(screen -ls)
-		if [[ $? == "1" ]]; then
+		SCREEN_EXIT_CODE=$?
+
+		if [[ $SCREENS == *"No Sockets found in"* ]]; then
+            _warning "No screen sessions found"
+		elif [[ $SCREEN_EXIT_CODE == "1" ]]; then
 			SCREENS=$(echo $SCREENS | tr -d '\r')
-			_error "$SCREENS"
-        elif [[ $SCREENS == *"No Sockets found in"* ]]; then
-            echo "No screen sessions found"		
+			_error "Screen error - $SCREEN_EXIT_CODE - $SCREENS"
         else
-            [[ $MACHINE_OS == "linux" ]] && { echo $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g') }
-            if [[ $MACHINE_OS == "mac" ]]; then
+            if [[ $MACHINE_OS == "linux" ]]; then
+				SSESSIONS_OUTPUT=$(echo $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g'))
+			elif [[ $MACHINE_OS == "mac" ]]; then
                 SSESIONS=$(_remove_last_line "$(_remove_last_line "$(screen -ls)")")
-                echo $SSESIONS | awk ' NR>1 { print $1 " " $4 }' | tr '\n' '#' | sed 's/#/|| /g'
+                SSESSIONS_OUTPUT=$(echo $SSESIONS | awk ' NR>1 { print $1 " " $4 }' | tr '\n' '#' | sed 's/#/|| /g')
             fi
+			echo "$(_loading2 Screen Sessions:) $(_loading3b $SSESSIONS_OUTPUT)"
         fi
-    else		
-        _error "Screen not installed"		
+    else
+        _error "Screen not installed"
     fi
 }
 
@@ -369,4 +381,246 @@ add-path () {
 help_linux[paths]='print out \$PATH on new lines'
 paths () {
 	echo ${PATH:gs/:/\\n}
+}
+
+# -- catvet
+help_linux[catvet]='Print out special formatting characters in a file or via pipe'
+catvet () {
+	echo "To print out the special formatting characters..."
+	echo "echo 'testing\n' | cat -vet"
+}
+
+# -- view-std
+help_linux[view-std]='View standard output and error'
+view-std () {
+	if [[ -z $1 ]]; then
+		echo "Usage: view-std <command>"
+		return 1
+	else
+		eval "{ { $1; } 2>&3 | sed 's/^/STDOUT: /'; } 3>&1 1>&2 | sed 's/^/STDERR: /'"
+	fi
+}
+
+help_linux[get-os-install-date]='Get the date the OS was installed'
+alias get-os-install-date="_get_os_install_date"
+
+# -- swappiness-set <size> - set swap size
+help_linux[swappiness-set]='Set swappiness'
+swappiness-set () {
+	if [[ -z $1 ]]; then
+		echo "Usage: swappiness-set <size>"
+		echo "Current swappiness: $(sysctl vm.swappiness)"
+		return 1
+	else
+		echo "Setting swappiness to $1"
+		sudo sysctl vm.swappiness=$1
+	fi
+}
+
+# -- Reset Swap
+help_linux[swap-reset]='Reset swap'
+swap-reset () {
+	# -- Check if swap is on or off
+	SWAP_ON=$(swapon -s)
+	if [[ -z $SWAP_ON ]]; then
+		echo "Swap is off"
+		swapon -a
+	else
+		echo "Swap is on, turning off then back on."
+		# -- Swap is on, turn off
+		swapoff -a
+		# -- Turn swap back on
+		swapon -a
+	fi
+}
+
+# ====================================
+# -- linux - list all linux flavours and versions with code names
+# ====================================
+help_linux[linux]='List all linux flavours and versions with code names'
+linux () {
+	# List past and current debian versions and codenames, stable testing and EOL dates
+
+	# -- Debian
+	_loading "Debian versions:"
+	cat <<- ENDF
+	The next release of Debian is codenamed trixie — testing — no release date has been set
+	--
+	Debian 12 (bookworm) — current stable release
+	Debian 11 (bullseye) — current oldstable release
+	Debian 10 (buster) — current oldoldstable release, under LTS support
+	ENDF
+
+	# -- Ubuntu
+	_loading "Ubuntu versions:"
+	cat <<- ENDF
+	The next release of Ubuntu is codenamed Mantic Minotaur - released October 12, 2023"
+	--
+	Ubuntu 22.04 LTS (Jammy Jellyfish) — Current LTS - Standard Support April 2027 - EOL April 2032
+	Ubuntu 20.04 LTS (Focal Fossa) — Standard Support April 2025 - EOL April 2030
+	Ubuntu 18.04 LTS (Bionic Beaver) — Standard Support June 2023 - EOL April 2028
+	Ubuntu 16.04 LTS (Xenial Xerus) — Standard Support April 2021 - EOL April 2026
+	ENDF
+
+}
+
+
+# ==================================================
+# -- date override
+# ==================================================
+help_linux['date-more']='Show current date and C.UTF-8 date'
+function date-more () {
+    # Show current date
+    echo "System: $(/bin/date)"
+    echo "-------------------------------------"
+    # Show C.UTF-8 date
+    echo "C.UTF-8: $(LC_ALL=C.UTF-8 /bin/date)"
+}
+
+
+# =================================================================================================
+# -- lsof-mem
+# =================================================================================================
+help_linux[lsof-mem]='List memory usage of a process'
+lsof-mem () {
+	local PID=$1
+	# Default to human readable unless defined.
+	local OUTPUT=${2:-"-hr"}
+	if [[ -z $PID ]]; then
+		echo "Usage: lsof-mem <pid> (-hr|-mr|-mem) (human readable|machine readable|memory only)"
+		return 1
+	else
+		if [[ $OUTPUT == "-hr" ]]; then
+			lsof -p $PID | grep 'mem' | awk '{print $9, $7/(1024*1024) " MB"}' | sort -k2 -n
+		elif [[ $OUTPUT == "-mr" ]]; then
+			lsof -p $PID | grep 'mem' | awk '{print $9, $7}' | sort -k2 -n
+		elif [[ $OUTPUT == "-mem" ]]; then
+			lsof -p $PID | grep 'mem' | awk '{print $7}' | sort -k2 -n
+		else
+			echo "Invalid output type $OUTPUT"
+		fi
+	fi
+}
+
+# =================================================================================================
+# -- get-pids
+# =================================================================================================
+help_linux[get-pids]='Get all child pids for a process'
+get-pids () {
+	local PID=$1
+	if [[ -z $PID ]]; then
+		echo "Usage: get-pids <pid>"
+		return 1
+	else
+		pstree -p ${PID} | grep -o '([0-9]\+)' | grep -o '[0-9]\+' 
+	fi
+}
+
+
+# =================================================================================================
+# -- sum-mem
+# =================================================================================================
+help_linux[sum-mem]='Sum memory usage of a process and its child processes'
+sum-mem () {
+	local PARENT_PID=$1
+	local TOTAL_MEMORY=0 PID_MEMORY_USAGE
+	if [[ -z $PARENT_PID ]]; then
+		echo "Usage: sum-mem <parent_pid>"
+		return 1
+	fi
+	# get pid process name
+	PARENT_NAME=$(cat /proc/${PARENT_PID}/comm)
+	_loading "Getting total memory usage for $PARENT_PID ($PARENT_NAME) and all child processes"
+
+	# Get all child PIDs, get-pids is newlined add to array	
+	_loading2 "Getting all child PIDs for $PARENT_PID"
+	local ALL_PIDS=($(get-pids $PARENT_PID))
+	
+	# Iterate over each PID and sum their memory usage
+	for PID in $ALL_PIDS; do
+		# get process name
+		local PID_NAME=$(cat /proc/${PID}/comm)
+		echo -n $(_loading3 "Getting memory for $PID/$PID_NAME")
+		# Get memory usage for PID, output is new line separated, add all up
+		local PID_MEMORY_USAGE=$(lsof-mem $PID -mem | awk '{s+=$1} END {print s}')
+		local TOTAL_MEMORY=$(( TOTAL_MEMORY + PID_MEMORY_USAGE))
+		echo ".. $PID_MEMORY_USAGE bytes / $(( PID_MEMORY_USAGE / 1024 / 1024 )) MB"
+	done
+
+	_loading "Done collecting memory usage"
+	_notice "Total memory usage: $TOTAL_MEMORY bytes"
+	_notice "Total memory usage in from Bytes to MB: $(( TOTAL_MEMORY / 1024 / 1024 )) MB"
+}
+
+# =================================================================================================
+# -- compress
+# =================================================================================================
+help_linux[compress]='Compress a file or folder'
+function compress () {
+	local DATA=$1
+	local LOCATION="$HOME"
+	# Create date for archive that is unique
+	local DATE=$(date +%Y-%m-%d-%H-%M-%S)
+
+	if [[ -z $DATA ]]; then
+		echo "Usage: compress <file|folder>"
+		return 1
+	fi
+
+	# Check if exists
+	if [[ ! -e $DATA ]]; then
+		_error "File or folder $DATA doesn't exist"
+		return 1
+	fi
+
+	# Check if file or folder
+    if [[ -f $DATA ]]; then
+        # File
+        # Create name that doesn't break, remove special chars etc
+        FILENAME="${DATA%.*}-$DATE"
+        _loading "Compressing file $DATA"
+        _debug "tar -czvf ${LOCATION}/${FILENAME}.tar.gz ${DATA}"
+        TAR="tar -czvf ${LOCATION}/${FILENAME}.tar.gz ${DATA}"
+		_loading3 "Running: $TAR"
+		eval $TAR
+	elif [[ -d $DATA ]]; then
+		# Folder
+		# Create name with underscores related to path, skip first /
+		FILENAME="$(echo $DATA | sed 's|^/||; s|/|_|g')-$DATE"
+		_loading "Compressing folder ${DATA}"
+		TAR="tar -czvf ${LOCATION}/${FILENAME}.tar.gz ${DATA}"
+		_loading3 "Running: $TAR"
+		eval $TAR
+		
+	else
+		_error "Unknown file type"
+		return 1
+	fi
+}
+
+# =================================================================================================
+# -- geekbench-run
+# =================================================================================================
+help_linux[geekbench-run]='Run geekbench'
+geekbench-run () {
+	# Download geekbench
+	_loading "Downloading geekbench"
+	DOWNLOAD_URL=$(wget -qO- https://www.geekbench.com/download/linux/ | sed -n "s/.*URL=\([^']*\).*/\1/p")
+	wget -O /tmp/Geekbench-6.3.0-Linux.tar.gz "$DOWNLOAD_URL"
+
+	# Extract geekbench
+	_loading "Extracting geekbench"
+	tar -xvf /tmp/Geekbench-6.3.0-Linux.tar.gz -C /tmp
+
+	# Run geekbench
+	_loading "Running geekbench"
+	/tmp/Geekbench-6.3.0-Linux/geekbench_x86_64
+}
+
+# =================================================================================================
+# -- geekbench-run-oneliner
+# =================================================================================================
+help_linux[geekbench-install]='Print out oneliner to download, and run geekbench'
+geekbench-install () {
+    echo 'cd /tmp && wget -O Geekbench.tar.gz "$(wget -qO- https://www.geekbench.com/download/linux/ | sed -n "s/.*URL=\([^'\'']*\).*/\1/p")" && tar -xzf Geekbench.tar.gz && ./Geekbench-6.3.0-Linux/geekbench6'
 }

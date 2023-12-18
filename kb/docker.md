@@ -57,3 +57,10 @@ rc-service sshd start
 docker ps -a
 docker commit 6d79a83d645b aab84910c0be
 ```
+
+# Common Issues
+## Running out of Diskspace
+You can prune unused items within docker see https://docs.docker.com/config/pruning/
+
+### All Unused
+```docker system prune```

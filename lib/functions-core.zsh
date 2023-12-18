@@ -4,11 +4,6 @@
 # =========================================================
 _debug_load
 
-# -- Help category
-typeset -gA help_files
-typeset -gA help_corefunc
-help_files[corefunc]='Core functions for scripts'
-
 # ---------------------
 # -- Internal Functions
 # ---------------------
@@ -24,10 +19,12 @@ _banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
 _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
 _banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
 # -- loading
-_loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
-_loading2 () { echo "$bg[bright-grey]$fg[black] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
-_loading3 () { echo "$fg[bright-grey] *** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG})}
-_loading4 () { echo "$fg[bright-grey] **** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
+_loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
+_loading2 () { echo "$bg[bright-grey]$fg[black] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
+_loading2b () { echo "$fg[bright-white] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
+_loading3 () { echo "$fg[bright-grey] *** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG})}
+_loading3b () { echo "$fg[bright-grey] ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG})}
+_loading4 () { echo "$fg[bright-grey] **** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
 alias _loading_grey=_loading2
 # -- dividers
 _divider_white () { echo "$fg[black]$bg[white]                 $@               ${RSC}" }
@@ -36,6 +33,23 @@ _divider_dash () { echo "$fg[bright-grey]-----------------$@---------------${RSC
 
 # -- Text Colors
 _grey () { echo "$bg[bright-gray]$fg[black] $@ ${RSC}" }
+_yellow () { echo "$fg[yellow]$@${RSC}" }
+_red () { echo "$fg[red]$@${RSC}" }
+_green () { echo "$fg[green]$@${RSC}" }
+_blue () { echo "$fg[blue]$@${RSC}" }
+_magenta () { echo "$fg[magenta]$@${RSC}" }
+_cyan () { echo "$fg[cyan]$@${RSC}" }
+_white () { echo "$fg[white]$@${RSC}" }
+# -- Text Colors Bright
+_bright_grey () { echo "$fg[bright-gray]$@${RSC}" }
+_bright_yellow () { echo "$fg[yellow]$@${RSC}" }
+_bright_red () { echo "$fg[red]$@${RSC}" }
+_bright_green () { echo "$fg[green]$@${RSC}" }
+_bright_blue () { echo "$fg[blue]$@${RSC}" }
+_bright_magenta () { echo "$fg[magenta]$@${RSC}" }
+_bright_cyan () { echo "$fg[cyan]$@${RSC}" }
+_bright_white () { echo "$fg[white]$@${RSC}" }
+
 RSC=$reset_color # To replace $reset_color :)
 RED_BG="$fg[white]$bg[red]"
 GREEN_BG="$fg[white]$bg[green]"
@@ -46,7 +60,7 @@ COLOR_NAMES=(black red green yellow blue magenta cyan white bright-black bright-
 COLOR_VARS=(RED_BG GREEN_BG)
 
 # -- colors-print
-help_corefunc[colors-print]='Print all colors'
+help_int[colors-print]='Print all colors'
 function colors-print () {
   for k in ${(k)COLOR_NAMES}; do
     #if [[ ! $k =~ ^(fg|bg|[[:digit:]]{1,3}|no-|none|normal|italic|underline|reverse|bold|conceal|faint|default|blink) ]]; then
@@ -63,7 +77,7 @@ function colors-print () {
 # --
 # -- Check to see if command exists and if not install
 # =========================================================
-help_corefunc[_require_pkg]='Check if command exists and if not install using package manager'
+help_int[_require_pkg]='Check if command exists and if not install using package manager'
 function _require_pkg () {
     local REQUIRE_PKG=$1
     _debug_all
@@ -107,7 +121,7 @@ function _require_pkg () {
 # --
 # -- Check to see if $command is installed
 # =========================================================
-help_corefunc[_requires_cmd]='Check to see if $command is installed'
+help_int[_requires_cmd]='Check to see if $command is installed'
 _requires_cmd () {
     _debug_all
     _debug "Running _requires on $1"
@@ -131,12 +145,12 @@ _requires_cmd () {
 }
 
 # =========================================================
-# -- _cexists
+# -- _cmd_exists
 # --
 # -- Returns 0 if command exists or 1 if command doesn't exist
 # =========================================================
-help_corefunc[_cexists]="Returns 0 if command exists or 1 if command doesn't exist, will never output data"
-function _cexists () {
+help_int[_cmd_exists]="Returns 0 if command exists or 1 if command doesn't exist, will never output data"
+function _cmd_exists () {
     CMD_EXISTS=""
     CMD="$1"
 
@@ -158,11 +172,11 @@ function _cexists () {
 # --
 # -- checkroot - check if running as root
 # =========================================================
-help_corefunc[_checkroot]="Check if running as root"
-_checkroot () {
-        _debug_all
-    if [[ $EUID -ne 0 ]]; then
-        _error "Requires root...exiting."
+help_int[_checkroot]="Check if running as root"
+_checkroot () {     
+    _debug_all    
+    if [[ $EUID -ne 0 ]]; then        
+        zb_logger "WARNING" 0 "Requires root...exiting - $funcstack"
         return 1
     else
         _debug "Running as root"
@@ -172,24 +186,54 @@ _checkroot () {
 
 # =========================================================
 # -- _if_marray - if in array.
-# -- _if_marray "$NEEDLE" HAYSTACK
+# -- _if_marray "$NEEDLE" $HAYSTACK[@] TEST
 # -- must use quotes, second argument is array without $
 # =========================================================
-help_corefunc[_if_marray]="Check if value is in array"
+help_int[_if_marray]="Check if value is in array"
 _if_marray () {
-        MARRAY_VALID=1
-        _debug "$funcstack[1] - find value = $1 in array = $2"
-        for value in ${(k)${(P)2[@]}}; do
-                _debug "$funcstack[2] - array=$2 \$value = $value"
-                if [[ $value == "$1" ]]; then
-                        _debug "$funcstack[1] - array $2 does contain $1"
-                        MARRAY_VALID="0"
-                else
-                        _debug "$funcstack[1] - array $2 doesn't contain $1"
-                fi
-        done
-        _debug "MARRAY_VALID = $MARRAY_VALID"
-        if [[ MARRAY_VALID == "1" ]]; return 0
+    local NEEDLE=$1 HAYSTACK=$2
+    MARRAY_VALID=1
+    _debug "$funcstack[1] - find value = $NEEDLE in array = $HAYSTACK"
+    for value in ${(k)${(P)HAYSTACK[@]}}; do
+            _debug "$funcstack[2] - array=$HAYSTACK \$value = $value"
+            if [[ $value == "$NEEDLE" ]]; then
+                    _debug "$funcstack[1] - array $HAYSTACK does contain $VALUE"
+                    MARRAY_VALID="0"
+            else
+                    _debug "$funcstack[1] - array $HAYSTACK doesn't contain $VALUE"
+            fi
+    done
+    _debug "MARRAY_VALID = $MARRAY_VALID"
+    if [[ MARRAY_VALID == "1" ]] &&  return 1 || return 0
+}
+
+# =========================================================
+# -- _inarray - if in array.
+# -- _inarray $NEEDLE $DEBUG_OUTPUT "$HAYSTACK[@]""
+# -- returns - 0 if in array, 1 if not in array
+# --
+# -- Example: if _inarray $feature 0 "${FEATURE_ERROR[@]}"; then
+# =========================================================
+help_int[_inarray]="Check if value is in array"
+_inarray () {    
+    local NEEDLE=$1 DEBUG_OUTPUT=$2 HAYSTACK=()
+    shift;shift
+    HAYSTACK=(${*})
+    MARRAY_VALID=1
+    [[ $DEBUG_OUTPUT == "1" ]] && DEBUGF="1"
+    _debugf "$funcstack[1] - find \$VALUE = $NEEDLE in array = ${HAYSTACK[@]}"
+    for VALUE in "${HAYSTACK[@]}"; do
+        if [[ $VALUE == "$NEEDLE" ]]; then
+                _debugf "$funcstack[1] - \$VALUE = $VALUE \$NEEDLE = $NEEDLE is in array = ${HAYSTACK[@]} !!!"
+                MARRAY_VALID="0"
+        else
+                _debugf "$funcstack[1] - \$VALUE = $VALUE \$NEEDLE = $NEEDLE is not in array = ${HAYSTACK[@]}"            
+        fi
+    done
+    _debugf "MARRAY_VALID = $MARRAY_VALID"
+    [[ $DEBUG_OUTPUT == "1" ]] && DEBUGF="0"
+    [[ $MARRAY_VALID == "0" ]] && return 0 
+    [[ $MARRAY_VALID == "1" ]] && return 1
 }
 
 # --------------------------------
@@ -197,7 +241,7 @@ _if_marray () {
 # --
 # -- Separate piped output into columns after third item
 # --------------------------------
-help_corefunc[_pipe_separate]='Separate piped output into columns after third item or $1 items'
+help_int[_pipe_separate]='Separate piped output into columns after third item or $1 items'
 function _pipe_separate() {
     local -a lines=("${(f)$(cat)}")
     local -i count=0
@@ -217,7 +261,7 @@ function _pipe_separate() {
 # =========================================================
 # _detect_host_type
 # =========================================================
-help_corefunc[_detect_host_type]="Detect if host is physical or virtual"
+help_int[_detect_host_type]="Detect if host is physical or virtual"
 _detect_host_type() {
   local dmi_output
   dmi_output=$(sudo dmidecode -s system-product-name 2>/dev/null)
@@ -235,7 +279,7 @@ _detect_host_type() {
 # =========================================================
 # -- _remove_last_line
 # =========================================================
-help_corefunc[_remove_last_line]="Remove last line from string"
+help_int[_remove_last_line]="Remove last line from string"
 function _remove_last_line () {
     local STRING="${@%$'\n'*}"
     echo "$STRING"
@@ -245,34 +289,84 @@ function _remove_last_line () {
 # -- os-alias - return alias if binary exists for os
 # =========================================================
 # TODO find other commands and use os-binary such as glint
-help_corefunc[os-alias]='Return alias if binary exists for os'
+help_int[os-alias]='Return alias if binary exists for os'
 os-binary () {
-    BINARY="$1"
+    BINARY="$1"    
+
+    _os_binary_usage () {
+        echo "Usage: os-binary <binary>"
+        echo "Example: os-binary glint"
+        echo ""
+        echo "Will create an alias for the binary if it exists for the current OS"
+        echo ""
+        echo "OS Matching"
+        echo "Linux: linux_x86_64"
+        echo "Mac: mac_x86_64"
+        echo "Mac ARM: mac_arm64"
+        echo "Mac Universal: mac"
+        echo ""
+        echo "Examples:"
+        echo "os-binary glint"
+        echo "  Possible binaries:"
+        echo "    - glint_linux_x86_64"
+        echo "    - glint_mac_x86_64"
+        echo "    - glint_mac_arm64"
+        echo "    - glint_mac"
+        echo ""
+        echo "MACHINE_OS: $MACHINE_OS"
+        echo "MACHINE_OS2: $MACHINE_OS2"
+        return 1
+    }
+    if [[ -z $BINARY ]]; then
+        _debugf "No binary specified"
+        _os_binary_usage
+        return 1
+    fi
+
     local OS_BINARY_TAG=""
 	unset LC_CHECK NULL OS_BINARY
-	_debug "Running $MACHINE_OS"
+	_debugf "Running $MACHINE_OS"
 	
 	if [[ $MACHINE_OS == "linux" ]]; then
-		_debug "Detected OS linux"
+		_debugf "Detected OS linux"
 		OS_BINARY_TAG="linux_x86_64"
 	elif [[ $MACHINE_OS == "mac" ]]; then
-		_debug "Detected OS mac"
-		OS_BINARY_TAG="mac_x86_64"
+        if [[ $MACHINE_OS2 = "mac-arm" ]]; then
+            _debugf "Detected OS mac arm64"
+            OS_BINARY_TAG="mac_arm64"
+        else
+            _debugf "Detected OS mac x86_64"
+            OS_BINARY_TAG="mac_x86_64"
+        fi
 	else
-		_debug "Can't detect OS \$MACHINE_OS = $MACHINE_OS"
+		_debugf "Can't detect OS \$MACHINE_OS = $MACHINE_OS"
 		_error "No binary available for $BINARY on $MACHINE_OS"
 		return 1
 	fi	
 	
 	OS_BINARY="${BINARY}-${OS_BINARY_TAG}"
-	_debug "OS_BINARY: $OS_BINARY"	
-	_cexists ${OS_BINARY}
+	_debugf "OS_BINARY: $OS_BINARY"	
+	_cmd_exists ${OS_BINARY}
 	
 	if [[ $? == "1" ]]; then
-		_debug "$OS_BINARY not installed"
+        # Check if there is a general binary available
+        OS_GENERIC_BINARY="${BINARY}-${MACHINE_OS}"
+        _debugf "OS_GENERIC_BINARY: $OS_GENERIC_BINARY"
+        _cmd_exists ${OS_GENERIC_BINARY}
+        if [[ $? == "1" ]]; then
+            _debugf "$OS_GENERIC_BINARY not installed"
+            return 1
+        else 
+            _debugf "Using created alias ${BINARY}_${MACHINE_OS}"
+            eval "function ${BINARY} () { ${OS_GENERIC_BINARY} \$@ }"
+            eval "export ${(U)BINARY}_CMD=$OS_GENERIC_BINARY"
+            return 0
+        fi
+
+        _debugf "$OS_BINARY not installed"
 		return 1
 	else
-	    _debug "Using created alias ${BINARY} ${OS_BINARY}"
+	    _debugf "Using created alias ${BINARY} ${OS_BINARY}"
 	    eval "function ${BINARY} () { ${OS_BINARY} \$@ }"
         eval "export ${(U)BINARY}_CMD=$OS_BINARY"
 	    return 0
@@ -282,20 +376,129 @@ os-binary () {
 # =========================================================
 # -- faketty - run command in a fake tty
 # =========================================================
-help_corefunc[faketty]='Run command in a fake tty'
+help_int[faketty]='Run command in a fake tty'
 faketty() {                       
     0</dev/null script --quiet --flush --return --command "$(printf "%q " "$@")" /dev/null
 }
 # =========================================================
 # -- grepcidr3
 # =========================================================
-help_corefunc[grepcidr3]='grepcidr3'
+help_int[grepcidr3]='grepcidr3'
+function _check_grepcidr3 () {
+    if [[ $MACHINE_OS == "linux" ]]; then
+        alias grepcidr3="grepcidr3_linux"
+    fi
+
+    if [[ $MACHINE_OS == "mac" ]]; then
+        _cmd_exists grepcidr3
+        if [[ $? == "1" ]]; then
+            echo "test"
+            function grepcidr3 () { _error "grepcidr3 not installed, install using mac ports"; }
+            return 1
+        fi
+    fi
+}
+_check_grepcidr3
 
 # =========================================================
 # -- remove ansi color
 # =========================================================
-help_corefunc[remove-ansi]='Remove ansi color'
+help_int[remove-ansi]='Remove ansi color'
 function remove-ansi () {
   #sed -E "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g"
   sed -e 's/\x1b\[[0-9;]*m//g'
+}
+
+
+# --------------------------------------------------
+# -- _get-os-install-date $ECHO_OUTPUT
+# --------------------------------------------------
+help_int[_get-os-install-date]='Get and set OS_INSTALL variables'
+function _get-os-install-date {
+	[[ -n $1 ]] && ECHO_OUTPUT="$1" || ECHO_OUTPUT="1"
+	local OS_INSTALL_ROOT_DEVICE=$(df -h / | awk 'NR==2 {print $1}')
+	# -- Method 1
+	OS_INSTALL_DATE=$(\ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
+    OS_INSTALL_METHOD="Linux ls -lct --time-style=full-iso /"
+
+	# -- Convert date to MM-DD-YYYY
+	OS_INSTALL_DATE=$(echo $OS_INSTALL_DATE | awk '{print $1}' | awk -F- '{print $2"-"$3"-"$1}')	
+	
+	# -- Method 2	
+    _checkroot
+	if [[ $? == "1" ]]; then
+		OS_INSTALL_METHOD2="Root access required to run INSTALL_METHOD2"
+		export OS_INSTALL_METHOD2
+	else
+		[[ -z "$OS_INSTALL_ROOT_DEVICE" ]] && { _error "Root device not found.";export OS_INSTALL_ROOT_DEVICE="Can't find root device"; return 1 }
+		OS_INSTALL_METHOD2="dumpe2fs -h $OS_INSTALL_ROOT_DEVICE"
+    
+		# Use dumpe2fs to get the filesystem creation time
+		local OS_INSTALL_DATE2=$(sudo dumpe2fs -h $OS_INSTALL_ROOT_DEVICE 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
+
+		# Check if dumpe2fs was successful
+		if [[ -z "$OS_INSTALL_DATE2" ]]; then
+			echo "Could not determine filesystem creation time for $OS_INSTALL_ROOT_DEVICE."
+			return 2
+		fi
+
+		# -- Convert date Wed Apr 10 12:35:05 2019 to MM-DD-YYYY	
+		OS_INSTALL_DATE2=$(echo $OS_INSTALL_DATE2 | awk '{print $2"-"$3"-"$5}' | date -f - +%m-%d-%Y)		
+	fi
+
+	if [[ $ECHO_OUTPUT == "1" ]]; then
+		_loading "Getting OS install date..."
+		echo "\$INSTALL_DATE: $OS_INSTALL_DATE | \$INSTALL_METHOD: $OS_INSTALL_METHOD"
+		echo "\$INSTALL_DATE2: $OS_INSTALL_DATE2 | \$INSTALL_ROOT_DEVICE: $OS_INSTALL_ROOT_DEVICE: | \$OS_INSTALL_METHOD2: $OS_INSTALL_METHOD2"	
+	fi
+
+	
+	export OS_INSTALL_DATE
+	export OS_INSTALL_METHOD
+	export OS_INSTALL_DATE2
+	export OS_INSTALL_METHOD2
+	export OS_INSTALL_ROOT_DEVICE
+
+}
+
+# =========================================================
+# -- _seconds_to_human - convert seconds to human readable
+# =========================================================
+function _seconds_to_human () {
+    local SECONDS=$1
+
+    # Convert to years, months, days, hours, minutes, seconds    
+    local YEARS=$((SECONDS / 31536000))
+    local SECONDS=$((SECONDS % 31536000))
+    local MONTHS=$((SECONDS / 2592000))
+    local SECONDS=$((SECONDS % 2592000))
+    local DAYS=$((SECONDS / 86400))
+    local SECONDS=$((SECONDS % 86400))
+    local HOURS=$((SECONDS / 3600))
+    local SECONDS=$((SECONDS % 3600))
+    local MINUTES=$((SECONDS / 60))
+    local SECONDS=$((SECONDS % 60))
+
+    # Output the human readable time, but don't print zeros if the previous value is zero
+    local HR_TIME=""
+    if [[ $YEARS -gt 0 ]]; then
+        HR_TIME+="${YEARS}y "
+    fi
+    if [[ $MONTHS -gt 0 ]]; then
+        HR_TIME+="${MONTHS}m "
+    fi
+    if [[ $DAYS -gt 0 ]]; then
+        HR_TIME+="${DAYS}d "
+    fi
+    if [[ $HOURS -gt 0 ]]; then
+        HR_TIME+="${HOURS}h "
+    fi
+    if [[ $MINUTES -gt 0 ]]; then
+        HR_TIME+="${MINUTES}m "
+    fi
+    if [[ $SECONDS -gt 0 ]]; then
+        HR_TIME+="${SECONDS}s"
+    fi
+    
+    echo $HR_TIME
 }

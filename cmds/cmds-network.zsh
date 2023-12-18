@@ -20,7 +20,7 @@ function interfaces () {
 	if [[ $MACHINE_OS == "mac" ]]; then
 		interfaces_mac
 	else
-		interfaces_linux
+		_interfaces_linux
 	fi
 }
 
@@ -35,4 +35,16 @@ help_network[whatismyip]="Get current machines internet facing IP Addres"
 function whatismyip () {
 	dig @resolver1.opendns.com A myip.opendns.com +short -4
 	dig @resolver1.opendns.com AAAA myip.opendns.com +short -6
+}
+
+# -- dhcp-lease-list
+help_network[dhcp-lease-list]="List all DHCP leases, included with dhcpd"
+
+# ==============================================================================
+# -- network-ports-raw
+# ==============================================================================
+help_network[network-ports]="List all network ports via /proc/net/tcp"
+function network-ports () {
+	_loading "Network Ports via /proc/net/tcp"
+	awk '$4 == "0A" { port=substr($2, index($2, ":")+1); print "Port:", strtonum("0x" port) }' /proc/net/tcp /proc/net/tcp6 2>/dev/null || awk '$4 == "0A" { port=substr($2, index($2, ":")+1); cmd="echo $((0x" port "))"; cmd | getline port; close(cmd); print "Port:", port }' /proc/net/tcp /proc/net/tcp6
 }

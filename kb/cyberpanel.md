@@ -5,10 +5,16 @@ sh <(curl https://raw.githubusercontent.com/usmannasir/cyberpanel/stable/preUpgr
 ```
 
 # Logs
-## Error log
+## Main Error log
 * /home/cyberpanel/error-logs.txt
+* /home/cyberpanel/stderr.log
 
-## SSL Renewals
+## LCSP Logs
+* /usr/local/lscp/cyberpanel/logs/error.log
+* /usr/local/lscp/cyberpanel/logs/access.log
+* /usr/local/lscp/cyberpanel/logs/stderr.log
+
+## SSL Renewal Logs
 * /root/.acme
 * /root/.acme.sh/acme.sh.log
 
@@ -43,3 +49,12 @@ sh <(curl https://raw.githubusercontent.com/usmannasir/cyberpanel/stable/preUpgr
 * https://blog.cyberpanel.net/2018/12/25/how-to-remove-port-8090-from-cyberpanel/
 
 ## Regenerate OLS Config
+?
+
+## Enable Email Debug Log
+```
+FYI- Per @usmannasir comment in my feature request (here: #1045 (comment)) we are able to turn on emailDebug to receive notifications about self-signed SSL certs. All you have to do is run the command: touch /usr/local/CyberCP/emailDebug which creates an empty file at that path, and tells CyberPanel to generate those logs via email.
+```
+
+## SSL Not Renewing - New Template
+* https://github.com/usmannasir/cyberpanel/issues/1044

@@ -37,11 +37,13 @@
   # The list of segments shown on the left. Fill it with the most important segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
       # =========================[ Line #1 ]=========================
-      os_icon                 # os identifier
+      os_icon                 # os identifier      
+      my_os_version         # os version
       context                 # user@hostname
       dir                     # current directory
       vcs                     # git status
       root_indicator	      # An indicator if the user has superuser status.
+      
       # =========================[ Line #2 ]=========================
       newline
       prompt_char             # prompt symbol
@@ -104,6 +106,7 @@
       # proxy                 # system-wide http/https/ftp proxy
       battery               # internal battery
       # example               # example user-defined segment (see prompt_example function below)
+      os_version
   )
 
  	# Set IP interface
@@ -1188,3 +1191,9 @@
 
 (( ${#p10k_config_opts} )) && setopt ${p10k_config_opts[@]}
 'builtin' 'unset' 'p10k_config_opts'
+
+# -- Print the os version number
+function prompt_my_os_version () {    
+    p10k segment -b 1 -f 3 -t "${MACHINE_OS_VERSION}"
+}
+POWERLEVEL9K_MY_OS_VERSION_FOREGROUND=208

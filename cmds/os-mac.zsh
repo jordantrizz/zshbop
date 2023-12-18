@@ -1,3 +1,10 @@
+# ====================================================================================================
+# -- mac commands
+# ====================================================================================================
+_debug " -- Loading ${(%):-%N}"
+help_files[wsl]='Mac commands'
+typeset -gA help_mac
+
 # Mac PATH
 # - Mac Ports in /opt/local/bin
 export PATH=$PATH:/opt/local/bin:/opt/local/sbin/
@@ -13,14 +20,23 @@ alias ls="$DEFAULT_LS"
 
 # -- aliases
 alias ps="/bin/ps aux"
-alias flush-dns="sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
 alias eject-all="osascript -e 'tell application "Finder" to eject (every disk whose ejectable is true)'"
 
+# -- Functions
+
+# =================================================================================================
+# -- mac-flush-dns
+# =================================================================================================
+help_mac[mac-flush-dns]="Flush DNS cache"
+function mac-flush-dns () {
+    sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder
+}
+
 # -- ls/exa
-_cexists exa
-if [[ $? -ge "0" ]]; then
+_cmd_exists bin/exa-mac_x86_64
+if [[ $? == "0" ]]; then
     _debug "exa success, using exa for ls alias"
-    alias ls="exa -al"
+    alias ls="exa-mac_x86_64 -al"
 else
 	_debug "exa failed, using default ls alias"
     alias ls="${DEFAULT_LS}"
@@ -34,7 +50,7 @@ auto-ls-color () { \ls -aG;echo "\n"; }
 
 # -- check_diskspace
 check_diskspace_mac () {
-	check_diskspace_linux
+	linux-checkdiskspace
 }
 
 # -- interfaces
@@ -45,15 +61,15 @@ function interfaces_mac () {
 
     # Loop through each interface
     for interface in $interfaces; do
-        # Get IP address
+        # Get IP address and pipe stderr to /dev/null to suppress any errors
         interface=${interface//:/}
-        ip=$(ifconfig $interface | grep 'inet ' | awk '{print $2}')
+        ip=$(ifconfig $interface 2> /dev/null | grep 'inet ' | awk '{print $2}') 
 
         # Get MAC address
-        mac=$(ifconfig $interface | awk '/ether/{print $2}')
+        mac=$(ifconfig $interface 2> /dev/null | awk '/ether/{print $2}')
 
         # Get link speed
-        speed=$(ifconfig $interface | awk '/media: /{print $2}')
+        speed=$(ifconfig $interface 2> /dev/null | awk '/media: /{print $2}')
         networksetup -getairportnetwork "$interface" >>/dev/null
         if [[ $? == "0" ]]; then
             # Wi-Fi interface
@@ -62,7 +78,7 @@ function interfaces_mac () {
         else
             # Hardwired interface
             INT_TYPE="ethernet"
-            connection_speed=$(ifconfig "$interface" | awk '/media: / {print $2}')
+            connection_speed=$(ifconfig "$interface" 2> /dev/null | awk '/media: / {print $2}' )
         fi
 
 

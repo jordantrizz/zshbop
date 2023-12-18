@@ -42,18 +42,33 @@ function proxmox_init () {
     # -- debug
     _debug_all
     ALL_ARGS="$@"
-    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW 
+    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW cpu:=CPU
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
-    [[ -z $MEM ]] && MEM="2048" || MEM=${MEM[2]}
+
+    # -- Set defaults
+    [[ -z $CPU ]] && CPU="1" || CPU=$CPU[2]    
+    if [[ -z $MEM ]]; then
+        MEM="2048"
+    else 
+        MEM=${MEM[2]}
+        # -- Check if MEM is not a number between 512 and 100000        
+        if ! [[ $MEM =~ ^[0-9]+$ ]]; then        
+            _error "MEM is not a number"
+            return 1
+        elif [[ $MEM -lt 512 ]]; then
+            _error "MEM is less than 512"
+            return 1
+        fi    
+    fi
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
-    [[ -z $DISKSIZE ]] && DISKSIZE="20" || DISKSIZE=$DISKSIZE[2]
-    [[ -z $OS_RELEASE ]] && OS_RELEASE="focal" || OS_RELEASE=$OS_RELEASE[2]
-    [[ -z $DHCP_NET ]] && DHCP_NET="vmbr0" || DHCP_NET=$DHCP_NET[2]
+    [[ -z $DISKSIZE ]] && DISKSIZE="20000" || DISKSIZE=$DISKSIZE[2]
+    [[ -z $OS_RELEASE ]] && OS_RELEASE="jammy" || OS_RELEASE=$OS_RELEASE[2]
+    [[ -z $DHCP_NET ]] || DHCP_NET=$DHCP_NET[2]
     [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
     [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]
     [[ -z $VM_ID ]] && { VM_ID=$(pvesh get /cluster/nextid); _debug "\pvesh /cluster/nextid: $VM_ID"} || VM_ID=$VM_ID[2]
-    [[ -z $NAME ]] && NAME="VM-${VM_ID}" || NAME=$NAME[2]
+    [[ -z $NAME ]] || NAME=$NAME[2]
     [[ -z $IP ]] && IP="dhcp" || IP=$IP[2]
     [[ -z $BRIDGE ]] && BRIDGE="vmbr0" || BRIDGE=$BRIDGE[2]
     [[ -z $CLONE_ID ]] && CLONE_ID="9000" || CLONE_ID=$CLONE_ID[2]
@@ -65,6 +80,7 @@ function proxmox_init () {
     _debugf "DRYRUN: $DRYRUN"
     _debugf "HELP: $HELP"
     _debugf "NAME: $NAME"
+    _debugf "CPU: $CPU"
     _debugf "MEM: $MEM"
     _debugf "NET: $NET"
     _debugf "STORAGE: $STORAGE"
@@ -86,7 +102,13 @@ function proxmox_init () {
 
     # -- Check command
     if [[ $1 == "createvm" ]]; then
+        # -- Check required options
+        if [[ -z $NAME ]]; then
+            _error "Name is required"
+            return 1
+        fi
         _debugf "Creating VM"
+        _loading "Creating Proxmox VM"
         _proxmox_check || return 1
         _proxmox_createvm
     # -- Create template
@@ -143,28 +165,32 @@ Command Options:
 
   createvm <options>
   ------------------
-    -name <name>              Name of the VM
-    -memory <memory>          Memory of VM in MB (Default: 2GB)
-    -network <network>        Network bridge to use (Default: vmbr0)
-    -storage <storage>        Storage location (Autodetect)
-    -disksize <disksize>      Disk size in MB (Default: 20GB)
-    -os <os>                  bionic,focal,jammy (Default: focal)
-    -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
-    -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
-    -sshkey [sshkey]          SSH key to add to VM, optional. (Default: ~/.ssh/id_rsa.pub)
-    -vmid [vmid]              VM ID to use, (Default: random)
-    -cloneid [vmid]           VM ID to clone, (Default: 9000)
-    -mac [mac]                MAC address to use, optional.
-    -ip [ip]                  IP address to use, optional. (Default: dhcp)
-    -gw [gw]                  Gateway to use, optional.
-    -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)
+    Required:
+        -name <name>              Name of the VM
+    
+    Optional:
+        -cpu <count>              Number of CPU cores (Default: 1)
+        -memory <memory>          Memory of VM in MB (Default: 2048) Ex. 512, 1024, 2048, 4096, 8192
+        -network <network>        Network bridge to use (Default: vmbr0)
+        -storage <storage>        Storage location (Autodetect)
+        -disksize <disksize>      Disk size in MB (Default: 20000MB)
+        -os <os>                  bionic,focal,jammy (Default: jammy)
+        -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
+        -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
+        -sshkey [sshkey]          SSH key to add to VM, optional. (Default: ~/.ssh/id_rsa.pub)
+        -vmid [vmid]              VM ID to use, (Default: random)
+        -cloneid [vmid]           VM ID to clone, (Default: 9000)
+        -mac [mac]                MAC address to use, optional.
+        -ip [ip]                  IP address to use, optional. (Default: dhcp)
+        -gw [gw]                  Gateway to use, optional.
+        -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)
 
 	
 	Example: createvm -name server -memory 2048 -network vmbr0 -storage local -disksize 80 -os focal
   
   createtemp <options>
   --------------------
-    -os <os>                  bionic,focal,jammy, default focal
+    -os <os>                  bionic,focal,jammy, default jammy
     -bridge <bridge>          Network bridge to use, default vmbr0
     -storage <storage>        Storage location, default local-lvm
     -vmid <vmid>              VM ID to use, default 9000
@@ -182,20 +208,60 @@ Command Options:
     "
 }
 
+# ===================================================================
+# -- _proxmox_check
 # -- check if proxmox is installed and other checks
+# ===================================================================
 function _proxmox_check () {
     # -- check for pvesh
+    _loading "Pre-flight checks"
     if [[ $DRYRUN == "1" ]]; then
         _loading3 "Doing a dryrun"
 	else
-        # -- Ensure commands are present
-        [[ -x $(command -v pvesh) ]] && _success "Proxmox is installed" || { _error "No pvesh present, not running proxmox or other issue."; return 1 }
-        [[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required."; return 1 }
-        [[ -x $(command -v virt-customize) ]] && _success "lshw is installed" || { _error "No virt-customize present, required."; return 1 }
+        # Define associative array with commands and error messages
+        typeset -A PROXMOX_REQUIRED_COMMANDS
+        PROXMOX_REQUIRED_COMMANDS=(
+            pvesh "No pvesh present, not running proxmox or other issue."
+            lshw "No lshw present, required."
+            virt-customize "No virt-customize present, required. Try 'apt-get install libguestfs-tools'"
+            jq "No jq present, required."
+        )
+
+        # Iterate over the associative array
+        for cmd in "${(@k)PROXMOX_REQUIRED_COMMANDS}"; do
+            if command -v $cmd &>/dev/null; then
+                _success "$cmd is installed"
+            else
+                _error "${PROXMOX_REQUIRED_COMMANDS[$cmd]}"
+                return 1
+            fi
+        done
+        #[[ -x $(command -v pvesh) ]] && _success "Proxmox is installed" || { _error "No pvesh present, not running proxmox or other issue."; return 1 }
+        #[[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required."; return 1 }
+        #[[ -x $(command -v virt-customize) ]] && _success "virt-customize is installed" || { _error "No virt-customize present, required. Try 'apt-get install libguestfs-tools'"; return 1 }        
     fi
 
     # -- Get Proxmox node name
     PROXMOX_NODE_NAME=$(pvesh ls nodes | awk '{ print $2}')
+}
+
+# ===================================================================
+# -- _proxmox_get_storage
+# -- Get Proxmox storage
+# ===================================================================
+function _proxmox_get_storage () {
+    # -- Get Proxmox storage
+    _loading2 "Getting Proxmox storage"
+    local PROXMOX_STORAGE_API=$(pvesh get /storage --output-format json)
+    PROXMOX_STORAGE=$(echo "$PROXMOX_STORAGE_API" | jq -r '.[] | select(.content | contains("images")) | .storage')
+
+    if [[ -z $STORAGE ]]; then
+        _error "No storage set"
+        return 1
+    else
+        _loading3 "Storage set to $PROXMOX_STORAGE"   
+        
+    fi
 }
 
 # -------------------------------------------------------------------
@@ -249,45 +315,45 @@ function _proxmox_download_cloudimage () {
 }
 
 # -------------------------------------------------------------------
-# -- proxmox_createvm
+# -- _proxmox_generate_ip $ipconfig
+# -------------------------------------------------------------------
+function _proxmox_generate_ip () {
+    IPCONFIG=$1
+    # Checking if IP and GW is set    
+    if [[ -n $IP ]] && [[ -n $GW ]]; then
+        _loading3 "IP and GW set"
+        # -- Make sure IP has CIDR
+        _loading3 "Checking if IP has CIDR"
+        if [[ $IP != *"/"* ]]; then
+            _loading3 "Adding CIDR to IP"
+            IP="${IP}/24"
+        fi
+        _loading3 "Setting IP to ${IP} and GW to ${GW} on ${IPCONFIG}"
+        _debugf "qm set ${VM_ID} --${IPCONFIG} ip=${IP},gw=${GW}"
+        qm set ${VM_ID} --${IPCONFIG} ip=${IP},gw=${GW}
+    else
+        _loading3 "No IP or GW set, skipping"
+    fi
+}
+
+# -------------------------------------------------------------------
+# -- _proxmox_createvm
 # -------------------------------------------------------------------
 function _proxmox_createvm () {
+    
     # -- Check if storage exists
-    _loading2 "Checking if $STORAGE exists"
-    IFS=$'\n' proxmox_STORAGE=($(pvesm status | awk {' print $1 '}))
-    _if_marray "$STORAGE" proxmox_STORAGE
-    if [[ $MARRAY_VALID == "1" ]]; then
-        _error "Storage $STORAGE doesn't exist, type pmox info"            
-        return
-    else
-        _loading2 "Storage $STORAGE exists"
-    fi
+    _proxmox_get_storage
+    local STORAGE=$PROXMOX_STORAGE
 
     # -- Download cloudimage
     _proxmox_download_cloudimage
-    
-    # -- Enable internal nic with DHCP
-    if [[ -n $DHCP_NET ]]; then
-        DHCP_NET_INT="--net1"
-        DHCP_NET_QM="virtio,bridge=${DHCP_NET},firewall=1"
-        DHCP_IP="--ipconfig1"
-        DHCP_IP_CFG="ip=dhcp"
-    else
-        DHCP_NET_INT=""
-        DHCP_NET_QM=""
-    fi
-
-    # -- Insert guest tools into image
-    ( set -x; virt-customize -a $TEMP_DIR/$OS_FILE --install qemu-guest-agent )
-    
-    # -- QM Config Variables
 
     # -- Run QM Command
-    echo "-- Creating VM with ID:$VM_ID"
-    (set -x;qm create $VM_ID --name $NAME --memory $MEM \
-    $DHCP_NET_INT $DHCP_NET_QM \
-    $DHCP_IP $DHCP_IP_CFG \
-    --net0 virtio,bridge=$NET,firewall=1 \
+    _loading2 "-- Creating VM with ID:$VM_ID"
+    _loading3 "---- NAME: $NAME MEM: $MEM DISKSIZE: $DISKSIZE NET: $NET OS_RELEASE: $OS_RELEASE"
+    (set -x;qm create $VM_ID --name $NAME \
+    --cores ${CPU} --sockets 1 \
+    --memory $MEM \
     --bootdisk scsi0 \
     --scsihw virtio-scsi-pci \
     --ide2 media=cdrom,file=none \
@@ -297,21 +363,69 @@ function _proxmox_createvm () {
     --onboot 1 \
     --cpu host \
     --agent enabled=1,fstrim_cloned_disks=1 \
-    --cicustom "user=local:/userconfig.yaml"
+    --cicustom "vendor=local:snippets/vendor.yaml"
     )
-    ( set -x;qm importdisk $VM_ID /tmp/${OS_FILE} ${STORAGE} )
-    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
-    ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
-    ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
+    [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
-    _notice "Completed creation of VM with ID of $VM_ID"
-    _notice "To start the VM run: qm start $VM_ID"
+    _loading2 "Creating net0 interface"
+    (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
+    [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
+
+    _loading2 "Setting IP and GW on ipconfig0"    
+    _proxmox_generate_ip ipconfig0
+
+    _loading2 "Setting MAC address for net0 interface"
+    if [[ -n $MAC ]]; then
+        _loading3 "Setting MAC address to ${MAC}"
+        (set -x; qm set ${VM_ID} --net0 virtio,macaddr=${MAC},bridge=${BRIDGE},firewall=1)
+    else
+        _loading3 "No MAC address set, setting to random"    
+    fi
+
+    # -- Enable internal nic with DHCP
+    _loading2 "Checking if DHCP network is set"
+    if [[ -n $DHCP_NET ]]; then
+        _loading3 "Creating net1 with DHCP"
+        ( set -x; qm set ${VM_ID} --net1 virtio,bridge=${DHCP_NET},firewall=1)
+        ( set -x; qm set ${VM_ID} --ipconfig1 ip=dhcp )
+    else
+        _loading3 "No DHCP network set, skipping"
+    fi
+
+    _loading2 "Create a copy of new image"
+    cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
+    BUILD_IMAGE="${TEMP_DIR}/${IMAGE_FILE}.build"
+
+    _loading2 "-- Inserting guest tools into image"
+    ( set -x; virt-customize -a ${BUILD_IMAGE} --install qemu-guest-agent )
+    [[ $? -ne 0 ]] && { _error "Failed to insert guest tools into image";return 1; }
+
+    _loading2 "-- Importing OS_FILE:${BUILD_IMAGE} into VM_ID:$VM_ID"
+    ( set -x;qm importdisk $VM_ID ${BUILD_IMAGE} ${STORAGE} )
+    [[ $? -ne 0 ]] && { return 1; _error "Failed to import OS image"; }
+    
+    _loading2 "-- Setting VM storage options"
+    VM_STORAGE=$(qm config $VM_ID | grep 'unused0' | awk '{ print $2 }')
+    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 "${VM_STORAGE},size=${DISKSIZE}M")
+    [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
+    
+    _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
+    ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
+    [[ $? -ne 0 ]] && { _error "Failed to resize VM disk";return 1; }
+    
+    _loading2 "-- Setting SSH Key on VM_ID:$VM_ID with SSH_KEY:$SSH_KEY"
+    ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
+    [[ $? -ne 0 ]] && { _error "Failed to set SSH Key";return 1; }
+    
+    _notice "Completed creation of VM with ID of $VM_ID"    
+    _notice "To start the VM run: qm start $VM_ID" 
 }
 
 # -------------------------------------------------------------------
 # -- proxmox_createtemp
 # -------------------------------------------------------------------
 function _proxmox_createtemp () {
+    local STORAGE=$PROXMOX_STORAGE
     _loading "Creating template"
 
     # -- Set Variables if not set
@@ -350,7 +464,7 @@ function _proxmox_createtemp () {
     _loading2 "Setting VM storage options"
     _debugf "qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw"
     qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:${VM_ID}/vm-${VM_ID}-disk-0.raw
-    [[ $? -ne 0 ]] && return 1
+    [[ $? -ne 0 ]] && { return 1; _error "Failed to set VM storage options"; }
 
     # -- Set VM clount-init
     _loading3 "Setting VM cloud-init"
@@ -488,11 +602,27 @@ function _proxmox_clonetemp () {
 # -------------------------------------------------------------------
 function _proxmox_info () {
     _debug_all
-    _loading "Proxmox instance infornation"
-    echo "----------------------------"
+    
+    _loading "Proxmox instance infornation"    
     echo "Version: $(pveversion)"
-    echo "Storage: $(pvesm status -content images | awk {'if (NR!=1) print $1 '})"     
-    echo "Network: $(lshw -class network -short | egrep -v 'tap|fwln|fwpr|fwbr')"
+    echo "============================"
+    echo ""
+
+    _loading "Storage:"    
+    pvesm status -content images | awk {'if (NR!=1) print $1 '}
+    echo "============================"
+    echo ""
+
+    _loading "Storage API:"
+    # List all storage configurations
+    _proxmox_get_storage
+    echo "============================"
+    echo ""
+
+    _loading "Network:"
+    lshw -class network -short | egrep -v 'tap|fwln|fwpr|fwbr'
+    echo "============================"
+    echo ""
 }
 
 # -------------------------------------------------------------------

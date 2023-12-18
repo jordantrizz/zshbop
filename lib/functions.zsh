@@ -65,7 +65,7 @@ alias omz-plugins='echo "OMZ Plugins $OMZ_PLUGINS"'
 # -- clear cache for various tools
 # =========================================================
 help_zshbop[cache-clear]='Clear cache for antigen + more'
-alias cc="zshbop_cache-clear"
+function cc () { zshbop_cache-clear }
 zshbop_cache-clear () {
     _log "${funcstack[1]}:start"
     _loading "**** Start ZSH cache clear ****"
@@ -105,20 +105,70 @@ zshbop_cache-clear-super () {
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _log "${funcstack[1]}:start"
-    if [[ $1 == "-m" ]]; then
-        _loading "Reloading zshbop"
-        export RUN_REPORT=1
-        export ZSHBOP_RELOAD=1
-        zshbop_cache-clear
-        _log "Running exec zsh"
-	    exec zsh
-    else
+    zparseopts -D -E q+=ARG_QUICK c=ARG_COMMAND h+=ARG_HELP s:=ARG_SYSTEM
+    local CMD="$1"
+    CMD_FILE="$ZBR/cmds/cmds-$CMD.zsh"
+
+    _zshbop_reload_usage () {
+        echo "Reload zshbop"
+        echo " -h                   Usage"
+        echo " -q                   Quick reload"
+        echo " -c <commandfile>     Reload Specific Command file"
+        echo " -s <system>          Reload specific system"
+        echo ""
+        echo "Systems: sofware repos"
+    }
+
+    if [[ -n $ARG_HELP ]]; then
+        _zshbop_reload_usage
+        return 1
+    elif [[ -n $ARG_COMMAND ]]; then
+        if [[ -f $CMD_FILE ]]; then
+            _loading "Quick reload of $CMD_FILE"
+            source $CMD_FILE
+        else
+            _error "$CMD_FILE doesn't exist"
+        fi
+    elif [[ -n $ARG_SYSTEM ]]; then
+    SYSTEM=$ARG_SYSTEM[2]
+        case $SYSTEM in 
+        "software")
+            init_software
+        ;;
+        *)
+            _error "Unknown system: $SYSTEM"
+        ;;
+        esac
+        return 1
+    elif [[ -n $ARG_QUICK ]]; then
         _loading "Quick reload of zshbop"
         export RUN_REPORT=0
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
         init_zshbop
+    else
+        _loading "Reloading zshbop"
+        export RUN_REPORT=1
+        export ZSHBOP_RELOAD=1
+        zshbop_cache-clear
+        _log "Running exec zsh"
+        exec zsh
     fi
+
+    #if [[ $1 == "-q" ]]; then
+    #        _loading "Quick reload of zshbop"
+    #    export RUN_REPORT=0
+    #    export ZSHBOP_RELOAD=1
+    #    zshbop_cache-clear
+    #    init_zshbop
+    #else
+    #    _loading "Reloading zshbop"
+    #    export RUN_REPORT=1
+    #    export ZSHBOP_RELOAD=1
+    #    zshbop_cache-clear
+    #    _log "Running exec zsh"
+	#    exec zsh
+    #fi
 }
 
 # =========================================================
@@ -221,9 +271,12 @@ zshbop_update () {
     if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
     	_debug "Detected old branch name develop"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
+        [[ $? -eq "1" ]] && { _error "Failed to pull latest changes"; return 1 }
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
+        [[ $? -eq "1" ]] && { _error "Failed to pull latest changes"; return 1 }
     else
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
+        [[ $? -eq "1" ]] && { _error "Failed to pull latest changes"; return 1 }
     fi
 
     # Update repos
@@ -345,8 +398,8 @@ function zshbop_formatting () {
 help_zshbop[custom]='Custom zshbop configuration'
 zshbop_custom () {
 	_loading "Instructions on how to utilize custom zshbop configuration."
-	echo " - Create a file called .zshbop.custom in your /$HOME directory"
-	echo " - You can also copy the .zshbop.custom file within this repository as a template"
+	echo " - Create a file called \$HOME/.zshbop.conf"
+	echo " - You can also copy the .zshbop.conf file within this repository as a template"
 }
 
 # =========================================================
@@ -361,7 +414,7 @@ zshbop_custom-load () {
         _log "Checking for $HOME/.zshbop.conf"
         if [[ -f $HOME/.zshbop.conf ]]; then
             ZSHBOP_CUSTOM_CFG="$HOME/.zshbop.conf"
-            _loading3 "Loaded custom zshbop config at $ZSHBOP_CUSTOM_CFG"
+            _loading2 "Loaded custom zshbop config - $ZSHBOP_CUSTOM_CFG"
             source $ZSHBOP_CUSTOM_CFG
         else
             _warning "No custom zshbop config found. Type zshbop custom for more information"
@@ -380,7 +433,9 @@ zshbop_help () {
 
     # -- Print out version and other details
     zshbop_version
-    echo "Plugin Manager: $ZSHBOP_PLUGIN_MANAGER"
+    echo " -- Plugin Manager: $ZSHBOP_PLUGIN_MANAGER"
+    echo " -- Installation Type: $ZSHBOP_INSTALL_TYPE"
+    echo " -- Installation Path: $ZSHBOP_ROOT"
 
     echo ""
     _loading "-- core commands --------------"
@@ -419,9 +474,15 @@ zshbop_help () {
 # =========================================================
 help_zshbop[report]='Print out errors and warnings'
 function zshbop_report () {
+    # -- Check if calling from zshbop report or zshbop_report
+    if [[ $1 == "report" ]]; then
+        shift
+    fi        
     local LOG_LEVEL="$1"
-    local SHOW_LEVEL=()
+    local SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
     local TAIL_LINES=""
+    local ZSHBOP_REPORT=""
+    local LOG_GREP=""
 
     # -- specify how many lines to show
     if [[ -z $2 ]]; then
@@ -450,8 +511,6 @@ function zshbop_report () {
         SHOW_LEVEL=("NOTICE")
     elif [[ $LOG_LEVEL = "log" ]]; then
         SHOW_LEVEL=("LOG")
-    elif [[ $LOG_LEVEL == "less" ]]; then
-        less $SCRIPT_LOG
     elif [[ $LOG_LEVEL = "faults" ]]; then
         SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
     else
@@ -463,12 +522,19 @@ function zshbop_report () {
     _loading "-- zshbop report ------------"
     [[ $LOG_LEVEL != "faults" ]] && _loading3 "Showing - ${SHOW_LEVEL[@]}"
     # -- print out logs
-    for LOG in $SHOW_LEVEL; do
-        [[ $LOG_LEVEL != "faults" ]] && _loading2 "-- $LOG ------------"
-        [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "^\[${LOG}\]" $SCRIPT_LOG"
-        ZSHBOP_REPORT+=$(grep "^\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES)
+    for LOG in ${SHOW_LEVEL[@]}; do
+        # -- Only print when running zshbop_reports directly.
+        if [[ $LOG_LEVEL != "faults" ]]; then
+            _loading2 "-- $LOG ------------"
+            _loading3 "Last $TAIL_LINES $LOG from - grep "\^\[${LOG}\]" $ZB_LOG"
+            LOG_GREP+="$(grep "^\[$LOG\]" $ZB_LOG | tail -n $TAIL_LINES)"
+            [[ -n $ZSHBOP_REPORT ]] && ZSHBOP_REPORT+="$LOG_GREP\n"
+        else            
+            ZSHBOP_REPORT+="$(grep "^\[$LOG\]" $ZB_LOG | tail -n $TAIL_LINES)"
+            [[ -n $ZSHBOP_REPORT ]] && ZSHBOP_REPORT+="$LOG_GREP\n"
+        fi        
     done
-    echo "$ZSHBOP_REPORT"
+    echo "$ZSHBOP_REPORT" | tr -s '\n'
 }
 
 # ==============================================
@@ -490,18 +556,17 @@ function zshbop_check-system () {
     # -- network interfaces
     _debug "Network interfaces"
     INTERFACES="$(interfaces)"
-    _loading2 "Checking network interfaces"
-    echo "   $INTERFACES"
+    _loading3 "Network: $INTERFACES"
 
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"
-    _loading2 "Checking disk space"
-    check_diskspace
+    _loading3 "$(check-diskspace)"
 
+    #TODO block devices needs to be compacted.
 	# -- check block devices
-    _debug "Checking block devices"
-    _loading2 "Checking block devices"
-    check_blockdevices
+    #_debug "Checking block devices"
+    #_loading3 "Block Devices: $(check_blockdevices)"
+    
 }
 
 # =========================================================
@@ -513,7 +578,7 @@ function zshbop_check () {
     _loading "Checking environment"
     _loading3 "Checking if required tools are installed"
     for i in $REQUIRED_SOFTWARE; do
-        _cexists $i
+        _cmd_exists $i
         if [[ $? == "0" ]]; then
                 echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
         else
@@ -523,7 +588,7 @@ function zshbop_check () {
 
     _loading3 "Checking for default tools"
     for i in $DEFAULT_TOOLS; do
-        _cexists $i
+        _cmd_exists $i
         if [[ $? == "0" ]]; then
                 echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
         else
@@ -533,7 +598,7 @@ function zshbop_check () {
 
     _loading2 "Checking for extra tools"
     for i in $EXTRA_TOOLS; do
-    _cexists $i
+    _cmd_exists $i
     if [[ $? == "0" ]]; then
                     echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
             else
@@ -555,7 +620,7 @@ fucntion zshbop_install-env () {
     _loading2 "Generating list of required tools that need to be insstalled"
     # -- install required tools
     for i in ${REQUIRED_SOFTWARE[@]}; do
-        _cexists $i
+        _cmd_exists $i
         if [[ $? == "1" ]]; then
             _debug "Adding $i to list of tools to install"
             PKG_TO_INSTALL+=("$i")
@@ -579,6 +644,7 @@ fucntion zshbop_install-env () {
 
 help_zshbop[cleanup]='Cleanup old things'
 function zshbop_cleanup () {
+    local QUEIT=${1:=0}
     _log "${funcstack[1]}:start"
     # -- older .zshrc
     OLD_ZSHRC_MD5SUM=(
@@ -587,23 +653,27 @@ function zshbop_cleanup () {
         "46c094ff2b56af2af23c5b848d46f997"
         "3ce94ed5c5c5fe671a5f0474468d5dd3"
     )
-    ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc | awk {' print $1'})"
-    _loading "ZSH Cleanup"
-    _log "Checking for old .zshrc against $ZSHRC_MD5SUM"
-    if [[ -f $HOME/.zshrc ]]; then
-        _log "Found $HOME/.zshrc md5sum:$ZSHRC_MD5SUM"
-        for i in $OLD_ZSHRC_MD5SUM; do
-            _log "CUR:$ZSHRC_MD5SUM vs OLD:$i"
-            if [[ $i == $ZSHRC_MD5SUM ]]; then
-                _alert "md5sum matched - Removing old .zshrc"
-                rm $HOME/.zshrc
-                echo "source $ZSHBOP_ROOT/zshbop.zsh" > $HOME/.zshrc
-            else
-                _log "md5sum did not match"
-            fi
-        done
+    
+    if [[ $QUEIT == 0 ]]; then
+        _loading "ZSH Cleanup"
     else
-        _log "No .zshrc found"
+        _log "Checking for old .zshrc against $ZSHRC_MD5SUM"
+        if [[ -f $HOME/.zshrc ]]; then
+            ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc | awk {' print $1'})"
+            _log "Found $HOME/.zshrc md5sum:$ZSHRC_MD5SUM"
+            for i in $OLD_ZSHRC_MD5SUM; do
+                _log "CUR:$ZSHRC_MD5SUM vs OLD:$i"
+                if [[ $i == $ZSHRC_MD5SUM ]]; then
+                    _alert "ZSH Cleanup - md5sum matched - Removing old .zshrc"
+                    rm $HOME/.zshrc
+                    echo "source $ZSHBOP_ROOT/zshbop.zsh" > $HOME/.zshrc
+                else
+                    _log "md5sum did not match"
+                fi
+            done
+        else
+            _log "No .zshrc found"
+        fi
     fi
 }
 
@@ -615,7 +685,7 @@ function zshbop_issue () {
     local ISSUE_TITLE ISSUE_BODY
     _log "${funcstack[1]}:start"
     _loading "Creating zshbop issue on Github"
-    _cexists "gh"
+    _cmd_exists "gh"
     if [[ $? == "0" ]]; then
         _loading2 "Creating issue on github for jordantrizz/zshbop"
         # Ask for title, enter will accept input
@@ -698,6 +768,20 @@ zshbop_install-software () {
 }
 
 # =========================================================
+# -- zshbop_plugins
+# =========================================================
+help_zshbop[plugins]='List plugins'
+function zshbop_plugins () {
+    _loading "Listing plugins"
+    _loading "OMZ Plugins:"
+    # Replace space with new line every 8 words
+    echo $OMZ_PLUGINS | tr ' ' '\n' | sort | awk '{printf "%s%s", $0, (NR%8==0 ? "\n" : " ")}'
+    echo ""
+    _loading "Antigen Plugins:"
+    cat "${ZBR}/.zsh_plugins.txt"
+}
+
+# =========================================================
 # =========================================================
 # =========================================================
 # =========================================================
@@ -709,9 +793,9 @@ zshbop_install-software () {
 function zshbop () {
 	_debug_all
     if [[ -z $1 ]]; then
-		zshbop_help
+		zshbop_help | less
     elif [[ $1 == "help" ]]; then
-		zshbop_help
+		zshbop_help | less
     elif [[ -n $1 ]]; then
 		_debug "-- Running zshbop $1"
         zshbop_cmd=(zshbop_${1})
@@ -722,5 +806,7 @@ function zshbop () {
         fi
     fi
 }
+
+
 
 

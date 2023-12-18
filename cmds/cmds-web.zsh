@@ -18,7 +18,7 @@ _debug " -- Loading ${(%):-%N}"
 # -- paths
 help_web[ttfb-rust]='Find out TTFB for a website. Rust app requires cargo from https://github.com/phip1611/ttfb updated frequently'
 ttfb-rust () {
-	_cexists ttfb
+	_cmd_exists ttfb
     [[ $? == "0" ]] && echo "ttfb existing in your path, simply run ttfb" || echo "ttfb not installed, run 'sudo install cargo;cargo install ttfb'"
 }
 
@@ -71,63 +71,7 @@ web-topips () {
 	fi
 }
 
-# -- web-toprequests
-help_gridpane[web-toprequests]="Get the top requests in an access log"
-web-toprequests_usage () {
-    echo "Usage: web-toprequests <ols|nginx|rcols> <log> (lines)"
-    echo ""
-    echo "  ols = Default OLS"
-    echo "  nginx = "Default Nginx
-    echo "  rcols = Runcloud OLS"
-    echo "  gpnginx = GridPane Nginx"
-    echo "  gpols = GridPane OLS"
-}
 
-web-toprequests () {
-    if [[ -z "$1" ]] && [[ -z "$2" ]]; then
-        web-toprequests_usage
-        _error "Unknown $@"
-        return 1
-    else
-        TYPE="$1"
-        LOG="$2"
-        LINES="$3"
-        CAT="cat"
-
-        # Set lines
-        [[ ${LINES} ]] && SETLINES="-${LINES}" || SETLINES=""
-
-        # - Check if log exists
-        [[ ! -f $LOG ]] && { _error "Couldn't find log: $LOG"; return 1; }
-
-        # - Check if log ends in .gz
-        if [[ $(file -b --mime-type $LOG) == "application/gzip" ]]; then
-            echo "Processing $LOG which is gzip'd"
-            CAT="zcat"
-        else
-            echo "Processing $LOG which is text"
-            CAT="cat"
-        fi
-
-        if [[ $1 == "ols" ]]; then
-            _error "Not working"
-            return 1
-        elif [[ $1 == "nginx" ]]; then
-            _error "Not working"
-            return 1
-        elif [[ $1 == "gpols" ]]; then
-            $CAT ${2} | awk {' print $6 " - " $9 " - " $7 '} | sort -nr | uniq -c | sort -nrk1 |head ${SETLINES}
-        elif [[ $1 == "gpnginx" ]]; then
-            $CAT ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
-        elif [[ $1 == "rcols" ]]; then
-            # "domain.com 127.0.0.1 - - [24/Mar/2023:14:47:33 +0000] "POST /wp-admin/admin-ajax.php?_fs_blog_admin=true HTTP/2" 200 36"
-            $CAT ${2} | awk {' print $7 " - " $10 " - " $8 '} | sort -nr | uniq -c | sort -nrk1 | head ${SETLINES}
-        else
-           web-toprequests_usage
-           _error "Unknown $@"
-        fi
-    fi
-}
 
 help_web[php-opcode]="Look for php.ini opcode settings in /etc/php"
 function php-opcode() {
@@ -152,3 +96,123 @@ function php-opcode() {
         fi
     fi
 }
+
+# -- http-status-codes
+help_web[http-status-codes]="Print out a list of http error codes"
+function http-status-codes() {
+    declare -A HTTTP_STATUS_CODES
+    HTTTP_STATUS_CODES=(
+        [100]="Continue"
+        [101]="Switching Protocols"
+        [102]="Processing"
+        [103]="Early Hints"
+        [200]="OK"
+        [201]="Created"
+        [202]="Accepted"
+        [203]="Non-Authoritative Information"
+        [204]="No Content"
+        [205]="Reset Content"
+        [206]="Partial Content"
+        [207]="Multi-Status"
+        [208]="Already Reported"
+        [226]="IM Used"
+        [300]="Multiple Choices"
+        [301]="Moved Permanently"
+        [302]="Found"
+        [303]="See Other"
+        [304]="Not Modified"
+        [305]="Use Proxy"
+        [306]="Switch Proxy"
+        [307]="Temporary Redirect"
+        [308]="Permanent Redirect"
+        [400]="Bad Request"
+        [401]="Unauthorized"
+        [402]="Payment Required"
+        [403]="Forbidden"
+        [404]="Not Found"
+        [405]="Method Not Allowed"
+        [406]="Not Acceptable"
+        [407]="Proxy Authentication Required"
+        [408]="Request Timeout"
+        [409]="Conflict"
+        [410]="Gone"
+        [411]="Length Required"
+        [412]="Precondition Failed"
+        [413]="Payload Too Large"
+        [414]="URI Too Long"
+        [415]="Unsupported Media Type"
+        [416]="Range Not Satisfiable"
+        [417]="Expectation Failed"
+        [418]="I'm a teapot"
+        [421]="Misdirected Request"
+        [422]="Unprocessable Entity"
+        [423]="Locked"
+        [424]="Failed Dependency"
+        [425]="Too Early"
+        [426]="Upgrade Required"
+        [428]="Precondition Required"
+        [429]="Too Many Requests"
+        [431]="Request Header Fields Too Large"
+        [451]="Unavailable For Legal Reasons"
+        [500]="Internal Server Error"
+        [501]="Not Implemented"
+        [502]="Bad Gateway"
+        [503]="Service Unavailable"
+        [504]="Gateway Timeout"
+        [505]="HTTP Version Not Supported"
+        [506]="Variant Also Negotiates"
+        [507]="Insufficient Storage"
+        [508]="Loop Detected"
+        [510]="Not Extended"
+        [511]="Network Authentication Required"
+        [520]="Cloudflare - Unknown Error"
+        [521]="Cloudflare - Web Server Is Down"
+        [522]="Cloudflare - Connection timed out"
+        [523]="Cloudflare - Origin Is Unreachable"
+        [524]="Cloudflare - A timeout occurred"
+        [525]="Cloudflare - SSL handshake failed"
+        [526]="Cloudflare - Invalid SSL certificate"
+        [527]="Cloudflare - Railgun Error"
+        [530]="Cloudflare - Check 1xx Error"
+        [1000]="Cloudflare - DNS points to prohibited IP"
+        [1001]="DNS resolution error"
+    )
+
+    function _http_status_codes_usage () {
+        echo ""
+        echo "Usage: http-status-codes [code]"
+        echo "You can search for a specific code by passing it as an argument"
+    }
+    
+    function _httpd_status_codes_print () {
+        _loading "Listing all http error codes:"
+        echo ""
+        for code in "${(@ok)HTTTP_STATUS_CODES[@]}"; do
+            echo "$code - ${HTTTP_STATUS_CODES[$code]}"            
+        done        
+        _http_status_codes_usage
+    }
+
+    _httpd_status_codes_search () {
+        local SEARCH_CODE=$1
+        _loading "Searching for $SEARCH_CODE"
+        echo ""
+        for code in "${(@ok)HTTTP_STATUS_CODES}"; do
+            if [[ $code == *"$SEARCH_CODE"* ]]; then
+                echo "$code - ${HTTTP_STATUS_CODES[$code]}"
+            fi
+        done        
+        _http_status_codes_usage
+    }
+    
+    if [[ $# -eq 0 ]]; then
+        _httpd_status_codes_print
+    elif [[ $# -eq 1 && ${HTTTP_ERROR_CODES[$1]} ]]; then
+        code=$1
+        echo "$code - ${HTTTP_ERROR_CODES[$code]}"
+    # -- Check if theres a partial match ie 4 would print all 4xx codes
+    else
+        _httpd_status_codes_search $1    
+    fi    
+}
+

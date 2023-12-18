@@ -1,0 +1,19 @@
+#compdef zshbop
+_zshbop() {
+    local -a subcommands
+
+    # Populate the subcommands array with keys and descriptions from help_core
+    for key in ${(k)help_core}; do
+        subcommands+=("${key}:${help_core[$key]}")
+    done
+
+    for key in ${(k)help_zshbop}; do
+        subcommands+=("${key}:${help_zshbop[$key]}")
+    done
+
+    # Provide the completion for the first argument (subcommands)
+    _describe -t commands 'zshbop subcommands' subcommands
+}
+
+# Tell Zsh to use the _zshbop function for completing zshbop commands
+compdef _zshbop zb zshbop

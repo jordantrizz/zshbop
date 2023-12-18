@@ -17,6 +17,8 @@ DEFAULT_EXA="${EXA_CMD} --long --all --group"
 os-binary "fastfetch"
 os-binary "exa"
 os-binary "glow"
+os-binary "glint"
+os-binary "plik"
 
 # -- sysfetch
 function sysfetch () {
@@ -24,16 +26,16 @@ function sysfetch () {
     export FASTFETCH_CONFIG="--structure Title:OS:Host:Kernel:Uptime:Packages:CPU:GPU:Memory:Disk:Shell:Terminal:TerminalFont:Locale --logo none"
     
     # -- Check if fastfetch is installed
-    _debug "Checking if fastfetch is installed"
-    os-binary fastfetch 
+    _debugf "Checking if fastfetch is installed"
+    os-binary fastfetch
      
     if [[ $? == "1" ]]; then
         # https://superuser.com/a/1570726
-        _debug "fastfetch not found, using ${DEFAULT_SYSFETCH}"
+        _debugf "fastfetch not found, using ${DEFAULT_SYSFETCH}"
         eval ${DEFAULT_SYSFETCH}
     else
         # -- fastfetch is installed
-        _debug "fastfetch succcess using for sysfetch and ${FASTFETCH_CONFIG}"
+        _debugf "fastfetch succcess using for sysfetch and ${FASTFETCH_CONFIG}"
         #fastfetch --structure Title:OS:Host --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g" | sed "s/\n/ - /g"
         #fastfetch --structure Kernel:Uptime --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"
         _loading3 "$(fastfetch --structure Title:OS:Host --logo none | tr '\n' ' ')"
@@ -43,6 +45,7 @@ function sysfetch () {
     fi
 }
 
+# -- sysfetch-motd
 function sysfetch-motd () {
     sysfetch
 }
@@ -52,11 +55,11 @@ alias tran="tran_linux_amd64"
 
 # -- check if nala is installed
 check_nala () {
-    _debug_all
-    _debug "Checking if nala is installed"
-    _cexists nala
+    _debugf_all
+    _debugf "Checking if nala is installed"
+    _cmd_exists nala
     if [[ $? == "0" ]]; then
-        _debug "nala installed - running zsh completions"
+        _debugf "nala installed - running zsh completions"
         source /usr/share/bash-completion/completions/nala
     fi
 }
@@ -66,12 +69,38 @@ check_nala () {
 # ----------------------------------------
 _joe_ftyperc () {
     _debug_all
-    _debug "Checking for ~/.joe folder"
-    [[ ! -d ~/.joe ]] && mkdir ~/.joe
-    
-    _debug "Checking for joe ftyperc"
-    if [[ ! -f ~/.joe/ftyperc ]]; then
-    	_debug "Missing ~/.joe/ftyperc, copying"
-        cp $ZSHBOP_ROOT/custom/ftyperc ~/.joe/ftyperc
+    _log "Setting up joe ftyperc"
+    if [[ -w $HOME ]]; then
+        _debug "Checking for $HOME/.joe folder"
+        [[ ! -d $HOME/.joe ]] && mkdir $HOME/.joe
+        
+        _debug "Checking for joe ftyperc in $HOME/"
+        if [[ ! -f ~/.joe/ftyperc ]]; then
+            _debug "Missing $HOME/.joe/ftyperc, copying"
+            cp $ZSHBOP_ROOT/custom/ftyperc ~/.joe/ftyperc
+        fi
+    else
+        _error "Can't setup \$HOME/.joe unable to write to $HOME"
+        return 1
+    fi
+
+}
+
+
+# =========================================================
+# -- grepcidr3
+# =========================================================
+help_int[grepcidr3]='grepcidr3'
+function _check_grepcidr3 () {
+    if [[ $MACHINE_OS == "linux" ]]; then
+        alias grepcidr3="grepcidr3_linux"
+    fi
+
+    if [[ $MACHINE_OS == "mac" ]]; then
+        if ! _cmd_exists grepcidr3; then
+            function grepcidr3 () { _error "grepcidr3 not installed, install using mac ports"; }
+            return 1
+        fi
     fi
 }
+_check_grepcidr3

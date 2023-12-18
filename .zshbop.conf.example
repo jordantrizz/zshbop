@@ -2,7 +2,7 @@
 # -- Example .zshbop.conf
 # * Override zshbop functions, settings and variables
 # * Create own custom functions, variables and zsh scripts
-# * Move to $HOME/.zshbop.custom and uncomment as needed
+# * Move to $HOME/.zshbop.conf and uncomment as needed
 # =================================================================================================
 
 # =================================================================================================
@@ -16,7 +16,9 @@
 #export GIT_HOME="$HOME/git" # -- A location where you have all your git repositories.
 #ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik) # -- Git Repositores to update when running zshbop update
 #export -p ZSHBOP_UPDATE_GIT > /dev/null
-
+#export ZSHBOP_IP_PROVIDER="ipinfo.io"
+#export ZSHBOP_IP_API_KEY=""
+#export ZSHBOP_IP_SCAM="" # API key for scamalytics.com
 
 # =================================================================================================
 # -- Application settings
@@ -47,6 +49,11 @@
 #}
 
 # =================================================================================================
+# -- Additional omz plugins
+# =================================================================================================
+#plugins+=('universalarchive')
+
+# =================================================================================================
 # -- Custom zshbop directory
 # * Setup custom directory for scripts and other configuration, source any files you require.
 # * If you use $ZBC, then zshbop will check if it's a git repository and update it when you 'update' zshbop
@@ -61,6 +68,6 @@
 # =================================================================================================
 
 _debug "###########################################################"
-_debug "################ Loading .zshbop.custom ###################"
+_debug "################ Loading .zshbop.conf ###################"
 _debug "###########################################################"
 
