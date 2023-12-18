@@ -116,3 +116,100 @@ group = site
 chmod 701 /home
 chmod 750 /home/site
 ```
+
+# Nginx + PHP-FPM + Certbot + MySQL on Ubuntu 22
+## Install packages
+```
+apt-get update
+apt-get install nginx php-fpm php-mysql php-curl php-gd php-mbstring php-xml php-xmlrpc php-zip php-intl php-imagick certbot python3-certbot-nginx mariadb-server
+```
+
+## Create system user
+```
+useradd user
+passwd -d user
+```
+
+## Add system user to www-data group
+```
+usermod -a -G user www-data
+```
+
+## Default Nginx Config with SSL
+### Remove default config
+```
+rm /etc/nginx/sites-enabled/default
+```
+
+### Edit /etc/nginx/sites-available/domain.com
+
+```
+# HTTP server block (port 80) for redirecting to HTTPS
+server {
+    listen 80;
+    server_name domain.com www.domain.com; # Replace with your domain
+
+    # Redirect all HTTP traffic to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS server block (port 443)
+server {
+    listen 443 ssl;
+    server_name domain.com; # Replace with your domain
+
+    # SSL configuration
+    ssl_certificate /etc/nginx/ssl/cert.crt;
+    ssl_certificate_key /etc/nginx/ssl/cert.key;
+
+    # Strong SSL settings (optional but recommended)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+
+    error_log /var/log/nginx/domain.com_errorlog;
+
+    root /home/hcl/public_html; # Replace with your site root directory
+    index index.php index.html index.htm;
+
+    # Handle PHP scripts
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+
+        # With php5-fpm:
+        fastcgi_pass unix:/var/run/php5-fpm.sock; # Ensure this matches your PHP-FPM configuration
+    }
+
+    # Disable access to .htaccess files
+    location ~ /\.ht {
+        deny all;
+    }
+
+    # Additional configurations can be added below
+}
+```
+### Enable Domain
+```
+ln -s /etc/nginx/sites-available/domain.com /etc/nginx/sites-enabled/domain.com
+systemctl restart nginx
+```
+
+## Self Signed Certificate
+``` 
+mkdir /etc/nginx/ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/cert.key -out /etc/nginx/ssl/cert.crt
+```
+
+## Certbot
+### Staging test
+```
+certbot certonly --nginx --staging --webroot -w /home/user/public_html -d domain.com
+```
+### Check Certbot Timer
+```
+systemctl list-timers | grep certbot
+```
+### Simulate Certbot Renew
+```
+certbot renew --dry-run```

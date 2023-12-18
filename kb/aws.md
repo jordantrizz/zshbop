@@ -31,7 +31,6 @@ docker pull <aws_account_id>.dkr.ecr.us-west-2.amazonaws.com/<repo_name>:<tag>
 bash <( curl -Ls https://raw.githubusercontent.com/aws-containers/amazon-ecs-exec-checker/main/check-ecs-exec.sh ) Rx2Me e972e370bb0840159828ee6dd4ee36ae
 ```
 
-
 # AWS Linux
 ## Enable EPEL repository on AWS Linux
 ```amazon-linux-extras install epel -y```
@@ -45,3 +44,10 @@ bash <( curl -Ls https://raw.githubusercontent.com/aws-containers/amazon-ecs-exe
 
 # Get OS version
 ```cat /etc/os-release```
+
+# aws-cli Common Commands
+* aws configure list - List all configured profiles
+* aws configure get profile.default.region - Get default region for profile
+* aws configure list-profiles - List all configured profiles
+* aws sts get-caller-identity --profile <profile_name> - Get caller identity for profile
+* aws organizations list-accounts --profile <profile_name> - List all accounts in organization

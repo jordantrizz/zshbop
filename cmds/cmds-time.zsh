@@ -12,9 +12,18 @@ typeset -gA help_time
 # What help file is this?
 help_files[time]='Time based commands'
 
+# ==============================================================================
 # -- tzc
-help_time[tzc]='Convert time'
-tzc () {
+# ==============================================================================
+help_time[tzc]='Convert time based on timezones'
+function tzc () {
+    function _tzc_usage () {
+        echo "Usage: tzc <YYYY-MM-DD> <HH:MM:SS> <source_timezone> <target_timezone>"
+		echo ""
+		echo "EST = EST5EDT"
+		echo "CST = CST6EDT"
+    }
+
 	# Default Linux date %a %d %b %Y %r %Z = Fri 17 Mar 2023 11:05:40 AM EDT
 	# Check if the required command 'date' is available
 	if ! command -v date &> /dev/null; then
@@ -23,19 +32,24 @@ tzc () {
 	fi
 
 	# Check if the required number of arguments is passed
-	if [ $# -ne 4 ]; then
-		echo "Usage: tzc <YYYY-MM-DD> <HH:MM:SS> <source_timezone> <target_timezone>"
-		echo ""
-		echo "EST = EST5EDT"
-		echo "CST = CST6EDT"
-		return 1
-	fi
+	if [ $# -eq 3 ]; then
+        INPUT_D="${1}"
+        INPUT_T="${2}"
+        INPUT_DATE="${1} ${2}"
+        STZ="${3}"
+        # Get system timezone
+        TTZ=$(date +%Z)
+    elif [ $# -eq 4 ]; then
+        INPUT_D="${1}"
+        INPUT_T="${2}"
+        INPUT_DATE="${1} ${2}"
+        STZ="${3}"
+        TTZ="${4}"
+    else
+        _tzc_usage
+        return 1
+    fi
 
-    INPUT_D="${1}"
-    INPUT_T="${2}"
-    INPUT_DATE="${1} ${2}"
-    STZ="${3}"
-    TTZ="${4}"
 
     MSG="Converting ${INPUT_DATE} from ${STZ} to ${TTZ}"
     EST="EST"

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# mysqltuner.pl - Version 2.3.2
+# mysqltuner.pl - Version 2.6.0
 # High Performance MySQL Tuning Script
 # Copyright (C) 2015-2023 Jean-Marie Renouard - jmrenouard@gmail.com
 # Copyright (C) 2006-2023 Major Hayden - major@mhtx.net
@@ -57,7 +57,7 @@ use Cwd 'abs_path';
 #use Env;
 
 # Set up a few variables for use in the script
-my $tunerversion = "2.3.2";
+my $tunerversion = "2.6.0";
 my ( @adjvars, @generalrec );
 
 # Set defaults
@@ -68,7 +68,7 @@ my %opt = (
     "noinfo"              => 0,
     "debug"               => 0,
     "nocolor"             => ( !-t STDOUT ),
-    "color"               => 0,
+    "color"               => ( -t STDOUT ),
     "forcemem"            => 0,
     "forceswap"           => 0,
     "host"                => 0,
@@ -109,6 +109,8 @@ my %opt = (
     "prettyjson"          => 0,
     "reportfile"          => 0,
     "verbose"             => 0,
+    "experimental"        => 0,
+    "nondedicated"        => 0,
     "defaults-file"       => '',
     "defaults-extra-file" => '',
     "protocol"            => '',
@@ -151,7 +153,8 @@ GetOptions(
     'server-log=s',          'protocol=s',
     'defaults-extra-file=s', 'dumpdir=s',
     'feature=s',             'dbgpattern=s',
-    'defaultarch=i'
+    'defaultarch=i',         'experimental',
+    'nondedicated'
   )
   or pod2usage(
     -exitval  => 1,
@@ -209,10 +212,15 @@ $basic_password_files = "/usr/share/mysqltuner/basic_passwords.txt"
 
 $opt{dbgpattern} = '.*' if ( $opt{dbgpattern} eq '' );
 
+# Activate debug variables
+#if ( $opt{debug} ne '' ) { $opt{debug} = 2; }
+# Activate experimental calculations and analysis
+#if ( $opt{experimental} ne '' ) { $opt{experimental} = 1; }
+
 # check if we need to enable verbose mode
 if ( $opt{feature} ne '' ) { $opt{verbose} = 1; }
 if ( $opt{verbose} ) {
-    $opt{checkversion} = 1;    # Check for updates to MySQLTuner
+    $opt{checkversion} = 0;    # Check for updates to MySQLTuner
     $opt{dbstat}       = 1;    # Print database information
     $opt{tbstat}       = 1;    # Print database information
     $opt{idxstat}      = 1;    # Print index information
@@ -238,8 +246,9 @@ $opt{structstat} = 0
   if ( not defined( $opt{structstat} ) or $opt{nostructstat} == 1 )
   ;    # Don't print table struct information
 $opt{myisamstat} = 1
-  if ( not defined( $opt{myisamstat} ));
-$opt{myisamstat} = 0 if ($opt{nomyisamstat} == 1 );    # Don't print MyISAM table information
+  if ( not defined( $opt{myisamstat} ) );
+$opt{myisamstat} = 0
+  if ( $opt{nomyisamstat} == 1 );    # Don't print MyISAM table information
 
 # for RPM distributions
 $opt{cvefile} = "/usr/share/mysqltuner/vulnerabilities.csv"
@@ -586,6 +595,8 @@ sub os_setup {
     chomp($physical_memory);
     chomp($swap_memory);
     chomp($os);
+    $physical_memory = $opt{forcemem}
+      if ( defined( $opt{forcemem} ) and $opt{forcemem} gt 0 );
     $result{'OS'}{'OS Type'}                   = $os;
     $result{'OS'}{'Physical Memory'}{'bytes'}  = $physical_memory;
     $result{'OS'}{'Physical Memory'}{'pretty'} = hr_bytes($physical_memory);
@@ -763,9 +774,9 @@ sub mysql_setup {
         $mysqladmincmd = $opt{mysqladmin};
     }
     else {
-        $mysqladmincmd = which( "mysqladmin", $ENV{'PATH'} );
+        $mysqladmincmd = which( "mariadb-admin", $ENV{'PATH'} );
         if ( !-e $mysqladmincmd ) {
-            $mysqladmincmd = which( "mariadb-admin", $ENV{'PATH'} );
+            $mysqladmincmd = which( "mysqladmin", $ENV{'PATH'} );
         }
     }
     chomp($mysqladmincmd);
@@ -784,9 +795,9 @@ sub mysql_setup {
         $mysqlcmd = $opt{mysqlcmd};
     }
     else {
-        $mysqlcmd = which( "mysql", $ENV{'PATH'} );
+        $mysqlcmd = which( "mariadb", $ENV{'PATH'} );
         if ( !-e $mysqlcmd ) {
-            $mysqlcmd = which( "mariadb", $ENV{'PATH'} );
+            $mysqlcmd = which( "mysql", $ENV{'PATH'} );
         }
     }
     chomp($mysqlcmd);
@@ -815,7 +826,8 @@ sub mysql_setup {
     if ( $opt{socket} ne 0 ) {
         if ( $opt{port} ne 0 ) {
             $remotestring = " -S $opt{socket} -P $opt{port}";
-        } else {
+        }
+        else {
             $remotestring = " -S $opt{socket}";
         }
     }
@@ -1580,7 +1592,9 @@ sub log_file_recommendations {
         $numLi++;
         debugprint "$numLi: $logLi"
           if $logLi =~ /warning|error/i and $logLi !~ /Logging to/;
-        $nbErrLog++ if $logLi =~ /error/i and $logLi !~ /Logging to/;
+        $nbErrLog++
+          if $logLi  =~ /error/i
+          and $logLi !~ /(Logging to|\[Warning\].*ERROR_FOR_DIVISION_BY_ZERO)/;
         $nbWarnLog++ if $logLi =~ /warning/i;
         push @lastShutdowns, $logLi
           if $logLi =~ /Shutdown complete/ and $logLi !~ /Innodb/i;
@@ -2042,17 +2056,28 @@ sub system_recommendations {
     infoprint "User process except mysqld used "
       . hr_bytes_rnd($omem) . " RAM.";
     if ( ( 0.15 * $physical_memory ) < $omem ) {
-        badprint
+        if ( $opt{nondedicated} ) {
+            infoprint "No warning with --nondedicated option";
+            infoprint
 "Other user process except mysqld used more than 15% of total physical memory "
-          . percentage( $omem, $physical_memory ) . "% ("
-          . hr_bytes_rnd($omem) . " / "
-          . hr_bytes_rnd($physical_memory) . ")";
-        push( @generalrec,
+              . percentage( $omem, $physical_memory ) . "% ("
+              . hr_bytes_rnd($omem) . " / "
+              . hr_bytes_rnd($physical_memory) . ")";
+        }
+        else {
+
+            badprint
+"Other user process except mysqld used more than 15% of total physical memory "
+              . percentage( $omem, $physical_memory ) . "% ("
+              . hr_bytes_rnd($omem) . " / "
+              . hr_bytes_rnd($physical_memory) . ")";
+            push( @generalrec,
 "Consider stopping or dedicate server for additional process other than mysqld."
-        );
-        push( @adjvars,
+            );
+            push( @adjvars,
 "DON'T APPLY SETTINGS BECAUSE THERE ARE TOO MANY PROCESSES RUNNING ON THIS SERVER. OOM KILL CAN OCCUR!"
-        );
+            );
+        }
     }
     else {
         infoprint
@@ -2413,17 +2438,13 @@ sub validate_mysql_version {
 
     prettyprint " ";
 
-    if (   mysql_version_eq(8)
-        or mysql_version_eq( 5,  7 )
-        or mysql_version_eq( 10, 3 )
-        or mysql_version_eq( 10, 4 )
+    if (   mysql_version_eq(9)
+        or mysql_version_eq(8, 4)
+				or mysql_version_eq(8, 0)
         or mysql_version_eq( 10, 5 )
         or mysql_version_eq( 10, 6 )
-        or mysql_version_eq( 10, 7 )
-        or mysql_version_eq( 10, 8 )
-        or mysql_version_eq( 10, 9 )
-        or mysql_version_eq( 10, 10 )
-        or mysql_version_eq( 10, 11 ) )
+        or mysql_version_eq( 10, 11 )
+        or mysql_version_eq( 11, 4 ) )
     {
         goodprint "Currently running supported MySQL version "
           . $myvar{'version'} . "";
@@ -2526,7 +2547,7 @@ sub check_architecture {
     }
     elsif ( `uname` =~ /Darwin/ && `uname -m` =~ /x86_64/ ) {
 
-# Darwin gibas.local 12.3.2 Darwin Kernel Version 12.3.0: Sun Jan 6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64
+# Darwin gibas.local 12.6.0 Darwin Kernel Version 12.3.0: Sun Jan 6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64
         $arch = 64;
         goodprint "Operating on 64-bit architecture";
     }
@@ -3179,11 +3200,11 @@ sub calculations {
       = ( 1, 1 )
       unless defined $mystat{'Innodb_buffer_pool_reads'};
     $mycalc{'pct_read_efficiency'} = percentage(
+        $mystat{'Innodb_buffer_pool_read_requests'},
         (
-            $mystat{'Innodb_buffer_pool_read_requests'} -
+            $mystat{'Innodb_buffer_pool_read_requests'} +
               $mystat{'Innodb_buffer_pool_reads'}
-        ),
-        $mystat{'Innodb_buffer_pool_read_requests'}
+        )
     ) if defined $mystat{'Innodb_buffer_pool_read_requests'};
     debugprint "pct_read_efficiency: " . $mycalc{'pct_read_efficiency'} . "";
     debugprint "Innodb_buffer_pool_reads: "
@@ -3210,6 +3231,14 @@ sub calculations {
         ),
         $mystat{'Innodb_buffer_pool_pages_total'}
     ) if defined $mystat{'Innodb_buffer_pool_pages_total'};
+
+    my $lreq =
+        "select  ROUND( 100* sum(allocated)/ "
+      . $myvar{'innodb_buffer_pool_size'}
+      . ',1) FROM sys.x\$innodb_buffer_stats_by_table;';
+    debugprint("lreq: $lreq");
+    $mycalc{'innodb_buffer_alloc_pct'} = select_one($lreq)
+      if ( $opt{experimental} );
 
     # Binlog Cache
     if ( $myvar{'log_bin'} ne 'OFF' ) {
@@ -3353,10 +3382,18 @@ sub mysql_stats {
     if ( $physical_memory <
         ( $mycalc{'max_peak_memory'} + get_other_process_memory() ) )
     {
-        badprint
-          "Overall possible memory usage with other process exceeded memory";
-        push( @generalrec,
-            "Dedicate this server to your database for highest performance." );
+        if ( $opt{nondedicated} ) {
+            infoprint "No warning with --nondedicated option";
+            infoprint
+"Overall possible memory usage with other process exceeded memory";
+        }
+        else {
+            badprint
+"Overall possible memory usage with other process exceeded memory";
+            push( @generalrec,
+                "Dedicate this server to your database for highest performance."
+            );
+        }
     }
     else {
         goodprint
@@ -6282,11 +6319,11 @@ sub mysql_innodb {
               . hr_bytes( $myvar{'innodb_log_buffer_size'} );
         }
         if ( defined $mystat{'Innodb_buffer_pool_pages_free'} ) {
-            infoprint " +-- InnoDB Log Buffer Free: "
+            infoprint " +-- InnoDB Buffer Free: "
               . hr_bytes( $mystat{'Innodb_buffer_pool_pages_free'} ) . "";
         }
         if ( defined $mystat{'Innodb_buffer_pool_pages_total'} ) {
-            infoprint " +-- InnoDB Log Buffer Used: "
+            infoprint " +-- InnoDB Buffer Used: "
               . hr_bytes( $mystat{'Innodb_buffer_pool_pages_total'} ) . "";
         }
     }
@@ -6354,6 +6391,30 @@ sub mysql_innodb {
                 "innodb_buffer_pool_size (>= "
               . hr_bytes( $enginestats{'InnoDB'} )
               . ") if possible." );
+    }
+
+  # select  round( 100* sum(allocated)/( select VARIABLE_VALUE
+  #                                  FROM information_schema.global_variables
+  #                              where VARIABLE_NAME='innodb_buffer_pool_size' )
+  # ,2) as "PCT ALLOC/BUFFER POOL"
+  #from sys.x$innodb_buffer_stats_by_table;
+
+    if ( $opt{experimental} ) {
+        debugprint( 'innodb_buffer_alloc_pct: "'
+              . $mycalc{innodb_buffer_alloc_pct}
+              . '"' );
+        if ( defined $mycalc{innodb_buffer_alloc_pct}
+            and $mycalc{innodb_buffer_alloc_pct} ne '' )
+        {
+            if ( $mycalc{innodb_buffer_alloc_pct} < 80 ) {
+                badprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
+                  . $mycalc{'innodb_buffer_alloc_pct'} . '%';
+            }
+            else {
+                goodprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
+                  . $mycalc{'innodb_buffer_alloc_pct'} . '%';
+            }
+        }
     }
     if (   $mycalc{'innodb_log_size_pct'} < 20
         or $mycalc{'innodb_log_size_pct'} > 30 )
@@ -6513,19 +6574,19 @@ sub mysql_innodb {
     {
         badprint "InnoDB Read buffer efficiency: "
           . $mycalc{'pct_read_efficiency'} . "% ("
-          . ( $mystat{'Innodb_buffer_pool_read_requests'} -
-              $mystat{'Innodb_buffer_pool_reads'} )
-          . " hits / "
           . $mystat{'Innodb_buffer_pool_read_requests'}
+          . " hits / "
+          . ( $mystat{'Innodb_buffer_pool_reads'} +
+              $mystat{'Innodb_buffer_pool_read_requests'} )
           . " total)";
     }
     else {
         goodprint "InnoDB Read buffer efficiency: "
           . $mycalc{'pct_read_efficiency'} . "% ("
-          . ( $mystat{'Innodb_buffer_pool_read_requests'} -
-              $mystat{'Innodb_buffer_pool_reads'} )
-          . " hits / "
           . $mystat{'Innodb_buffer_pool_read_requests'}
+          . " hits / "
+          . ( $mystat{'Innodb_buffer_pool_reads'} +
+              $mystat{'Innodb_buffer_pool_read_requests'} )
           . " total)";
     }
 
@@ -6540,6 +6601,10 @@ sub mysql_innodb {
           . " hits / "
           . $mystat{'Innodb_log_write_requests'}
           . " total)";
+        push( @adjvars,
+                "innodb_log_buffer_size (> "
+              . hr_bytes_rnd( $myvar{'innodb_log_buffer_size'} )
+              . ")" );
     }
     else {
         goodprint "InnoDB Write Log efficiency: "
@@ -6689,20 +6754,21 @@ sub mysql_databases {
       percentage( $totaldbinfo[2], $totaldbinfo[3] ) . "%";
     $result{'Databases'}{'All databases'}{'Total Size'} = $totaldbinfo[3];
     print "\n" unless ( $opt{'silent'} or $opt{'json'} );
-		my $nbViews=0;
-		my $nbTables=0;
+    my $nbViews  = 0;
+    my $nbTables = 0;
+
     foreach (@dblist) {
         my @dbinfo = split /\s/,
           select_one(
 "SELECT TABLE_SCHEMA, SUM(TABLE_ROWS), SUM(DATA_LENGTH), SUM(INDEX_LENGTH), SUM(DATA_LENGTH+INDEX_LENGTH), COUNT(DISTINCT ENGINE), COUNT(TABLE_NAME), COUNT(DISTINCT(TABLE_COLLATION)), COUNT(DISTINCT(ENGINE)) FROM information_schema.TABLES WHERE TABLE_SCHEMA='$_' GROUP BY TABLE_SCHEMA ORDER BY TABLE_SCHEMA"
           );
         next unless defined $dbinfo[0];
-        
-				infoprint "Database: " . $dbinfo[0] . "";
-      $nbTables=select_one(
+
+        infoprint "Database: " . $dbinfo[0] . "";
+        $nbTables = select_one(
 "SELECT count(*) from information_schema.TABLES WHERE TABLE_TYPE ='BASE TABLE' AND TABLE_SCHEMA='$_'"
-          );
-				infoprint " +-- TABLE : $nbTables";
+        );
+        infoprint " +-- TABLE : $nbTables";
         infoprint " +-- VIEW  : "
           . select_one(
 "SELECT count(*) from information_schema.TABLES WHERE TABLE_TYPE ='VIEW' AND TABLE_SCHEMA='$_'"
@@ -6758,10 +6824,10 @@ sub mysql_databases {
               ) . " TABLE(s)";
         }
 
-				if ( $nbTables == 0 ) {
-					badprint " No table in $dbinfo[0] database";
-					next;
-				}
+        if ( $nbTables == 0 ) {
+            badprint " No table in $dbinfo[0] database";
+            next;
+        }
         badprint "Index size is larger than data size for $dbinfo[0] \n"
           if ( $dbinfo[2] ne 'NULL' )
           and ( $dbinfo[3] ne 'NULL' )
@@ -6772,7 +6838,7 @@ sub mysql_databases {
               . " storage engines. Be careful. \n";
             push @generalrec,
 "Select one storage engine (InnoDB is a good choice) for all tables in $dbinfo[0] database ($dbinfo[5] engines detected)";
-        }				
+        }
         $result{'Databases'}{ $dbinfo[0] }{'Rows'}       = $dbinfo[1];
         $result{'Databases'}{ $dbinfo[0] }{'Tables'}     = $dbinfo[6];
         $result{'Databases'}{ $dbinfo[0] }{'Collations'} = $dbinfo[7];
@@ -7076,12 +7142,13 @@ ENDSQL
             infoprint " +-- COMMENT     : " . $info[5] if defined $info[5];
             $found++;
         }
-        my $nbTables=select_one(
+        my $nbTables = select_one(
 "SELECT count(*) from information_schema.TABLES WHERE TABLE_TYPE ='BASE TABLE' AND TABLE_SCHEMA='$dbname'"
-          );
-				badprint "No index found for $dbname database" if $found == 0 and $nbTables>1;
+        );
+        badprint "No index found for $dbname database"
+          if $found == 0 and $nbTables > 1;
         push @generalrec, "Add indexes on tables from $dbname database"
-          if $found == 0 and $nbTables>1;
+          if $found == 0 and $nbTables > 1;
     }
     return
       unless ( defined( $myvar{'performance_schema'} )
@@ -7168,6 +7235,8 @@ sub headerprint {
       . "\t * Major Hayden <major\@mhtx.net>\n"
       . " >>  Bug reports, feature requests, and downloads at http://mysqltuner.pl/\n"
       . " >>  Run with '--help' for additional options and output filtering";
+    debugprint( "Debug: " . $opt{debug} );
+    debugprint( "Experimental: " . $opt{experimental} );
 }
 
 sub string2file {
@@ -7178,12 +7247,12 @@ sub string2file {
 "Unable to open $filename in write mode. Please check permissions for this file or directory";
     print $fh $content if defined($content);
     close $fh;
-    debugprint $content if ( $opt{'debug'} );
+    debugprint $content;
 }
 
 sub file2array {
     my $filename = shift;
-    debugprint "* reading $filename" if ( $opt{'debug'} );
+    debugprint "* reading $filename";
     my $fh;
     open( $fh, q(<), "$filename" )
       or die "Couldn't open $filename for reading: $!\n";
@@ -7369,7 +7438,7 @@ __END__
 
 =head1 NAME
 
- MySQLTuner 2.3.2 - MySQL High Performance Tuning Script
+ MySQLTuner 2.6.0 - MySQL High Performance Tuning Script
 
 =head1 IMPORTANT USAGE GUIDELINES
 
@@ -7413,6 +7482,8 @@ You must provide the remote server's total memory when connecting to other serve
  --template   <path>         Path to a template file
  --dumpdir <path>            Path to a directory where to dump information files
  --feature <feature>         Run a specific feature (see FEATURES section)
+ --dumpdir <path>            information_schema tables and sys views are dumped in CSV in this path
+
 =head1 OUTPUT OPTIONS
 
  --silent                    Don't output anything on screen
@@ -7423,6 +7494,8 @@ You must provide the remote server's total memory when connecting to other serve
  --nobad                     Remove negative/suggestion responses
  --noinfo                    Remove informational responses
  --debug                     Print debug information
+ --experimental              Print experimental analysis (may fail)
+ --nondedicated              Consider server is not dedicated to Db server usage only
  --noprocess                 Consider no other process is running
  --dbstat                    Print database information
  --nodbstat                  Don't print database information

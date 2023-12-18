@@ -39,6 +39,27 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 * Ensure you put in your interface for management otherwise all traffic will be redirected for all IP's
 ```/sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.1.1 --dport 443 -j REDIRECT --to-ports 8006```
 
+## Block 8006 and Forward to CF Host
+* Create /etc/systemd/system/netcat-redirect.service
+```
+[Unit]
+Description=Netcat HTTP Redirect Service
+After=network.target
+
+[Service]
+ExecStart=/bin/nc -l -p 80 -c 'echo "HTTP/1.1 301 Moved Permanently\r\nLocation: https://vh01cf.domain.com\r\nConnection: close\r\n\r\n"'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+* systemctl enable netcat-redirect
+* systemctl start netcat-redirect
+* iptables -A INPUT -p tcp --dport 8006 -j DROP
+* apt-get install iptables-persistent
+* netfilter-persistent save
+* systemctl enable netfilter-persistent
+
 ## Changing Hostname
 * Edit /etc/hosts file from “proxmox1.sysadminote.com proxmox1″ to “proxmox2.sysadminote.com proxmox2″ 
 * Edit /etc/hostname file from “proxmox1″ to “proxmox2″.
@@ -155,7 +176,7 @@ subnet 192.168.5.0 netmask 255.255.255.0 {
 3. Set listen interface vmbr1 (internal bridge network) in /etc/default/isc-dhcp-server
 ```
 INTERFACESv4="vmbr1"
-``
+```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
 
 # Common Issues
@@ -171,3 +192,6 @@ Select en_US.UTF8
 3. Choose "Advanced Options for Ubuntu"
 4. Choose a "recovery mode" image
 5. Choose "root"
+
+## Connection error - server offline? (Behind Cloudflare)
+I enabled "Disable Chunked Encoding" under Cloudflare Zero Trust > Access > Tunnels > (my tunnel) > Public hostnames > (hostname for pve) > Additional Application Settings > HTTP Settings > Disable Chunked Encoding

@@ -8,3 +8,8 @@
 ```
 hostnamectl set-hostname srv01.prod.bluinf.com
 ```
+
+# Commands
+## Network
+### Get Ports from /etc/proc/net/tcp
+```awk '$4 == "0A" { port=substr($2, index($2, ":")+1); print "Port:", strtonum("0x" port) }' /proc/net/tcp /proc/net/tcp6 2>/dev/null || awk '$4 == "0A" { port=substr($2, index($2, ":")+1); cmd="echo $((0x" port "))"; cmd | getline port; close(cmd); print "Port:", port }' /proc/net/tcp /proc/net/tcp6```

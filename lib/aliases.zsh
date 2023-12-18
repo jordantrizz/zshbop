@@ -9,6 +9,7 @@ _debug_load
 # -----------------
 
 alias joe="joe --wordwrap -nobackups -tab 4"
+function joe-wrapper { joe --wordwrap -nobackups -tab 4 $@ }
 alias sbin="cd /usr/local/sbin"
 alias which="which -a"
 alias randpass="pwgen -s 5 1;pwgen -s 15 1;pwgen -s 20 1;pwgen -sy 20 1"

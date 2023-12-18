@@ -12,11 +12,43 @@ help_files[mysql]='MySQL related commands'
 # - Init help array
 typeset -gA help_mysql
 
-# - mysql-alldbsize
-help_mysql[mysql-alldbsize]='Get size of all databases in MySQL'
-mysql-alldbsize () {
-	echo "Getting all database sizes"
-    mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY SUM(data_length + index_length) DESC;'
+# - mysql-dbsizeall
+help_mysql[mysql-dbsizeall]='Get size of all databases in MySQL'
+function mysql-dbsizeall () {
+    mysql -e "
+    SELECT * FROM (
+        SELECT 
+            table_schema AS 'Database', 
+            ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
+        FROM 
+            information_schema.TABLES 
+        GROUP BY 
+            table_schema
+    ) AS original_query
+    UNION ALL
+    SELECT 
+        'Total' AS 'Database', 
+        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
+    FROM 
+        information_schema.TABLES
+    ORDER BY 
+        CASE 
+            WHEN 'Database' = 'Total' THEN 1 
+            ELSE 0 
+        END, 
+        'Size (MB)' DESC;
+    "
+}
+
+# -- mysql-dbsize
+help_mysql[mysql-dbsize]='Get size of a database in MySQL'
+mysql-dbsize () {
+	if [[ -n $1 ]]; then
+		mysql -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" GROUP BY table_schema;"
+	else
+		echo "Usage: $0 <database name>"
+		return 1
+	fi
 }
 
 # - mysql-allrowsize
@@ -91,7 +123,7 @@ mysql-currentmem () {
 	# -- check if we can connect to mysql
 	MYSQL_TEST=$(mysql -e 'show processlist')
 	if [[ $? -ge 1 ]]; then
-		_cexists mysql_config_editor
+		_cmd_exists mysql_config_editor
 		if [[ $? -ge 1 ]]; then
 			_error "Install mysql_config_editor"
 			_error " -- Percona: apt-get install libperconaserverclient20-dev"
@@ -289,9 +321,9 @@ mysql-backup-all-dbs () {
     done
 }
 
-# -- mysql-backupdb
-help_mysql[mysql-backupdb]='Backup a single databases on a server'
-mysql-backupdb () {
+# -- mysql-backup-db
+help_mysql[mysql-backup-db]='Backup a single databases on a server'
+mysql-backup-db () {
     if [[ -z $1 ]];then
 	    echo "Usage: mysql-backupdb <database>"
     	return
@@ -333,9 +365,9 @@ mysql-createuser () {
 	fi
 }
 
-# -- mysqlps
-help_mysql[mysqlps]="Show current mysql processes"
-mysqlps () {
+# -- mysql-ps
+help_mysql[mysql-ps]="Show current mysql processes"
+mysql-ps () {
 	mysql -e 'show full processlist'
 }
 
@@ -480,3 +512,59 @@ function mysql-adddb () {
 		return 1
 	fi
 }
+
+# ==============================================================================
+# -- mysql-backup-mydumper
+# ==============================================================================
+help_mysql[mysql-backup-mydumper]='Backup MySQL databases using mydumper'
+function mysql-backup-mydumper () {
+	measure_time() {
+		start_time=$(date +%s)
+		"$@"
+		end_time=$(date +%s)
+		echo $((end_time - start_time))
+	}
+
+	if [[ -z $1 ]]; then
+		echo "Usage: mysql-backup-mydumper <database>"
+		return 1
+	fi
+
+	local DATABASE="$1"	
+	local BACKUP_DATE=$(date +%Y-%m-%d-%H-%M-%S)
+	local BACKUP_DIR="$HOME/backups/${DATABASE}-${BACKUP_DATE}-dumper/"
+
+	# -- Check if mydumper is installed
+	_cmd_exists mydumper
+	if [[ $? == 1 ]]; then
+		_error "mydumper is not installed"
+		return 1
+	fi
+
+	# -- Check if database exists
+	if [[ $(mysql -e "SHOW DATABASES LIKE '${DATABASE}';" -s --skip-column-names) != $DATABASE ]]; then
+		echo "Database ${DATABASE} does not exist"
+		return 1
+	fi
+
+	# -- Check if backup directory exists
+	if [[ ! -d $BACKUP_DIR ]]; then
+		mkdir -p $BACKUP_DIR
+	fi
+
+	# -- Run backup and time
+	_loading "Running backup of ${DATABASE}"
+	
+	# Time backup in seconds and store in $BACKUP_TIME
+	BACKUP_TIME=$(measure_time mydumper -B ${DATABASE} -o ${BACKUP_DIR})
+
+	# -- Check if backup was successful
+	if [[ $? == 0 ]]; then
+		_success "Backup of ${DATABASE} completed successfully"
+		_success "Backup file: ${BACKUP_DIR}"
+		_success "Backup time: ${BACKUP_TIME}"
+	else
+		_error "Backup of ${DATABASE} failed"
+	fi
+}
+

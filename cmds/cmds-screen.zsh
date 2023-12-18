@@ -6,7 +6,7 @@ _debug " -- Loading ${(%):-%N}"
 typeset -gA help_screen
 
 # -- Screen
-_cexists screen
+_cmd_exists screen
 if [[ $? == 0 ]]; then	
 	# -- Default screen alias
 	alias screen="screen -c $ZSHBOP_ROOT/.screenrc"	
@@ -21,7 +21,9 @@ if [[ $? == 0 ]]; then
 	
 	# -- scra
 	help_screen[scra]='Attach to screen session'
-	alias scra="screen -r ${1}"
+	function scra {
+		screen -rd "${1}"
+	}
 
 	# -- scrc
 	help_screen[scrc]='Create screen session with a name'

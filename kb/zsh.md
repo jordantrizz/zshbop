@@ -1,4 +1,7 @@
 # Install ZSH
+## romkatv Staticly Linked ZSH
+* https://github.com/romkatv/zsh-bin
+* ```sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)"```
 ## Compile ZSH on CentOS 6 
 ### ZSH 5.1.1
 ```
@@ -38,6 +41,18 @@ cd /tmp/zsh
 ./configure
 sudo make -j 20 install
 ```
+
+# Common ZSH Errors
+## zsh compinit: insecure directories
+Some core functions of ZSH are not accessiable due to insecure directories, this might be related to permissions or ownership (user/group)
+* https://stackoverflow.com/questions/13762280/zsh-compinit-insecure-directories
+```
+chmod -R 755 /usr/local/share/zsh/site-functions
+chown -R root:root /usr/local/share/zsh/site-functions
+```
+
+## failed to load module: zsh/regex
+Most likely missing zsh modules, re-install or re-compile zsh
 
 # Debug ZSH
 ## ZSH Trace
@@ -346,3 +361,16 @@ usage () {
 ```
 array_of_lines=("${(@f)$(my_command)}")
 ```
+
+# Troubleshooting and Hour Wasting Errors
+## Return 1 Problems
+If you have a function with an if statement and other functions that rely on an accurate return value. Make sure that an if statement is not returning 1. If it is, it will cause the function to return 1 and other functions that rely on the return value will not work correctly.
+
+Example 
+
+```
+[[ $QUIET == 0 ]] && cd $DIR
+echo "Test"
+```
+
+If `$QUIET == 0` then and cd $DIR is succesful, then return 0 will occur. However, if `$QUIET == 1` and `echo "test"` is succesful, then return 1 will occur. I don't knopw why.

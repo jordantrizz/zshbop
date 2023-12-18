@@ -10,22 +10,32 @@ VERSION="1.0.0"
 SKIP_DEP="0"
 SKIP_OPTIONAL="0"
 HELP="0"
+INSTALL_CUSTOM_PATH=""
+SYSTEM_WRITBALE="0"
+HOME_WRITABLE="0"
+TMP_WRITEABLE="0"
+ZSHBOP_SEARCH_LOCATIONS=("~/zshbop" "/usr/local/sbin/zshbop" "$HOME/git/zshbop")
 
 # -- Required Software
-REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
+REQUIRED_SOFTWARE=('git' 'wget' 'curl')
 
 # -- Optional Software
-OPTIONAL_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'sudo' 'screen' 'wget' 'joe')
+OPTIONAL_SOFTWARE=('jq' 'curl' 'sudo' 'screen' 'wget' 'joe')
 OPTIONAL_SOFTWARE+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
-OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'lynx' 'ncdu')
-OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'md5sum')
+OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'ncdu')
+OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'ucommon-utils')
 OPTIONAL_SOFTWARE+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
+
 
 # -- Colors
 RED="\033[0;31m"
 GREEN="\033[0;32m"
 CYAN="\033[0;36m"
 YELLOW="\033[1;33m"
+BLACK="\033[0;30m"
+BLUE="\033[0;34m"
+LIGHTBLUE="\033[1;34m"
+YELLOWBG="\033[0;43m"
 BLUEBG="\033[0;44m"
 GREENBG="\033[0;42m"
 DARKGREYBG="\033[0;100m"
@@ -35,15 +45,16 @@ ECOL="\033[0;0m"
 ##################################
 # -- Core Message Functions
 ##################################
-_error () { echo -e "${RED}** ERROR ** - ${*} ${ECOL}"; }
-_warning () { echo -e "${YELLOW}** WARNING ** - ${*} ${ECOL}"; }
-_success () { echo -e "${GREEN}** SUCCESS ** - ${*} ${ECOL}"; }
-_running () { echo -e "${BLUEBG}* ${*} *${ECOL}"; }
-_loading () { echo -e "${DARKGREY}${*}${ECOL}"; }
-_install () { echo -e "${GREENBG}${*}${ECOL}"; }
+_error () { echo -e "${RED}  ** ERROR ** - ${*} ${ECOL}"; }
+_warning () { echo -e "${YELLOW}  ** WARNING ** - ${*} ${ECOL}"; }
+_success () { echo -e "${GREEN}  ** SUCCESS ** - ${*} ${ECOL}"; }
+_running () { echo -e "${DARKGREYBG}${YELLOW}* ${*} *${ECOL}"; }
+_running2 () { echo -e "${LIGHTBLUE}* ${*} *${ECOL}"; }
+_loading () { echo -e "${DARKGREY}  -- ${*}${ECOL}"; }
+_install () { echo -e "${YELLOWBG}${BLACK}${*}${ECOL}"; }
 _debug () { if [[ $DEBUG == "1" ]]; then echo -e "${CYAN}*** DEBUG: ${*}${ECOL}" >&2; fi; }
 _yellow () { echo -e "${YELLOW}${*}${ECOL}"; }
-
+_divider () { echo -e "${YELLOWBG}                                      ${ECOL}"; }
 
 ##################################
 # -- Core Functions
@@ -54,7 +65,7 @@ _yellow () { echo -e "${YELLOW}${*}${ECOL}"; }
 # --------------------------------
 usage () {
 USAGE=\
-"Usage: install -h|-s (clean|skipdeps|default|home|git|)|(custom <branch> <location>)
+"Usage: install -h|-s|-o|-d (clean|search|default|home|git|)|(custom <branch> <location>)
 
   Options
     -h          - This help screen
@@ -65,6 +76,7 @@ USAGE=\
   Commands
 
     clean                         - Remove zshbop
+    search                        - Search for zshbop installs
     default                       - Default install
     home                          - Install in home directory
     git                           - Install in ~/git with dev branch
@@ -78,13 +90,16 @@ USAGE=\
         - git = \$HOME/git/zshbop
 
 >> zshbop Install Script Version: ${VERSION}
+>> Detected OS Version: Flavour:${OS} Ver:${VER}
 "
 echo "$USAGE"
 }
+
 # --------------------------------
 # -- zshbop_banner
 # --------------------------------
 function zshbop_banner () {
+    _divider
     echo "           _      _                   ";
     echo "          | |    | |                  ";
     echo " ____ ___ | |__  | |__    ___   _ __  ";
@@ -93,6 +108,8 @@ function zshbop_banner () {
     echo "/___||___/|_.__/ |_.__/  \___/ | .__/ ";
     echo "                               | |    ";
     echo "                               |_|    ";
+    _divider
+    echo ""
 }
 
 ##################################
@@ -100,8 +117,67 @@ function zshbop_banner () {
 ##################################
 
 # -----------------------------------------------
-# -- check_package
+# -- _clean_zshbop
 # -----------------------------------------------
+function _clean_zshbop () {    
+    local FOUND_INSTANCE=""
+    echo ""
+    _running2 "Removing zshbop from system"    
+    
+    _loading "Searching for zshbop in $ZSHBOP_SEARCH_LOCATIONS"
+    for INSTANCE in ${ZSHBOP_SEARCH_LOCATIONS[@]}; do
+        if [[ -d $INSTANCE ]]; then
+            _success "Found zshbop in $INSTANCE"
+            FOUND_INSTANCE="$INSTANCE"            
+        else
+            _loading "No zshbop install found in $INSTANCE"
+        fi
+    done
+    
+    if [[ -n $FOUND_INSTANCE ]]; then
+        echo ""
+        echo -n "Remove $FOUND_INSTANCE - Continue (y/n)?: "
+        read CLEAN
+        echo ""
+        if [[ $CLEAN == "y" ]]; then
+            _running2 "Removing $FOUND_INSTANCE"            
+            rm -rf $FOUND_INSTANCE            
+            if [[ $?  ]]; then
+                _success "Removed $FOUND_INSTANCE"
+                exit
+            else
+                _error "Failed to remove $FOUND_INSTANCE"
+                exit
+            fi            
+        else
+            _loading "Aboring....Goodbye!"
+            exit
+        fi
+    else        
+        echo ""
+        _error "No zshbop installs found, exiting."
+        exit
+    fi
+}
+
+# -----------------------------------------------
+# -- _search_zshbop
+# -----------------------------------------------
+function _search_zshbop () {
+    local ZSHBOP_LOCATIONS=("~/zshbop" "/usr/local/sbin/zshbop" "$HOME/git/zshbop")
+    _running "Searching for zshbop installs"
+    for ZSHBOP_LOCATION in "${ZSHBOP_LOCATIONS[@]}"; do
+        if [[ -d $ZSHBOP_LOCATION ]]; then
+            _success "Found zshbop install in $ZSHBOP_LOCATION"
+        else
+            _error "No zshbop install found in $ZSHBOP_LOCATION"
+        fi
+    done
+}
+
+# ================================================
+# -- check_package
+# ================================================
 function check_package () {
     local PACKAGE_LIST=("$@")
     PACKAGE_INSTALL=()
@@ -109,67 +185,214 @@ function check_package () {
         # -- Use dpkg to check if package is installed
         MSG+="Checking $PACKAGE"
         if ! dpkg -s $PACKAGE >/dev/null 2>&1; then
-            _error "$PACKAGE not installed."
-            PACKAGE_INSTALL+=("$PACKAGE")
+            # -- Check if $PACKAGE is in $PATH
+            if ! [ -x "$(command -v $PACKAGE)" ]; then
+                _error "$PACKAGE not in \$PATH and not installed via dpkg."
+                PACKAGE_INSTALL+=("$PACKAGE")
+            else
+                _debug "$PACKAGE is in \$PATH"
+            fi
         else
-            _success "$PACKAGE installed"
+            _debug "$PACKAGE installed"
         fi
     done
 }
 
-# --------------------------------
-# -- install_package - install packages.
-# --------------------------------
-function install_package () {
-    # -- Checking if sudo is installed
-    if ! [ -x "$(command -v sudo)" ]; then
-        _loading "sudo is not installed, installing sudo"
-        install_package sudo
-    fi
+# ================================================
+# -- _install_zsh - install zsh
+# ================================================
+function _install_zsh () {
+    echo -n "Do you want to install zsh via (p)package or (b)inary? (p/b): "
+    read ZSH_INSTALL
 
-    _debug "Installing ${*}"
-	# Checking what package manager we have
-    _loading "Checking what package manager we have...."
-    if [ -x "$(command -v apt-get)" ]; then
-        echo " - We have apt!"
-        sudo apt install --no-install-recommends "${*}"
-	elif [ -x "$(command -v yum)" ]; then
-        echo " - We have yum!"
-        sudo yum install "${*}"
-    elif [ -x "$(command -v brew)" ]; then
-        echo " - We have brew!"
-        brew install "${*}"
-    else
-    	_error "Can't detect package manager :("
-    fi
-    
-    if [ $? -gt 0 ]; then
-    	_error "${*} install failed...."
+    if [ "$ZSH_INSTALL" == "p" ] || [ "$ZSH_INSTALL" == "P" ]; then
+        _install_zsh_package
+    elif [ "$ZSH_INSTALL" == "b" ] || [ "$ZSH_INSTALL" == "B" ]; then
+        _install_zsh_binary
+    else 
+        _error "Invalid choice, exiting."
         exit 1
-    else
-	    _success "${*} installed successfully"
     fi
 }
 
-# -----------------------------------------------
-# -- pre_flight_check
-# -----------------------------------------------
+# ================================================
+# -- _install_zsh_package - install zsh via sudo
+# ================================================
+function _install_zsh_package () {
+    _loading "Installing zsh via package"
+    install_package zsh
+}
 
+# ================================================
+# -- _install_zsh_binary - install zsh binary
+# ================================================
+function _install_zsh_binary () {
+    _loading "Installing zsh via binary"
+    # -- Ask where to install zsh binary and loop until valid path is writable, ask five times then exit
+    echo -n "Where should we install zsh? (/usr/local): "
+    read ZSH_INSTALL_PATH    
+
+    # Check if $ZSH_INSTALL_PATH is empty
+    if [[ -z $ZSH_INSTALL_PATH ]]; then
+        ZSH_INSTALL_PATH="/usr/local"
+    fi
+
+    # Check if $ZSH_INSTALL_PATH is writable
+    while [[ ! -w $ZSH_INSTALL_PATH ]]; do
+        _error "Can't write to $ZSH_INSTALL_PATH"
+        echo -n "Where should we install zsh? (/usr/local): "
+        read ZSH_INSTALL_PATH
+        ((i++)) && ((i==5)) && _error "Can't write to $ZSH_INSTALL_PATH, exiting." && exit 1
+    done
+
+    # -- Download zsh binary
+    # -- Resolve $ZSH_INSTALL_PATH to absolute path
+    ZSH_INSTALL_PATH=$(cd $ZSH_INSTALL_PATH && pwd)
+    echo "Downloading zsh binary to $ZSH_INSTALL_PATH"
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)" -- -d $ZSH_INSTALL_PATH -q -e no
+    if [[ $? -gt 0 ]]; then
+        _error "zsh binary install failed...."
+        exit 1
+    else
+        _success "zsh binary installed successfully in $ZSH_INSTALL_PATH/bin/zsh"
+        ZSH_BIN="$ZSH_INSTALL_PATH/bin/zsh"
+        ln -s /usr/local/bin/zsh /usr/bin/zsh
+    fi
+}
+
+# ================================================
+# -- check_zsh
+# ================================================
+function _check_zsh () {
+    # -- Check if zsh is installed
+    echo -n "$(_loading "Checking if zsh is installed.")"
+    if ! [ -x "$(command -v zsh)" ]; then
+        _error "zsh is not installed."
+        _install_zsh
+    else
+        # -- Check if ZSH is at least 5.8
+        if [[ $(zsh --version) == *"5.8"* ]]; then
+            ZSH_BIN=$(which zsh)
+            echo " -- $(_success "zsh is installed in $ZSH_BIN! and at least 5.8")"
+        else
+            _error "zsh is installed but not at least 5.8"
+            echo ""
+            echo "Do you want to install an updated zsh via binary? (y/n)"
+            read ZSH_INSTALL
+
+            if [ "$ZSH_INSTALL" == "y" ] || [ "$ZSH_INSTALL" == "Y" ]; then
+                _running "Removing zsh package"
+                remove_package zsh
+                _running "Installing zsh binary"
+                _install_zsh_binary
+            elif [ "$ZSH_INSTALL" == "n" ] || [ "$ZSH_INSTALL" == "N" ]; then
+                echo "Existing, zsh is not at least 5.8"
+            else
+                _error "Invalid choice, exiting."
+                exit 1
+            fi
+        fi
+    fi 
+}
+
+# ================================================
+# -- _check_git
+# ================================================
+_check_git () {
+    # -- Check it see if git is installed
+    echo -n "$(_loading "Checking if git is installed.") -- "
+    if ! [ -x "$(command -v git)" ]; then
+        _error "git is not installed."
+        _loading "Installing git"
+        install_package git        
+    else
+        _success "git is installed!"
+    fi
+}
+
+# ================================================
+# -- _check_env
+# ================================================
+_check_env () {
+    # -- Check if environment is writable
+    _loading "Checking if environment is writable"
+    if [[ -w $HOME ]]; then        
+        HOME_WRITABLE="1"
+    else        
+        HOME_WRITABLE="0"
+    fi
+
+    # -- Checking if /usr/local/sbin is writable
+    if [[ -w /usr/local/sbin ]]; then        
+        SYSTEM_WRITBALE="1"
+    else        
+        SYSTEM_WRITBALE="0"
+    fi
+
+    # -- Check if we can write to $HOME/tmp    
+    if [[ -w $HOME/tmp ]]; then
+        TMP_WRITEABLE="1"
+    else
+        TMP_WRITEABLE="0"
+    fi
+
+    # -- Check if running as root
+    if [[ $EUID -ne 0 ]]; then
+        _warning "Not running as root, some checks may fail."
+        RUNNING_AS_ROOT="0"
+    else
+        RUNNING_AS_ROOT="1"
+    fi
+
+    # -- Check if sudo is installed
+    echo -n "$(_loading "Checking if sudo is installed.") -- "
+    if ! [ -x "$(command -v sudo)" ]; then
+        SUDO_INSTALLED="0"
+    else
+        SUDO_INSTALLED="1"
+    fi
+
+}
+
+# ================================================
+# -- pre_flight_check
+# ================================================
 function pre_flight_check () {
     local DO_INSTALL=() REQUIRED_INSTALL OPTIONAL_INSTALL
+    zshbop_banner
     # -- Pre-flight Check
-    _loading "- Running pre-flight Check"
+    _running "Running pre-flight Check"
+    
+    # -- Check environment
+    _running2 "Checking environment"
+    _check_env
     
     # -- Skip dependencies
-    if [[ $SKIP_DEP == "0" ]]; then    
+    if [[ $SKIP_DEP == "0" ]]; then
+        # -- Detect OS for Ubuntu and Version
+        if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            OS=$NAME
+            VER=$VERSION_ID    
+        else
+            _error "Can't detect OS"
+            exit 1
+        fi
+
+        # -- Check if zsh is installed
+        _check_zsh
+
+        # -- Check if git is installed
+        _check_git
+
         # -- Check if $REQUIRED_SOFTWARE packages are installed with apt.
-        _loading "- Checking if any required software needs to be installed"        
+        _running2 "Checking if any required software needs to be installed"        
         _debug "\$REQUIRED_SOFTWARE: ${REQUIRED_SOFTWARE[*]}"
         check_package "${REQUIRED_SOFTWARE[@]}"         
 
         # -- Ask if you want to install the required software
         if [[ ${#PACKAGE_INSTALL[@]} -eq 0 ]]; then
-            _loading "- No required software to install"
+            _loading "No required software to install"
         else
             echo "Required Packages: ${PACKAGE_INSTALL[*]}"
             echo ""
@@ -185,10 +408,11 @@ function pre_flight_check () {
                 _error "Invalid choice. Please enter 'y' or 'n'."
             fi
         fi
-        
+
+        # -- Check if $OPTIONAL_SOFTWARE packages are installed with apt.        
         if [[ $SKIP_OPTIONAL == 0 ]]; then
             # -- Check if $OPTIONAL_SOFTWARE packages are installed with apt.
-            _running "Checking if any optional software needs to be installed"        
+            _running2 "Checking if any optional software needs to be installed"        
             _debug "\$OPTIONAL_SOFTWARE: ${OPTIONAL_SOFTWARE[*]}"
             check_package "${OPTIONAL_SOFTWARE[@]}"             
 
@@ -214,11 +438,100 @@ function pre_flight_check () {
 	else
 	    _loading "- Skipping pre-flight check and installing required packages."
 	fi
+    echo ""
 }
 
 # --------------------------------
-# -- check_zsh_default
+# -- install_package - install packages.
 # --------------------------------
+function install_package () {
+    local PRE_CMD="" CMD=""
+    _running "Installing ${*}"
+
+    # sudo or not
+    if [[ $RUNNING_AS_ROOT == "0" ]]; then
+        PRE_CMD="sudo"
+        # Check if sudo available
+        if [[ $SUDO_INSTALLED == "0" ]]; then
+            _error "sudo is not installed, exiting."
+            exit 1
+        fi
+    fi
+
+	# Checking what package manager we have
+    _debug "Checking what package manager we have...."
+    if [ -x "$(command -v apt-get)" ]; then
+        CMD="$PRE_CMD apt-get install --no-install-recommends -y ${*}"
+        _running "Updating apt-get package list...."
+        eval $PRE_CMD apt-get update -y
+        _running "Running - $CMD "
+        eval "$CMD"
+	elif [ -x "$(command -v yum)" ]; then
+        CMD="$PRE_CMD yum install ${*}"
+        _running "Running - $CMD"
+        eval "$CMD"
+    elif [ -x "$(command -v brew)" ]; then
+        CMD="$PRE_CMD brew install ${*}"
+        _running "Running - $INSCMDTALL_CMD"
+        eval "$CMD"
+    else
+        _error "Can't detect package manager :("
+    fi
+    
+    if [ $? -gt 0 ]; then
+        _error "${*} install failed...."
+        exit 1
+    else
+        _success "${*} installed successfully"
+    fi
+}
+
+# ================================================
+# -- remove_package
+# ================================================
+function remove_package () {
+    local PRE_CMD="" CMD=""
+    _running "Removing package ${*}"
+
+    # sudo or not
+    if [[ $RUNNING_AS_ROOT == "0" ]]; then
+        PRE_CMD="sudo"
+        # Check if sudo available 
+        if [[ $SUDO_INSTALLED == "0" ]]; then
+            _error "sudo is not installed, exiting."
+            exit 1
+        fi
+    fi
+    # -- Checking what package manager we have
+    _loading "Checking what package manager we have...."
+
+    if [ -x "$(command -v apt-get)" ]; then
+        CMD="$PRE_CMD apt-get remove --purge -y ${*}"
+        _running "Running - $CMD"
+        eval "$CMD"
+    elif [ -x "$(command -v yum)" ]; then
+        CMD="$PRE_CMD yum remove -y ${*}"
+        _running "Running - $CMD"
+        eval "$CMD"
+    elif [ -x "$(command -v brew)" ]; then
+        CMD="$PRE_CMD brew remove ${*}"
+        _running "Running - $CMD"
+        eval "$CMD"
+    else
+        _error "Can't detect package manager :("
+    fi
+
+    if [ $? -gt 0 ]; then
+        _error "$1 remove failed...."
+        exit 1
+    else
+        _success "$1 removed successfully"
+    fi
+}
+
+# ================================================
+# -- check_zsh_default
+# ================================================
 function check_zsh_default () {
         # Check if zsh is the default shell
         _running "Checking if zsh is the default shell...."
@@ -229,38 +542,69 @@ function check_zsh_default () {
         fi
 }
 
-# --------------------------------
+# ================================================
 # -- install_method - how do you want to install zshbop?
-# --------------------------------
+# ================================================
 function install_method () {
     # -- Print ZSHBOP banner
-    zshbop_banner
-	echo ""
+    _running "Starting zshbop install"
+    echo ""
+
+    echo -n "Install (d)efaults or (c)ustomize? (d/c)?: "
+    read INSTALL
 
     # -- Install method
-    _install "Starting zshbop install"
-    echo "Install (d)efaults or (c)ustomize? (d/c)?"
-	read INSTALL
+    if [[ $SYSTEM_WRITBALE == "0" ]]; then        
+        _error "Can't write to /usr/local/sbin"
+        SYSTEM_PATH_MSG="(s) = System path /usr/local/sbin/zshbop (Not Writable requires sudo)"
+        INSTALL="c"
+    else
+        SYSTEM_PATH_MSG="(s) = System path /usr/local/sbin/zshbop"
+    fi
+
+    # -- Check if we can write to $HOME
+    if [[ $HOME_WRITABLE == "0" ]]; then
+        _error "Can't write to \$HOME, skipping default install and forcing custom install."
+        INSTALL="c"
+    fi
 
     # -- Setup variables for install method choosen
 	if [ $INSTALL == "d" ]; then
         # -- Default install = system wide, main branch
         INSTALL_LOCATION="system"
-		BRANCH="master"
+		BRANCH="main"
 	elif [ $INSTALL == "c" ]; then
         # -- Custom install
-        echo "Do you want to install system wide or home only? (s/h/g)"
+        echo ""
+        _running "Where do you want to install?"
+        echo ""
+
+        echo $SYSTEM_PATH_MSG
+        [[ $HOME_WRITABLE == "1" ]] && echo "(h) = Home path \$HOME/zshbop"
+        [[ $HOME_WRITABLE == "1" ]] && echo "(g) = Git path \$HOME/git/zshbop"
+        echo "(c) = Custom path ex. /opt"
+        echo ""
+        echo -n "Enter Install Type: "
         read INSTALL_LOCATION
         [[ $INSTALL_LOCATION == "s" ]] && INSTALL_LOCATION="system"
         [[ $INSTALL_LOCATION == "h" ]] && INSTALL_LOCATION="home"
         [[ $INSTALL_LOCATION == "g" ]] && INSTALL_LOCATION="git"
-
-        echo "Branch (m)ain, (d)ev, (n)ext-release Branch? (d/m/n)"
+        if [[ $INSTALL_LOCATION == "c" ]]; then
+            INSTALL_LOCATION="custom"
+            echo -n "Enter custom path: "
+            read INSTALL_CUSTOM_PATH
+            # -- Resolve $INSTALL_CUSTOM_PATH to absolute path
+            INSTALL_CUSTOM_PATH=$(cd $INSTALL_CUSTOM_PATH && pwd)
+        fi
+        
+        echo -n "Branch (m)ain, (d)ev, (n)ext-release Branch? (d/m/n): "
         read BRANCH
         [[ $BRANCH == "m" ]] && BRANCH="main"
         [[ $BRANCH == "d" ]] && BRANCH="dev"
         [[ $BRANCH == "n" ]] && BRANCH="next-release"        
 	fi
+
+    echo ""
 }
 
 # --------------------------------
@@ -281,19 +625,19 @@ function clone_repository () {
 
     if [[ $INSTALL_LOCATION == "system" ]]; then        
         # -- Check if running as root
-        _loading "- Checking if running as root..."
+        echo -n "$(_loading "- Checking if running as root...")"
         if [[ $EUID -ne 0 ]]; then
             _warning "Not running as root, cloning repository into $INSTALL_PATH using sudo"
             GIT_CMD="sudo git"
         else
-            _loading "- Running as root, cloning repository into $INSTALL_PATH"
+            _loading "Running as root, cloning repository into $INSTALL_PATH"
         fi        
     fi
 
     # -- Check if directory exists
     if [[ ! -d $INSTALL_PATH ]]; then
         # -- Clone repository using $BRANCH
-        _running "Start Cloning repository into $1..."
+        _running2 "Start Cloning repository into $1..."
         
         if [[ $BRANCH == "main" ]]; then
             $(${GIT_CMD} clone https://github.com/jordantrizz/zshbop.git $INSTALL_PATH)
@@ -329,7 +673,7 @@ function setup_zshbop() {
     # -- Setup ZSH
     local BRANCH=$1
     local INSTALL_LOCATION=$2
-    _running "Begin Install - $BRANCH/$INSTALL_LOCATION"
+    _running "Begin Install - $BRANCH/$INSTALL_LOCATION"    
 
     if [[ $INSTALL_LOCATION == "system" ]]; then
         INSTALL_PATH="/usr/local/sbin"
@@ -337,34 +681,67 @@ function setup_zshbop() {
         INSTALL_PATH="$HOME"
     elif [[ $INSTALL_LOCATION == "git" ]]; then
         INSTALL_PATH="$HOME/git"
+    elif [[ $INSTALL_LOCATION == "custom" ]]; then
+        INSTALL_PATH="$INSTALL_CUSTOM_PATH"
     else
         _error "Invalid install location"
         exit 1
     fi
 
+    # -- Confirm that we can write to $INSTALL_PATH    
+    if [[ -w $INSTALL_PATH ]]; then
+        _success "We can write to $INSTALL_PATH"
+    else
+        _error "We can't write to $INSTALL_PATH"
+        exit 1
+    fi
+
     # -- Clone Repository
-    _loading "- Cloning repository $BRANCH into $INSTALL_PATH..."
+    _running2 "Clone zshbop to $INSTALL_PATH/zshbop"
+    _loading "Cloning repository $BRANCH into $INSTALL_PATH/zshbop..."
     clone_repository "$BRANCH" "$INSTALL_LOCATION" "$INSTALL_PATH/zshbop"
 
     # -- Setup .zshrc
-     _loading "- Setting up system based .zshrc..."
-    if ! [ -f $HOME/.zshrc ]; then
-        echo "source $INSTALL_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
-        _success "- ZSH in-place at $INSTALL_PATH, type zsh to start your shell\n"
-    else
-        _error "- There's already a .zshrc in-place, exiting.\n"
-        echo "You can add the following to your .zshrc file:"
-        echo ""
-        echo "source $INSTALL_PATH/zshbop/zshbop.zsh"
-        echo " or"
-        echo " echo \"source $INSTALL_PATH/zshbop/zshbop.zsh\" >> ~/.zshrc"
-        echo ""
-        echo "Then type zsh to start your shell"
-        echo ""
-        exit 1
-    fi
+     _running2 "Setting up system based .zshrc..."
     
+    # -- Check if we can write to $HOME
+    if [[ -w $HOME ]]; then
+        _success "- We can write to $HOME"
+        # -- Check if .zshrc has zshbop.zsh in it
+        if ! [ -f $HOME/.zshrc ]; then
+            echo "source $INSTALL_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
+            DOTZSH="0"
+        else
+            DOTZSH="1"
+        fi
+    else
+        DOTZSH="2"        
+    fi
+
+    echo ""
+    _divider
     _success "Installation complete."
+    echo "  zshbop is installed in $INSTALL_PATH/zshbop"
+    _divider
+    echo ""
+    if [[ $DOTZSH == "0" ]]; then
+        _success "ZSH added to .zshrc type zsh to start your shell"
+    else
+        if [[ $DOTZSH == "1" ]]; then
+            _error "- There's already a .zshrc in-place."        
+        elif [[ $DOTZSH == "2" ]]; then
+            _error "- We can't write to $HOME/.zshrc, you will need to invoke zshbop some other way"
+        fi
+        echo ""
+        echo -e "  You can add the following to your .zshrc file:\n"            
+        echo -e "\tsource $INSTALL_PATH/zshbop/zshbop.zsh\n"
+        echo -e "  or type the following:\n"
+        echo -e "\techo \"source $INSTALL_PATH/zshbop/zshbop.zsh\" >> ~/.zshrc"        
+    fi
+    echo ""    
+    
+    _divider
+
 }
 
 # -------------------------------------------------------------------------------------------------
@@ -413,20 +790,12 @@ if [[ $HELP == "1" ]];then
     exit
 # -- clean
 elif [[ $CMD == "clean" ]]; then
-	_running "Removing zshbop from system"
-	echo "Continue (y/n)?"
-	read CLEAN
-	if [ $CLEAN == "y" ]; then
-		_running "Cleaning up!"
-		rm ~/.zshrc
-		rm -rf /usr/local/sbin/zshbop
-		rm -rf ~/zshbop
-		exit
-	else
-		_loading "Aboring....Goodbye!"
-		exit
-	fi
+	_running "Running zshbop clean"
+    _clean_zshbop
 # -- default
+elif [[ $CMD == "search" ]]; then
+    _running "Running zshbop search"
+    _search_zshbop    
 elif [[ $CMD == "default" ]]; then
 	pre_flight_check	
     BRANCH=main

@@ -18,7 +18,7 @@ install-pkg () {
         INSTALL_CMD=(${=pkg[$1]})
         _debug "First command: $INSTALL_CMD[1]"
         _debug "Checking if $INSTALL_CMD[1] exist?"		
-        _cexists $INSTALL_CMD[1]
+        _cmd_exists $INSTALL_CMD[1]
 
         # If using go.
         if [[ $INSTALL_CMD[1] == "go" ]]; then

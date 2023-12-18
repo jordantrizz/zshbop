@@ -24,6 +24,7 @@ DELETE FROM `wp_bspr_actionscheduler_actions` WHERE `status` = 'complete';
 # wp-cli Commands
 ## Update Administrator Email
 * ```wp option update admin_email user@example.com```
+* ```update_option('admin_email', "info@domain.com");```
 
 ## Another Update is Currently in Progress
 ```wp option delete core_updater.lock```

@@ -1,3 +1,73 @@
+- [Popular Links](#popular-links)
+- [GridPane CLI Commands](#gridpane-cli-commands)
+  - [Set Default Site](#set-default-site)
+  - [Default Site Redirect](#default-site-redirect)
+  - [Suspend a Site](#suspend-a-site)
+  - [Setup System Cron for WordPress](#setup-system-cron-for-wordpress)
+  - [Check and Download Latest GridPane Scripts](#check-and-download-latest-gridpane-scripts)
+  - [PHPMyAdmin SSL](#phpmyadmin-ssl)
+  - [Unlock SSL Renewal Failures](#unlock-ssl-renewal-failures)
+  - [Configure Nginx](#configure-nginx)
+    - [Nginx Rate Limiting](#nginx-rate-limiting)
+      - [Update wp-login.php Rate Limiting](#update-wp-loginphp-rate-limiting)
+        - [Directive: limit\_req\_zone](#directive-limit_req_zone)
+        - [Directive: limit\_req](#directive-limit_req)
+- [SSL](#ssl)
+  - [SSL Logs](#ssl-logs)
+- [Monit](#monit)
+  - [Run Monit Check for SSL Renewals](#run-monit-check-for-ssl-renewals)
+  - [Run Monit Check for MySQL](#run-monit-check-for-mysql)
+  - [Change monit Alert and Restart for MySQL](#change-monit-alert-and-restart-for-mysql)
+  - [Change monit Alert and Restart for Redis](#change-monit-alert-and-restart-for-redis)
+- [MySQL](#mysql)
+  - [MySQL Service Control](#mysql-service-control)
+  - [MySQL Logins](#mysql-logins)
+  - [MySQL Configuration](#mysql-configuration)
+  - [MySQL Slow Query Log](#mysql-slow-query-log)
+- [GridPane Fix Commands](#gridpane-fix-commands)
+- [Caching](#caching)
+  - [Redis Page Cache](#redis-page-cache)
+    - [Enable Redis Page Cache](#enable-redis-page-cache)
+    - [Redis Cache Expiry](#redis-cache-expiry)
+  - [FastCGI Cache](#fastcgi-cache)
+    - [Enable FastCGI Cache](#enable-fastcgi-cache)
+  - [Disable Cache](#disable-cache)
+- [Object Cache](#object-cache)
+  - [Change Redis maxmemory](#change-redis-maxmemory)
+- [PHP](#php)
+  - [Change PHP Settings](#change-php-settings)
+  - [Update PHP memory per PHP version.](#update-php-memory-per-php-version)
+  - [Update PHP memory per site.](#update-php-memory-per-site)
+  - [Enable php-fpm slow log](#enable-php-fpm-slow-log)
+  - [PHP FPM pm.max-requests](#php-fpm-pmmax-requests)
+- [Cache](#cache)
+  - [Commands](#commands)
+- [Backups](#backups)
+  - [Local Backup Commands](#local-backup-commands)
+  - [List local backup snapshots for sites.](#list-local-backup-snapshots-for-sites)
+  - [Remote Backups](#remote-backups)
+  - [Backup Configuration](#backup-configuration)
+  - [Backup Storage](#backup-storage)
+  - [Backup Logs](#backup-logs)
+- [Security](#security)
+  - [Additional Measures](#additional-measures)
+  - [fail2ban](#fail2ban)
+- [Maldet](#maldet)
+  - [Installing](#installing)
+  - [Log files](#log-files)
+- [7G Firewall](#7g-firewall)
+  - [Logs](#logs)
+- [Post to Slack](#post-to-slack)
+- [Nginx](#nginx)
+  - [Regenerate Nginx Config](#regenerate-nginx-config)
+- [Enable Debug Mode](#enable-debug-mode)
+- [Create Vanilla Nginx Config](#create-vanilla-nginx-config)
+- [Notes](#notes)
+  - [Check Caching](#check-caching)
+    - [Redis](#redis)
+    - [Nginx](#nginx-1)
+
+
 # Popular Links
 * [Gridpane Cheatsheet CLI](https://managingwp.io/2021/05/13/gridpane-cli-cheatsheet/)
 
@@ -12,18 +82,16 @@
 * gp site {site.url} -suspend
 * Utilizes /var/www/holding.html so update this file if needed.
 
-# Advanced
 ## Setup System Cron for WordPress
 * gp site {site.url} -gpcron-on {minute.interval}
 
 ## Check and Download Latest GridPane Scripts
 * /usr/local/bin/gpupdate
 
-# SSL
 ## PHPMyAdmin SSL
 * gp site phpma -ssl-renewal
 
-## Unlock Renewal Failures
+## Unlock SSL Renewal Failures
 Below is an example using gridpane.com
 ```
 cd cd /var/www/gridpane.com/logs
@@ -31,6 +99,37 @@ rm examplewebsite.com-ssl_fail-1.date
 rm examplewebsite.com-ssl_fail-2.date
 examplewebsite.com-ssl_fail-3.date
 ```
+
+## Configure Nginx
+https://gridpane.com/kb/configure-nginx/
+
+### Nginx Rate Limiting
+#### Update wp-login.php Rate Limiting
+##### Directive: limit_req_zone
+* Config location: /etc/nginx/common/limits.conf
+* Context: http
+*  Unit: MB (key store size) and Rate (requests/s)
+* Default value: 10 3
+* Accepted values: integers
+* Zone One: Defaults to a 10 megabyte key limit with an average request processing rate for that cannot exceed 3 request per second. This zone is used to protect the WordPress login URL primarily.
+```
+gp stack nginx limits -req-zone-one {store.size.mb} {req.per.sec}
+```
+
+##### Directive: limit_req
+* Config location: /etc/nginx/common/{site.url}-wpcommon.conf
+* Context: server
+* Accepted values: integer, fqdn
+* Zone One: Defaults to a 1 request burst queue when the rate limit of 1 request per second has been exceeded. This zone protects the wp-login url. We do not recommend adjusting this zone burst. Consider it your login guard.
+```
+gp stack nginx limits -site-zone-one-burst {queue.size} {site.url}
+```
+
+# SSL
+## SSL Logs
+*  /opt/gridpane/certbot.monitoring.log
+*  /opt/gridpane/acme.monitoring.log
+
 
 # Monit
 Change all monit settings via gpmonit https://gridpane.com/kb/configure-monit-with-gp-cli/
@@ -167,15 +266,13 @@ gp stack redis -max-memory 300
 * /opt/gridpane/restore.log
 
 # Security
+## Additional Measures
+* Disable xmlrpc ```gp site <site> -disable-xmlrpc```
 ## fail2ban
-Setup fail2ban on server.
-* gp stack -enable-fail2ban-jail wp-login 5 1200
-Setup a site with fail2ban
-* gp site {site.url} -enable-wp-fail2ban
-Block User enumeration
-* gp site {site.url} -configure-wp-fail2ban -block-user-enumeration
-Enable server wide
-*
+* Setup fail2ban on server. ```gp stack -enable-fail2ban-jail wp-login 5 1200```
+* Setup a site with fail2ban ```gp site {site.url} -enable-wp-fail2ban```
+* Block User enumeration ```gp site {site.url} -configure-wp-fail2ban -block-user-enumeration```
+
 
 # Maldet
 ## Installing

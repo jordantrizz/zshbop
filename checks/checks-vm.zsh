@@ -19,39 +19,74 @@ function vm-checks () {
 # -- check if in virtual environment
 # ==============================================
 help_checks[vm-check-detect]='Am I in a VM?'
-function vm-check () {
-    _debug "Checking if in virtual environment"
+function vm-check-detect () {
+    # Initialize VM variable
+    local OUTPUT VIRT_WHAT="0" DETECT_METHOD="none" CHECK_CMD
+    OUTPUT+="Checking if in virtual environment"
 
-    [[ $MACHINE_OS == "mac" ]] && { _success "VM: Running on Mac...no need to check"; return 0 }
+    [[ $MACHINE_OS == "mac" ]] && { _log "Running on Mac...no need to check"; return 0 }
+    [[ $MACHINE_OS2 == "wsl" ]] && { _log "Running on WSL...no need to check"; return 0 }
 
     # -- check if virt-what exists
-    _cexists virt-what
+    _cmd_exists virt-what
     if [[ $? == "0" ]]; then
-        _debug "virt-what installed"
+        OUTPUT+="virt-what installed - "
         # -- Check if running as root
-        _checkroot
-        if [[ $? == "1" ]] { return 0; }
-        VM=$(virt-what)
-        if [[ -n $VM ]]; then
-            _debug "virt-what returned $VM"
-            if [[ $VM == "kvm" ]]; then
-                if [[ $(pgrep qemu) ]] || [[ $(pgrep qemu-system) ]]; then
-                    echo "$(_loading3 VM-virt-what:) Running on KVM, and qemu guest tools is running"
-                else
-                    _warning "VM-virt-what: Running on KVM, but qemu is not running, install qemu-guest-agent"
-                fi
-            else
-                _alert "VM-virt-what: Running on $VM" 0
-            fi
+        _checkroot >> /dev/null
+        if [[ $? == "1" ]]; then
+            OUTPUT+="not root can't run virt-what - "                        
         else
-            _loading3 "Not running in a VM"
-            _debug "virt-what returned $VM"
+            DETECT_METHOD="virt-what"
+        fi
+    fi
+
+    # -- Check if systemd-detect-virt exists
+    _cmd_exists systemd-detect-virt
+    if [[ $? == "0" ]]; then
+        OUTPUT+="systemd-detect-virt installed - "
+        DETECT_METHOD="systemd"
+    fi
+
+    # -- Run detect methods
+    if [[ $DETECT_METHOD == "virt-what" ]]; then
+        VMTYPE=$(virt-what)
+        if [[ -n $VMTYPE ]]; then
+            OUTPUT+="virt-what returned $VMTYPE - "
+        else
+            OUTPUT+="Not running in a VM, virtwhat returned $VMTYPE -"            
+        fi
+    elif [[ $DETECT_METHOD == "systemd" ]]; then
+        VMTYPE=$(systemd-detect-virt)
+        if [[ -n $VMTYPE ]]; then
+            OUTPUT+="systemd-detect-virt returned $VMTYPE - "
+        else
+            OUTPUT+="Not running in a VM, systemd-detect-virt returned $VMTYPE -"            
         fi
     else
-        _warning "Unable to determine if in virtual environment, please install virt-what"
-        
+        OUTPUT+="Using fallback checks - "
+        # Fallback checks
+        if [[ -e /proc/user_beancounters ]] || grep -q -i -E "(vmware|kvm|xen)" /proc/cpuinfo; then
+            CHECK_CMD=$(grep -o -i -E "(vmware|kvm|xen)" /proc/cpuinfo | head -1 | awk '{print $1}')
+            OUTPUT+="Probably in a virtual environment (fallback check) since /proc/user_beancounters and /proc/cpuinfo = $CHECK_CMD"
+            VMTYPE="$CMD"
+        else
+            OUTPUT+="Not in a virtual environment (fallback check)."
+        fi
+    fi    
+
+    # -- If running KVM
+     if [[ $VMTYPE == "kvm" ]]; then
+        if [[ $(pgrep qemu) ]] || [[ $(pgrep qemu-system) ]]; then
+            OUTPUT+="KVM qemu guest tools is running - "
+        else
+            OUTPUT+="KVM qemu not running install qemu-guest-agent - "
+        fi
     fi
+    export $VMTYPE
+    _loading3 "$OUTPUT"
+    
 }
+
 
 # ==============================================
 # -- check if in virtual environment secondary method
