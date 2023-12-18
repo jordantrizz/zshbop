@@ -1,6 +1,6 @@
 # -- file
 _debug " -- Loading ${(%):-%N}"
-help_files[file]="Commands working with files in Linux" # Help file description
+help_files[files]="Commands working with files in Linux" # Help file description
 typeset -gA help_file # Init help array.
 
 # -- Compare two directories
