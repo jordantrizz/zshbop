@@ -48,3 +48,17 @@ gzip-files() {
         gzip "$file"
     done
 }
+
+# -- findw
+help_files[findw]="Find a file with wildcard keywords"
+findw () {
+    local query=""
+    for word in "$@"; do
+        query+="*$word"
+    done
+
+    # Execute the find command
+    _loading "Finding - find . $query"
+    echo ""
+    find . -iname "$query*" | tee /dev/tty | wc -l | xargs echo -e "\nFound files:"
+}
