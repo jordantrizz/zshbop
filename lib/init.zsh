@@ -282,7 +282,7 @@ fi
 function init_os () {
 	_debug_all
 	# -- Loading os defaults
-	_debug "Loading OS configuration"
+	_loading "Loading OS configuration for $MACHINE_OS"
 
 	# -- Include common OS configuration
 	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
@@ -292,18 +292,20 @@ function init_os () {
 	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
-        	_loading3 "Loaded OS Configuration cmds/os-mac.zsh"
-	        source $ZSHBOP_ROOT/cmds/os-mac.zsh
-	# -- Linux
-	elif [[ $MACHINE_OS = "linux" ]] then
-		_loading3 "Loading cmds/os-linux.zsh"
-    	source $ZSHBOP_ROOT/cmds/os-linux.zsh
-	# -- WSL Linux
-	elif [[ $MACHINE_OS = "wsl" ]]; then				
-	    _loading3 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
+        _loading3 "Loaded OS Configuration cmds/os-mac.zsh"
+        source $ZSHBOP_ROOT/cmds/os-mac.zsh   
+    # -- WSL Linux
+    elif [[ $MACHINE_OS2 = "wsl" ]]; then				
+        _loading3 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
-	    source $ZSHBOP_ROOT/cmds/os-wsl.zsh
+        source $ZSHBOP_ROOT/cmds/os-wsl.zsh	
+	# -- Linux
+    elif [[ $MACHINE_OS = "linux" ]] then
+		_loading3 "Loading cmds/os-linux.zsh"
+        source $ZSHBOP_ROOT/cmds/os-linux.zsh
 	fi
+
+    echo ""
 }
 
 # ==============================================
