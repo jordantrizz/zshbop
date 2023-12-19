@@ -1,4 +1,5 @@
 # Installing Nodejs on Ubuntu
+* https://github.com/nodesource/distributions?tab=readme-ov-file#debian-and-ubuntu-based-distributions
 ```
 curl -sL https://deb.nodesource.com/setup_14.x | bash
 sudo apt-get install python-software-properties
