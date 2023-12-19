@@ -520,6 +520,35 @@ function init_checks () {
     vm-check     
 }
 
+# ==============================================
+# -- init_kb
+# ==============================================
+function init_kb () {
+    local KB_COUNT KB_TOTAL_OUT
+    typeset -A kb_totals    
+    _loading "Loading Knowledge Base"
+    source "${ZSHBOP_ROOT}/lib/kb.zsh"
+    kb_init_topics
+    kb_init_aliases
+    
+    # -- Count how many kb articles there are from array kb_topics
+    KB_COUNT=$(echo $kb_topics | wc -w)    
+    KB_TOTAL_OUT+="Found $KB_COUNT KB articles | "
+    
+    # -- Count unique tags and print    
+    for TAG in $kb_topics_tag; do
+        # -- Count unique flags into vars
+        kb_totals[$TAG]=$(($kb_totals[$TAG]+1))        
+    done
+
+    # -- Print out totals
+    for TAG in ${(k)kb_totals}; do
+        KB_TOTAL_OUT+="$TAG - $kb_totals[$TAG] | "
+    done
+    # strip all new lines
+    _loading3 $KB_TOTAL_OUT
+}
+
 ###########################################################
 ###########################################################
 # ---- Leave this at the bottom. Do not move above. ------
@@ -623,6 +652,7 @@ function init_zshbop () {
     init_app_config      # -- Init config
     init_zsh_sweep       # -- Init zsh-sweep if installed    
     init_sshkeys         # -- Init ssh keys
+    init_kb              # -- Init Knowledge Base
     # -- Check if init_custom_startup is defined as a function and then execute it
     
     _debug "Checking if init_custom_startup is defined as a function"
