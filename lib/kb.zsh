@@ -57,21 +57,26 @@ function kb_init_topics () {
             kb_topics_tag[$KB_TOPIC]=$KB_DIR_ID
         done
     done
-        
-    #ZBR_KBS=$(\ls -1 $ZSHBOP_ROOT/kb)
-    #ZBR_KBS_NAMEecho $ZBR_KBS | sed s/.md//g; }        
-    #if [[ -d $ZBC/kb ]] && { ZBC_KBS=$(\ls -1 $ZBC/kb);  echo $ZBC_KBS | sed s/.md//g; }
 }
 
+# -- kb -c
 function kb_print_topics () {
-    local KB_TOPIC KB_OUTPUT
+    local KB_TOPIC KB_OUTPUT OUTPUT_STYLE
+    OUTPUT_STYLE=${1:-c}
     # -- Print out all the KB topics and sort
-    _banner_yellow "KB Topics"    
-    for KB_TOPIC in ${(kon)kb_topics}; do
-        KB_TOPIC_DESC=${kb_topics_desc[$KB_TOPIC]}
-        KB_OUTPUT+="$KB_TOPIC\t${kb_topics[$KB_TOPIC]}\t${kb_topics_desc[$KB_TOPIC]}\t${kb_topics_tag[$KB_TOPIC]}\n"
-    done
-    echo $KB_OUTPUT | column -t -s $'\t'
+    
+    if [[ $OUTPUT_STYLE == "c" ]]; then
+        _banner_yellow "KB Topics"
+        KB_OUTPUT="Topic\tDescription\n"
+        KB_OUTPUT+="-----\t-----------\n"
+        for KB_TOPIC in ${(kon)kb_topics}; do
+            KB_TOPIC_DESC=${kb_topics_desc[$KB_TOPIC]}
+            KB_OUTPUT+="$KB_TOPIC\t${kb_topics_desc[$KB_TOPIC]}\n"
+        done
+        KB_OUTPUT2="$(_banner_yellow "KB Topics")\n\n"
+        KB_OUTPUT2+=$(echo $KB_OUTPUT | column -t -s $'\t')
+        echo "$KB_OUTPUT2" | less
+    fi        
 }
 
 kb_usage () {
