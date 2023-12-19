@@ -8,6 +8,72 @@ _debug_load
 alias kbc="kb -c"
 alias kbd="cd ${KB}"
 
+# -- Init kb-aliases.zsh
+function kb_init_aliases () {
+
+    if [[ -f $ZSHBOP_ROOT/kb/kb-aliases.zsh ]]; then
+        source $ZSHBOP_ROOT/kb/kb-aliases.zsh
+    fi
+}
+
+# ==================================================
+# -- Init kb-topics.zsh
+# -- This function will create a multi dimensional array to store all the KB topics
+# -- 
+# ==================================================
+function kb_init_topics () {
+    local KB_FILE KB_TOPIC KB_TOPIC_FILE KB_TOPIC_DESC KB_DIRS KB_TAG
+
+    # -- Create multi dimensional array
+    typeset -gA kb_topics
+    typeset -gA kb_topics_desc
+    typeset -gA kb_topics_tag
+    typeset -gA kb_topics_dirs
+
+    # -- Check if kb directory exists
+    if [[ -d $ZSHBOP_ROOT/kb ]]; then
+        kb_topics_dirs[zb]="$ZSHBOP_ROOT/kb"                
+        _debug "Found KB directory $ZSHBOP_ROOT/kb"        
+    fi
+
+    if [[ -d $ZBC/kb ]]; then
+        kb_topics_dirs[zbc]="$ZBC/kb"            
+        _debug "Found KB directory $ZBC/kb"
+    fi
+
+    # -- Process kb directory array
+    for KB_DIR_ID in ${(k)kb_topics_dirs}; do
+        KB_DIR=${kb_topics_dirs[$KB_DIR_ID]}        
+        _debug "Processing KB directory $KB_DIR"
+        # -- Go through all files and create an array
+        for KB_FILE in $KB_DIR/*.md; do
+            # -- Get the file name and add to array
+            KB_TOPIC=$(basename $KB_FILE| sed s/.md//g)
+            kb_topics[$KB_TOPIC]=$KB_FILE
+            # -- Get Topic Description and add to array
+            KB_TOPIC_DESC=$(grep -E '^#\$\$#' $KB_FILE | sed 's/#$$# //g')            
+            kb_topics_desc[$KB_TOPIC]=$KB_TOPIC_DESC
+            # -- KB Flag                        
+            kb_topics_tag[$KB_TOPIC]=$KB_DIR_ID
+        done
+    done
+        
+    #ZBR_KBS=$(\ls -1 $ZSHBOP_ROOT/kb)
+    #ZBR_KBS_NAMEecho $ZBR_KBS | sed s/.md//g; }        
+    #if [[ -d $ZBC/kb ]] && { ZBC_KBS=$(\ls -1 $ZBC/kb);  echo $ZBC_KBS | sed s/.md//g; }
+}
+
+function kb_print_topics () {
+    local KB_TOPIC KB_OUTPUT
+    # -- Print out all the KB topics and sort
+    _banner_yellow "KB Topics"    
+    for KB_TOPIC in ${(kon)kb_topics}; do
+        KB_TOPIC_DESC=${kb_topics_desc[$KB_TOPIC]}
+        KB_OUTPUT+="$KB_TOPIC\t${kb_topics[$KB_TOPIC]}\t${kb_topics_desc[$KB_TOPIC]}\t${kb_topics_tag[$KB_TOPIC]}\n"
+    done
+    echo $KB_OUTPUT | column -t -s $'\t'
+}
+
 kb_usage () {
     _banner_yellow "Current KB Articles"
     \ls $ZSH_ROOT/kb
