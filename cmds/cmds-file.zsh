@@ -49,18 +49,33 @@ gzip-files() {
     done
 }
 
-# -- findw
-help_file[findw]="Find a file with wildcard keywords"
-findw () {
-    local query=""
+# -- findk
+help_file[findk]="Find a file with wildcard keywords, hardlinked and inode"
+findk () {
+    local QUERY="" FOUND_FILES="" FOUND_FILES_COUNT=0 FOUND_FILES_TITLE="" FOUND_FILES_OUTPUT=""
+    # Get current directory
+    local CURRENT_DIR=$(pwd)
+
+    # Check if we have any arguments
     for word in "$@"; do
-        query+="*$word"
+        QUERY+="*$word"
     done
 
     # Execute the find command
-    _loading "Finding - find . $query"
+    _loading "Finding - find $CURRENT_DIR -iname $QUERY*"
+    
     echo ""
-    find . -iname "$query*" | tee /dev/tty | wc -l | xargs echo -e "\nFound files:"
+    
+    FOUND_FILES+=$(find . -iname "$QUERY*" -printf "%i %n %s %y %p\n" | awk '{if ($4 == "f") { printf "%s\t%s\t%.2fMB \t%s\t", $1, $2, $3/1024/1024, $4; for (i=5; i<=NF; i++) printf "%s ", $i; print ""} else { printf "%s\t%s\t - \t%s\t", $1, $2, $4; for (i=5; i<=NF; i++) printf "%s ", $i; print ""}}')
+    FOUND_FILES_COUNT=$(echo "$FOUND_FILES" | wc -l)
+    FOUND_FILES_TITLE="Inode\tLinks\tSize\tType\tPath\n"
+    FOUND_FILES_TITLE+="=====\t=====\t====\t====\t===========\n"
+    
+    FOUND_FILES_OUTPUT=$FOUND_FILES_TITLE"\n"$FOUND_FILES
+    echo "$FOUND_FILES_OUTPUT" | column -t -s $'\t'
+    echo ""
+    echo "Found files: $FOUND_FILES_COUNT"
+
 }
 
 # -- find-empty-dirs
