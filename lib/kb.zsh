@@ -19,7 +19,6 @@ function kb_init_aliases () {
 # ==================================================
 # -- Init kb-topics.zsh
 # -- This function will create a multi dimensional array to store all the KB topics
-# -- 
 # ==================================================
 function kb_init_topics () {
     local KB_FILE KB_TOPIC KB_TOPIC_FILE KB_TOPIC_DESC KB_DIRS KB_TAG
@@ -59,7 +58,10 @@ function kb_init_topics () {
     done
 }
 
-# -- kb -c
+# ==================================================
+# -- kb_print_topics
+# -- This function will print out all the KB topics in a nice format
+# ==================================================
 function kb_print_topics () {
     local KB_TOPIC KB_OUTPUT OUTPUT_STYLE
     OUTPUT_STYLE=${1:-c}
@@ -76,10 +78,21 @@ function kb_print_topics () {
         KB_OUTPUT2="$(_banner_yellow "KB Topics")\n\n"
         KB_OUTPUT2+=$(echo $KB_OUTPUT | column -t -s $'\t')
         echo "$KB_OUTPUT2" | less
-    fi        
+    elif [[ $OUTPUT_STYLE == "_auto" ]]; then
+        _debug "Running autocomplete"
+        AUTO_KB=()
+        for KB_TOPIC in ${(kon)kb_topics}; do
+            AUTO_KB+=($KB_TOPIC)
+        done
+        echo "$AUTO_KB"
+    fi    
 }
 
-kb_usage () {
+# ==================================================
+# -- kb_usage
+# -- This function will print out the usage of the kb command
+# ==================================================
+function kb_usage () {
     _banner_yellow "Current KB Articles"
     \ls $ZSH_ROOT/kb
 
@@ -89,6 +102,10 @@ kb_usage () {
     fi   
 }
 
+# ==================================================
+# -- kb_set_md_reader
+# -- This function will set the MD_READER variable to the best available md reader
+# ==================================================
 kb_set_md_reader () {
     if [[ $MD_READER ]]; then
         _debug "MD_READER already set to $MD_READER"
@@ -107,7 +124,29 @@ kb_set_md_reader () {
     fi
 }
 
+# ==================================================
+# -- md-reader
+# -- This function will read a markdown file and display it in the best available md reader
+# ==================================================
+md-reader () {
+    MD_FILE="$1"
+    if [[ $MD_READER == "cat" ]]; then
+		cat $MD_FILE
+	elif [[ $MD_READER == "glow" ]]; then
+		eval $MD_READER -p $MD_FILE
+	elif [[ $MD_READER == "mdv" ]]; then
+		eval $MD_READER $MD_FILE | less
+	else
+		less $MD_FILE
+	fi    
+}
+
+# ====================================================================================================
 # -- kb - A built in knowledge base.
+# --
+# -- Usage:
+# -- kb <article>
+# ====================================================================================================
 kb () {    
     # -- args
     zparseopts -D -E c=CAT
@@ -124,11 +163,9 @@ kb () {
     kb_set_md_reader
 
     # -- Auto complete KB articles.
-    if [[ $KB == "auto" ]]; then
+    if [[ $KB == "_auto" ]]; then
         _debug "Running autocomplete"
-        AUTO_KB=()
-        if [[ -d $ZSHBOP_ROOT/kb ]] && { ZBR_KBS=$(\ls -1 $ZSHBOP_ROOT/kb); echo $ZBR_KBS | sed s/.md//g; }        
-        if [[ -d $ZBC/kb ]] && { ZBC_KBS=$(\ls -1 $ZBC/kb);  echo $ZBC_KBS | sed s/.md//g; }
+        kb_print_topics _auto
     # -- List KB articles.
     elif [[ $KB == "list" ]]; then
         kb_usage
@@ -136,7 +173,11 @@ kb () {
     # -- Check if kb file exists
     elif [[ -z $KB ]]; then
         kb_usage
-            return 1
+        return 1
+    elif [[ kb_topics[$KB] ]]; then
+        _banner_yellow "Found KB file $kb_topics[$KB], showing via $MD_READER"
+        _debug "Running $MD_READER $kb_topics[$KB]"
+        md-reader $kb_topics[$KB]
     elif [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
         _banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
         KB_COMBINED="\n"
@@ -163,18 +204,7 @@ kb () {
     fi
 }
 
-md-reader () {
-    MD_FILE="$1"
-    if [[ $MD_READER == "cat" ]]; then
-		cat $MD_FILE
-	elif [[ $MD_READER == "glow" ]]; then
-		eval $MD_READER -p $MD_FILE
-	elif [[ $MD_READER == "mdv" ]]; then
-		eval $MD_READER $MD_FILE | less
-	else
-		less $MD_FILE
-	fi    
-}
+
 
 md-reader-text () {
     MD_TEXT="$1"
@@ -197,6 +227,6 @@ md-reader-text () {
 
 # -- auto completion - needs to be at the end of this file.
 function _kb  {    
-    compadd $(kb auto)
+    compadd $(kb _auto)
 }
 compdef _kb kb
