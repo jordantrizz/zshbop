@@ -239,8 +239,6 @@ check_diskspace2 () {
 
 }
 
-
-
 # -- speed-convert
 help_linux[speed-convert]="Convert data speeds"
 speed-convert () {
@@ -369,4 +367,22 @@ add-path () {
 help_linux[paths]='print out \$PATH on new lines'
 paths () {
 	echo ${PATH:gs/:/\\n}
+}
+
+# -- catvet
+help_linux[catvet]='Print out special formatting characters in a file or via pipe'
+catvet () {
+	echo "To print out the special formatting characters..."
+	echo "echo 'testing\n' | cat -vet"
+}
+
+# -- view-std
+help_linux[view-std]='View standard output and error'
+view-std () {
+	if [[ -z $1 ]]; then
+		echo "Usage: view-std <command>"
+		return 1
+	else
+		eval "{ { $1; } 2>&3 | sed 's/^/STDOUT: /'; } 3>&1 1>&2 | sed 's/^/STDERR: /'"
+	fi
 }
