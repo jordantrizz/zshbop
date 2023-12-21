@@ -45,15 +45,15 @@ function interfaces_mac () {
 
     # Loop through each interface
     for interface in $interfaces; do
-        # Get IP address
+        # Get IP address and pipe stderr to /dev/null to suppress any errors
         interface=${interface//:/}
-        ip=$(ifconfig $interface | grep 'inet ' | awk '{print $2}')
+        ip=$(ifconfig $interface 2> /dev/null | grep 'inet ' | awk '{print $2}') 
 
         # Get MAC address
-        mac=$(ifconfig $interface | awk '/ether/{print $2}')
+        mac=$(ifconfig $interface 2> /dev/null | awk '/ether/{print $2}')
 
         # Get link speed
-        speed=$(ifconfig $interface | awk '/media: /{print $2}')
+        speed=$(ifconfig $interface 2> /dev/null | awk '/media: /{print $2}')
         networksetup -getairportnetwork "$interface" >>/dev/null
         if [[ $? == "0" ]]; then
             # Wi-Fi interface
@@ -62,7 +62,7 @@ function interfaces_mac () {
         else
             # Hardwired interface
             INT_TYPE="ethernet"
-            connection_speed=$(ifconfig "$interface" | awk '/media: / {print $2}')
+            connection_speed=$(ifconfig "$interface" 2> /dev/null | awk '/media: / {print $2}' )
         fi
 
 
