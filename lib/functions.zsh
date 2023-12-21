@@ -491,18 +491,15 @@ function zshbop_check-system () {
     # -- network interfaces
     _debug "Network interfaces"
     INTERFACES="$(interfaces)"
-    _loading2 "Checking network interfaces"
-    echo "   $INTERFACES"
+    _loading3 "Network: $INTERFACES"
 
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"
-    _loading2 "Checking disk space"
-    check_diskspace
+    _loading3 "$(check_diskspace)"
 
 	# -- check block devices
     _debug "Checking block devices"
-    _loading2 "Checking block devices"
-    check_blockdevices
+    _loading3 "Block Devices: $(check_blockdevices)"
 }
 
 # =========================================================

@@ -532,7 +532,9 @@ function init_kb () {
     kb_init_aliases
     
     # -- Count how many kb articles there are from array kb_topics
-    KB_COUNT=$(echo $kb_topics | wc -w)    
+    KB_COUNT="$(echo $kb_topics | wc -w)"
+    KB_COUNT=${KB_COUNT##*( )}
+    KB_COUNT=${KB_COUNT%%*( )}
     KB_TOTAL_OUT+="Found $KB_COUNT KB articles | "
     
     # -- Count unique tags and print    
@@ -546,7 +548,7 @@ function init_kb () {
         KB_TOTAL_OUT+="$TAG - $kb_totals[$TAG] | "
     done
     # strip all new lines
-    _loading3 $KB_TOTAL_OUT
+    _loading3 "$KB_TOTAL_OUT"
 }
 
 ###########################################################
