@@ -132,6 +132,7 @@ function install_package () {
     _loading "Checking what package manager we have...."
     if [ -x "$(command -v apt-get)" ]; then
         echo " - We have apt!"
+        sudo apt-get update
         sudo apt install --no-install-recommends "${*}"
 	elif [ -x "$(command -v yum)" ]; then
         echo " - We have yum!"
