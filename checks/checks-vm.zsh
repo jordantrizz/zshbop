@@ -21,7 +21,7 @@ function vm-checks () {
 help_checks[vm-check-detect]='Am I in a VM?'
 function vm-check-detect () {
     # Initialize VM variable
-    local VMTYPE="" OUTPUT VIRT_WHAT="0" DETECT_METHOD="none"    
+    local VMTYPE="" OUTPUT VIRT_WHAT="0" DETECT_METHOD="none" CHECK_CMD
     OUTPUT+="Checking if in virtual environment"
 
     [[ $MACHINE_OS == "mac" ]] && { _loading3 "Running on Mac...no need to check"; return 0 }
@@ -66,8 +66,8 @@ function vm-check-detect () {
         OUTPUT+="Using fallback checks - "
         # Fallback checks
         if [[ -e /proc/user_beancounters ]] || grep -q -i -E "(vmware|kvm|xen)" /proc/cpuinfo; then
-            CMD=$(grep -o -i -E "(vmware|kvm|xen)" /proc/cpuinfo | head -1 | awk '{print $1}')
-            OUTPUT+="Probably in a virtual environment (fallback check) since /proc/user_beancounters and /proc/cpuinfo = $VM"
+            CHECK_CMD=$(grep -o -i -E "(vmware|kvm|xen)" /proc/cpuinfo | head -1 | awk '{print $1}')
+            OUTPUT+="Probably in a virtual environment (fallback check) since /proc/user_beancounters and /proc/cpuinfo = $CHECK_CMD"
             VMTYPE="$CMD"
         else
             OUTPUT+="Not in a virtual environment (fallback check)."
