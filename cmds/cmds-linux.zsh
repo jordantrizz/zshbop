@@ -386,3 +386,23 @@ view-std () {
 		eval "{ { $1; } 2>&3 | sed 's/^/STDOUT: /'; } 3>&1 1>&2 | sed 's/^/STDERR: /'"
 	fi
 }
+
+# -- cpu-features
+help_linux[cpu-features]='Display CPU features'
+function cpu-features() {
+    # List of important CPU instructions and features
+    local features=("sse" "avx" "fma" "aes" "vt-x" "amd-v" "mmx" "x86-64" "turbo boost" "hyper-threading" "simultaneous multithreading" "neon")
+
+    # Use lscpu if available, otherwise fall back to /proc/cpuinfo
+    local cpu_info="$(command -v lscpu > /dev/null && lscpu || cat /proc/cpuinfo)"
+
+    echo "Checking CPU features..."
+
+    for feature in "${features[@]}"; do
+        if echo "$cpu_info" | grep -iq "$feature"; then
+            _success "Feature $feature: Supported"
+        else
+            _error "Feature $feature: Not Supported"
+        fi
+    done
+}
