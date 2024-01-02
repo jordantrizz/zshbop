@@ -636,11 +636,11 @@ function init_zshbop () {
         _loading3 "Loading includes...." 
         init_include        # -- Include files
     fi
+    init_detectos        # -- Detect operating system
     init_checks          # -- Init checks
     zsh-check-version    # -- Check zsh
     init_path            # -- Set paths
-    init_home_bin        # -- Check if home bin exists
-	init_detectos        # -- Detect operating system    
+    init_home_bin        # -- Check if home bin exists	
 	init_pkg_manager     # -- Init package manager 
     init_zbr_cmds        # -- Include commands
     init-app-config      # -- Common application configuration
