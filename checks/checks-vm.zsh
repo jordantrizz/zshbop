@@ -82,7 +82,7 @@ function vm-check-detect () {
             OUTPUT+="KVM qemu not running install qemu-guest-agent - "
         fi
     fi
-    
+    export $VM_TYPE
     _loading2 "$OUTPUT"
     
 }
