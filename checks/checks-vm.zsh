@@ -21,7 +21,7 @@ function vm-checks () {
 help_checks[vm-check-detect]='Am I in a VM?'
 function vm-check-detect () {
     # Initialize VM variable
-    local VM_TYPE="" OUTPUT VIRT_WHAT="0" DETECT_METHOD="none"    
+    local VMTYPE="" OUTPUT VIRT_WHAT="0" DETECT_METHOD="none"    
     OUTPUT+="$(_loading2 "Checking if in virtual environment")"
 
     [[ $MACHINE_OS == "mac" ]] && { _loading3 "Running on Mac...no need to check"; return 0 }
@@ -49,18 +49,18 @@ function vm-check-detect () {
 
     # -- Run detect methods
     if [[ $DETECT_METHOD == "virt-what" ]]; then
-        VM_TYPE=$(virt-what)
-        if [[ -n $VM_TYPE ]]; then
-            OUTPUT+="virt-what returned $VM_TYPE - "
+        VMTYPE=$(virt-what)
+        if [[ -n $VMTYPE ]]; then
+            OUTPUT+="virt-what returned $VMTYPE - "
         else
-            OUTPUT+="Not running in a VM, virtwhat returned $VM_TYPE -"            
+            OUTPUT+="Not running in a VM, virtwhat returned $VMTYPE -"            
         fi
     elif [[ $DETECT_METHOD == "systemd" ]]; then
-        VM_TYPE=$(systemd-detect-virt)
-        if [[ -n $VM_TYPE ]]; then
-            OUTPUT+="systemd-detect-virt returned $VM_TYPE - "
+        VMTYPE=$(systemd-detect-virt)
+        if [[ -n $VMTYPE ]]; then
+            OUTPUT+="systemd-detect-virt returned $VMTYPE - "
         else
-            OUTPUT+="Not running in a VM, systemd-detect-virt returned $VM_TYPE -"            
+            OUTPUT+="Not running in a VM, systemd-detect-virt returned $VMTYPE -"            
         fi
     else
         OUTPUT+="Using fallback checks - "
@@ -68,21 +68,21 @@ function vm-check-detect () {
         if [[ -e /proc/user_beancounters ]] || grep -q -i -E "(vmware|kvm|xen)" /proc/cpuinfo; then
             VM=$(grep -o -i -E "(vmware|kvm|xen)" /proc/cpuinfo | head -1 | awk '{print $1}')
             OUTPUT+="Probably in a virtual environment (fallback check) since /proc/user_beancounters and /proc/cpuinfo = $VM"
-            VM_TYPE="$VM"
+            VMTYPE="$VM"
         else
             OUTPUT+="Not in a virtual environment (fallback check)."
         fi
     fi    
 
     # -- If running KVM
-     if [[ $VM_TYPE == "kvm" ]]; then
+     if [[ $VMTYPE == "kvm" ]]; then
         if [[ $(pgrep qemu) ]] || [[ $(pgrep qemu-system) ]]; then
             OUTPUT+="KVM qemu guest tools is running - "
         else
             OUTPUT+="KVM qemu not running install qemu-guest-agent - "
         fi
     fi
-    export $VM_TYPE
+    export $VMTYPE
     _loading2 "$OUTPUT"
     
 }
