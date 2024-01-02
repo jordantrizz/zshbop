@@ -15,6 +15,11 @@ function os () {
   echo "\$MACHINE_OS: $MACHINE_OS | \$MACHINE_OS2: $MACHINE_OS2"
   echo "\$MACHINE_OS_FLAVOUR: $MACHINE_OS_FLAVOUR | \$MACHINE_OS_VERSION:$MACHINE_OS_VERSION"
   echo "\$OSTYPE: $OSTYPE"
+  if [[ $VMTYPE ]] then
+    echo "\$VMTYPE: $VMTYPE"
+  else
+    echo "\$VMTYPE: Not set"
+  fi 
 }
 
 
