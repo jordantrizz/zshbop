@@ -517,7 +517,7 @@ function init_checks () {
     fi
 
     # Detect if VM
-    vm-check     
+    vm-check-detect   
 }
 
 # ==============================================
