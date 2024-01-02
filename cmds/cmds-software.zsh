@@ -416,6 +416,7 @@ if [[ $? == "1" ]]; then
         elif [[ $MACHINE_OS == "linux" ]]; then
             sudo apt install ncdu
         fi
+		unset -f ncdu
     }
 fi
 
