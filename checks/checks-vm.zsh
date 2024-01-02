@@ -60,7 +60,7 @@ function vm-check-detect () {
     if [[ $VIRT_WHAT == "0" ]]; then    
         # Fallback checks
         if [[ -e /proc/user_beancounters ]] || grep -q -i -E "(vmware|kvm|xen)" /proc/cpuinfo; then
-            VM=$(grep -E "(vmware|kvm|xen)" /proc/cpuinfo | head -1 | awk '{print $1}')
+            VM=$(grep -o -i -E "(vmware|kvm|xen)" /proc/cpuinfo | head -1 | awk '{print $1}')
             echo "Probably in a virtual environment (fallback check) since /proc/user_beancounters and /proc/cpuinfo = $VM"
         elif [[ $OS2 == "wsl" ]]; then
             echo "In WSL, which is a virtual environment (fallback check)."
