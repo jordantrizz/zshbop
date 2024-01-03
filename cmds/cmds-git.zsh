@@ -12,13 +12,22 @@ help_files[git]='Git related commands'
 # - Init help array
 typeset -gA help_git
 
-# - gc
+# -- gc
 help_git[gc]='Git commit + push'
+function gc () {
+		_loading "Committing using git, consider using glc"
+        git commit -am "$*"
+        git push
+    fi
+}
+
+# -- glc
+help_git[gc]='Glint commit and push'
 function gc () {
 	_cexists glint
 	if [[ $? == "0" ]]; then
-		_loading "Committing using glint"
-        echo "build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+    _loading "Committing using glint"
+    echo "build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
 ci: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
 docs: Documentation only changes
 feat: A new feature
@@ -31,9 +40,7 @@ test: Adding missing tests or correcting existing tests
 		glint commit
 		git push
 	else
-		_loading "Committing using git, consider glit (software glint)"
-        git commit -am "$*"
-        git push
+		_error  "Glint not installed use software glint to install"
     fi
 }
 
