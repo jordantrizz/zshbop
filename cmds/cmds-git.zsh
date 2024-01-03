@@ -21,8 +21,8 @@ function gc () {
 }
 
 # -- glc
-help_git[gc]='Glint commit and push'
-function gc () {
+help_git[glc]='Glint commit and push'
+function glc () {
 	_cexists glint
 	if [[ $? == "0" ]]; then
     _loading "Committing using glint"
