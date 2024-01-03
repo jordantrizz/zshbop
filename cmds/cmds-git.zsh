@@ -15,10 +15,9 @@ typeset -gA help_git
 # -- gc
 help_git[gc]='Git commit + push'
 function gc () {
-		_loading "Committing using git, consider using glc"
-        git commit -am "$*"
-        git push
-    fi
+    _loading "Committing using git, consider using glc"
+    git commit -am "$*"
+    git push
 }
 
 # -- glc
