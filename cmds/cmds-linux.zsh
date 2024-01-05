@@ -387,7 +387,9 @@ view-std () {
 	fi
 }
 
+# --------------------------------------------------
 # -- cpu-features
+# --------------------------------------------------
 help_linux[cpu-features]='Display CPU features'
 function cpu-features() {
 	# -- Warn running in WSL
@@ -423,3 +425,33 @@ function cpu-features() {
         fi
     done
 }
+
+
+# --------------------------------------------------
+# -- get-intsall-date
+# --------------------------------------------------
+help_linux[get-os-install-date]='Get the date the OS was installed'
+function get-os-intsall-date {
+	local root_device creation_time
+
+    # Find the root file system device
+    local root_device=$(df -h / | awk 'NR==2 {print $1}')
+
+    # Check if the device is found
+    if [[ -z "$root_device" ]]; then
+        echo "Root device not found."
+        return 1
+    fi
+
+    # Use dumpe2fs to get the filesystem creation time
+    local creation_time=$(dumpe2fs -h $root_device 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
+
+    # Check if dumpe2fs was successful
+    if [[ -z "$creation_time" ]]; then
+        echo "Could not determine filesystem creation time for $root_device."
+        return 2
+    fi
+
+    echo "$root_device: $creation_time"
+}
+

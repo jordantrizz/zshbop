@@ -125,13 +125,38 @@ init_detectos () {
         MACHINE_OS_FLAVOUR="unknown"
     fi
 
-    # -- Detect Operating System Install Date
+    # -- Install Date
     if [[ $MACHINE_OS == "mac" ]]; then
         INSTALL_DATE=$(stat -f "%Sm" -t "%Y-%m-%d" /var/db/.AppleSetupDone)
+        INSTALL_METHOD="macOS stat /var/db/.AppleSetupDone"
     elif [[ $MACHINE_OS == "linux" ]]; then
-        INSTALL_DATE=$(ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
+        INSTALL_DATE=$(\ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
+        INSTALL_METHOD="Linux ls -lct --time-style=full-iso /"
     fi
 
+    # -- Install Date Method 2
+    if [[ $MACHINE_OS == "linux" ]]; then        
+        # Find the root file system device
+        local root_device=$(df -h / | awk 'NR==2 {print $1}')
+
+        # Check if the device is found
+        if [[ -z "$root_device" ]]; then
+            echo "Root device not found."
+            return 1
+        fi
+
+        # Use dumpe2fs to get the filesystem creation time
+        local creation_time=$(dumpe2fs -h $root_device 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
+
+        # Check if dumpe2fs was successful
+        if [[ -z "$creation_time" ]]; then
+            echo "Could not determine filesystem creation time for $root_device."
+            return 2
+        fi
+
+        INSTALL_DATE2="$root_device: $creation_time"
+        INSTALL_METHOD2="Linux dumpe2fs -h $root_device"
+    fi
 }
 
 # ==============================================

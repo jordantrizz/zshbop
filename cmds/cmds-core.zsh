@@ -21,6 +21,9 @@ function os () {
     echo "\$VMTYPE: Not set"
   fi 
   echo "\$INSTALL_DATE: $INSTALL_DATE"
+  echo "\$INSTALL_METHOD: $INSTALL_METHOD"
+  echo "\$INSTALL_DATE2: $INSTALL_DATE2"
+  echo "\$INSTALL_METHOD2: $INSTALL_METHOD2"
 }
 
 
