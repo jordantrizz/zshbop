@@ -1,4 +1,4 @@
-# Install/Uninstall/Update
+# Install/Uninstall/Update/Claim
 ## Install netdata
 * ```bash <(curl -Ss https://my-netdata.io/kickstart.sh)```
 
@@ -7,6 +7,13 @@
 
 ## Update netdata
 * ```wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --dry-run```
+
+## Claim Node thats already Claimed
+```
+rm /opt/netdata/var/lib/netdata/registry/netdata.public.unique.id
+```
+
+Then run your claimid again.
 
 # Common Commands
 * Reload health ```netdatacli reload-health```
