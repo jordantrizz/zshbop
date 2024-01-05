@@ -49,3 +49,5 @@ bash <( curl -Ls https://raw.githubusercontent.com/aws-containers/amazon-ecs-exe
 * aws configure list - List all configured profiles
 * aws configure get profile.default.region - Get default region for profile
 * aws configure list-profiles - List all configured profiles
+* aws sts get-caller-identity --profile <profile_name> - Get caller identity for profile
+* aws organizations list-accounts --profile <profile_name> - List all accounts in organization
