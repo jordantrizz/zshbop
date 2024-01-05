@@ -125,6 +125,13 @@ init_detectos () {
         MACHINE_OS_FLAVOUR="unknown"
     fi
 
+    # -- Detect Operating System Install Date
+    if [[ $MACHINE_OS == "mac" ]]; then
+        INSTALL_DATE=$(stat -f "%Sm" -t "%Y-%m-%d" /var/db/.AppleSetupDone)
+    elif [[ $MACHINE_OS == "linux" ]]; then
+        INSTALL_DATE=$(ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
+    fi
+
 }
 
 # ==============================================

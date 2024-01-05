@@ -20,6 +20,7 @@ function os () {
   else
     echo "\$VMTYPE: Not set"
   fi 
+  echo "\$INSTALL_DATE: $INSTALL_DATE"
 }
 
 
