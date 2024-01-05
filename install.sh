@@ -11,6 +11,16 @@ SKIP_DEP="0"
 SKIP_OPTIONAL="0"
 HELP="0"
 
+# -- Detect OS for Ubuntu and Version
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$NAME
+    VER=$VERSION_ID    
+else
+    _error "Can't detect OS"
+    exit 1
+fi
+
 # -- Required Software
 REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
 
@@ -18,8 +28,9 @@ REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
 OPTIONAL_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'sudo' 'screen' 'wget' 'joe')
 OPTIONAL_SOFTWARE+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
 OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'lynx' 'ncdu')
-OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'md5sum')
+OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'ucommon-utils')
 OPTIONAL_SOFTWARE+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
+
 
 # -- Colors
 RED="\033[0;31m"
@@ -78,6 +89,7 @@ USAGE=\
         - git = \$HOME/git/zshbop
 
 >> zshbop Install Script Version: ${VERSION}
+>> Detected OS Version: Flavour:${OS} Ver:${VER}
 "
 echo "$USAGE"
 }
