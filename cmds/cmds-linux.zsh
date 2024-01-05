@@ -431,7 +431,7 @@ function cpu-features() {
 # -- get-intsall-date
 # --------------------------------------------------
 help_linux[get-os-install-date]='Get the date the OS was installed'
-function get-os-intsall-date {
+function get-os-install-date {
 	local root_device creation_time
 
     # Find the root file system device
@@ -444,7 +444,7 @@ function get-os-intsall-date {
     fi
 
     # Use dumpe2fs to get the filesystem creation time
-    local creation_time=$(dumpe2fs -h $root_device 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
+    local creation_time=$(sudo dumpe2fs -h $root_device 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
 
     # Check if dumpe2fs was successful
     if [[ -z "$creation_time" ]]; then
@@ -453,5 +453,6 @@ function get-os-intsall-date {
     fi
 
     echo "$root_device: $creation_time"
+	INSTALL_DATE2="$creation_time"
 }
 
