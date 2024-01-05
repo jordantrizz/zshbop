@@ -156,7 +156,7 @@ php-install () {
 
 # -- aws-cli
 help_software[aws-cli]="Install aws-cli"
-aws-cli () {
+software_aws-cli () {
 	if [[ ! -d $HOME/downlods ]]; then
 		mkdir $HOME/downloads
 	fi
