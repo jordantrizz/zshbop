@@ -104,19 +104,20 @@ setopt share_history          # share command history data
 
 # -- Logging
 # Logging variables for path and file
-SCRIPT_LOG_PATH="$HOME" # -- Default log path
-SCRIPT_LOG_FILE=".zshbop.log" # -- Default log file
-SCRIPT_LOG=${SCRIPT_LOG_PATH}/${SCRIPT_LOG_FILE} # -- Default log path and file
+ZB_LOG_PATH="$HOME" # -- Default log path
+ZB_LOG_FILE=".zshbop.log" # -- Default log file
+export ZB_LOG="${ZB_LOG_PATH}/${ZB_LOG_FILE}" # -- Default log path and file
 
 # -- Make directory and log file
-mkdir -p "${SCRIPT_LOG_PATH}"
-touch ${SCRIPT_LOG_PATH}/${SCRIPT_LOG_FILE}
+mkdir -p "${ZB_LOG_PATH}"
+touch ${ZB_LOG_PATH}/${ZB_LOG_FILE}
 
 # -- Start log
 function STARTLOG() {
     SCRIPT_NAME=$(basename "$0")
     SCRIPT_NAME="${SCRIPT_NAME%.*}"
-    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m> $SCRIPT_NAME ${funcstack[0]}\e[0m" > "$SCRIPT_LOG"
+    export ZB_LOG_STATUS="1"
+    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m> $SCRIPT_NAME ${funcstack[0]}\e[0m" > "$ZB_LOG"
 }
 export STARTLOG
 
@@ -124,7 +125,8 @@ export STARTLOG
 function STOPLOG() {
  SCRIPT_NAME=$(basename "$0")
  SCRIPT_NAME="${SCRIPT_NAME%.*}"
- echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m< $SCRIPT_NAME ${funcstack[0]}\e[0m" >> "$SCRIPT_LOG"
+ export ZB_LOG_STATUS="0"
+ echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m< $SCRIPT_NAME ${funcstack[0]}\e[0m" >> "$ZB_LOG"
 }
 export STOPLOG
 
@@ -140,9 +142,9 @@ ZSH_DEBUG="0"
 DEBUG_MSG=""
 DEBUGF_MSG=""
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
-_debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$SCRIPT_LOG"; } || { echo "$DEBUG_MSG" >> "$SCRIPT_LOG"; } } # -- debug for core
-_debugf () { DEBUGF_MSG="\033[36m** [DEBUG]: $@\033[0m"; [[ $DEBUGF == 1 ]] && { echo $DEBUGF_MSG | tee -a "$SCRIPT_LOG"; } || { echo "$DEBUGF_MSG" >> "$SCRIPT_LOG"; } } # -- debugf for debugging third party scripts
-_debug_load () { _debug "Loading $funcstack" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) } # -- debug load
+_debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$ZB_LOG"; } || { echo "$DEBUG_MSG" >> "$ZB_LOG"; } } # -- debug for core
+_debugf () { DEBUGF_MSG="\033[36m** [DEBUG]: $@\033[0m"; [[ $DEBUGF == 1 ]] && { echo $DEBUGF_MSG | tee -a "$ZB_LOG"; } || { echo "$DEBUGF_MSG" >> "$ZB_LOG"; } } # -- debugf for debugging third party scripts
+_debug_load () { _debug "Loading $funcstack" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) } # -- debug load
 # -- _debug_all instead of _debug_function
 _debug_all () {
         _debug "--------------------------"
@@ -158,14 +160,49 @@ ZSH_VERBOSE="0"
 ZSHBOP_LOGS=""
 LOG_MSG=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
-_log () { LOG_MSG="[LOG] ${1}"; [[ -z $2 ]] && { [[ $ZSH_VERBOSE == 1 ]] && { echo "$LOG_MSG" | tee -a "$SCRIPT_LOG"; } } || { echo "$LOG_MSG" >> "$SCRIPT_LOG"; } } # -- log for core
-_error () { ERROR_MSG="$fg[red][ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG; echo "[ERROR] $1" >> "$SCRIPT_LOG" } || echo "[ERROR] $1" >> "$SCRIPT_LOG" }
-_error2 () { ERROR_MSG="$bg[red][ERROR] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ERROR_MSG; echo "[ERROR] $1" >> "$SCRIPT_LOG" } || echo "[ERROR] $1" >> "$SCRIPT_LOG" }
-_warning () { WARN_MSG="$fg[yellow][WARNING] ${1} ${RSC}"; [[ -z $2 ]] && { echo $WARN_MSG; echo "[WARNING] $1" >> "$SCRIPT_LOG" } || echo "[WARNING] $1" >> "$SCRIPT_LOG" }
-_alert () { ALERT_MSG="$bg[red] $fg[yellow][ALERT] ${1} ${RSC}"; [[ -z $2 ]] && { echo $ALERT_MSG; echo "[ALERT] $1" >> "$SCRIPT_LOG" } || echo "[ALERT] $1" >> "$SCRIPT_LOG" }
-_notice () { NOTICE_MSG="$fg[blue][NOTICE]${1} ${RSC}"; [[ -z $2 ]] && { echo $NOTICE_MSG; echo "[NOTICE] $1" >> "$SCRIPT_LOG" } || echo "[NOTICE] $1" >> "$SCRIPT_LOG" }
+_log () { zb_logger "LOG" 1 "$@" }
+_error () { zb_logger "ERROR" 1 "$@" }
+_error2 () { zb_logger "ERROR" 1 "$@" }
+_warning () { zb_logger "WARNING" 1 "$@" }
+_alert () { zb_logger "ALERT" 1 "$@" }
+_notice () { zb_logger "NOTICE" 1 "$@" }
+# -- Log to both. # TODO Why?
 _dlog () { _log "${*}"; _debug "${*}" }
 _elog () { _log "${*}"; _error "${*}" }
+
+# --------------------------------------------------
+# -- zshbop_log
+# -- args: $1 - type, $2 - echo, $3 - message
+# --------------------------------------------------
+function zb_logger() {
+    local LOG_TYPE="${1:=LOG}" LOG_ECHO=${2:=1} LOG_MSG="${3}"
+    
+    function zb_echo () { echo "$LOG_OUTPUT"; }
+    function zb_log () { echo "[$LOG_TYPE] $LOG_MSG" >> "$ZB_LOG"; }
+    function zb_log_echo () { zb_echo; zb_log; }
+    
+    # -- Log Types
+    [[ $LOG_TYPE == "LOG" ]] && LOG_OUTPUT="[${LOG_TYPE}] ${LOG_MSG}"
+    [[ $LOG_TYPE == "ERROR" ]] && LOG_OUTPUT="$fg[red][${LOG_TYPE}] ${LOG_MSG}${RSC}"
+    [[ $LOG_TYPE == "WARNING" ]] && LOG_OUTPUT="$fg[yellow][${LOG_TYPE}] ${LOG_MSG}${RSC}"
+    [[ $LOG_TYPE == "ALERT" ]] && LOG_OUTPUT="$bg[red] $fg[yellow][${LOG_TYPE}] ${LOG_MSG}${RSC}"
+    [[ $LOG_TYPE == "NOTICE" ]] && LOG_OUTPUT="$fg[blue][${LOG_TYPE}] ${LOG_MSG}${RSC}"
+    [[ $LOG_TYPE == "DEBUG" ]] && LOG_OUTPUT="$fg[cyan][${LOG_TYPE}] ${LOG_MSG}${RSC}"
+    [[ $LOG_TYPE == "DEBUGF" ]] && LOG_OUTPUT="$fg[cyan][${LOG_TYPE}] ${LOG_MSG}${RSC}"    
+
+    if [[ $LOG_TYPE == "LOG" ]]; then
+        if [[ $ZSH_VERBOSE == 1 ]]; then
+            zb_log_echo            
+        fi
+    elif [[ $LOG_ECHO == 1 ]]; then
+        zb_echo
+    fi
+    
+    # -- Log startup
+    if [[ $ZB_LOG_STATUS == "1" ]]; then
+        zb_log
+    fi
+}
 
 # ---------------
 # -- Source files

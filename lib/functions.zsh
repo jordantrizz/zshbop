@@ -423,6 +423,7 @@ function zshbop_report () {
     local LOG_LEVEL="$1"
     local SHOW_LEVEL=()
     local TAIL_LINES=""
+    local ZSHBOP_REPORT=""
 
     # -- specify how many lines to show
     if [[ -z $2 ]]; then
@@ -452,7 +453,7 @@ function zshbop_report () {
     elif [[ $LOG_LEVEL = "log" ]]; then
         SHOW_LEVEL=("LOG")
     elif [[ $LOG_LEVEL == "less" ]]; then
-        less $SCRIPT_LOG
+        less $ZB_LOG
     elif [[ $LOG_LEVEL = "faults" ]]; then
         SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
     else
@@ -465,9 +466,10 @@ function zshbop_report () {
     [[ $LOG_LEVEL != "faults" ]] && _loading3 "Showing - ${SHOW_LEVEL[@]}"
     # -- print out logs
     for LOG in $SHOW_LEVEL; do
+        # -- Only print when running zshbop_reports directly.
         [[ $LOG_LEVEL != "faults" ]] && _loading2 "-- $LOG ------------"
-        [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "^\[${LOG}\]" $SCRIPT_LOG"
-        ZSHBOP_REPORT+=$(grep "^\[$LOG\]" $SCRIPT_LOG | tail -n $TAIL_LINES)
+        [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "\^\[${LOG}\]" $ZB_LOG"        
+        ZSHBOP_REPORT+=$(grep "^\[$LOG\]" $ZB_LOG | tail -n $TAIL_LINES)
     done
     echo "$ZSHBOP_REPORT"
 }
@@ -500,6 +502,7 @@ function zshbop_check-system () {
 	# -- check block devices
     _debug "Checking block devices"
     _loading3 "Block Devices: $(check_blockdevices)"
+    
 }
 
 # =========================================================
