@@ -28,7 +28,7 @@ function vm-check-detect () {
     [[ $MACHINE_OS2 == "wsl" ]] && { _loading3 "Running on WSL...no need to check"; return 0 }
 
     # -- check if virt-what exists
-    _cexists virt-what
+    _cmd_exists virt-what
     if [[ $? == "0" ]]; then
         OUTPUT+="virt-what installed - "
         # -- Check if running as root
@@ -41,7 +41,7 @@ function vm-check-detect () {
     fi
 
     # -- Check if systemd-detect-virt exists
-    _cexists systemd-detect-virt
+    _cmd_exists systemd-detect-virt
     if [[ $? == "0" ]]; then
         OUTPUT+="systemd-detect-virt installed - "
         DETECT_METHOD="systemd"

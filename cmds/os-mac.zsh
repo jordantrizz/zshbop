@@ -17,7 +17,7 @@ alias flush-dns="sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder
 alias eject-all="osascript -e 'tell application "Finder" to eject (every disk whose ejectable is true)'"
 
 # -- ls/exa
-_cexists exa
+_cmd_exists exa
 if [[ $? -ge "0" ]]; then
     _debug "exa success, using exa for ls alias"
     alias ls="exa -al"

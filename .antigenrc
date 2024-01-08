@@ -28,7 +28,7 @@ antigen bundle lukechilds/zsh-nvm
 #antigen bundle zpm-zsh/mysql-colorize
 
 ####-- Load FZF
-if _cexists fzf; then
+if _cmd_exists fzf; then
 	_debug "fzf is installed"
 	antigen bundle andrewferrier/fzf-z
 	antigen bundle wfxr/forgit

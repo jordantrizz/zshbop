@@ -3,7 +3,7 @@
 # -- ls/exa
 unset LC_CHECK NULL
 EXA_LINUX="exa-linux_x86_64"
-_cexists ${EXA_LINUX}
+_cmd_exists ${EXA_LINUX}
 if [[ $? == "0" ]]; then
     NULL=$(exa-linux_x86_64 2>&1 >> /dev/null)
 	LC_CHECK="$?"
@@ -31,7 +31,7 @@ function interfaces_linux () {
     local INTERFACES_OUTPUT=""
 
     # -- Check if ifconfig commmand exists
-    _cexists ifconfig
+    _cmd_exists ifconfig
     if [[ $? -ge "1" ]]; then
         _error "ifconfig command not found, required, run zshbop install-env"
         return 1

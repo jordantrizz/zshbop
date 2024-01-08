@@ -511,7 +511,7 @@ function zshbop_check () {
     _loading "Checking environment"
     _loading3 "Checking if required tools are installed"
     for i in $REQUIRED_SOFTWARE; do
-        _cexists $i
+        _cmd_exists $i
         if [[ $? == "0" ]]; then
                 echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
         else
@@ -521,7 +521,7 @@ function zshbop_check () {
 
     _loading3 "Checking for default tools"
     for i in $DEFAULT_TOOLS; do
-        _cexists $i
+        _cmd_exists $i
         if [[ $? == "0" ]]; then
                 echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
         else
@@ -531,7 +531,7 @@ function zshbop_check () {
 
     _loading2 "Checking for extra tools"
     for i in $EXTRA_TOOLS; do
-    _cexists $i
+    _cmd_exists $i
     if [[ $? == "0" ]]; then
                     echo "$i is $bg[green]$fg[white] INSTALLED. $reset_color"
             else
@@ -553,7 +553,7 @@ fucntion zshbop_install-env () {
     _loading2 "Generating list of required tools that need to be insstalled"
     # -- install required tools
     for i in ${REQUIRED_SOFTWARE[@]}; do
-        _cexists $i
+        _cmd_exists $i
         if [[ $? == "1" ]]; then
             _debug "Adding $i to list of tools to install"
             PKG_TO_INSTALL+=("$i")
@@ -613,7 +613,7 @@ function zshbop_issue () {
     local ISSUE_TITLE ISSUE_BODY
     _log "${funcstack[1]}:start"
     _loading "Creating zshbop issue on Github"
-    _cexists "gh"
+    _cmd_exists "gh"
     if [[ $? == "0" ]]; then
         _loading2 "Creating issue on github for jordantrizz/zshbop"
         # Ask for title, enter will accept input

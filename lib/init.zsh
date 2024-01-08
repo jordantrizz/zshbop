@@ -132,12 +132,14 @@ init_detectos () {
     elif [[ $MACHINE_OS == "linux" ]]; then
         INSTALL_DATE=$(\ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
         INSTALL_METHOD="Linux ls -lct --time-style=full-iso /"
-    fi
-
-    # -- Install Date Method 2
-    if [[ $MACHINE_OS == "linux" ]]; then        
-        INSTALL_DATE2="Run get-os-install-date requires root"
-        INSTALL_METHOD2="Linux dumpe2fs -h $root_device"
+    
+        _checkroot
+        if [[ $? == "0" ]]; then
+            INSTALL_DATE2="Run get-os-install-date requires root"
+        else
+            get-os-install-date
+            INSTALL_METHOD2="Linux dumpe2fs -h $root_device"
+        fi
     fi
 }
 
@@ -224,7 +226,7 @@ function init_p10k () {
 # ==============================================
 # TODO need to fix
 function init_fzf () {
-	if _cexists fzf; then
+	if _cmd_exists fzf; then
 	    _debug "fzf is installed"
 	    antigen bundle andrewferrier/fzf-z
 	    antigen bundle wfxr/forgit
@@ -382,26 +384,26 @@ function init_pkg_manager () {
 	if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
         # -- Check for apt-get
     	_debug "Checking for Linux package manager apt-get"
-        _cexists apt-get
+        _cmd_exists apt-get
         [[ $? == "0" ]] && _debug "Found apt-get setting \$PKG_MANAGER to apt-get" && export PKG_MANAGER="sudo apt-get" || _debug "apt-get not found"
 
         # -- Check for yum
         _debug "Checking for Linux package manager yum"
-        _cexists yum
+        _cmd_exists yum
         [[ $? == "0" ]] && _debug "Found yum setting \$PKG_MANAGER to yum" && export PKG_MANAGER="sudo yum" || _debug "yum not found"
 
     # -- Check for package manage on macos
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		_debug "Checking for Mac package manager"
         # -- Check for brew
-        _cexists brew
+        _cmd_exists brew
         if [[ $? == "0" ]]; then
             _debug "Found brew setting \$PKG_MANAGER to brew"
             export PKG_MANAGER="brew"
         fi
 
         # -- Check for macports
-        _cexists port
+        _cmd_exists port
         if [[ $? == "0" ]]; then
             _debug "Found port setting \$PKG_MANAGER to port"
             export PKG_MANAGER="port"
@@ -448,7 +450,7 @@ init_check_software () {
 	# -- Check services and software
 
     # -- check if atop is installed
-    if _cexists atop; then 
+    if _cmd_exists atop; then 
         # -- check if atop is running using ps and pgrep
         pgrep atop >> /dev/null && _success "atop installed and running" 0 || _warning "atop installed but not running, if this is a server install it" 0
     else

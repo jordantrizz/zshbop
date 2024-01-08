@@ -128,7 +128,7 @@ zsh-install () {
 
 # -- my-cli
 help_software[mycli]="MySQL CLI Helper with auto complete"
-_cexists mycli
+_cmd_exists mycli
 if [[ $? -ge "1" ]]; then
 	alias mycli=mycli_install
 fi
@@ -173,19 +173,19 @@ software_aws-cli () {
 # -- vt
 help_software[vt]="Virus Total CLI"
 if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
-	_cexists vt-linux64
+	_cmd_exists vt-linux64
 	[[ $? -ge "0" ]] && alias vt=vt-linux64 || alias vt="echo 'VT not installed'"
 elif [[ $MACHINE_OS == "mac" ]]; then
-	_cexists vt-macos
+	_cmd_exists vt-macos
 	[[ $? -ge "0" ]] && alias vt=vt-macos || alias vt="echo 'VT not installed'"
 fi
 # -- b2
 help_software[b2]="Backblaze CLI"
 if [[ $MACHINE_OS == "linux" ]] || [[ $MACHINE_OS == "wsl" ]]; then
-	_cexists b2-linux
+	_cmd_exists b2-linux
     [[ $? -ge "1" ]] && alias b2=b2_download || alias b2=b2-linux
 elif [[ $MACHINE_OS == "mac" ]]; then
-	_cexists b2-darwin
+	_cmd_exists b2-darwin
     [[ $? -ge "1" ]] && alias b2=b2_download || alias b2=b2-darwin
 fi
 
@@ -228,7 +228,7 @@ b2_download () {
 
 # -- powershell
 help_software[powershell]="Powershell for Linux"
-_cexists pwsh
+_cmd_exists pwsh
 [[ $? -ge "1" ]] && alias pwsh=powershell_download || alias pwsh=pwsh
 
 powershell_download () {
@@ -300,7 +300,7 @@ software_gh-cli-curl () {
 # -- ubuntu-netselect
 help_software[ubuntu-netselect]='Install netselect to find the fastest ubuntu mirror.'
 function ubuntu-netselect () {
-    _cexists netselect
+    _cmd_exists netselect
     if [[ $? == "0" ]]; then
         echo "netselect installed, type 'sudo netselect'"
     elif [[ $? == "1" ]]; then
@@ -361,7 +361,7 @@ function bat() {
 help_software[glint]="Install glint - https://github.com/brigand/glint"
 if [[ $MACHINE_OS == "linux" ]]; then
     _debug "Check for gblint-linux under $MACHINE_OS"
-    _cexists glint-linux
+    _cmd_exists glint-linux
     if [[ $? == "0" ]]; then
     	function glint () { glint-linux $* }
     	function software_glint { _success "Glint installed" }
@@ -375,7 +375,7 @@ if [[ $MACHINE_OS == "linux" ]]; then
     fi
 elif [[ $MACHINE_OS == "mac" ]]; then
     _debug "Check for gblint-linux under $MACHINE_OS"
-    _cexists glint-macos
+    _cmd_exists glint-macos
     if [[ $? == "0" ]]; then
     	function glint () { glint-macos $* }
     	function software_glint { _success "Glint installed" }
@@ -394,7 +394,7 @@ fi
 
 # -- change
 help_software[change]="Install change - https://raw.githubusercontent.com/adamtabrams/change"
-_cexists change
+_cmd_exists change
 if [[ $? == "1" ]]; then
 	function change () {
 		if [[ ! -f $BIN/home ]]; then
@@ -408,7 +408,7 @@ fi
 
 # -- ncdu
 help_software[ncdu]="Install ncdu"
-_cexists ncdu
+_cmd_exists ncdu
 if [[ $? == "1" ]]; then
     function ncdu () {
         if [[ $MACHINE_OS == "mac" ]]; then

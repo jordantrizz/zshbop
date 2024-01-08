@@ -131,12 +131,12 @@ _requires_cmd () {
 }
 
 # =========================================================
-# -- _cexists
+# -- _cmd_exists
 # --
 # -- Returns 0 if command exists or 1 if command doesn't exist
 # =========================================================
-help_corefunc[_cexists]="Returns 0 if command exists or 1 if command doesn't exist, will never output data"
-function _cexists () {
+help_corefunc[_cmd_exists]="Returns 0 if command exists or 1 if command doesn't exist, will never output data"
+function _cmd_exists () {
     CMD_EXISTS=""
     CMD="$1"
 
@@ -266,7 +266,7 @@ os-binary () {
 	
 	OS_BINARY="${BINARY}-${OS_BINARY_TAG}"
 	_debug "OS_BINARY: $OS_BINARY"	
-	_cexists ${OS_BINARY}
+	_cmd_exists ${OS_BINARY}
 	
 	if [[ $? == "1" ]]; then
 		_debug "$OS_BINARY not installed"

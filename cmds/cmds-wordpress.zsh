@@ -226,7 +226,7 @@ function wp-find-check () {
 		return 1
 	else
 		# -- Check if wp-cli is installed
-		_cexists wp
+		_cmd_exists wp
 		if [[ $? == "1" ]]; then
 			_error "Can't find wp-cli:"
 			return 1
@@ -390,7 +390,7 @@ function wp-wordfence-scan () {
 	fi
 
 	# -- Check if wordfence is installed
-	_cexists wordfence
+	_cmd_exists wordfence
 	if [[ $? == "1" ]]; then
 		_wp-wordfence-scan-usage
 		_error "Can't find wordfence-cli, please install"
@@ -509,7 +509,7 @@ function wp-updates() {
     fi
 
 	# -- Check if jq is installed
-	_cexists jq
+	_cmd_exists jq
 	if [[ $? == 1 ]]; then
 		_error "jq is not installed. Please install it first."
 		return 1

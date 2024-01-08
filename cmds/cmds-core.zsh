@@ -20,10 +20,22 @@ function os () {
   else
     echo "\$VMTYPE: Not set"
   fi 
-  echo "\$INSTALL_DATE: $INSTALL_DATE"
-  echo "\$INSTALL_METHOD: $INSTALL_METHOD"
-  echo "\$INSTALL_DATE2: $INSTALL_DATE2"
-  echo "\$INSTALL_METHOD2: $INSTALL_METHOD2"
+  echo "\$INSTALL_DATE: $INSTALL_DATE | \$INSTALL_METHOD: $INSTALL_METHOD"
+  echo "\$INSTALL_DATE2: $INSTALL_DATE2 | \$INSTALL_METHOD2: $INSTALL_METHOD2"
+}
+
+# -- os - return os
+help_core[os]='Return OS'
+function os-short () {
+  echo "\$MACHINE_OS: $MACHINE_OS | \$MACHINE_OS2: $MACHINE_OS2 | \$MACHINE_OS_FLAVOUR: $MACHINE_OS_FLAVOUR | \$MACHINE_OS_VERSION:$MACHINE_OS_VERSION"
+  echo "\$OSTYPE: $OSTYPE"
+  if [[ $VMTYPE ]] then
+    echo "\$VMTYPE: $VMTYPE"
+  else
+    echo "\$VMTYPE: Not set"
+  fi 
+  echo "\$INSTALL_DATE: $INSTALL_DATE | \$INSTALL_METHOD: $INSTALL_METHOD"
+  echo "\$INSTALL_DATE2: $INSTALL_DATE2 | \$INSTALL_METHOD2: $INSTALL_METHOD2"
 }
 
 

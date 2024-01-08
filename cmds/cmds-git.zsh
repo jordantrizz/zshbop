@@ -23,7 +23,7 @@ function gc () {
 # -- glc
 help_git[glc]='Glint commit and push'
 function glc () {
-	_cexists glint
+	_cmd_exists glint
 	if [[ $? == "0" ]]; then
     _loading "Committing using glint"
     echo "build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)

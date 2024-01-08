@@ -91,7 +91,7 @@ mysql-currentmem () {
 	# -- check if we can connect to mysql
 	MYSQL_TEST=$(mysql -e 'show processlist')
 	if [[ $? -ge 1 ]]; then
-		_cexists mysql_config_editor
+		_cmd_exists mysql_config_editor
 		if [[ $? -ge 1 ]]; then
 			_error "Install mysql_config_editor"
 			_error " -- Percona: apt-get install libperconaserverclient20-dev"

@@ -6,7 +6,7 @@ _debug " -- Loading ${(%):-%N}"
 typeset -gA help_screen
 
 # -- Screen
-_cexists screen
+_cmd_exists screen
 if [[ $? == 0 ]]; then	
 	# -- Default screen alias
 	alias screen="screen -c $ZSHBOP_ROOT/.screenrc"	

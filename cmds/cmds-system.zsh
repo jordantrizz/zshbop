@@ -33,7 +33,7 @@ function cpu () {
         CPU_MHZ=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo | awk '{sum += $1} END {print sum/NR/1000}')
 
         # -- Check if Mhz is higher than 3Ghz using bc
-        _cexists bc
+        _cmd_exists bc
         if [[ $? == "1" ]]; then
             _error "Please install the bc command"
         else

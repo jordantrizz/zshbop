@@ -33,7 +33,7 @@ vhwinfo () {
 
 # -- needrestart - check if system needs a restart
 help_linux[needrestart]='Check if system needs a restart'
-_cexists needrestart
+_cmd_exists needrestart
 if [[ $? == "1" ]]; then
 	needrestart () {
 		_debug "needrestart not installed"
@@ -45,7 +45,7 @@ fi
 
 # -- broot -
 help_linux[broot]='Get an overview of a directory, even a big one'
-_cexists broot
+_cmd_exists broot
 if [[ $? == "1" ]]; then
 	function broot () {
 		check_broot
@@ -319,7 +319,7 @@ screen-sessions () {
 		wsl-screen
 	fi
 
-    _cexists screen 
+    _cmd_exists screen 
     if [[ $? == "0" ]]; then 
         SCREENS=$(screen -ls)
 		if [[ $? == "1" ]]; then
@@ -403,7 +403,7 @@ function cpu-features() {
 	fi
 
 	# -- Check if lscpu is installed
-	_cexists lscpu
+	_cmd_exists lscpu
 	if [[ $? == "1" ]]; then
 		_error "lscpu not installed"
 		return 1
@@ -432,27 +432,31 @@ function cpu-features() {
 # --------------------------------------------------
 help_linux[get-os-install-date]='Get the date the OS was installed'
 function get-os-install-date {
-	local root_device creation_time
+	local creation_time INSTALL_ROOT_DEVICE=$(df -h / | awk 'NR==2 {print $1}')
+	local INSTALL_DATE INSTALL_METHOD INSTALL_DATE2 INSTALL_METHOD2
+	# -- Method 1
+	INSTALL_DATE=$(\ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
+    INSTALL_METHOD="Linux ls -lct --time-style=full-iso /"
 
-    # Find the root file system device
-    local root_device=$(df -h / | awk 'NR==2 {print $1}')
+	# -- Convert date to MM-DD-YYYY
+	INSTALL_DATE=$(echo $INSTALL_DATE | awk '{print $1}' | awk -F- '{print $2"-"$3"-"$1}')	
 
-    # Check if the device is found
-    if [[ -z "$root_device" ]]; then
-        echo "Root device not found."
-        return 1
-    fi
+	echo "\$INSTALL_DATE: $INSTALL_DATE | \$INSTALL_METHOD: $INSTALL_METHOD"
 
+	# -- Method 2	
+    [[ -z "$INSTALL_ROOT_DEVICE" ]] && { echo "Root device not found."; return 1 }
+    
     # Use dumpe2fs to get the filesystem creation time
-    local creation_time=$(sudo dumpe2fs -h $root_device 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
+    local INSTALL_DATE2=$(sudo dumpe2fs -h $INSTALL_ROOT_DEVICE 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
 
     # Check if dumpe2fs was successful
-    if [[ -z "$creation_time" ]]; then
-        echo "Could not determine filesystem creation time for $root_device."
+    if [[ -z "$INSTALL_DATE2" ]]; then
+        echo "Could not determine filesystem creation time for $INSTALL_ROOT_DEVICE."
         return 2
     fi
 
-    echo "$root_device: $creation_time"
-	INSTALL_DATE2="$creation_time"
+	# -- Convert date Wed Apr 10 12:35:05 2019 to MM-DD-YYYY	
+	INSTALL_DATE2=$(echo $INSTALL_DATE2 | awk '{print $2"-"$3"-"$5}' | date -f - +%m-%d-%Y)
+    echo "\$INSTALL_DATE2: $INSTALL_DATE2 | \$INSTALL_ROOT_DEVICE: $INSTALL_ROOT_DEVICE: | \$INSTALL_METHOD2=dumpe2fs -h $INSTALL_ROOT_DEVICE"
 }
 

@@ -29,7 +29,7 @@ function wsl-fixscreen () {
 help_wsl[wsl-fixes]='Fix issues under WSL'
 function wsl-fixes () {
 	# -- Fix traceroute on WSL
-	_cexists traceroute
+	_cmd_exists traceroute
 	if [[ $? -eq 0 ]]; then
 		_debug " -- traceroute already installed"
 	else
