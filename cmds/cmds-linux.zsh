@@ -162,6 +162,17 @@ sysr () {
         systemctl restart "$@"
     fi
 }
+# -- syss
+help_linux[syss]='Systemctl status shortcut'
+syss () {
+	if [[ -z $@ ]]; then
+		echo "systemctl status - Usage: syss [service]"
+		return 1
+	else
+	    _noticebg "systemctl status $@"
+        systemctl status "$@"
+    fi
+}
 
 # -- sysrld
 help_linux[sysrld]='Systemctl reload shortcut'
