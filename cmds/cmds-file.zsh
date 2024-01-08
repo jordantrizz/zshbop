@@ -83,3 +83,43 @@ help_file[find-empty-dirs]="Find empty directories"
 function find-empty-dirs () {
     find . -type d -empty
 }
+
+# -- super-chown
+help_file[super-chown]="Change ownership of files and directories"
+function super-chown () {
+    _loading "Here are some good examples"
+
+    echo="
+    fixHomeOwnership() {
+        for dir in /home/*; do
+            if [[ -d $dir ]]; then
+                # Extract the username from the directory path
+                user=$(basename "$dir")
+
+                # Change the ownership of the directory
+                echo "Changing ownership of $dir to $user"
+                chown -R $user:$user "$dir"
+            fi
+        done
+    }
+    "
+
+    echo="
+    fixHomeOwnershipBasedOnCurrent() {
+        for dir in /home/*; do
+            if [[ -d $dir ]]; then
+                # Get the current owner of the directory
+                owner=$(ls -ld "$dir" | awk '{print $3}')
+
+                # Get the group of the directory
+                group=$(ls -ld "$dir" | awk '{print $4}')
+
+                # Apply the ownership recursively
+                echo "Setting ownership of $dir to $owner:$group"
+                chown -R $owner:$group "$dir"
+            fi
+        done
+    }
+    "
+
+}

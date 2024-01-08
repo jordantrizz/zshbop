@@ -313,6 +313,7 @@ ubuntu-lts () {
 # -- Screen sessions
 help_linux[screen-sessions]="Display screen sessions"
 screen-sessions () {
+	local SSESSIONS_OUTPUT SSESSIONS
 	# -- Check if on WSL
 	if [[ $MACHINE_OS2 == "wsl" && ! -d "/run/screen" ]]; then
 		_loading3 "Detect wsl, running wsl-screen fix"	
@@ -328,11 +329,13 @@ screen-sessions () {
         elif [[ $SCREENS == *"No Sockets found in"* ]]; then
             echo "No screen sessions found"		
         else
-            [[ $MACHINE_OS == "linux" ]] && { echo $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g') }
-            if [[ $MACHINE_OS == "mac" ]]; then
+            if [[ $MACHINE_OS == "linux" ]]; then
+				SSESSIONS_OUTPUT=$(echo $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g'))
+			elif [[ $MACHINE_OS == "mac" ]]; then
                 SSESIONS=$(_remove_last_line "$(_remove_last_line "$(screen -ls)")")
-                echo $SSESIONS | awk ' NR>1 { print $1 " " $4 }' | tr '\n' '#' | sed 's/#/|| /g'
+                SSESSIONS_OUTPUT=$(echo $SSESIONS | awk ' NR>1 { print $1 " " $4 }' | tr '\n' '#' | sed 's/#/|| /g')
             fi
+			echo "Screen Sessions $SSESSIONS_OUTPUT"
         fi
     else		
         _error "Screen not installed"		

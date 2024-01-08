@@ -584,6 +584,7 @@ init_motd () {
     # -- Check system cpu/mem/disk  
     _loading "Checking system hardware"
     zshbop_check-system
+    echo ""
     
     # -- Check System
     _loading "Checking System"
