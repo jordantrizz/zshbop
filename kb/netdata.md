@@ -5,6 +5,9 @@
 ## Uninstall netdata
 * ```/usr/libexec/netdata/netdata-uninstaller.sh --yes```
 
+## Uninstall Everything Netdata
+```sudo wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --uninstall --non-interactive```
+
 ## Update netdata
 * ```wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --dry-run```
 
