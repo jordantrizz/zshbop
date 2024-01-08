@@ -387,44 +387,6 @@ view-std () {
 	fi
 }
 
-# --------------------------------------------------
-# -- cpu-features
-# --------------------------------------------------
-help_linux[cpu-features]='Display CPU features'
-function cpu-features() {
-	# -- Warn running in WSL
-	if [[ $MACHINE_OS2 == "wsl" ]]; then
-		_warning "Running in WSL, some features may not be available"
-	fi
-
-	# -- Check if in VM
-	if [[ $MACHINE_OS2 == "vm" ]]; then
-		_warning "Running in VM, some features may not be available"
-	fi
-
-	# -- Check if lscpu is installed
-	_cmd_exists lscpu
-	if [[ $? == "1" ]]; then
-		_error "lscpu not installed"
-		return 1
-	fi
-
-    # List of important CPU instructions and features
-    local features=("sse" "avx" "fma" "aes" "vt-x" "amd-v" "mmx" "x86-64" "turbo boost" "hyper-threading" "simultaneous multithreading" "neon")
-
-    # Use lscpu if available, otherwise fall back to /proc/cpuinfo
-    local cpu_info="$(command -v lscpu > /dev/null && lscpu || cat /proc/cpuinfo)"
-
-    echo "Checking CPU features..."
-
-    for feature in "${features[@]}"; do
-        if echo "$cpu_info" | grep -iq "$feature"; then
-            _success "Feature $feature: Supported"
-        else
-            _error "Feature $feature: Not Supported"
-        fi
-    done
-}
 
 help_linux[get-os-install-date]='Get the date the OS was installed'
 alias get-os-install-date="_get_os_install_date"

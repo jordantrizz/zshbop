@@ -23,9 +23,17 @@ alias disk="lsblk"
 help_system[yabs]='Run yabs'
 alias yabs="yabs.sh"
 
-# -- cpu
+# ----------------------------------------
+# -- cpu - Get CPU information and features
+# -- args: $CPU_FEATURES (default: 1) $QUIET (default: 0)
+# ----------------------------------------
 help_system[cpu]='CPU Information'
 function cpu () {
+    local CPU_FEATURES=${1:=1} CPU_QUEIT=${2:=0}    
+
+    [[ $CPU_QUEIT == 0 ]] && _loading "Checking CPU and CPU Features" 
+    [[ $CPU_FEATURES == "" ]] && CPU_FEATURES="1"
+
     # -- FreeBSD
     if [[ $MACHINE_OS == "freebsd" ]]; then
         mhz=$(sysctl -n hw.cpufrequency | awk '{print $1/1000000}')
@@ -55,7 +63,58 @@ function cpu () {
         _error "system-specs not implemented for $MACHINE_OS" 0
         return 1
     fi
+    if [[ $CPU_FEATURES == "1" ]]; then
+        cpu-features $CPU_QUEIT
+    fi
 }
+
+# -- Check if CPU support
+function cpu-features() {
+    local OUTPUT="CPU Features:"        
+    # -- Warn running in WSL
+    if [[ $MACHINE_OS2 == "wsl" ]]; then
+        OUTPUT+=$(_warning "Running in WSL")
+    fi
+
+    # -- Check if in VM
+    if [[ $MACHINE_OS2 == "vm" ]]; then
+        OUTPUT+=$(_warning "Running in VM")
+    fi
+
+    # -- Check if lscpu is installed
+    _cmd_exists lscpu
+    if [[ $? == "1" ]]; then
+        _error "lscpu not installed"
+        return 1
+    fi
+
+    # List of important CPU instructions and features
+    local FEATURES=("sse" "avx" "fma" "aes" "vt-x" "amd-v" "mmx")
+    local FEATURE_ERROR=("avx" "aes" "amd-v" "vt-x")
+
+    # Use lscpu if available, otherwise fall back to /proc/cpuinfo
+    local cpu_info="$(command -v lscpu > /dev/null && lscpu || cat /proc/cpuinfo)"
+
+    for feature in "${FEATURES[@]}"; do        
+        
+        if echo "$cpu_info" | grep -iq "$feature"; then
+            OUTPUT+=$(_success "$feature not available")
+        else                    
+            if _inarray $feature 0 "${FEATURE_ERROR[@]}"; then
+                OUTPUT+=$(_error "$feature not available")
+            else
+                OUTPUT+=$(_warning "$feature not available" )
+            fi
+        fi
+    done
+
+    # -- Format output 
+    echo "$OUTPUT"
+
+    # TODO check if CPU supports AES-NI
+    # TODO check if CPU supports turbo boost AMD/INTEL
+}
+
 
 # -- mem
 help_system[mem]='Get memory information'
