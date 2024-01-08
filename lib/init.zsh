@@ -577,16 +577,17 @@ init_motd () {
     sysfetch-motd
 
     # -- sysinfo
-    _loading3 $(cpu)
+    _loading3 $(cpu 0 1)
+    _loading3 $(cpu-features 1)
     _loading3 $(mem)
 
-    # -- system-details    
+    # -- Check system cpu/mem/disk  
+    _loading "Checking system hardware"
     zshbop_check-system
-    echo ""
-
+    
     # -- Check System
     _loading "Checking System"
-    _loading3 $(os-short)
+    _loading3 $(os-short)    
 	init_check_services
     init_check_software    
     software-raid-check
