@@ -35,7 +35,7 @@ function software-raid-check () {
 
     # If there are no RAIDs, report back
     if [[ ${#raids} -eq 0 ]]; then
-        _error "No software RAID devices found."
+        _warning "No software RAID devices found."
         return 0
     fi
 

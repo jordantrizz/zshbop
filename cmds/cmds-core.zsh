@@ -14,28 +14,27 @@ help_core[os]='Return OS'
 function os () {
   echo "\$MACHINE_OS: $MACHINE_OS | \$MACHINE_OS2: $MACHINE_OS2"
   echo "\$MACHINE_OS_FLAVOUR: $MACHINE_OS_FLAVOUR | \$MACHINE_OS_VERSION:$MACHINE_OS_VERSION"
+  echo "-------------------"
   echo "\$OSTYPE: $OSTYPE"
   if [[ $VMTYPE ]] then
     echo "\$VMTYPE: $VMTYPE"
   else
     echo "\$VMTYPE: Not set"
-  fi 
-  echo "\$INSTALL_DATE: $INSTALL_DATE | \$INSTALL_METHOD: $INSTALL_METHOD"
-  echo "\$INSTALL_DATE2: $INSTALL_DATE2 | \$INSTALL_METHOD2: $INSTALL_METHOD2"
+  fi
+  echo "-------------------"
+  echo "\$OS_INSTALL_DATE: $OS_INSTALL_DATE | \$OS_INSTALL_METHOD: $OS_INSTALL_METHOD"
+  echo "\$OS_INSTALL_DATE2: $OS_INSTALL_DATE2 | \$OS_INSTALL_METHOD2: $OS_INSTALL_METHOD2"
 }
 
 # -- os - return os
 help_core[os]='Return OS'
 function os-short () {
-  echo "\$MACHINE_OS: $MACHINE_OS | \$MACHINE_OS2: $MACHINE_OS2 | \$MACHINE_OS_FLAVOUR: $MACHINE_OS_FLAVOUR | \$MACHINE_OS_VERSION:$MACHINE_OS_VERSION"
-  echo "\$OSTYPE: $OSTYPE"
+  local OUTPUT
+  OUTPUT+="OS: $MACHINE_OS/${MACHINE_OS2}/$OSTYPE Flavour:${MACHINE_OS_FLAVOUR}/${MACHINE_OS_VERSION} Install Date: $OS_INSTALL_DATE"  
   if [[ $VMTYPE ]] then
-    echo "\$VMTYPE: $VMTYPE"
-  else
-    echo "\$VMTYPE: Not set"
+    OUTPUT+=" VM: $VMTYPE" 
   fi 
-  echo "\$INSTALL_DATE: $INSTALL_DATE | \$INSTALL_METHOD: $INSTALL_METHOD"
-  echo "\$INSTALL_DATE2: $INSTALL_DATE2 | \$INSTALL_METHOD2: $INSTALL_METHOD2"
+  echo $OUTPUT
 }
 
 

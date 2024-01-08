@@ -426,37 +426,5 @@ function cpu-features() {
     done
 }
 
-
-# --------------------------------------------------
-# -- get-intsall-date
-# --------------------------------------------------
 help_linux[get-os-install-date]='Get the date the OS was installed'
-function get-os-install-date {
-	local creation_time INSTALL_ROOT_DEVICE=$(df -h / | awk 'NR==2 {print $1}')
-	local INSTALL_DATE INSTALL_METHOD INSTALL_DATE2 INSTALL_METHOD2
-	# -- Method 1
-	INSTALL_DATE=$(\ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
-    INSTALL_METHOD="Linux ls -lct --time-style=full-iso /"
-
-	# -- Convert date to MM-DD-YYYY
-	INSTALL_DATE=$(echo $INSTALL_DATE | awk '{print $1}' | awk -F- '{print $2"-"$3"-"$1}')	
-
-	echo "\$INSTALL_DATE: $INSTALL_DATE | \$INSTALL_METHOD: $INSTALL_METHOD"
-
-	# -- Method 2	
-    [[ -z "$INSTALL_ROOT_DEVICE" ]] && { echo "Root device not found."; return 1 }
-    
-    # Use dumpe2fs to get the filesystem creation time
-    local INSTALL_DATE2=$(sudo dumpe2fs -h $INSTALL_ROOT_DEVICE 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
-
-    # Check if dumpe2fs was successful
-    if [[ -z "$INSTALL_DATE2" ]]; then
-        echo "Could not determine filesystem creation time for $INSTALL_ROOT_DEVICE."
-        return 2
-    fi
-
-	# -- Convert date Wed Apr 10 12:35:05 2019 to MM-DD-YYYY	
-	INSTALL_DATE2=$(echo $INSTALL_DATE2 | awk '{print $2"-"$3"-"$5}' | date -f - +%m-%d-%Y)
-    echo "\$INSTALL_DATE2: $INSTALL_DATE2 | \$INSTALL_ROOT_DEVICE: $INSTALL_ROOT_DEVICE: | \$INSTALL_METHOD2=dumpe2fs -h $INSTALL_ROOT_DEVICE"
-}
-
+alias get-os-install-date="_get_os_install_date"

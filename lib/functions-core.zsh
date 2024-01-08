@@ -299,3 +299,55 @@ function remove-ansi () {
   #sed -E "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g"
   sed -e 's/\x1b\[[0-9;]*m//g'
 }
+
+
+# --------------------------------------------------
+# -- _get-os-install-date $ECHO_OUTPUT
+# --------------------------------------------------
+help_corefunc[_get-os-install-date]='Get and set OS_INSTALL variables'
+function _get-os-install-date {
+	[[ -n $1 ]] && ECHO_OUTPUT="$1" || ECHO_OUTPUT="1"
+	local OS_INSTALL_ROOT_DEVICE=$(df -h / | awk 'NR==2 {print $1}')
+	# -- Method 1
+	OS_INSTALL_DATE=$(\ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
+    OS_INSTALL_METHOD="Linux ls -lct --time-style=full-iso /"
+
+	# -- Convert date to MM-DD-YYYY
+	OS_INSTALL_DATE=$(echo $OS_INSTALL_DATE | awk '{print $1}' | awk -F- '{print $2"-"$3"-"$1}')	
+	
+	# -- Method 2	
+    _checkroot
+	if [[ $? == "1" ]]; then
+		OS_INSTALL_METHOD2="Root access required to run INSTALL_METHOD2"
+		export OS_INSTALL_METHOD2
+	else
+		[[ -z "$OS_INSTALL_ROOT_DEVICE" ]] && { _error "Root device not found.";export OS_INSTALL_ROOT_DEVICE="Can't find root device"; return 1 }
+		OS_INSTALL_METHOD2="dumpe2fs -h $OS_INSTALL_ROOT_DEVICE"
+    
+		# Use dumpe2fs to get the filesystem creation time
+		local OS_INSTALL_DATE2=$(sudo dumpe2fs -h $OS_INSTALL_ROOT_DEVICE 2>/dev/null | grep 'Filesystem created:' | cut -d ':' -f2-)
+
+		# Check if dumpe2fs was successful
+		if [[ -z "$OS_INSTALL_DATE2" ]]; then
+			echo "Could not determine filesystem creation time for $OS_INSTALL_ROOT_DEVICE."
+			return 2
+		fi
+
+		# -- Convert date Wed Apr 10 12:35:05 2019 to MM-DD-YYYY	
+		OS_INSTALL_DATE2=$(echo $OS_INSTALL_DATE2 | awk '{print $2"-"$3"-"$5}' | date -f - +%m-%d-%Y)		
+	fi
+
+	if [[ $ECHO_OUTPUT == "1" ]]; then
+		_loading "Getting OS install date..."
+		echo "\$INSTALL_DATE: $OS_INSTALL_DATE | \$INSTALL_METHOD: $OS_INSTALL_METHOD"
+		echo "\$INSTALL_DATE2: $OS_INSTALL_DATE2 | \$INSTALL_ROOT_DEVICE: $OS_INSTALL_ROOT_DEVICE: | \$OS_INSTALL_METHOD2: $OS_INSTALL_METHOD2"	
+	fi
+
+	
+	export OS_INSTALL_DATE
+	export OS_INSTALL_METHOD
+	export OS_INSTALL_DATE2
+	export OS_INSTALL_METHOD2
+	export OS_INSTALL_ROOT_DEVICE
+
+}

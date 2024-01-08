@@ -127,19 +127,10 @@ init_detectos () {
 
     # -- Install Date
     if [[ $MACHINE_OS == "mac" ]]; then
-        INSTALL_DATE=$(stat -f "%Sm" -t "%Y-%m-%d" /var/db/.AppleSetupDone)
-        INSTALL_METHOD="macOS stat /var/db/.AppleSetupDone"
-    elif [[ $MACHINE_OS == "linux" ]]; then
-        INSTALL_DATE=$(\ls -lct --time-style=full-iso / | tail -1 | awk '{print $6, $7}')
-        INSTALL_METHOD="Linux ls -lct --time-style=full-iso /"
-    
-        _checkroot
-        if [[ $? == "0" ]]; then
-            INSTALL_DATE2="Run get-os-install-date requires root"
-        else
-            get-os-install-date
-            INSTALL_METHOD2="Linux dumpe2fs -h $root_device"
-        fi
+        OS_INSTALL_DATE=$(stat -f "%Sm" -t "%Y-%m-%d" /var/db/.AppleSetupDone)
+        OS_INSTALL_METHOD="macOS stat /var/db/.AppleSetupDone"
+    elif [[ $MACHINE_OS == "linux" ]]; then        
+        _get-os-install-date 0
     fi
 }
 
@@ -444,12 +435,10 @@ function init_app_config () {
 }
 
 # ==============================================
-# -- init_checklist
+# -- init_checklist - Check services and software
 # ==============================================
 init_check_software () {
-	# -- Check services and software
-
-    # -- check if atop is installed
+	# -- check if atop is installed
     if _cmd_exists atop; then 
         # -- check if atop is running using ps and pgrep
         pgrep atop >> /dev/null && _success "atop installed and running" 0 || _warning "atop installed but not running, if this is a server install it" 0
@@ -594,24 +583,14 @@ init_motd () {
     # -- system-details    
     zshbop_check-system
     echo ""
-    
-    # -- Show screen sessions
-    _loading "Checking Screen Sessions"
-    screen-sessions
-    echo ""    
 
-    # -- Check software
-	init_check_software
-    echo ""
-	
-	# -- Check service software versions 
-    _loading "Checking Service Versions"
+    # -- Check System
+    _loading "Checking System"
+    _loading3 $(os-short)
 	init_check_services
-    echo ""
-
-    # -- Check raid
-    _loading "Checking RAID"
+    init_check_software    
     software-raid-check
+    screen-sessions
     echo ""
 
     # -- Load motd
@@ -641,24 +620,31 @@ init_motd () {
 function init_zshbop () {
     _log "${funcstack[1]}:start"
 
+    # --------------------------------------------------
 	# -- Start init
+    # --------------------------------------------------
 	_debug_all
     echo "$bg[yellow]$fg[black] * Initilizing zshbop${RSC} - $(zshbop_version)"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
+    # --------------------------------------------------
     # -- Init zshbop
-    init_core
+    # --------------------------------------------------
+    init_core # -- Init core functionality
     if [[ $ZSHBOP_RELOAD == "1" ]]; then
         _loading3 "Loading includes...." 
         init_include        # -- Include files
     fi
     init_detectos        # -- Detect operating system
+    init_zbr_cmds        # -- Include commands
+    # --------------------------------------------------
+    # -- Include Commands First as a dependency for all below commands.
+    # --------------------------------------------------    
     init_checks          # -- Init checks
     zsh-check-version    # -- Check zsh
     init_path            # -- Set paths
     init_home_bin        # -- Check if home bin exists	
-	init_pkg_manager     # -- Init package manager 
-    init_zbr_cmds        # -- Include commands
+	init_pkg_manager     # -- Init package manager     
     init-app-config      # -- Common application configuration
   	if [[ $ZSHBOP_RELOAD == "0" ]]; then
         init_omz_plugins     # -- Init OhMyZSH plugins
@@ -671,8 +657,8 @@ function init_zshbop () {
     init_zsh_sweep       # -- Init zsh-sweep if installed    
     init_sshkeys         # -- Init ssh keys
     init_kb              # -- Init Knowledge Base
-    # -- Check if init_custom_startup is defined as a function and then execute it
     
+    # -- Check if init_custom_startup is defined as a function and then execute it    
     _debug "Checking if init_custom_startup is defined as a function"
     if whence -f init_custom_startup > /dev/null; then
         _debug "init_custom_startup is defined"
