@@ -111,7 +111,7 @@ web_log_1m_redirects
 ```
 # Common Tasks
 ## Change Hostname
-1. Edit netdata.conf (usually found in /etc/netdata )
+1. Edit netdata.conf (usually found in /etc/netdata /opt/netdata)
 2. Add hostname="ENTER_NEW_NODE_NAME" under [global]
 3. Restart netdata with sudo systemctl restart netdata or the relevant command for your system.
 
