@@ -24,10 +24,10 @@ _banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
 _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
 _banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
 # -- loading
-_loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
-_loading2 () { echo "$bg[bright-grey]$fg[black] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
-_loading3 () { echo "$fg[bright-grey] *** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG})}
-_loading4 () { echo "$fg[bright-grey] **** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${SCRIPT_LOG}) }
+_loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
+_loading2 () { echo "$bg[bright-grey]$fg[black] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
+_loading3 () { echo "$fg[bright-grey] *** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG})}
+_loading4 () { echo "$fg[bright-grey] **** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
 alias _loading_grey=_loading2
 # -- dividers
 _divider_white () { echo "$fg[black]$bg[white]                 $@               ${RSC}" }
@@ -161,8 +161,8 @@ function _cmd_exists () {
 help_corefunc[_checkroot]="Check if running as root"
 _checkroot () {
         _debug_all
-    if [[ $EUID -ne 0 ]]; then
-        _error "Requires root...exiting."
+    if [[ $EUID -ne 0 ]]; then        
+        zb_logger "ERROR" 0 "Requires root...exiting - $funcstack"
         return 1
     else
         _debug "Running as root"
@@ -172,24 +172,54 @@ _checkroot () {
 
 # =========================================================
 # -- _if_marray - if in array.
-# -- _if_marray "$NEEDLE" HAYSTACK
+# -- _if_marray "$NEEDLE" $HAYSTACK[@] TEST
 # -- must use quotes, second argument is array without $
 # =========================================================
 help_corefunc[_if_marray]="Check if value is in array"
 _if_marray () {
-        MARRAY_VALID=1
-        _debug "$funcstack[1] - find value = $1 in array = $2"
-        for value in ${(k)${(P)2[@]}}; do
-                _debug "$funcstack[2] - array=$2 \$value = $value"
-                if [[ $value == "$1" ]]; then
-                        _debug "$funcstack[1] - array $2 does contain $1"
-                        MARRAY_VALID="0"
-                else
-                        _debug "$funcstack[1] - array $2 doesn't contain $1"
-                fi
-        done
-        _debug "MARRAY_VALID = $MARRAY_VALID"
-        if [[ MARRAY_VALID == "1" ]]; return 0
+    local NEEDLE=$1 HAYSTACK=$2
+    MARRAY_VALID=1
+    _debug "$funcstack[1] - find value = $NEEDLE in array = $HAYSTACK"
+    for value in ${(k)${(P)HAYSTACK[@]}}; do
+            _debug "$funcstack[2] - array=$HAYSTACK \$value = $value"
+            if [[ $value == "$NEEDLE" ]]; then
+                    _debug "$funcstack[1] - array $HAYSTACK does contain $VALUE"
+                    MARRAY_VALID="0"
+            else
+                    _debug "$funcstack[1] - array $HAYSTACK doesn't contain $VALUE"
+            fi
+    done
+    _debug "MARRAY_VALID = $MARRAY_VALID"
+    if [[ MARRAY_VALID == "1" ]] &&  return 1 || return 0
+}
+
+# =========================================================
+# -- _inarray - if in array.
+# -- _inarray $NEEDLE $DEBUG_OUTPUT "$HAYSTACK[@]""
+# -- returns - 0 if in array, 1 if not in array
+# --
+# -- Example: if _inarray $feature 0 "${FEATURE_ERROR[@]}"; then
+# =========================================================
+help_corefunc[_inarray]="Check if value is in array"
+_inarray () {    
+    local NEEDLE=$1 DEBUG_OUTPUT=$2 HAYSTACK=()
+    shift;shift
+    HAYSTACK=(${*})
+    MARRAY_VALID=1
+    [[ $DEBUG_OUTPUT == "1" ]] && DEBUGF="1"
+    _debugf "$funcstack[1] - find \$VALUE = $NEEDLE in array = ${HAYSTACK[@]}"
+    for VALUE in "${HAYSTACK[@]}"; do
+        if [[ $VALUE == "$NEEDLE" ]]; then
+                _debugf "$funcstack[1] - \$VALUE = $VALUE \$NEEDLE = $NEEDLE is in array = ${HAYSTACK[@]} !!!"
+                MARRAY_VALID="0"
+        else
+                _debugf "$funcstack[1] - \$VALUE = $VALUE \$NEEDLE = $NEEDLE is not in array = ${HAYSTACK[@]}"            
+        fi
+    done
+    _debugf "MARRAY_VALID = $MARRAY_VALID"
+    [[ $DEBUG_OUTPUT == "1" ]] && DEBUGF="0"
+    [[ $MARRAY_VALID == "0" ]] && return 0 
+    [[ $MARRAY_VALID == "1" ]] && return 1
 }
 
 # --------------------------------
