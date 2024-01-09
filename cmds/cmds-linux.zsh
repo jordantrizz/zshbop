@@ -334,11 +334,11 @@ screen-sessions () {
     _cmd_exists screen 
     if [[ $? == "0" ]]; then 
         SCREENS=$(screen -ls)
-		if [[ $? == "1" ]]; then
+		if [[ $SCREENS == *"No Sockets found in"* ]]; then
+            _warning "No screen sessions found"		
+		elif [[ $? == "1" ]]; then
 			SCREENS=$(echo $SCREENS | tr -d '\r')
-			_error "$SCREENS"
-        elif [[ $SCREENS == *"No Sockets found in"* ]]; then
-            echo "No screen sessions found"		
+			_error "Screen error - $SCREENS"        
         else
             if [[ $MACHINE_OS == "linux" ]]; then
 				SSESSIONS_OUTPUT=$(echo $(screen -ls | head -n -1 | awk ' NR>1 { print $1 " " $5 }' | tr '\n' '#' | sed 's/#/ || /g'))
