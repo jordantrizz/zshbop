@@ -24,6 +24,7 @@ typeset -gA help_core
 typeset -gA help_zshbop
 typeset -gA help_zshbop_quick
 typeset -gA help_checks
+typeset -gA help_custom # -- Set help_custom for custom help files
 
 # -- System settings
 umask 022
@@ -58,12 +59,7 @@ export REPOS_DIR="$ZSHBOP_ROOT/repos"
 export RUN_REPORT="0"
 export ZSHBOP_RELOAD="0"
 typeset -a ZSHBOP_UPDATE_GIT=()
-
-# -- zshbop git
-export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
-
-# -- Associative Arrays
-typeset -gA help_custom # -- Set help_custom for custom help files
+export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository 
 
 # -- Required Software
 REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
@@ -79,7 +75,6 @@ OPTIONAL_SOFTWARE+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
 EXTRA_SOFTWARE=('fzf' 'shellcheck' 'npm' 'golang-go' 'aspell-en' 'ngxtop')
 EXTRA_SOFTWARE+=('apt-select' 'semgrep' 'mosh' 'keychain' 'gh' 'pwgen')
 EXTRA_SOFTWARE+=('python3' 'python3-pip' 'php-cli')
-
 
 # -- Take $EDITOR run it through alias and strip it down
 EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
@@ -142,9 +137,11 @@ ZSH_DEBUG="0"
 DEBUG_MSG=""
 DEBUGF_MSG=""
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
-_debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$ZB_LOG"; } || { echo "$DEBUG_MSG" >> "$ZB_LOG"; } } # -- debug for core
+#_debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$ZB_LOG"; } || { echo "$DEBUG_MSG" >> "$ZB_LOG"; } } # -- debug for core
+_debug () { [[ $ZSH_DEBUG == 1 ]] && { zb_logger "DEBUG" 1 "$@"; } || { zb_logger "DEBUG" 0 "$@" } } # -- debug for core
 _debugf () { DEBUGF_MSG="\033[36m** [DEBUG]: $@\033[0m"; [[ $DEBUGF == 1 ]] && { echo $DEBUGF_MSG | tee -a "$ZB_LOG"; } || { echo "$DEBUGF_MSG" >> "$ZB_LOG"; } } # -- debugf for debugging third party scripts
 _debug_load () { _debug "Loading $funcstack" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) } # -- debug load
+
 # -- _debug_all instead of _debug_function
 _debug_all () {
         _debug "--------------------------"
@@ -172,7 +169,7 @@ _elog () { _log "${*}"; _error "${*}" }
 
 # --------------------------------------------------
 # -- zshbop_log
-# -- args: $1 - type, $2 - echo, $3 - message
+# -- args: $1 = LOG_TYPE, $2 - LOG_ECHO = 1, $3 - LOG_MSG
 # --------------------------------------------------
 function zb_logger() {
     local LOG_TYPE="${1:=LOG}" LOG_ECHO=${2:=1} LOG_MSG="${3}"
