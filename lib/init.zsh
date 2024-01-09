@@ -639,6 +639,7 @@ function init_zshbop () {
     fi
     init_detectos        # -- Detect operating system
     init_zbr_cmds        # -- Include commands
+    init_help            # -- Load help
     # --------------------------------------------------
     # -- Include Commands First as a dependency for all below commands.
     # --------------------------------------------------    
