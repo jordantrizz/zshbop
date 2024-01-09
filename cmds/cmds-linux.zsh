@@ -348,7 +348,7 @@ screen-sessions () {
                 SSESIONS=$(_remove_last_line "$(_remove_last_line "$(screen -ls)")")
                 SSESSIONS_OUTPUT=$(echo $SSESIONS | awk ' NR>1 { print $1 " " $4 }' | tr '\n' '#' | sed 's/#/|| /g')
             fi
-			echo "$(_loading2 "Screen Sessions:) $(_loading3b $SSESSIONS_OUTPUT)"
+			echo "$(_loading2 Screen Sessions:) $(_loading3b $SSESSIONS_OUTPUT)"
         fi
     else		
         _error "Screen not installed"		
