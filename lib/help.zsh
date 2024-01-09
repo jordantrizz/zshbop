@@ -42,14 +42,16 @@ get_category_commands () {
         echo ${ALL_HELP_COMMANDS[@]}
 	elif [[ -z ${(P)HELP_CAT} ]]; then
         _debug "\${(P)HELP_CAT}: ${(P)HELP_CAT}"
-        _error "No command category $ACTION, try running kb $ACTION"
+        _loading "-- $ACTION - Core --------"
+        _error "No command or category $ACTION, try running kb $ACTION"
         echo ""
-        echo "Potential Matches"    
+        _loading2 "Potential Matches"    
         for key in ${(kon)ALL_HELP_COMMANDS}; do
             if [[ $key == *"$ACTION"* ]]; then
                 echo "$key"
             fi
         done
+        echo ""
 	else
 		_loading "-- $ACTION -------- $help_files[${ACTION}] --------"
         echo ""
@@ -62,23 +64,32 @@ get_category_commands () {
 
 # -- get_category_commands_custom ($category)
 function get_category_commands_custom () {
-    if [[ $cmdsc_files[$HCMD] ]]; then
-        CMDSC_CMDS=(cmdsc_$HCMD)
+    local ACTION=$1
+    if [[ $cmdsc_files[$ACTION] ]]; then
+        CMDSC_CMDS=(cmdsc_$ACTION)
         echo ""
-        _loading2 "-- $HCMD - Custom - $cmdsc_files[$HCMD] --------"
+        _loading2 "-- $ACTION - Custom - $cmdsc_files[$ACTION] --------"
         echo ""
         for key in ${(kon)${(P)CMDSC_CMDS}}; do
             printf '%s\n' "  ${(r:25:)key} - ${${(P)CMDSC_CMDS}[$key]}"
         done
         echo ""
-    elif [[ $HCMD == "auto" ]]; then
+    elif [[ $ACTION == "auto" ]]; then
         echo ${ALL_HELP_CATEGORIES_CUSTOM[@]}
     elif [[ $ACTION == "auto-cmd" ]]; then
         echo ${ALL_HELP_COMMANDS_CUSTOM[@]}
     else
-        _error "No custom command category $HCMD, try running kb $HCMD"
+        _loading "-- $ACTION - Custom --------"
+        _error "No custom command or category $ACTION, try running kb $ACTION"
         echo ""
+        _loading2 "Potential Matches"    
+        for key in ${(kon)ALL_HELP_COMMANDS_CUSTOM}; do
+            if [[ $key == *"$ACTION"* ]]; then
+                echo "$key"
+            fi
+        done
 		return
+        echo ""
     fi
 }
 
