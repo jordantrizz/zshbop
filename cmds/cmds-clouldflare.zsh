@@ -117,12 +117,15 @@ function cf-check() {
         echo "  -f  <file> - Check a file of domains"
         echo "  -c  - Output CSV"
         echo "  -co - Output CSV only"
+        echo "  -e  - Export to CSV <file>.csv with headers"
     }
 
     function _cf_check_domain () {
         local DIG_OUT WHOIS_OUT SUB_DOMAIN REAL_DOMAIN 
         local DIG_OUT_RESOLVES DIG_OUT_NS DIG_OUT_WWW
         local DOMAIN="$1"
+
+        cfr_domain="$DOMAIN"
                 
         # -- Check if domain is proxied through Cloudflare
         _loading2 "Checking if $DOMAIN is proxied through Cloudflare"
@@ -185,25 +188,25 @@ function cf-check() {
             cfr_cfwhoisdigns_match=0
         fi
 
-        # -- Does $DOMAIN resolve?        
+        # -- Does apex $DOMAIN resolve?        
         DIG_OUT_RESOLVES=($(dig +short $DOMAIN))
         cfr_digresolves_out="$DIG_OUT_RESOLVES"
         if [[ -n $DIG_OUT_RESOLVES ]]; then
             _success "$DOMAIN resolves - $DIG_OUT_RESOLVES"
-            cfr_digresolves=1
+            cfr_apexresolves=1
         else
             _error "$DOMAIN does not resolve - $DIG_OUT_RESOLVES"
-            cfr_digresolves=0            
+            cfr_apexresolves=0            
         fi
 
         # Check if apex record is proxied    
         for IP in "${DIG_OUT_RESOLVES[@]}"; do
             if cf-ip "$IP" > /dev/null 2>&1; then
                 _success "Apex record is proxied through Cloudflare - $IP"
-                cfr_dnsapex=1
+                cfr_apexcf=1
             else
                 _error "Apex record is not proxied through Cloudflare - $IP"
-                cfr_dnsapex=0
+                cfr_apexcf=0
             fi
         done
 
@@ -221,11 +224,11 @@ function cf-check() {
                 if cf-ip "$IP" > /dev/null 2>&1; then
                     _success "www.$DOMAIN record is proxied through Cloudflare - $IP"
                     cfr_wwwresolves=1
-                    cfr_wwwip="$IP"
+                    cfr_wwwcf="$IP"
                 else
                     _error "www.$DOMAIN record is not proxied through Cloudflare - $IP"
                     cfr_wwwresolves=0
-                    cfr_wwwip="$IP"
+                    cfr_wwwcf="$IP"
                 fi
             done
         fi
@@ -252,15 +255,25 @@ function cf-check() {
             return 1
         fi
 
-        while read DOMAIN; do          
-            _cf_check_domain $DOMAIN        
+        while read DOMAIN; do
+            if [[ -n $CSVEXPORT ]]; then
+                echo "Checking $DOMAIN"
+                _cf_check_domain $DOMAIN >> /dev/null
+            elif [[ -n $CSVOUTPUT ]]; then 
+                echo "Checking $DOMAIN"  
+                _cf_check_domain $DOMAIN >> /dev/null
+            else
+                _cf_check_domain $DOMAIN
+            fi
+            sleep 5
         done < $FILE    
 
     }
 
     function _cf_add_to_csv () {
         local CSV_LINE=""
-        CSV_LINE="$cfr_realdomain,"        
+        CSV_LINE="$cfr_domain,"
+        CSV_LINE+="$cfr_realdomain,"        
         CSV_LINE+="$cfr_subdomain,"
         CSV_LINE+="$cfr_cfnswhois_out,"
         CSV_LINE+="$cfr_cfnswhois,"
@@ -268,25 +281,24 @@ function cf-check() {
         CSV_LINE+="$cfr_cfnsdig,"
         CSV_LINE+="$cfr_cfwhoisdigns_match,"
         CSV_LINE+="$cfr_digresolves_out,"
-        CSV_LINE+="$cfr_digresolves,"
-        CSV_LINE+="$cfr_dnsapex,"
+        CSV_LINE+="$cfr_apexresolves,"
+        CSV_LINE+="$cfr_apexcf,"
         CSV_LINE+="$cfr_wwwresolves,"
-        CSV_LINE+="$cfr_wwwip"            
-        CSV_OUTPUT+="${CSV_LINE}\n" 
-        echo $CSV_OUTPUT       
+        CSV_LINE+="$cfr_wwwcf"            
+        CSV_OUTPUT+="${CSV_LINE}\n"              
     }
     
     function _cf_check_output_csv () {             
-        CSV_HEADER="Domain,Real Domain,Subdomain,WHOIS NS,DIG NS,WHOIS and DIG Match,DIG Resolves,DNS Apex,WWW Resolves,WWW IP"
+        CSV_HEADER="Domain,Real Domain,Subdomain,WHOIS NS,CFWHOIS,DIG NS,CFNS,WHOIS and DIG Match,DIG Resolves Out,Apex Resolves Out,Apex CF,WWW Resolves Out,WWW CF"
         CSV_OUTPUT_FINAL="${CSV_HEADER}\n"
         CSV_OUTPUT_FINAL+="${CSV_OUTPUT}\n"
         echo "$CSV_OUTPUT_FINAL"
     }
 
     local ARG_DOMAIN ARG_FILE CSVOUT CSVONLY DOMAIN FILE HELP
-    zparseopts -D -E c=CSVOUT co=CSVONLY d:=ARG_DOMAIN f:=ARG_FILE h=HELP
+    zparseopts -D -E c=CSVOUT co=CSVONLY d:=ARG_DOMAIN f:=ARG_FILE h=HELP e=CSVEXPORT
 
-    if [[ -n $CSVOUT ]] || [[ -n $CSVONLY ]]; then
+    if [[ -n $CSVOUT ]] || [[ -n $CSVONLY ]] || [[ -n CSVEXPORT ]]; then
         CSV=1
     fi
 
@@ -320,13 +332,18 @@ function cf-check() {
             _cf_check_output_csv
         elif [[ -n $CSVONLY ]]; then
             _loading2 "Outputting CSV Only"
-            _cf_check_file $FILE >> /dev/null
+            _cf_check_file $FILE
             echo ""
             _cf_check_output_csv
+        elif [[ $CSVEXPORT ]]; then
+            _loading2 "Outputting CSV to $FILE.csv"
+            _cf_check_file $FILE
+            echo ""
+            _cf_check_output_csv > $FILE.csv
         else
             _loading "Checking file $FILE"
             _cf_check_file $FILE
-        fi        
+        fi     
     else
         _error "No arguments"
         _cf_check_usage
