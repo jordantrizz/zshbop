@@ -107,128 +107,176 @@ function cf-ip () {
     fi
 }
 
+function _cf_check_parsewhois () {
+    local DOM="$1" DEBUG="$2" WHOIS_OUT_NS WHOIS_OUT first
+    function _cf_check_debug () {
+        local MSG="$1" DATA="$2"      
+        if [[ -n $DEBUG ]]; then
+            echo "--------------------------"
+            echo "DEBUG: $MSG"
+            printf '%q' "$2"
+            echo ""            
+        fi
+    }
+    NS_ARRAY=()
+    WHOIS_OUT_NS_ARRAY=()
+
+    _cf_check_debug "Parsing whois for" $DOM
+    WHOIS_OUT_NS="$(whois $DOM | grep -i "Name Server:" | tr '\n' ' ')"
+    _cf_check_debug "Raw Whois" $WHOIS_OUT_NS
+    
+    WHOIS_OUT_NS="$(echo ${WHOIS_OUT_NS//'Name Server: '/})"
+    _cf_check_debug "Removed Name Server" $WHOIS_OUT_NS
+    WHOIS_OUT_NS_ARRAY=($(echo $WHOIS_OUT_NS))
+    _cf_check_debug "Processed #1 Array" $WHOIS_OUT_NS_ARRAY
+    for NS in "${WHOIS_OUT_NS_ARRAY[@]}"; do                          
+        _cf_check_debug "Processing each record as" $NS
+        # -- Remove Whitespace        
+        NS="${NS##*( )}"
+        _cf_check_debug "Removed Whitespace" $NS
+
+        # -- Lowercase
+        NS="${NS:l}"
+        _cf_check_debug "Lower case" $NS
+        if $first; then
+            NS_ARRAY+=("$NS")
+            first=false
+        else
+            # -- Check if NS is already in array
+            for i in "${NS_ARRAY[@]}"; do
+                _cf_check_debug "Checking if $i is in array" $NS
+                if [[ $i == $NS ]]; then
+                    _cf_check_debug "Already in the array" $NS
+                    break
+                else
+                    _cf_check_debug "Not in array, adding" $NS
+                    NS_ARRAY+=("$NS")
+                fi
+            done
+        fi        
+    done
+    NS_ARRAY=("${(@o)NS_ARRAY}")
+    echo $NS_ARRAY | tr ' ' '|'
+}
+
 help_cloudflare[cf-check]='Check if a domain is using Cloudflare'
 function cf-check() {
-    local CSV_OUTPUT="" 
-
-    function _cf_check_usage () {
-        echo "Usage: ./cf-check -c -co -d [<domain>|-f <file>] "
-        echo "  -d  <domain> - Check a single domain"
-        echo "  -f  <file> - Check a file of domains"
-        echo "  -c  - Output CSV"
-        echo "  -co - Output CSV only"
-        echo "  -e  - Export to CSV <file>.csv with headers"
-    }
+    local CSV_OUTPUT=""
 
     function _cf_check_domain () {
-        local DIG_OUT WHOIS_OUT SUB_DOMAIN REAL_DOMAIN 
-        local DIG_OUT_RESOLVES DIG_OUT_NS DIG_OUT_WWW
-        local DOMAIN="$1"
-
-        cfr_domain="$DOMAIN"
+        local DIG_OUT WHOIS_OUT SUB_DOMAIN HOST ROOT_DOMAIN 
+        local DIG_OUT_RESOLVES DIG_OUT_NS DIG_OUT_WWW        
+        local HOST="$1"        
                 
         # -- Check if domain is proxied through Cloudflare
-        _loading2 "Checking if $DOMAIN is proxied through Cloudflare"
+        _loading2 "Checking if $HOST is proxied through Cloudflare"
+        cfr_host="$HOST"
 
         # -- Check if domain name or dns name
-        local DOT_COUNT=$(grep -o "\." <<< "$DOMAIN" | wc -l)
+        local DOT_COUNT=$(grep -o "\." <<< "$HOST" | wc -l)
         local DOMAIN_REGEX='^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+([a-zA-Z]{2,63})$'
         local SUBDOMAIN_REGEX='^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.){2,}([a-zA-Z]{2,63})$'
 
-        if [[ $DOT_COUNT -ge 2 ]]; then        
+        # -- Check if domain or subdomain
+        if [[ $DOT_COUNT -ge 2 ]]; then
+            _loading3 "$HOST is a subdomain"  
             # Extract the base domain from subdomain
-            REAL_DOMAIN=$(echo $DOMAIN | awk -F'.' '{print $(NF-1)"."$NF}')
-            SUB_DOMAIN=1            
+            ROOT_DOMAIN=$(echo $HOST | awk -F'.' '{print $(NF-1)"."$NF}')            
+            SUB_DOMAIN="Yes"          
         elif [[ $DOMAIN =~ $DOMAIN_REGEX ]]; then
-            _loading3 "$DOMAIN is a top-level domain"
-            REAL_DOMAIN="$DOMAIN"
-            SUB_DOMAIN=0
+            _loading3 "$HOST is a top-level domain"
+            ROOT_DOMAIN="$HOST"
+            SUB_DOMAIN="No"
         else
-            _loading3 "Invalid format for domain or DNS record - $DOMAIN"
+            _loading3 "Invalid format for domain or DNS record - $HOST"
             return 1
         fi
 
-        # -- Add to array
-        cfr_realdomain="$REAL_DOMAIN"
+        cfr_rootdomain="$ROOT_DOMAIN"
         cfr_subdomain="$SUB_DOMAIN"            
 
         # -- Check cloudflare nameservers via whois    
-        WHOIS_OUT=$(whois $REAL_DOMAIN | grep -i "cloudflare.com" | tr '\n' ' ')
-        WHOIS_OUT=${WHOIS_OUT//'Name Server: '/}        
+        WHOIS_OUT="$(_cf_check_parsewhois $ROOT_DOMAIN)"
         cfr_cfnswhois_out="$WHOIS_OUT"
-        if [[ -n $WHOIS_OUT ]]; then
+        WHOIS_IS_CF=$(echo $WHOIS_OUT | grep -i 'cloudflare')
+        if [[ -n $WHOIS_IS_CF ]]; then
             _success "Cloudflare name servers detected via WHOIS - $WHOIS_OUT"
-            cfr_cfnswhois="1"
+            cfr_cfnswhois="Yes"
         else
             _error "Cloudflare name servers not detected via WHOIS - $WHOIS_OUT"
-            cfr_cfnswhois="0"
+            cfr_cfnswhois="No"
         fi
 
-        # Check Cloudflare name servers via dig    
-        DIG_OUT_NS_TEMP=($(dig ns $REAL_DOMAIN +short))        
-        for dom in "${DIG_OUT_NS_TEMP[@]}"; do
-            TEMP=${dom%\.}            
-            DIG_OUT_NS+="$TEMP "
-        done 
-        cfr_cfnsdig_out="$DIG_OUT_NS"
+        # -- Check Cloudflare name servers via dig
+        DIG_OUT_NS_ARRAY=()           
+        DIG_OUT_NS_TEMP=($(dig ns $ROOT_DOMAIN +short))        
+        for NS in "${DIG_OUT_NS_TEMP[@]}"; do
+            TEMP=${NS%\.}            
+            DIG_OUT_NS_ARRAY+=("$TEMP")
+        done
+        DIG_OUT_NS_ARRAY=("${(@o)DIG_OUT_NS_ARRAY}")
+        DIG_OUT_NS="$(echo ${DIG_OUT_NS_ARRAY[@]} | tr ' ' '|')"        
+        cfr_nsdig_out=$DIG_OUT_NS
         if echo $DIG_OUT_NS | grep -iq 'cloudflare'; then
             _success "Cloudflare name servers detected via DIG - $DIG_OUT_NS"                                            
-            cfr_cfnsdig=1
+            cfr_cfnsdig="Yes"
         else
             _error "Cloudflare name servers not detected via DIG - $DIG_OUT_NS"            
-            cfr_cfnsdig=0
+            cfr_cfnsdig="No"
         fi
 
         # -- Check if WHOIS and DIG match
         if [[ $WHOIS_OUT == $DIG_OUT_NS ]]; then
             _success "WHOIS and DIG match"
-            cfr_cfwhoisdigns_match=1
+            cfr_whoisdigns_match="Yes"
         else
             _error "WHOIS and DIG do not match"
-            cfr_cfwhoisdigns_match=0
+            cfr_whoisdigns_match="No"
         fi
 
-        # -- Does apex $DOMAIN resolve?        
-        DIG_OUT_RESOLVES=($(dig +short $DOMAIN))
-        cfr_digresolves_out="$DIG_OUT_RESOLVES"
-        if [[ -n $DIG_OUT_RESOLVES ]]; then
-            _success "$DOMAIN resolves - $DIG_OUT_RESOLVES"
-            cfr_apexresolves=1
+        # -- Host IP     
+        DIG_OUT_HOST=($(dig +short $HOST))
+        cfr_dighost_out="$DIG_OUT_HOST"
+        if [[ -n $DIG_OUT_HOST ]]; then
+            _success "$HOST= resolves - $DIG_OUT_HOST"
+            cfr_dighost_out="$DIG_OUT_HOST"
         else
-            _error "$DOMAIN does not resolve - $DIG_OUT_RESOLVES"
-            cfr_apexresolves=0            
+            _error "$HOST= does not resolve - $DIG_OUT_HOST"
+            cfr_dighost_out="$DIG_OUT_HOST"        
         fi
 
-        # Check if apex record is proxied    
-        for IP in "${DIG_OUT_RESOLVES[@]}"; do
+        # Check if host record is proxied    
+        for IP in "${DIG_OUT_HOST[@]}"; do
             if cf-ip "$IP" > /dev/null 2>&1; then
                 _success "Apex record is proxied through Cloudflare - $IP"
-                cfr_apexcf=1
+                cfr_hostcf="Yes"
             else
                 _error "Apex record is not proxied through Cloudflare - $IP"
-                cfr_apexcf=0
+                cfr_hostcf="No"
             fi
         done
 
         # -- Check if www record is proxied
         # Check if domain record has www. in the front
-        if [[ $DOMAIN =~ ^www\..* ]]; then
+        if [[ $HOST =~ ^www\..* ]]; then
                 _error "Checking www record already"
                 cfr_wwwresolves="www"
-        elif [[ $SUB_DOMAIN == "1" ]]; then
-            _loading3 "Not checking www.$DOMAIN record as $DOMAIN is a subdomain"
-            cfr_wwwresolves="subdomain"            
+                cfr_wwwcf=""
+        elif [[ $SUB_DOMAIN == "Yes" ]]; then
+            _loading3 "Not checking www.$HOST record as its a subdomain"
+            cfr_wwwresolves="subdomain"
+            cfr_wwwcf=""     
         else            
-            DIG_OUT_WWW=($(dig +short www.$DOMAIN))
+            DIG_OUT_WWW=($(dig +short www.$HOST))
             for IP in "${DIG_OUT_WWW[@]}"; do
                 if cf-ip "$IP" > /dev/null 2>&1; then
-                    _success "www.$DOMAIN record is proxied through Cloudflare - $IP"
-                    cfr_wwwresolves=1
-                    cfr_wwwcf="$IP"
+                    _success "www.$HOST record is proxied through Cloudflare - $IP"
+                    cfr_wwwresolves="$IP"
+                    cfr_wwwcf="Yes"
                 else
-                    _error "www.$DOMAIN record is not proxied through Cloudflare - $IP"
-                    cfr_wwwresolves=0
-                    cfr_wwwcf="$IP"
+                    _error "www.$HOST record is not proxied through Cloudflare - $IP"
+                    cfr_wwwresolves="$IP"
+                    cfr_wwwcf="No"
                 fi
             done
         fi
@@ -256,6 +304,11 @@ function cf-check() {
         fi
 
         while read DOMAIN; do
+            # -- If start of line contains # skip
+            if [[ $DOMAIN =~ ^#.* ]]; then
+                continue
+            fi
+
             if [[ -n $CSVEXPORT ]]; then
                 echo "Checking $DOMAIN"
                 _cf_check_domain $DOMAIN >> /dev/null
@@ -265,45 +318,65 @@ function cf-check() {
             else
                 _cf_check_domain $DOMAIN
             fi
-            sleep 5
+            [[ -n $ARG_DELAY ]] && sleep $ARG_DELAY[2]
         done < $FILE    
 
     }
 
     function _cf_add_to_csv () {
         local CSV_LINE=""
-        CSV_LINE="$cfr_domain,"
-        CSV_LINE+="$cfr_realdomain,"        
-        CSV_LINE+="$cfr_subdomain,"
+        CSV_LINE="$cfr_host,"
+        CSV_LINE+="$cfr_rootdomain,"        
+        CSV_LINE+="$cfr_subdomain,"                
+        CSV_LINE+="$cfr_nsdig_out,"
+        CSV_LINE+="$cfr_cfnsdig,"
+        CSV_LINE+="$cfr_whoisdigns_match,"
+
+        CSV_LINE+="$cfr_dighost_out,"
+        CSV_LINE+="$cfr_hostcf,"        
+        CSV_LINE+="$cfr_wwwresolves,"
+        CSV_LINE+="$cfr_wwwcf,"
+        
         CSV_LINE+="$cfr_cfnswhois_out,"
         CSV_LINE+="$cfr_cfnswhois,"
-        CSV_LINE+="$cfr_cfnsdig_out,"
-        CSV_LINE+="$cfr_cfnsdig,"
-        CSV_LINE+="$cfr_cfwhoisdigns_match,"
-        CSV_LINE+="$cfr_digresolves_out,"
-        CSV_LINE+="$cfr_apexresolves,"
-        CSV_LINE+="$cfr_apexcf,"
-        CSV_LINE+="$cfr_wwwresolves,"
-        CSV_LINE+="$cfr_wwwcf"            
-        CSV_OUTPUT+="${CSV_LINE}\n"              
+        CSV_OUTPUT+="${CSV_LINE}\n"        
     }
     
     function _cf_check_output_csv () {             
-        CSV_HEADER="Domain,Real Domain,Subdomain,WHOIS NS,CFWHOIS,DIG NS,CFNS,WHOIS and DIG Match,DIG Resolves Out,Apex Resolves Out,Apex CF,WWW Resolves Out,WWW CF"
+        CSV_HEADER="Host,Root Domain,Subdomain,DIG NS,CFNS,WHOIS/DIG Match,"
+        CSV_HEADER+="Host IP, Host CF, WWW IP,WWW CF,"
+        CSV_HEADER+="WHOISOUT,CFWHOIS"
         CSV_OUTPUT_FINAL="${CSV_HEADER}\n"
         CSV_OUTPUT_FINAL+="${CSV_OUTPUT}\n"
         echo "$CSV_OUTPUT_FINAL"
     }
 
-    local ARG_DOMAIN ARG_FILE CSVOUT CSVONLY DOMAIN FILE HELP
-    zparseopts -D -E c=CSVOUT co=CSVONLY d:=ARG_DOMAIN f:=ARG_FILE h=HELP e=CSVEXPORT
+    function _cf_check_usage () {        
+        echo "Usage: ./cf-check -c -co -d [<domain>|-f <file>] "
+        echo "Commands:"
+        echo "  -d <domain>    - Check a single domain"
+        echo "  -f <file>      - Check a file of domains"
+        echo "  -w <domain>    - Parse whois for domain"
+        echo ""
+        echo "Options:"
+        echo "  -c             - Output CSV"
+        echo "  -co            - Output CSV only"
+        echo "  -e             - Export to CSV <file>.csv with headers"
+        echo "  -p <seconds>   - Delay between checks"
+        echo "  -h             - Help"        
+    }
+    
+    local ARG_DOMAIN ARG_FILE CSVOUT CSVONLY DOMAIN FILE HELP DELAY="0" CSVEXPORT    
+    zparseopts -D -E c=CSVOUT co=CSVONLY d:=ARG_DOMAIN f:=ARG_FILE h=HELP e=CSVEXPORT delay:=ARG_DELAY p:=ARG_PARSE_WHOIS
 
     if [[ -n $CSVOUT ]] || [[ -n $CSVONLY ]] || [[ -n CSVEXPORT ]]; then
         CSV=1
     fi
 
     [[ -n $ARG_DOMAIN ]] && DOMAIN=$ARG_DOMAIN[2]
-    [[ -n $ARG_FILE ]] && FILE=$ARG_FILE[2]   
+    [[ -n $ARG_FILE ]] && FILE=$ARG_FILE[2] 
+    [[ -n $ARG_DELAY ]] && DELAY=$ARG_DELAY[2] || DELAY="0"
+    [[ -n $ARG_PARSE_WHOIS ]] && PARSE_WHOIS=$ARG_PARSE_WHOIS[2]
 
     if [[ -n $HELP ]]; then
         echo "Printing help"
@@ -325,6 +398,7 @@ function cf-check() {
             _cf_check_domain $DOMAIN            
         fi        
     elif [[ -n $FILE ]]; then
+        _loading "Checking file $FILE with delay of $DELAY seconds"
         if [[ -n $CSVOUT ]]; then
             _loading2 "Outputting CSV"
             _cf_check_file $FILE
@@ -332,7 +406,7 @@ function cf-check() {
             _cf_check_output_csv
         elif [[ -n $CSVONLY ]]; then
             _loading2 "Outputting CSV Only"
-            _cf_check_file $FILE
+            _cf_check_file $FILE >> /dev/null
             echo ""
             _cf_check_output_csv
         elif [[ $CSVEXPORT ]]; then
@@ -344,6 +418,9 @@ function cf-check() {
             _loading "Checking file $FILE"
             _cf_check_file $FILE
         fi     
+    elif [[ -n $PARSE_WHOIS ]]; then
+        _loading "Parsing whois for $PARSE_WHOIS"
+        _cf_check_parsewhois $PARSE_WHOIS 1
     else
         _error "No arguments"
         _cf_check_usage
