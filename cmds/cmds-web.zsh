@@ -152,3 +152,89 @@ function php-opcode() {
         fi
     fi
 }
+
+# -- http-errorcodes
+help_web[http-errorcodes]="Print out a list of http error codes"
+function http-errorcodes() {
+    declare -A HTTTP_ERROR_CODES
+    HTTTP_ERROR_CODES=(
+        [400]="Bad Request"
+        [401]="Unauthorized"
+        [402]="Payment Required"
+        [403]="Forbidden"
+        [404]="Not Found"
+        [405]="Method Not Allowed"
+        [406]="Not Acceptable"
+        [407]="Proxy Authentication Required"
+        [408]="Request Timeout"
+        [409]="Conflict"
+        [410]="Gone"
+        [411]="Length Required"
+        [412]="Precondition Failed"
+        [413]="Payload Too Large"
+        [414]="URI Too Long"
+        [415]="Unsupported Media Type"
+        [416]="Range Not Satisfiable"
+        [417]="Expectation Failed"
+        [418]="I'm a teapot"
+        [421]="Misdirected Request"
+        [422]="Unprocessable Entity"
+        [423]="Locked"
+        [424]="Failed Dependency"
+        [425]="Too Early"
+        [426]="Upgrade Required"
+        [428]="Precondition Required"
+        [429]="Too Many Requests"
+        [431]="Request Header Fields Too Large"
+        [451]="Unavailable For Legal Reasons"
+        [500]="Internal Server Error"
+        [501]="Not Implemented"
+        [502]="Bad Gateway"
+        [503]="Service Unavailable"
+        [504]="Gateway Timeout"
+        [505]="HTTP Version Not Supported"
+        [506]="Variant Also Negotiates"
+        [507]="Insufficient Storage"
+        [508]="Loop Detected"
+        [510]="Not Extended"
+        [511]="Network Authentication Required"
+    )
+
+    function _http_errorcodes_usage () {
+        echo ""
+        echo "Usage: http-errorcodes [code]"
+        echo "You can search for a specific code by passing it as an argument"
+    }
+    
+    function _httpd_errorcodes_print () {
+        _loading "Listing all http error codes:"
+        echo ""
+        for code in "${(@ok)HTTTP_ERROR_CODES[@]}"; do
+            echo "$code - ${HTTTP_ERROR_CODES[$code]}"            
+        done        
+        _http_errorcodes_usage
+    }
+
+    _httpd_errorcodes_search () {
+        local SEARCH_CODE=$1
+        _loading "Searching for $SEARCH_CODE"
+        echo ""
+        for code in "${(@ok)HTTTP_ERROR_CODES}"; do
+            if [[ $code == *"$SEARCH_CODE"* ]]; then
+                echo "$code - ${HTTTP_ERROR_CODES[$code]}"
+            fi
+        done        
+        _http_errorcodes_usage
+    }
+    
+    if [[ $# -eq 0 ]]; then
+        _httpd_errorcodes_print
+    elif [[ $# -eq 1 && ${HTTTP_ERROR_CODES[$1]} ]]; then
+        code=$1
+        echo "$code - ${HTTTP_ERROR_CODES[$code]}"
+    # -- Check if theres a partial match ie 4 would print all 4xx codes
+    else
+        _httpd_errorcodes_search $1    
+    fi    
+}
+
