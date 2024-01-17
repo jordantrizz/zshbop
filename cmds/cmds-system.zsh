@@ -132,7 +132,7 @@ function cpu-features() {
 
     for feature in "${FEATURES[@]}"; do        
         
-        if echo "$cpu_info" | grep -iq "$feature"; then
+        if echo "$$LSCPU" | grep -iq "$feature"; then
             OUTPUT+=$(_success "$feature available")
         else                    
             if _inarray $feature 0 "${FEATURE_ERROR[@]}"; then
