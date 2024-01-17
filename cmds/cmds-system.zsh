@@ -96,7 +96,8 @@ function cpu-features() {
     local INTEL_FEATURE=("vmx")
 
     # Use lscpu if available, otherwise fall back to /proc/cpuinfo
-    local cpu_info="$(command -v lscpu > /dev/null && lscpu || cat /proc/cpuinfo)"
+    local LSCPU="$(command -v lscpu > /dev/null && lscpu || cat /proc/cpuinfo)"
+    local PROCCPU="$(cat /proc/cpuinfo)"
 
     # -- Get CPU vendor_id, cpu family, model, model name, cpu mgz, cache size
     local CPU_VENDOR_ID=$(echo "$cpu_info" | awk '/^Vendor ID:/ {print $3}')
@@ -105,7 +106,7 @@ function cpu-features() {
     local CPU_MODEL_NAME=$(echo "$cpu_info" | awk '/^Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
     local CPU_MHZ="LSCPU @ $(echo "$cpu_info" | awk '/^CPU MHz:/ {print $3}')"
     if [[ $CPU_MHZ == "" ]]; then
-        local CPU_MHZ="CP @ $(echo "$cpu_info" | awk '/^cpu MHz/ {print $4}')"
+        local CPU_MHZ="CP @ $(echo "$PROCCPU" | awk '/^cpu MHz/ {print $4}')"
     fi
     local CPU_CACHE_SIZE=$(echo "$cpu_info" | awk '/^L3 cache:/ {print $3}')
     local CPU_HYPERVISOR=$(echo "$cpu_info" | awk '/^Hypervisor vendor:/ {print $3}')
