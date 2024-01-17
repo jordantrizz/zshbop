@@ -70,15 +70,15 @@ function cpu () {
 
 # -- Check if CPU support
 function cpu-features() {
-    local OUTPUT="CPU Features:"        
+    local OUTPUT=""        
     # -- Warn running in WSL
     if [[ $MACHINE_OS2 == "wsl" ]]; then
-        OUTPUT+=$(_warning "Running in WSL")
+        OUTPUT+="$(_warning "Running in WSL")\n"
     fi
 
     # -- Check if in VM
     if [[ $MACHINE_OS2 == "vm" ]]; then
-        OUTPUT+=$(_warning "Running in VM")
+        OUTPUT+="$(_warning "Running in VM")\n"
     fi
 
     # -- Check if lscpu is installed
@@ -89,11 +89,37 @@ function cpu-features() {
     fi
 
     # List of important CPU instructions and features
-    local FEATURES=("sse" "avx" "fma" "aes" "vt-x" "amd-v" "mmx")
+    local FEATURES=("sse" "avx" "fma" "aes" "vt-x" "amd-v" "mmx" "avx2" "sse2")
     local FEATURE_ERROR=("avx" "aes" "amd-v" "vt-x")
+    # TODO Add in specific CPU features based on Intel or AMD
+    local AMD_FEATURE=("svm")
+    local INTEL_FEATURE=("vmx")
 
     # Use lscpu if available, otherwise fall back to /proc/cpuinfo
     local cpu_info="$(command -v lscpu > /dev/null && lscpu || cat /proc/cpuinfo)"
+
+    # -- Get CPU vendor_id, cpu family, model, model name, cpu mgz, cache size
+    local CPU_VENDOR_ID=$(echo "$cpu_info" | awk '/^Vendor ID:/ {print $3}')
+    local CPU_FAMILY=$(echo "$cpu_info" | awk '/^CPU family:/ {print $3}')
+    local CPU_MODEL=$(echo "$cpu_info" | awk '/^Model:/ {print $2}')
+    local CPU_MODEL_NAME=$(echo "$cpu_info" | awk '/^Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
+    local CPU_MHZ=$(echo "$cpu_info" | awk '/^CPU MHz:/ {print $3}')
+    local CPU_CACHE_SIZE=$(echo "$cpu_info" | awk '/^L3 cache:/ {print $3}')
+
+    # -- Check if CPU is Intel or AMD
+    if [[ $CPU_VENDOR_ID == "GenuineIntel" ]]; then
+        CPU_VENDOR="Intel"
+    elif [[ $CPU_VENDOR_ID == "AuthenticAMD" ]]; then
+        CPU_VENDOR="AMD"
+    else
+        CPU_VENDOR="Unknown"
+    fi
+
+    # -- Print out a summary    
+    OUTPUT+="$CPU_VENDOR/$CPU_MODEL_NAME/@ $CPU_MHZ Mhz CACHE: $CPU_CACHE_SIZE\n"
+    OUTPUT+="CPU Family/Model: $CPU_FAMILY/$CPU_MODEL\n"
+
+    OUTPUT+="CPU Features:"
 
     for feature in "${FEATURES[@]}"; do        
         
