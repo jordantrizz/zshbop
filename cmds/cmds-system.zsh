@@ -105,7 +105,7 @@ function cpu-features() {
     local CPU_MODEL=$(echo "$LSCPU" | awk '/^Model:/ {print $2}')
     local CPU_MODEL_NAME=$(echo "$LSCPU" | awk '/^Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
     local CPU_MHZ="LSCPU @ $(echo "$LSCPU" | awk '/^CPU MHz:/ {print $3}')"
-    if [[ $CPU_MHZ == "" ]]; then
+    if [[ -z $CPU_MHZ  ]]; then
         local CPU_MHZ="CP @ $(echo "$PROCCPU" | awk '/^cpu MHz/ {print $4}')"
     fi
     local CPU_CACHE_SIZE=$(echo "$LSCPU" | awk '/^L3 cache:/ {print $3}')
