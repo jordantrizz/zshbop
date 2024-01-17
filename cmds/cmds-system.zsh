@@ -100,16 +100,16 @@ function cpu-features() {
     local PROCCPU="$(cat /proc/cpuinfo)"
 
     # -- Get CPU vendor_id, cpu family, model, model name, cpu mgz, cache size
-    local CPU_VENDOR_ID=$(echo "$cpu_info" | awk '/^Vendor ID:/ {print $3}')
-    local CPU_FAMILY=$(echo "$cpu_info" | awk '/^CPU family:/ {print $3}')
-    local CPU_MODEL=$(echo "$cpu_info" | awk '/^Model:/ {print $2}')
-    local CPU_MODEL_NAME=$(echo "$cpu_info" | awk '/^Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
-    local CPU_MHZ="LSCPU @ $(echo "$cpu_info" | awk '/^CPU MHz:/ {print $3}')"
+    local CPU_VENDOR_ID=$(echo "$LSCPU" | awk '/^Vendor ID:/ {print $3}')
+    local CPU_FAMILY=$(echo "$LSCPU" | awk '/^CPU family:/ {print $3}')
+    local CPU_MODEL=$(echo "$LSCPU" | awk '/^Model:/ {print $2}')
+    local CPU_MODEL_NAME=$(echo "$LSCPU" | awk '/^Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
+    local CPU_MHZ="LSCPU @ $(echo "$LSCPU" | awk '/^CPU MHz:/ {print $3}')"
     if [[ $CPU_MHZ == "" ]]; then
         local CPU_MHZ="CP @ $(echo "$PROCCPU" | awk '/^cpu MHz/ {print $4}')"
     fi
-    local CPU_CACHE_SIZE=$(echo "$cpu_info" | awk '/^L3 cache:/ {print $3}')
-    local CPU_HYPERVISOR=$(echo "$cpu_info" | awk '/^Hypervisor vendor:/ {print $3}')
+    local CPU_CACHE_SIZE=$(echo "$LSCPU" | awk '/^L3 cache:/ {print $3}')
+    local CPU_HYPERVISOR=$(echo "$LSCPU" | awk '/^Hypervisor vendor:/ {print $3}')
     if [[ $CPU_HYPERVISOR == "" ]]; then
         CPU_HYPERVISOR="Can't detect Hypervisor"
     fi
