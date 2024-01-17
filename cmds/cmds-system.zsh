@@ -103,9 +103,9 @@ function cpu-features() {
     local CPU_FAMILY=$(echo "$cpu_info" | awk '/^CPU family:/ {print $3}')
     local CPU_MODEL=$(echo "$cpu_info" | awk '/^Model:/ {print $2}')
     local CPU_MODEL_NAME=$(echo "$cpu_info" | awk '/^Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
-    local CPU_MHZ=$(echo "$cpu_info" | awk '/^CPU MHz:/ {print $3}')
+    local CPU_MHZ="LSCPU @ $(echo "$cpu_info" | awk '/^CPU MHz:/ {print $3}')"
     if [[ $CPU_MHZ == "" ]]; then
-        CPU_MHZ=$(echo "$cpu_info" | awk '/^cpu MHz/ {print $4}')
+        CPU_MHZ="CP @ $(echo "$cpu_info" | awk '/^cpu MHz/ {print $4}')"
     fi
     local CPU_CACHE_SIZE=$(echo "$cpu_info" | awk '/^L3 cache:/ {print $3}')
     local CPU_HYPERVISOR=$(echo "$cpu_info" | awk '/^Hypervisor vendor:/ {print $3}')
@@ -124,7 +124,7 @@ function cpu-features() {
 
     # -- Print out a summary
     OUTPUT+="Hypervisor: $CPU_HYPERVISOR\n" 
-    OUTPUT+="$CPU_VENDOR/$CPU_MODEL_NAME/@ $CPU_MHZ Mhz CACHE: $CPU_CACHE_SIZE\n"
+    OUTPUT+="$CPU_VENDOR/$CPU_MODEL_NAME/$CPU_MHZ Mhz/CACHE: $CPU_CACHE_SIZE\n"
     OUTPUT+="CPU Family/Model: $CPU_FAMILY/$CPU_MODEL\n"
 
     OUTPUT+="CPU Features:"
