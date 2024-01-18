@@ -145,7 +145,7 @@ function install_package () {
     if [ -x "$(command -v apt-get)" ]; then
         echo " - We have apt!"
         sudo apt-get update
-        sudo apt install --no-install-recommends "${*}"
+        sudo apt install --no-install-recommends -y "${*}"
 	elif [ -x "$(command -v yum)" ]; then
         echo " - We have yum!"
         sudo yum install "${*}"
