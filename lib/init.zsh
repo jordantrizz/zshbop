@@ -485,11 +485,19 @@ function init_check_services () {
         export NETDATA_HOME="/etc/netdata"
     	_success "Netdata: located at /usr/sbin/netdata and config at /etc/netdata"
     else
-    	_log "Netdata not installed"
+    	_warning "Netdata not installed"
     fi
 
     # -- cyberpanel
     if (( $+commands[cyberpanel] )) && _success "Cyberpanel Installed." || _log "Cyberpanel not installed"
+
+    # -- Check custom services if function exists
+    if whence -f zb_init_check_services_custom > /dev/null; then
+        _debug "zb_init_check_services_custom is defined"
+        zb_init_check_services_custom
+    else
+        _debug "zb_init_check_services_custom is not defined"
+    fi
 }
 
 # ==============================================
