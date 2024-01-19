@@ -17,6 +17,7 @@ DEFAULT_EXA="${EXA_CMD} --long --all --group"
 os-binary "fastfetch"
 os-binary "exa"
 os-binary "glow"
+os-binary "glint"
 
 # -- sysfetch
 function sysfetch () {
