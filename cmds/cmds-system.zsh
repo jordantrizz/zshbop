@@ -159,13 +159,14 @@ help_system[mem]='Get memory information'
 function mem () {
     if [[ $MACHINE_OS == "linux" ]]; then
         # -- Memory
+        SWAP_USED=$(free -m | awk 'NR==3 {print $3}')
         MEM=$(free -m | awk 'NR==2 {printf "Total: %s MB, Used:%s MB, Free: %s MB, Cached: %s MB",$2, $3, $4, $6}')
 
         # -- Swappiness
         [[ -f /proc/sys/vm/swappiness ]] && SWAP="/proc/sys/vm/swappiness: $(cat /proc/sys/vm/swappiness)" || _error "Can't find swap" 0
 
         # -- Print out Memory and Swap
-        echo "Memory: $MEM | Swap: $SWAP"
+        echo "Memory: $MEM | Swap: $SWAP_USED | Swapiness: $SWAP"
     elif [[ $MACHINE_OS == "mac" ]]; then
         MEM=$(sysctl hw.memsize | awk '{print $2/1024/1024}')
         MEM_USED=$(echo "scale=2; ${MEM} - $(memory_pressure | grep "Pages free" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages active" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages inactive" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages speculative" | awk '{print $3/1024}') - $(memory_pressure | grep "Pages wired down" | awk '{print $4/1024}')" | bc)
