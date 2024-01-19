@@ -403,6 +403,18 @@ view-std () {
 	fi
 }
 
-
 help_linux[get-os-install-date]='Get the date the OS was installed'
 alias get-os-install-date="_get_os_install_date"
+
+# -- swappiness-set <size> - set swap size
+help_linux[swappiness-set]='Set swappiness'
+swappiness-set () {
+	if [[ -z $1 ]]; then
+		echo "Usage: swappiness-set <size>"
+		echo "Current swappiness: $(sysctl vm.swappiness)"
+		return 1
+	else
+		echo "Setting swappiness to $1"
+		sudo sysctl vm.swappiness=$1
+	fi
+}
