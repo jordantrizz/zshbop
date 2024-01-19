@@ -279,7 +279,7 @@ function git-check-repos () {
         fi
 
         # Check for unpushed commits
-        local AHEAD="$(git -C "$DIR" rev-list --count --left-only @{u}...HEAD)"
+        local AHEAD="$(git -C "$DIR" rev-list --count --right-only @{u}...HEAD)"
         if [[ "$AHEAD" -gt 0 ]]; then
             UNPUSHED_CODE=1
             echo "   - Commits: $AHEAD - ${bg[magenta]}$DIR${RSC}"
@@ -289,6 +289,46 @@ function git-check-repos () {
     if [[ -n $UNCOMMITED_CODE || -n $UNPUSHED_CODE ]]; then
         _warning "Uncommitted or unpushed code found"
         return 1
+    fi
+}
+
+# -- git-repos-updates
+help_git[git-repos-updates]="Check for updates in all Git repositories"
+function git-repos-updates () {
+    # -- git-repos-updates_do $GIT_PATH
+    _git-repos_updates_do () {
+        local GIT_PATH="$1" FOUND_GIT_DIRS=()
+        FOUND_GIT_DIRS=($(find "$GIT_PATH" -name ".git" -type d -prune ))
+        for DIR in ${FOUND_GIT_DIRS[@]}; do
+            # Check for unpushed commits
+            local AHEAD="$(git -C "$DIR" rev-list --count --left-only @{u}...HEAD)"
+            if [[ "$AHEAD" -gt 0 ]]; then
+                UNPUSHED_CODE=1
+                echo "   - New Commits: $AHEAD - ${bg[magenta]}$DIR${RSC}"
+            fi
+        done
+
+        if [[ -n $UNCOMMITED_CODE || -n $UNPUSHED_CODE ]]; then
+            _warning "Uncommitted or unpushed code found"
+            return 1
+        fi
+    }
+
+    local GIT_DIR=${1}
+
+    # -- Pick a directory to check
+    if [[ -n $GIT_DIR ]]; then
+        _loading "Using \$1 as \$GIT_HOME: $1"
+        GIT_DIR="$1"
+        [[ -d $1 ]] || { _error "$1 is not a directory"; return 1; }
+        _git-repos_updates_do "$GIT_DIR"
+    elif [[ -n $GIT_HOME ]]; then
+        _loading "Found and using \$GIT_HOME: $GIT_HOME"
+        GIT_DIR="$GIT_HOME"
+        [[ -d $GIT_HOME ]] || { _error "$GIT_HOME is not a directory"; return 1; }
+        _git-repos_updates_do "$GIT_DIR"
+    else
+        echo "Usage: git-repos-updates <directory>"
     fi
 }
 
