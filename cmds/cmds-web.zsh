@@ -142,6 +142,17 @@ function http-errorcodes() {
         [508]="Loop Detected"
         [510]="Not Extended"
         [511]="Network Authentication Required"
+        [520]="Cloudflare - Unknown Error"
+        [521]="Cloudflare - Web Server Is Down"
+        [522]="Cloudflare - Connection timed out"
+        [523]="Cloudflare - Origin Is Unreachable"
+        [524]="Cloudflare - A timeout occurred"
+        [525]="Cloudflare - SSL handshake failed"
+        [526]="Cloudflare - Invalid SSL certificate"
+        [527]="Cloudflare - Railgun Error"
+        [530]="Cloudflare - Check 1xx Error"
+        [1000]="Cloudflare - DNS points to prohibited IP"
+        [1001]="DNS resolution error"
     )
 
     function _http_errorcodes_usage () {
