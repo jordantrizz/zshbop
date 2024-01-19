@@ -360,9 +360,10 @@ function bat() {
 # -- glint
 help_software[glint]="Install glint - https://github.com/brigand/glint"
 if [[ $MACHINE_OS == "linux" ]]; then
-    _debug "Check for gblint-linux under $MACHINE_OS"
+    _loading "Check for gblint-linux under $MACHINE_OS"
     _cmd_exists glint-linux
     if [[ $? == "0" ]]; then
+		_loading2 "Found glint-linux, setting up alias"
     	function glint () { glint-linux $* }
     	function software_glint { _success "Glint installed" }
     else
