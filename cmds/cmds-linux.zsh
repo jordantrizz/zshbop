@@ -418,3 +418,20 @@ swappiness-set () {
 		sudo sysctl vm.swappiness=$1
 	fi
 }
+
+# -- Reset Swap
+help_linux[swap-reset]='Reset swap'
+swap-reset () {
+	# -- Check if swap is on or off
+	SWAP_ON=$(swapon -s)
+	if [[ -z $SWAP_ON ]]; then
+		echo "Swap is off"
+		swapon -a
+	else
+		echo "Swap is on, turning off then back on."
+		# -- Swap is on, turn off
+		swapoff -a 
+		# -- Turn swap back on
+		swapon -a
+	fi
+}
