@@ -28,37 +28,43 @@ function dom () {
 
 # -- domain
 help_domain[domain]='Check if a domain is available.'
-domain () {
-    USAGE=\
-"Usage: domaincheck (domain.ext|-a domain)
-   Check if a domain name is available. Enter in the full domain name
-   -a    - check all domain extensions, just enter the first part
-"
-    DOMAIN="$1"
+function domain () {
+    _domain_usage () {
+        echo "Usage: domaincheck (domain.ext|-a domain)"
+        echo "Check if a domain name is available. Enter in the full domain name"
+        echo  "  -a    - check all domain extensions, just enter the first part"    
+    }
+    local DOMAIN="$1" CHECK_DOMAIN DOMAIN_EXTS WHOIS_DOMAIN GET_REGISTRAR="0" WHOIS_OUT
 
+    # -- No args print usage
     if [[ -z $1 ]]; then
-        echo $USAGE
+        _domain_usage
         return 1
     fi
 
+    # -- Check all domain extensions
     _loading "Checking $DOMAIN"
-
     if [[ $1 == "-a" ]]; then
         echo " - Checking all domain extensions"
         CHECK_DOMAIN="2"
-        DOMAIN_EXTS=( '.com' '.co.uk' '.net' '.info' '.mobi' \
-        '.org' '.tel' '.biz' '.tv' '.cc' '.eu' '.ru' \
-        '.in' '.it' '.sk' '.com.au' )
+        DOMAIN_EXTS=('.com' '.co.uk' '.net' '.info' '.mobi')
+        DOMAIN_EXTS+=('.org' '.tel' '.biz' '.tv' '.cc' '.eu' '.ru')
+        DOMAIN_EXTS+=('.in' '.it' '.sk' '.com.au')
     else
         CHECK_DOMAIN="1"
     fi
 
+    # -- Check if domain is available
+    WHOIS_OUT=$(whois $DOMAIN)
     if [[ $CHECK_DOMAIN == "1" ]]; then
         echo "Checking single domain $DOMAIN"
-        WHOIS_DOMAIN=$(whois $DOMAIN | egrep -q '^No match|^NOT FOUND|^Not fo|AVAILABLE|^No Data Fou|has not been regi|No entri')
-        [[ $? -eq 0 ]] && echo -e "${DOMAIN}: $bg[green] > available < ${RSC}" || echo -e "$DOMAIN : $bg[red]X unavailable X ${RSC}"
-          
-        echo $WHOIS_DOMAIN
+        WHOIS_DOMAIN=$(echo $WHOIS_OUT | egrep -q '^No match|^NOT FOUND|^Not fo|AVAILABLE|^No Data Fou|has not been regi|No entri')        
+        if [[ $? -eq 0 ]]; then
+            echo -e "${DOMAIN}: $bg[green] > Available to Register  < ${RSC}"            
+        else 
+            echo "Registration Status : $bg[red]X Registered X ${RSC}"
+            GET_REGISTRAR=1
+        fi        
     elif [[ $CHECK_DOMAIN == "2" ]]; then
         echo "Checking name $2 on $DOMAIN_EXTS"
         ELEMENTS=${#DOMAIN_EXTS[@]}
@@ -66,12 +72,26 @@ domain () {
             for (( i=1; i<=$ELEMENTS; i++ )); do
                 WHOIS_DOMAIN=$(whois ${DOMAINS[${i}]} | egrep -q '^No match|^NOT FOUND|^Not fo|AVAILABLE|^No Data Fou|has not been regi|No entri')
                 if [ $? -eq 0 ]; then
-                    echo -e "$1${DOMAIN_EXTS[$i]} : ${GREEN} > available < ${NC}"
+                    echo -e "$1${DOMAIN_EXTS[$i]} : ${GREEN} > Available to Register < ${NC}"
                 else
-                    echo -e "$1${DOMAIN_EXTS[$i]} : ${RED}X unavailable X ${NC}"
+                    echo "$1${DOMAIN_EXTS[$i]} : ${RED}X Registered X ${NC}"
+                    GET_REGISTRAR=1
                 fi                    
             done
         shift
         done
     fi
+    echo ""
+
+    # -- Get Domain Name Registrar
+    if [[ $GET_REGISTRAR -eq 1 ]]; then
+        DOMAIN_REGISTRAR="$(echo $WHOIS_OUT | egrep -i 'Registrar:' | head -1)"
+        DOMAIN_REGISTRAR="${DOMAIN_REGISTRAR#"${DOMAIN_REGISTRAR%%[![:space:]]*}"}"
+        echo "$DOMAIN_REGISTRAR"
+
+        DOMAIN_REGISTRAR_URL="$(echo $WHOIS_OUT | egrep -i 'Registrar URL:' | head -1)"
+        DOMAIN_REGISTRAR_URL="${DOMAIN_REGISTRAR_URL#"${DOMAIN_REGISTRAR_URL%%[![:space:]]*}"}"
+        echo "$DOMAIN_REGISTRAR_URL"
+    fi
+    echo ""
 }
