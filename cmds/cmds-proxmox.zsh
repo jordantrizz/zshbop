@@ -249,7 +249,7 @@ function _proxmox_download_cloudimage () {
 }
 
 # -------------------------------------------------------------------
-# -- proxmox_createvm
+# -- _proxmox_createvm 
 # -------------------------------------------------------------------
 function _proxmox_createvm () {
     # -- Check if storage exists
@@ -260,7 +260,7 @@ function _proxmox_createvm () {
         _error "Storage $STORAGE doesn't exist, type pmox info"            
         return
     else
-        _loading2 "Storage $STORAGE exists"
+        _loading3 "Storage $STORAGE exists"
     fi
 
     # -- Download cloudimage
@@ -277,13 +277,8 @@ function _proxmox_createvm () {
         DHCP_NET_QM=""
     fi
 
-    # -- Insert guest tools into image
-    ( set -x; virt-customize -a $TEMP_DIR/$OS_FILE --install qemu-guest-agent )
-    
-    # -- QM Config Variables
-
     # -- Run QM Command
-    echo "-- Creating VM with ID:$VM_ID"
+    _loading2 "-- Creating VM with ID:$VM_ID"
     (set -x;qm create $VM_ID --name $NAME --memory $MEM \
     $DHCP_NET_INT $DHCP_NET_QM \
     $DHCP_IP $DHCP_IP_CFG \
@@ -299,12 +294,23 @@ function _proxmox_createvm () {
     --agent enabled=1,fstrim_cloned_disks=1 \
     --cicustom "user=local:/userconfig.yaml"
     )
-    ( set -x;qm importdisk $VM_ID /tmp/${OS_FILE} ${STORAGE} )
-    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
-    ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
-    ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
 
-    _notice "Completed creation of VM with ID of $VM_ID"
+    _loading2 "-- Inserting guest tools into image"
+    ( set -x; virt-customize -a ${TEMP_DIR}/${IMAGE_FILE} --install qemu-guest-agent )
+
+    _loading2 "-- Importing OS_FILE:${TEMP_DIR}/${IMAGE_FILE} into VM_ID:$VM_ID"
+    ( set -x;qm importdisk $VM_ID ${TEMP_DIR}/${IMAGE_FILE} ${STORAGE} )
+    
+    _loading2 "-- Setting VM storage options"
+    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
+    
+    _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
+    ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
+    
+    _loading2 "-- Setting SSH Key on VM_ID:$VM_ID with SSH_KEY:$SSH_KEY"
+    ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )        
+    
+    _notice "Completed creation of VM with ID of $VM_ID"    
     _notice "To start the VM run: qm start $VM_ID"
 }
 
