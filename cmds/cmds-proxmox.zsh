@@ -48,11 +48,14 @@ function proxmox_init () {
         MEM="2048"
     else 
         MEM=${MEM[2]}
-        # -- Check if MEM is not a number
-        if ! [[ $MEM =~ ^[0-9]+$ ]]; then
+        # -- Check if MEM is not a number between 512 and 100000        
+        if ! [[ $MEM =~ ^[0-9]+$ ]]; then        
             _error "MEM is not a number"
             return 1
-        fi    
+        elif [[ $MEM -lt 512 ]]; then
+            _error "MEM is less than 512"
+            return 1
+        fi
     fi
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
