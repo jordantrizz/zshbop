@@ -296,11 +296,15 @@ function _proxmox_createvm () {
     )
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
-    _loading2 "-- Inserting guest tools into image"
-    ( set -x; virt-customize -a ${TEMP_DIR}/${IMAGE_FILE} --install qemu-guest-agent )
+    _loading 2 "Create a copy of new image"
+    cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
+    BUILD_IMAGE="${TEMP_DIR}/${IMAGE_FILE}.build"
 
-    _loading2 "-- Importing OS_FILE:${TEMP_DIR}/${IMAGE_FILE} into VM_ID:$VM_ID"
-    ( set -x;qm importdisk $VM_ID ${TEMP_DIR}/${IMAGE_FILE} ${STORAGE} )
+    _loading2 "-- Inserting guest tools into image"
+    ( set -x; virt-customize -a ${BUILD_IMAGE} --install qemu-guest-agent )
+
+    _loading2 "-- Importing OS_FILE:${BUILD_IMAGE} into VM_ID:$VM_ID"
+    ( set -x;qm importdisk $VM_ID ${BUILD_IMAGE} ${STORAGE} )
     
     _loading2 "-- Setting VM storage options"
     ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
