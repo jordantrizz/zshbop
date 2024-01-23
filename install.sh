@@ -23,10 +23,10 @@ else
 fi
 
 # -- Required Software
-REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
+REQUIRED_SOFTWARE=('git' 'wget' 'curl' 'sudo')
 
 # -- Optional Software
-OPTIONAL_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'sudo' 'screen' 'wget' 'joe')
+OPTIONAL_SOFTWARE=('jq' 'curl' 'git' 'sudo' 'screen' 'wget' 'joe')
 OPTIONAL_SOFTWARE+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
 OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'ncdu')
 OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'ucommon-utils')
@@ -123,7 +123,15 @@ function check_package () {
         MSG+="Checking $PACKAGE"
         if ! dpkg -s $PACKAGE >/dev/null 2>&1; then
             _error "$PACKAGE not installed."
-            PACKAGE_INSTALL+=("$PACKAGE")
+            
+            # -- Check if $PACKAGE is in $PATH
+            _loading "Checking if $PACKAGE is in \$PATH"
+            if ! [ -x "$(command -v $PACKAGE)" ]; then
+                _error "$PACKAGE not in \$PATH"
+                PACKAGE_INSTALL+=("$PACKAGE")
+            else
+                _success "$PACKAGE is in \$PATH"
+            fi
         else
             _success "$PACKAGE installed"
         fi
@@ -175,7 +183,17 @@ function pre_flight_check () {
     _loading "- Running pre-flight Check"
     
     # -- Skip dependencies
-    if [[ $SKIP_DEP == "0" ]]; then    
+    if [[ $SKIP_DEP == "0" ]]; then
+
+        # -- Check if zsh is installed
+        _running "Checking if zsh is installed...."
+        if ! [ -x "$(command -v zsh)" ]; then
+            _error "zsh is not installed, installing zsh"
+            install_package zsh
+        else
+            _success -e "- zsh is installed!"
+        fi 
+
         # -- Check if $REQUIRED_SOFTWARE packages are installed with apt.
         _loading "- Checking if any required software needs to be installed"        
         _debug "\$REQUIRED_SOFTWARE: ${REQUIRED_SOFTWARE[*]}"
@@ -199,7 +217,8 @@ function pre_flight_check () {
                 _error "Invalid choice. Please enter 'y' or 'n'."
             fi
         fi
-        
+
+        # -- Check if $OPTIONAL_SOFTWARE packages are installed with apt.        
         if [[ $SKIP_OPTIONAL == 0 ]]; then
             # -- Check if $OPTIONAL_SOFTWARE packages are installed with apt.
             _running "Checking if any optional software needs to be installed"        
