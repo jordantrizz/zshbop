@@ -10,6 +10,7 @@ VERSION="1.0.0"
 SKIP_DEP="0"
 SKIP_OPTIONAL="0"
 HELP="0"
+INSTALL_CUSTOM_PATH=""
 
 # -- Detect OS for Ubuntu and Version
 if [ -f /etc/os-release ]; then
@@ -262,12 +263,25 @@ function install_method () {
 		BRANCH="master"
 	elif [ $INSTALL == "c" ]; then
         # -- Custom install
-        echo "Do you want to install system wide or home only? (s/h/g)"
+        echo "Where do you want to install?"
+        echo ""
+        echo "(s) = System path /usr/local/sbin/zshbop"
+        echo "(h) = Home path \$HOME/zshbop"
+        echo "(g) = Git path \$HOME/git/zshbop"
+        echo "(c) = Custom path ex. /opt"
+        echo ""
+        echo "Enter (s/h/g/c):"
         read INSTALL_LOCATION
         [[ $INSTALL_LOCATION == "s" ]] && INSTALL_LOCATION="system"
         [[ $INSTALL_LOCATION == "h" ]] && INSTALL_LOCATION="home"
         [[ $INSTALL_LOCATION == "g" ]] && INSTALL_LOCATION="git"
+        if [[ $INSTALL_LOCATION == "c" ]]; then
+            INSTALL_LOCATION="custom"
+            echo "Enter custom path:"
+            read INSTALL_CUSTOM_PATH
+        fi
 
+        echo ""
         echo "Branch (m)ain, (d)ev, (n)ext-release Branch? (d/m/n)"
         read BRANCH
         [[ $BRANCH == "m" ]] && BRANCH="main"
@@ -350,8 +364,19 @@ function setup_zshbop() {
         INSTALL_PATH="$HOME"
     elif [[ $INSTALL_LOCATION == "git" ]]; then
         INSTALL_PATH="$HOME/git"
+    elif [[ $INSTALL_LOCATION == "custom" ]]; then
+        INSTALL_PATH="$INSTALL_CUSTOM_PATH"
     else
         _error "Invalid install location"
+        exit 1
+    fi
+
+    # -- Confirm that we can write to $INSTALL_PATH
+    _loading "- Checking if we can write to $INSTALL_PATH"
+    if [[ -w $INSTALL_PATH ]]; then
+        _success "- We can write to $INSTALL_PATH"
+    else
+        _error "- We can't write to $INSTALL_PATH"
         exit 1
     fi
 
@@ -361,6 +386,16 @@ function setup_zshbop() {
 
     # -- Setup .zshrc
      _loading "- Setting up system based .zshrc..."
+    
+    # -- Check if we can write to .zshrc
+    if [[ -w $HOME/.zshrc ]]; then
+        _success "- We can write to $HOME/.zshrc"
+    else
+        _error "- We can't write to $HOME/.zshrc, you will need to invoke zshbop some other way"
+        exit 1
+    fi
+
+    # -- Check if .zshrc has zshbop.zsh in it
     if ! [ -f $HOME/.zshrc ]; then
         echo "source $INSTALL_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
         _success "- ZSH in-place at $INSTALL_PATH, type zsh to start your shell\n"
