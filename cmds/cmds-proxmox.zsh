@@ -279,6 +279,7 @@ function _proxmox_createvm () {
 
     # -- Run QM Command
     _loading2 "-- Creating VM with ID:$VM_ID"
+    _loading3 "---- Name: $NAME Memory: $MEM Network: $NET Storage: $STORAGE Disksize: $DISKSIZE OS: $OS_RELEASE"
     (set -x;qm create $VM_ID --name $NAME --memory $MEM \
     $DHCP_NET_INT $DHCP_NET_QM \
     $DHCP_IP $DHCP_IP_CFG \
