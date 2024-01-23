@@ -47,10 +47,9 @@ function proxmox_init () {
     if [[ -z $MEM ]]; then
         MEM="2048"
     else 
-        # -- Check if MEM is a number
-        if [[ $MEM =~ ^[0-9]+$ ]]; then
-            MEM=${MEM[2]}
-        else
+        MEM=${MEM[2]}
+        # -- Check if MEM is not a number
+        if ! [[ $MEM =~ ^[0-9]+$ ]]; then
             _error "MEM is not a number"
             return 1
         fi    
