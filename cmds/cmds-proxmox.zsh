@@ -44,7 +44,17 @@ function proxmox_init () {
     ALL_ARGS="$@"
     zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW 
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
-    [[ -z $MEM ]] && MEM="2048" || MEM=${MEM[2]}
+    if [[ -z $MEM ]]; then
+        MEM="2048"
+    else 
+        # -- Check if MEM is a number
+        if [[ $MEM =~ ^[0-9]+$ ]]; then
+            MEM=${MEM[2]}
+        else
+            _error "MEM is not a number"
+            return 1
+        fi    
+    fi
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20" || DISKSIZE=$DISKSIZE[2]
@@ -279,7 +289,7 @@ function _proxmox_createvm () {
 
     # -- Run QM Command
     _loading2 "-- Creating VM with ID:$VM_ID"
-    _loading3 "---- Name: $NAME Memory: $MEM Network: $NET Storage: $STORAGE Disksize: $DISKSIZE OS: $OS_RELEASE"
+    _loading3 "---- NAME: $NAME MEM: $MEM DISKSIZE: $DISKSIZE NET: $NET OS_RELEASE: $OS_RELEASE"
     (set -x;qm create $VM_ID --name $NAME --memory $MEM \
     $DHCP_NET_INT $DHCP_NET_QM \
     $DHCP_IP $DHCP_IP_CFG \
