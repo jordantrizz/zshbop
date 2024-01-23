@@ -106,20 +106,44 @@ help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _log "${funcstack[1]}:start"
 
-    if [[ $1 == "-q" ]]; then
-            _loading "Quick reload of zshbop"
+    zparseopts -D -E q+=ARG_QUICK    
+
+    if [[ -n $ARG_QUICK ]]; then
+        _loading "Quick reload of zshbop"
         export RUN_REPORT=0
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
         init_zshbop
+    elif [[ -n $1 ]]; then
+        if [[ -f cmds/cmds-$1.zsh ]]; then
+            _loading "Quick reload of cmds/cmds-$1.zsh"
+            source cmds/cmds-$1.zsh
+        else
+            _error "cmds/cmds-$1.zsh doesn't exist"
+        fi
     else
         _loading "Reloading zshbop"
         export RUN_REPORT=1
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
         _log "Running exec zsh"
-	    exec zsh
+        exec zsh
     fi
+
+    #if [[ $1 == "-q" ]]; then
+    #        _loading "Quick reload of zshbop"
+    #    export RUN_REPORT=0
+    #    export ZSHBOP_RELOAD=1
+    #    zshbop_cache-clear
+    #    init_zshbop
+    #else
+    #    _loading "Reloading zshbop"
+    #    export RUN_REPORT=1
+    #    export ZSHBOP_RELOAD=1
+    #    zshbop_cache-clear
+    #    _log "Running exec zsh"
+	#    exec zsh
+    #fi
 }
 
 # =========================================================
