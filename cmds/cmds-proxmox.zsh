@@ -309,7 +309,7 @@ function _proxmox_createvm () {
     )
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
-    _loading 2 "Create a copy of new image"
+    _loading2 "Create a copy of new image"
     cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
     BUILD_IMAGE="${TEMP_DIR}/${IMAGE_FILE}.build"
 
@@ -321,12 +321,15 @@ function _proxmox_createvm () {
     
     _loading2 "-- Setting VM storage options"
     ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
+    [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
     
     _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
     ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
+    [[ $? -ne 0 ]] && { _error "Failed to resize VM disk";return 1; }
     
     _loading2 "-- Setting SSH Key on VM_ID:$VM_ID with SSH_KEY:$SSH_KEY"
-    ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )        
+    ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
+    [[ $? -ne 0 ]] && { _error "Failed to set SSH Key";return 1; }
     
     _notice "Completed creation of VM with ID of $VM_ID"    
     _notice "To start the VM run: qm start $VM_ID"
