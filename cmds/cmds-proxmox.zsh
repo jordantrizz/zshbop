@@ -55,7 +55,7 @@ function proxmox_init () {
         elif [[ $MEM -lt 512 ]]; then
             _error "MEM is less than 512"
             return 1
-        fi
+        fi    
     fi
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
@@ -156,7 +156,7 @@ Command Options:
   createvm <options>
   ------------------
     -name <name>              Name of the VM
-    -memory <memory>          Memory of VM in MB (Default: 2GB)
+    -memory <memory>          Memory of VM in MB (Default: 2048) Ex. 512, 1024, 2048, 4096, 8192
     -network <network>        Network bridge to use (Default: vmbr0)
     -storage <storage>        Storage location (Autodetect)
     -disksize <disksize>      Disk size in MB (Default: 20GB)
