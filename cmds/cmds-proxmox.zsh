@@ -294,6 +294,7 @@ function _proxmox_createvm () {
     --agent enabled=1,fstrim_cloned_disks=1 \
     --cicustom "user=local:/userconfig.yaml"
     )
+    [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
     _loading2 "-- Inserting guest tools into image"
     ( set -x; virt-customize -a ${TEMP_DIR}/${IMAGE_FILE} --install qemu-guest-agent )
