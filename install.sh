@@ -174,6 +174,41 @@ function install_package () {
 }
 
 # -----------------------------------------------
+# -- check_zsh
+# -----------------------------------------------
+function _check_zsh () {
+    # -- Check if zsh is installed
+    _running "Checking if zsh is installed...."
+    if ! [ -x "$(command -v zsh)" ]; then
+        _error "zsh is not installed."
+        echo "Do you want to install zsh via (s)udo or (b)inary? (s/b)"
+        read ZSH_INSTALL
+        # -- Confirm if sudo or binary install
+        if [ "$ZSH_INSTALL" == "s" ] || [ "$ZSH_INSTALL" == "S" ]; then
+            _loading "Installing zsh via sudo"
+            install_package zsh
+        elif [ "$ZSH_INSTALL" == "b" ] || [ "$ZSH_INSTALL" == "B" ]; then
+            _loading "Installing zsh via binary"
+
+            # -- Ask where to install zsh binary and loop until valid path is writable, ask five times then exit
+            echo "Where should we install zsh?"
+            read ZSH_INSTALL_PATH
+            while [[ ! -w $ZSH_INSTALL_PATH ]]; do
+                _error "Can't write to $ZSH_INSTALL_PATH"
+                echo "Where should we install zsh?"
+                read ZSH_INSTALL_PATH
+                ((i++)) && ((i==5)) && _error "Can't write to $ZSH_INSTALL_PATH, exiting." && exit 1
+            done
+
+            # -- Download zsh binary
+            echo "Do some stuff here"
+        fi
+    else
+        _success -e "- zsh is installed!"
+    fi 
+}
+
+# -----------------------------------------------
 # -- pre_flight_check
 # -----------------------------------------------
 
@@ -186,13 +221,7 @@ function pre_flight_check () {
     if [[ $SKIP_DEP == "0" ]]; then
 
         # -- Check if zsh is installed
-        _running "Checking if zsh is installed...."
-        if ! [ -x "$(command -v zsh)" ]; then
-            _error "zsh is not installed, installing zsh"
-            install_package zsh
-        else
-            _success -e "- zsh is installed!"
-        fi 
+        _check_zsh
 
         # -- Check if $REQUIRED_SOFTWARE packages are installed with apt.
         _loading "- Checking if any required software needs to be installed"        
