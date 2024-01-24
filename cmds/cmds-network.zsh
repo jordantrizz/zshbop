@@ -36,3 +36,6 @@ function whatismyip () {
 	dig @resolver1.opendns.com A myip.opendns.com +short -4
 	dig @resolver1.opendns.com AAAA myip.opendns.com +short -6
 }
+
+# -- dhcp-lease-list
+help_network[dhcp-lease-list]="List all DHCP leases, included with dhcpd"
