@@ -105,7 +105,8 @@ if [[ -z $ZB_LOG_PATH ]]; then
     else
         # -- Log outside of ZSHBOP_ROOT
         export ZB_LOG_PATH="$ZSHBOP_ROOT/../"    
-    fi    
+    fi
+fi
 ZB_LOG_FILE=".zshbop.log" # -- Default log file
 export ZB_LOG="${ZB_LOG_PATH}/${ZB_LOG_FILE}" # -- Default log path and file
 
