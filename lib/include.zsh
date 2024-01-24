@@ -8,7 +8,7 @@
 ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
 export ZSHBOP_VERSION=$(cat ${ZSHBOP_ROOT}/VERSION) # -- Current version installed
 if [[ -w $HOME ]]; then
-    export ZSHBOP_HOME="$HOME/zshbop" # -- zshbop root directory
+    export ZSHBOP_HOME="$HOME" # -- zshbop root directory
 else
     export ZSHBOP_HOME="$ZSHBOP_ROOT/../" # -- zshbop root directory
 fi
