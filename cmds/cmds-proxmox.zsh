@@ -304,7 +304,8 @@ function _proxmox_createvm () {
     --ostype l26 \
     --onboot 1 \
     --cpu host \
-    --agent enabled=1,fstrim_cloned_disks=1 \    
+    --agent enabled=1,fstrim_cloned_disks=1 \
+    --cicustom "vendor=local:snippets/vendor.yaml'"
     )
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
