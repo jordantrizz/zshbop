@@ -7,6 +7,11 @@
 # -- Potential zshbop paths, including old zsh path, left over from .zshrc removal
 ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
 export ZSHBOP_VERSION=$(cat ${ZSHBOP_ROOT}/VERSION) # -- Current version installed
+if [[ -w $HOME ]]; then
+    export ZSHBOP_HOME="$HOME/zshbop" # -- zshbop root directory
+else
+    export ZSHBOP_HOME="$ZSHBOP_ROOT/../" # -- zshbop root directory
+fi
 
 # =========================================================
 # ---- Variables
@@ -40,11 +45,11 @@ export LANGUAGE=en_US.UTF-8
 export TERM="xterm-256color"
 export LANG="C.UTF-8"
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify # -- ohmyzsh specific environment variables
-export SSHK="$HOME/.ssh"
-export TMP="$HOME/tmp"
+export SSHK="$ZSHBOP_HOME/.ssh"
+export TMP="$ZSHBOP_HOME/tmp"
 
 # -- zsh sepcific
-export ZDOTDIR="${HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
+export ZDOTDIR="${ZSHBOP_HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
 
 # -- zshbop specific
 export ZSHBOP_NAME="zshbop" # -- Current zshbop branch
@@ -98,15 +103,7 @@ setopt share_history          # share command history data
 # =========================================================
 
 # -- Logging
-if [[ -z $ZB_LOG_PATH ]]; then
-    # -- Check if we can write to $HOME
-    if [[ -w $HOME ]]; then
-        export ZB_LOG_PATH="$HOME"        
-    else
-        # -- Log outside of ZSHBOP_ROOT
-        export ZB_LOG_PATH="$ZSHBOP_ROOT/../"    
-    fi
-fi
+[[ -z $ZB_LOG_PATH ]] && export ZB_LOG_PATH="$ZSHBOP_HOME" # -- Default log path
 ZB_LOG_FILE=".zshbop.log" # -- Default log file
 export ZB_LOG="${ZB_LOG_PATH}/${ZB_LOG_FILE}" # -- Default log path and file
 
