@@ -41,6 +41,8 @@ RED="\033[0;31m"
 GREEN="\033[0;32m"
 CYAN="\033[0;36m"
 YELLOW="\033[1;33m"
+BLACK="\033[0;30m"
+YELLOWBG="\033[0;43m"
 BLUEBG="\033[0;44m"
 GREENBG="\033[0;42m"
 DARKGREYBG="\033[0;100m"
@@ -55,7 +57,7 @@ _warning () { echo -e "${YELLOW}** WARNING ** - ${*} ${ECOL}"; }
 _success () { echo -e "${GREEN}** SUCCESS ** - ${*} ${ECOL}"; }
 _running () { echo -e "${BLUEBG}* ${*} *${ECOL}"; }
 _loading () { echo -e "${DARKGREY}${*}${ECOL}"; }
-_install () { echo -e "${GREENBG}${*}${ECOL}"; }
+_install () { echo -e "${YELLOWBG}${BLACK}${*}${ECOL}"; }
 _debug () { if [[ $DEBUG == "1" ]]; then echo -e "${CYAN}*** DEBUG: ${*}${ECOL}" >&2; fi; }
 _yellow () { echo -e "${YELLOW}${*}${ECOL}"; }
 
@@ -148,16 +150,25 @@ function _check_zsh () {
         _error "zsh is not installed."
         echo -n "Do you want to install zsh via (s)udo or (b)inary? (s/b): "
         read ZSH_INSTALL
+
         # -- Confirm if sudo or binary install
         if [ "$ZSH_INSTALL" == "s" ] || [ "$ZSH_INSTALL" == "S" ]; then
             _loading "Installing zsh via sudo"
             install_package zsh
+            if [[ $? -gt 0 ]]; then
+                _error "zsh install failed...."
+                exit 1
+            else
+                _success "zsh installed successfully"
+                ZSH_BIN=$(which zsh)
+            fi
+
         elif [ "$ZSH_INSTALL" == "b" ] || [ "$ZSH_INSTALL" == "B" ]; then
             _loading "Installing zsh via binary"
-
             # -- Ask where to install zsh binary and loop until valid path is writable, ask five times then exit
             echo -n "Where should we install zsh?: "
             read ZSH_INSTALL_PATH
+
             while [[ ! -w $ZSH_INSTALL_PATH ]]; do
                 _error "Can't write to $ZSH_INSTALL_PATH"
                 echo -n "Where should we install zsh?: "
@@ -174,11 +185,14 @@ function _check_zsh () {
                 _error "zsh binary install failed...."
                 exit 1
             else
-                _success "zsh binary installed successfully"
+                _success "zsh binary installed successfully in $ZSH_INSTALL_PATH/bin/zsh"
+                ZSH_BIN="$ZSH_INSTALL_PATH/bin/zsh"
             fi
         fi
     else
-        _success -e "- zsh is installed!"
+        ZSH_BIN=$(which zsh)
+        _success -e "- zsh is installed in $ZSH_BIN!"
+
     fi 
 }
 
@@ -365,9 +379,6 @@ function check_zsh_default () {
 # --------------------------------
 function install_method () {
     # -- Print ZSHBOP banner
-    zshbop_banner
-	echo ""
-
     _install "Starting zshbop install"
 
     # -- Install method
@@ -403,6 +414,8 @@ function install_method () {
             INSTALL_LOCATION="custom"
             echo "Enter custom path:"
             read INSTALL_CUSTOM_PATH
+            # -- Resolve $INSTALL_CUSTOM_PATH to absolute path
+            INSTALL_CUSTOM_PATH=$(cd $INSTALL_CUSTOM_PATH && pwd)
         fi
 
         echo ""
@@ -537,6 +550,9 @@ function setup_zshbop() {
     fi
     
     _success "Installation complete."
+    echo " - Type zsh to start your shell, or $ZSH_BIN to start zsh directly"
+    echo " - zshbop is installed in $INSTALL_PATH/zshbop"
+
 }
 
 # -------------------------------------------------------------------------------------------------
