@@ -11,6 +11,9 @@ SKIP_DEP="0"
 SKIP_OPTIONAL="0"
 HELP="0"
 INSTALL_CUSTOM_PATH=""
+SYSTEM_WRITBALE="0"
+HOME_WRITABLE="0"
+TMP_WRITEABLE="0"
 
 # -- Detect OS for Ubuntu and Version
 if [ -f /etc/os-release ]; then
@@ -138,41 +141,6 @@ function check_package () {
     done
 }
 
-# --------------------------------
-# -- install_package - install packages.
-# --------------------------------
-function install_package () {
-    # -- Checking if sudo is installed
-    if ! [ -x "$(command -v sudo)" ]; then
-        _loading "sudo is not installed, installing sudo"
-        install_package sudo
-    fi
-
-    _debug "Installing ${*}"
-	# Checking what package manager we have
-    _loading "Checking what package manager we have...."
-    if [ -x "$(command -v apt-get)" ]; then
-        echo " - We have apt!"
-        sudo apt-get update
-        sudo apt install --no-install-recommends -y "${*}"
-	elif [ -x "$(command -v yum)" ]; then
-        echo " - We have yum!"
-        sudo yum install "${*}"
-    elif [ -x "$(command -v brew)" ]; then
-        echo " - We have brew!"
-        brew install "${*}"
-    else
-    	_error "Can't detect package manager :("
-    fi
-    
-    if [ $? -gt 0 ]; then
-    	_error "${*} install failed...."
-        exit 1
-    else
-	    _success "${*} installed successfully"
-    fi
-}
-
 # -----------------------------------------------
 # -- check_zsh
 # -----------------------------------------------
@@ -201,7 +169,14 @@ function _check_zsh () {
             done
 
             # -- Download zsh binary
-            echo "Do some stuff here"
+            echo "Downloading zsh binary to $ZSH_INSTALL_PATH"
+            sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)" -- -d $ZSH_INSTALL_PATH -q -e no
+            if [[ $? -gt 0 ]]; then
+                _error "zsh binary install failed...."
+                exit 1
+            else
+                _success "zsh binary installed successfully"
+            fi
         fi
     else
         _success -e "- zsh is installed!"
@@ -209,9 +184,66 @@ function _check_zsh () {
 }
 
 # -----------------------------------------------
+# -- _check_git
+# -----------------------------------------------
+_check_git () {
+    # -- Check it see if git is installed
+    _running "Checking if git is installed...."
+    if ! [ -x "$(command -v git)" ]; then
+        _error "git is not installed."
+        echo "Do you want to install git via (s)udo?"
+        read GIT_INSTALL
+        # -- Confirm if sudo or binary install
+        if [ "$GIT_INSTALL" == "s" ] || [ "$GIT_INSTALL" == "S" ]; then
+            _loading "Installing git via sudo"
+            install_package git
+        else 
+            _error "Invalid choice, exiting."
+            exit 1
+        fi
+    else
+        _success -e "- git is installed!"
+    fi
+}
+
+# -----------------------------------------------
+# -- _check_env
+# -----------------------------------------------
+_check_env () {
+    # -- Check if environment is writable
+    _running "Checking if \$HOME:$HOME is writable...."
+    if [[ -w $HOME ]]; then
+        _success " - $HOME is writable!"
+        HOME_WRITABLE="1"
+    else
+        _error " - $HOME is not writable."
+        HOME_WRITABLE="0"
+    fi
+
+    # -- Checking if /usr/local/sbin is writable
+    _running "Checking if /usr/local/sbin is writable...."
+    if [[ -w /usr/local/sbin ]]; then
+        _success " - /usr/local/sbin is writable!"
+        SYSTEM_WRITBALE="1"
+    else
+        _error " - /usr/local/sbin is not writable."
+        SYSTEM_WRITBALE="0"
+    fi
+
+    # -- Check if we can write to $HOME/tmp
+    _running "Checking if $HOME/tmp is writable...."
+    if [[ -w $HOME/tmp ]]; then
+        _success " - $HOME/tmp is writable!"
+        TMP_WRITEABLE="1"
+    else
+        _error " - $HOME/tmp is not writable."
+        TMP_WRITEABLE="0"
+    fi
+
+}
+# -----------------------------------------------
 # -- pre_flight_check
 # -----------------------------------------------
-
 function pre_flight_check () {
     local DO_INSTALL=() REQUIRED_INSTALL OPTIONAL_INSTALL
     # -- Pre-flight Check
@@ -219,9 +251,13 @@ function pre_flight_check () {
     
     # -- Skip dependencies
     if [[ $SKIP_DEP == "0" ]]; then
-
         # -- Check if zsh is installed
+        _running "Checking if zsh is installed...."
         _check_zsh
+
+        # -- Check if git is installed
+        _running "Checking if git is installed...."
+        _check_git
 
         # -- Check if $REQUIRED_SOFTWARE packages are installed with apt.
         _loading "- Checking if any required software needs to be installed"        
@@ -279,6 +315,41 @@ function pre_flight_check () {
 }
 
 # --------------------------------
+# -- install_package - install packages.
+# --------------------------------
+function install_package () {
+    # -- Checking if sudo is installed
+    if ! [ -x "$(command -v sudo)" ]; then
+        _loading "sudo is not installed, installing sudo"
+        install_package sudo
+    fi
+
+    _debug "Installing ${*}"
+	# Checking what package manager we have
+    _loading "Checking what package manager we have...."
+    if [ -x "$(command -v apt-get)" ]; then
+        echo " - We have apt!"
+        sudo apt-get update
+        sudo apt install --no-install-recommends -y "${*}"
+	elif [ -x "$(command -v yum)" ]; then
+        echo " - We have yum!"
+        sudo yum install "${*}"
+    elif [ -x "$(command -v brew)" ]; then
+        echo " - We have brew!"
+        brew install "${*}"
+    else
+    	_error "Can't detect package manager :("
+    fi
+    
+    if [ $? -gt 0 ]; then
+    	_error "${*} install failed...."
+        exit 1
+    else
+	    _success "${*} installed successfully"
+    fi
+}
+
+# --------------------------------
 # -- check_zsh_default
 # --------------------------------
 function check_zsh_default () {
@@ -299,10 +370,16 @@ function install_method () {
     zshbop_banner
 	echo ""
 
-    # -- Install method
     _install "Starting zshbop install"
-    echo "Install (d)efaults or (c)ustomize? (d/c)?"
-	read INSTALL
+
+    # -- Install method
+    if [[ $SYSTEM_WRITBALE == "1" ]]; then        
+        echo "Install (d)efaults or (c)ustomize? (d/c)?"
+    	read INSTALL
+    else
+        _error "Can't write to /usr/local/sbin, proceeding with custom install."
+        INSTALL="c"
+    fi
 
     # -- Setup variables for install method choosen
 	if [ $INSTALL == "d" ]; then
@@ -313,12 +390,13 @@ function install_method () {
         # -- Custom install
         echo "Where do you want to install?"
         echo ""
-        echo "(s) = System path /usr/local/sbin/zshbop"
-        echo "(h) = Home path \$HOME/zshbop"
-        echo "(g) = Git path \$HOME/git/zshbop"
+
+        [[ $SYSTEM_WRITBALE == "1" ]] && echo "(s) = System path /usr/local/sbin/zshbop"
+        [[ $HOME_WRITABLE == "1" ]] && echo "(h) = Home path \$HOME/zshbop"
+        [[ $HOME_WRITABLE == "1" ]] && echo "(g) = Git path \$HOME/git/zshbop"
         echo "(c) = Custom path ex. /opt"
         echo ""
-        echo "Enter (s/h/g/c):"
+        echo "Enter Install Type:"
         read INSTALL_LOCATION
         [[ $INSTALL_LOCATION == "s" ]] && INSTALL_LOCATION="system"
         [[ $INSTALL_LOCATION == "h" ]] && INSTALL_LOCATION="home"
