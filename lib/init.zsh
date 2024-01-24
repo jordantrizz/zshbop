@@ -501,15 +501,15 @@ function init_check_services () {
 }
 
 # ==============================================
-# -- init_home_bin - Make sure $HOME/bin exists
+# -- init_home_bin - Make sure $ZSHBOP_HOME/bin exists
 # ==============================================
 function init_home_bin () {
     # -- check if home bin exists
-    if [[ -d $HOME/bin ]]; then
+    if [[ -d $ZSHBOP_HOME/bin ]]; then
         _debug "Home bin exists"
     else
-        _loading2 "\$HOME/bin does not exist...creating home bin"
-        mkdir $HOME/bin
+        _loading2 "\$ZSHBOP_HOME/bin does not exist...creating home bin"
+        mkdir $ZSHBOP_HOME/bin
     fi
 }
 

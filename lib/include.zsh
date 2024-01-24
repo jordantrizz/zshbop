@@ -45,8 +45,8 @@ export LANGUAGE=en_US.UTF-8
 export TERM="xterm-256color"
 export LANG="C.UTF-8"
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify # -- ohmyzsh specific environment variables
-export SSHK="$ZSHBOP_HOME/.ssh"
-export TMP="$ZSHBOP_HOME/tmp"
+export SSHK="${ZSHBOP_HOME}/.ssh"
+export TMP="${ZSHBOP_HOME}/tmp"
 
 # -- zsh sepcific
 export ZDOTDIR="${ZSHBOP_HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching
@@ -54,7 +54,7 @@ export ZDOTDIR="${ZSHBOP_HOME}" # -- Set the ZDOTDIR to $HOME this fixes system 
 # -- zshbop specific
 export ZSHBOP_NAME="zshbop" # -- Current zshbop branch
 export SCRIPT_DIR=${0:a:h} # -- Current working directory
-export ZSHBOP_CACHE_DIR="${HOME}/.zshbop_cache"
+export ZSHBOP_CACHE_DIR="${ZSHBOP_HOME}/.zshbop_cache"
 export ZSHBOP_PLUGIN_MANAGER="init_antidote"
 export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
 export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT
