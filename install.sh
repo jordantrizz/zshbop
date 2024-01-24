@@ -126,7 +126,6 @@ function check_package () {
         MSG+="Checking $PACKAGE"
         if ! dpkg -s $PACKAGE >/dev/null 2>&1; then
             # -- Check if $PACKAGE is in $PATH
-            _loading "Checking if $PACKAGE is in \$PATH"
             if ! [ -x "$(command -v $PACKAGE)" ]; then
                 _error "$PACKAGE not in \$PATH and not installed via dpkg."
                 PACKAGE_INSTALL+=("$PACKAGE")
