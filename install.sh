@@ -149,7 +149,7 @@ function _check_zsh () {
     _running "Checking if zsh is installed...."
     if ! [ -x "$(command -v zsh)" ]; then
         _error "zsh is not installed."
-        echo "Do you want to install zsh via (s)udo or (b)inary? (s/b)"
+        echo -e "Do you want to install zsh via (s)udo or (b)inary? (s/b): "
         read ZSH_INSTALL
         # -- Confirm if sudo or binary install
         if [ "$ZSH_INSTALL" == "s" ] || [ "$ZSH_INSTALL" == "S" ]; then
@@ -159,11 +159,11 @@ function _check_zsh () {
             _loading "Installing zsh via binary"
 
             # -- Ask where to install zsh binary and loop until valid path is writable, ask five times then exit
-            echo "Where should we install zsh?"
+            echo -e "Where should we install zsh?: "
             read ZSH_INSTALL_PATH
             while [[ ! -w $ZSH_INSTALL_PATH ]]; do
                 _error "Can't write to $ZSH_INSTALL_PATH"
-                echo "Where should we install zsh?"
+                echo -e "Where should we install zsh?: "
                 read ZSH_INSTALL_PATH
                 ((i++)) && ((i==5)) && _error "Can't write to $ZSH_INSTALL_PATH, exiting." && exit 1
             done
@@ -246,17 +246,16 @@ _check_env () {
 # -----------------------------------------------
 function pre_flight_check () {
     local DO_INSTALL=() REQUIRED_INSTALL OPTIONAL_INSTALL
+    zshbop_banner
     # -- Pre-flight Check
     _loading "- Running pre-flight Check"
     
     # -- Skip dependencies
     if [[ $SKIP_DEP == "0" ]]; then
         # -- Check if zsh is installed
-        _running "Checking if zsh is installed...."
         _check_zsh
 
         # -- Check if git is installed
-        _running "Checking if git is installed...."
         _check_git
 
         # -- Check if $REQUIRED_SOFTWARE packages are installed with apt.
