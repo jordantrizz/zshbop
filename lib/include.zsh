@@ -66,6 +66,9 @@ export ZSHBOP_RELOAD="0"
 typeset -a ZSHBOP_UPDATE_GIT=()
 export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository 
 
+# -- Software specific
+GIT_CONFIG="${ZSHBOP_HOME}/.gitconfig"
+
 # -- Required Software
 REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
 

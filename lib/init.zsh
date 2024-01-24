@@ -407,7 +407,8 @@ function init_pkg_manager () {
 # ==============================================
 init-app-config () {    
 	_log "Setting application configuration"
-	# git
+	# -- git
+    _loading3 "Setting git configuration"
 	git config --global init.defaultBranch main
 }
 
