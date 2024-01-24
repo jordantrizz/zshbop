@@ -159,7 +159,7 @@ Command Options:
     -memory <memory>          Memory of VM in MB (Default: 2048) Ex. 512, 1024, 2048, 4096, 8192
     -network <network>        Network bridge to use (Default: vmbr0)
     -storage <storage>        Storage location (Autodetect)
-    -disksize <disksize>      Disk size in MB (Default: 20GB)
+    -disksize <disksize>      Disk size in MB (Default: 20000MB)
     -os <os>                  bionic,focal,jammy (Default: focal)
     -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
     -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
@@ -304,8 +304,7 @@ function _proxmox_createvm () {
     --ostype l26 \
     --onboot 1 \
     --cpu host \
-    --agent enabled=1,fstrim_cloned_disks=1 \
-    --cicustom "user=local:/userconfig.yaml"
+    --agent enabled=1,fstrim_cloned_disks=1 \    
     )
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
