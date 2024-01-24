@@ -98,8 +98,14 @@ setopt share_history          # share command history data
 # =========================================================
 
 # -- Logging
-# Logging variables for path and file
-ZB_LOG_PATH="$HOME" # -- Default log path
+if [[ -z $ZB_LOG_PATH ]]; then
+    # -- Check if we can write to $HOME
+    if [[ -w $HOME ]]; then
+        export ZB_LOG_PATH="$HOME"        
+    else
+        # -- Log outside of ZSHBOP_ROOT
+        export ZB_LOG_PATH="$ZSHBOP_ROOT/../"    
+    fi    
 ZB_LOG_FILE=".zshbop.log" # -- Default log file
 export ZB_LOG="${ZB_LOG_PATH}/${ZB_LOG_FILE}" # -- Default log path and file
 
