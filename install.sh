@@ -29,7 +29,7 @@ fi
 REQUIRED_SOFTWARE=('git' 'wget' 'curl' 'sudo')
 
 # -- Optional Software
-OPTIONAL_SOFTWARE=('jq' 'curl' 'git' 'sudo' 'screen' 'wget' 'joe')
+OPTIONAL_SOFTWARE=('jq' 'curl' 'sudo' 'screen' 'wget' 'joe')
 OPTIONAL_SOFTWARE+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
 OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'ncdu')
 OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'ucommon-utils')
@@ -125,12 +125,10 @@ function check_package () {
         # -- Use dpkg to check if package is installed
         MSG+="Checking $PACKAGE"
         if ! dpkg -s $PACKAGE >/dev/null 2>&1; then
-            _error "$PACKAGE not installed."
-            
             # -- Check if $PACKAGE is in $PATH
             _loading "Checking if $PACKAGE is in \$PATH"
             if ! [ -x "$(command -v $PACKAGE)" ]; then
-                _error "$PACKAGE not in \$PATH"
+                _error "$PACKAGE not in \$PATH and not installed via dpkg."
                 PACKAGE_INSTALL+=("$PACKAGE")
             else
                 _success "$PACKAGE is in \$PATH"
@@ -149,7 +147,7 @@ function _check_zsh () {
     _running "Checking if zsh is installed...."
     if ! [ -x "$(command -v zsh)" ]; then
         _error "zsh is not installed."
-        echo -e "Do you want to install zsh via (s)udo or (b)inary? (s/b): "
+        echo -n "Do you want to install zsh via (s)udo or (b)inary? (s/b): "
         read ZSH_INSTALL
         # -- Confirm if sudo or binary install
         if [ "$ZSH_INSTALL" == "s" ] || [ "$ZSH_INSTALL" == "S" ]; then
@@ -159,16 +157,18 @@ function _check_zsh () {
             _loading "Installing zsh via binary"
 
             # -- Ask where to install zsh binary and loop until valid path is writable, ask five times then exit
-            echo -e "Where should we install zsh?: "
+            echo -n "Where should we install zsh?: "
             read ZSH_INSTALL_PATH
             while [[ ! -w $ZSH_INSTALL_PATH ]]; do
                 _error "Can't write to $ZSH_INSTALL_PATH"
-                echo -e "Where should we install zsh?: "
+                echo -n "Where should we install zsh?: "
                 read ZSH_INSTALL_PATH
                 ((i++)) && ((i==5)) && _error "Can't write to $ZSH_INSTALL_PATH, exiting." && exit 1
             done
 
             # -- Download zsh binary
+            # -- Resolve $ZSH_INSTALL_PATH to absolute path
+            ZSH_INSTALL_PATH=$(cd $ZSH_INSTALL_PATH && pwd)
             echo "Downloading zsh binary to $ZSH_INSTALL_PATH"
             sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)" -- -d $ZSH_INSTALL_PATH -q -e no
             if [[ $? -gt 0 ]]; then
@@ -202,7 +202,7 @@ _check_git () {
             exit 1
         fi
     else
-        _success -e "- git is installed!"
+        _success "git is installed!"
     fi
 }
 
@@ -248,7 +248,7 @@ function pre_flight_check () {
     local DO_INSTALL=() REQUIRED_INSTALL OPTIONAL_INSTALL
     zshbop_banner
     # -- Pre-flight Check
-    _loading "- Running pre-flight Check"
+    _running "- Running pre-flight Check"
     
     # -- Skip dependencies
     if [[ $SKIP_DEP == "0" ]]; then
@@ -259,7 +259,7 @@ function pre_flight_check () {
         _check_git
 
         # -- Check if $REQUIRED_SOFTWARE packages are installed with apt.
-        _loading "- Checking if any required software needs to be installed"        
+        _running "- Checking if any required software needs to be installed"        
         _debug "\$REQUIRED_SOFTWARE: ${REQUIRED_SOFTWARE[*]}"
         check_package "${REQUIRED_SOFTWARE[@]}"         
 
