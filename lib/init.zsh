@@ -254,6 +254,7 @@ function init_antidote () {
 	export ANTIDOTE_DIR="${ZBR}/antidote"
 	export ANTIDOTE_PLUGINS="${ZBR}/.zsh_plugins.txt"
 	export ANTIDOTE_STATIC="${ZSHBOP_CACHE_DIR}/.zsh_plugins.zsh"
+    export ANTIDOTE_HOME="${ZBR_HOME}/antidote"
 	_debug "ANTIDOTE_PLUGINS: $ANTIDOTE_PLUGINS ANTIDOTE_STATIC:$ANTIDOTE_STATIC"
 
     # Ensure NVM lazy loads
@@ -409,7 +410,7 @@ init-app-config () {
 	_log "Setting application configuration"
 	# -- git
     _loading3 "Setting git configuration"
-	git config --global init.defaultBranch main
+	git config --global init.defaultBranch main 
 }
 
 # ==============================================
