@@ -320,7 +320,8 @@ function _proxmox_createvm () {
     ( set -x;qm importdisk $VM_ID ${BUILD_IMAGE} ${STORAGE} )
     
     _loading2 "-- Setting VM storage options"
-    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${STORAGE}:vm-${VM_ID}-disk-0,size=${DISKSIZE}M )
+    VM_STORAGE=$(qm config 103 | grep 'unused0' | awk '{ print $2 }')
+    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 VM_STORAGE,size=${DISKSIZE}M )
     [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
     
     _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
