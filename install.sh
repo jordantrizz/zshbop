@@ -386,7 +386,13 @@ function install_method () {
         echo "Install (d)efaults or (c)ustomize? (d/c)?"
     	read INSTALL
     else
-        _error "Can't write to /usr/local/sbin, proceeding with custom install."
+        _error "Can't write to /usr/local/sbin, skipping default install and forcing custom install."
+        INSTALL="c"
+    fi
+
+    # -- Check if we can write to $HOME
+    if [[ $HOME_WRITABLE == "0" ]]; then
+        _error "Can't write to \$HOME, skipping default install and forcing custom install."
         INSTALL="c"
     fi
 
@@ -405,21 +411,20 @@ function install_method () {
         [[ $HOME_WRITABLE == "1" ]] && echo "(g) = Git path \$HOME/git/zshbop"
         echo "(c) = Custom path ex. /opt"
         echo ""
-        echo "Enter Install Type:"
+        echo -n "Enter Install Type: "
         read INSTALL_LOCATION
         [[ $INSTALL_LOCATION == "s" ]] && INSTALL_LOCATION="system"
         [[ $INSTALL_LOCATION == "h" ]] && INSTALL_LOCATION="home"
         [[ $INSTALL_LOCATION == "g" ]] && INSTALL_LOCATION="git"
         if [[ $INSTALL_LOCATION == "c" ]]; then
             INSTALL_LOCATION="custom"
-            echo "Enter custom path:"
+            echo -n "Enter custom path: "
             read INSTALL_CUSTOM_PATH
             # -- Resolve $INSTALL_CUSTOM_PATH to absolute path
             INSTALL_CUSTOM_PATH=$(cd $INSTALL_CUSTOM_PATH && pwd)
         fi
-
-        echo ""
-        echo "Branch (m)ain, (d)ev, (n)ext-release Branch? (d/m/n)"
+        
+        echo -n "Branch (m)ain, (d)ev, (n)ext-release Branch? (d/m/n): "
         read BRANCH
         [[ $BRANCH == "m" ]] && BRANCH="main"
         [[ $BRANCH == "d" ]] && BRANCH="dev"
@@ -527,26 +532,22 @@ function setup_zshbop() {
     # -- Check if we can write to .zshrc
     if [[ -w $HOME/.zshrc ]]; then
         _success "- We can write to $HOME/.zshrc"
+        # -- Check if .zshrc has zshbop.zsh in it
+        if ! [ -f $HOME/.zshrc ]; then
+            echo "source $INSTALL_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
+            _success "- ZSH in-place at $INSTALL_PATH, type zsh to start your shell\n"
+        else
+            _error "- There's already a .zshrc in-place.\n"
+            echo "You can add the following to your .zshrc file:"            
+            echo "\tsource $INSTALL_PATH/zshbop/zshbop.zsh"
+            echo " or"
+            echo "\techo \"source $INSTALL_PATH/zshbop/zshbop.zsh\" >> ~/.zshrc"
+            echo ""
+            echo "Then type zsh to start your shell"
+            echo ""            
+        fi
     else
-        _error "- We can't write to $HOME/.zshrc, you will need to invoke zshbop some other way"
-        exit 1
-    fi
-
-    # -- Check if .zshrc has zshbop.zsh in it
-    if ! [ -f $HOME/.zshrc ]; then
-        echo "source $INSTALL_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
-        _success "- ZSH in-place at $INSTALL_PATH, type zsh to start your shell\n"
-    else
-        _error "- There's already a .zshrc in-place, exiting.\n"
-        echo "You can add the following to your .zshrc file:"
-        echo ""
-        echo "source $INSTALL_PATH/zshbop/zshbop.zsh"
-        echo " or"
-        echo " echo \"source $INSTALL_PATH/zshbop/zshbop.zsh\" >> ~/.zshrc"
-        echo ""
-        echo "Then type zsh to start your shell"
-        echo ""
-        exit 1
+        _error "- We can't write to $HOME/.zshrc, you will need to invoke zshbop some other way"        
     fi
     
     _success "Installation complete."
