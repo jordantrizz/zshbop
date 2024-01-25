@@ -61,7 +61,7 @@ function proxmox_init () {
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20" || DISKSIZE=$DISKSIZE[2]
     [[ -z $OS_RELEASE ]] && OS_RELEASE="focal" || OS_RELEASE=$OS_RELEASE[2]
-    [[ -z $DHCP_NET ]] && DHCP_NET="vmbr0" || DHCP_NET=$DHCP_NET[2]
+    [[ -z $DHCP_NET ]] && DHCP_NET="vmbr1" || DHCP_NET=$DHCP_NET[2]
     [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
     [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]
     [[ -z $VM_ID ]] && { VM_ID=$(pvesh get /cluster/nextid); _debug "\pvesh /cluster/nextid: $VM_ID"} || VM_ID=$VM_ID[2]
@@ -99,6 +99,7 @@ function proxmox_init () {
     # -- Check command
     if [[ $1 == "createvm" ]]; then
         _debugf "Creating VM"
+        _loading "Creating Proxmox VM"
         _proxmox_check || return 1
         _proxmox_createvm
     # -- Create template
@@ -261,7 +262,29 @@ function _proxmox_download_cloudimage () {
 }
 
 # -------------------------------------------------------------------
-# -- _proxmox_createvm 
+# -- _proxmox_generate_ip $ipconfig
+# -------------------------------------------------------------------
+function _proxmox_generate_ip () {
+    IPCONFIG=$1
+    # Checking if IP and GW is set    
+    if [[ -n $IP ]] && [[ -n $GW ]]; then
+        _loading3 "IP and GW set"
+        # -- Make sure IP has CIDR
+        _loading3 "Checking if IP has CIDR"
+        if [[ $IP != *"/"* ]]; then
+            _loading3 "Adding CIDR to IP"
+            IP="${IP}/24"
+        fi
+        _loading3 "Setting IP to ${IP} and GW to ${GW} on ${IPCONFIG}"
+        _debugf "qm set ${VM_ID} --${IPCONFIG} ip=${IP},gw=${GW}"
+        qm set ${VM_ID} --${IPCONFIG} ip=${IP},gw=${GW}
+    else
+        _loading3 "No IP or GW set, skipping"
+    fi
+}
+
+# -------------------------------------------------------------------
+# -- _proxmox_createvm
 # -------------------------------------------------------------------
 function _proxmox_createvm () {
     # -- Check if storage exists
@@ -277,25 +300,11 @@ function _proxmox_createvm () {
 
     # -- Download cloudimage
     _proxmox_download_cloudimage
-    
-    # -- Enable internal nic with DHCP
-    if [[ -n $DHCP_NET ]]; then
-        DHCP_NET_INT="--net1"
-        DHCP_NET_QM="virtio,bridge=${DHCP_NET},firewall=1"
-        DHCP_IP="--ipconfig1"
-        DHCP_IP_CFG="ip=dhcp"
-    else
-        DHCP_NET_INT=""
-        DHCP_NET_QM=""
-    fi
 
     # -- Run QM Command
     _loading2 "-- Creating VM with ID:$VM_ID"
     _loading3 "---- NAME: $NAME MEM: $MEM DISKSIZE: $DISKSIZE NET: $NET OS_RELEASE: $OS_RELEASE"
     (set -x;qm create $VM_ID --name $NAME --memory $MEM \
-    $DHCP_NET_INT $DHCP_NET_QM \
-    $DHCP_IP $DHCP_IP_CFG \
-    --net0 virtio,bridge=$NET,firewall=1 \
     --bootdisk scsi0 \
     --scsihw virtio-scsi-pci \
     --ide2 media=cdrom,file=none \
@@ -305,9 +314,25 @@ function _proxmox_createvm () {
     --onboot 1 \
     --cpu host \
     --agent enabled=1,fstrim_cloned_disks=1 \
-    --cicustom "vendor=local:snippets/vendor.yaml'"
+    --cicustom "vendor=local:snippets/vendor.yaml"
     )
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
+
+    _loading2 "-- Setting MAC address and bridge for net0"
+    if [[ -n $MAC ]]; then        
+        (set -x; qm set ${VM_ID} --net0 virtio,macaddr=${MAC},bridge=${BRIDGE},firewall=1)
+    else
+        _loading3 "No MAC address set, skipping"
+    fi
+
+    _loading2 "-- Setting IP and GW on ipconfig0"    
+    _proxmox_generate_ip ipconfig0
+
+    # -- Enable internal nic with DHCP
+    if [[ -n $DHCP_NET ]]; then
+        ( set -x; qm set ${VM_ID} --net1 virtio,bridge=${DHCP_NET},firewall=1)
+        ( set -x; qm set ${VM_ID} --ipconfig1 ip=dhcp )
+    fi
 
     _loading2 "Create a copy of new image"
     cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
@@ -320,8 +345,8 @@ function _proxmox_createvm () {
     ( set -x;qm importdisk $VM_ID ${BUILD_IMAGE} ${STORAGE} )
     
     _loading2 "-- Setting VM storage options"
-    VM_STORAGE=$(qm config 103 | grep 'unused0' | awk '{ print $2 }')
-    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 ${VM_STORAGE},size=${DISKSIZE}M )
+    VM_STORAGE=$(qm config $VM_ID | grep 'unused0' | awk '{ print $2 }')
+    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 "${VM_STORAGE},size=${DISKSIZE}M")
     [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
     
     _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
