@@ -529,9 +529,9 @@ function setup_zshbop() {
     # -- Setup .zshrc
      _loading "- Setting up system based .zshrc..."
     
-    # -- Check if we can write to .zshrc
-    if [[ -w $HOME/.zshrc ]]; then
-        _success "- We can write to $HOME/.zshrc"
+    # -- Check if we can write to $HOME
+    if [[ -w $HOME ]]; then
+        _success "- We can write to $HOME"
         # -- Check if .zshrc has zshbop.zsh in it
         if ! [ -f $HOME/.zshrc ]; then
             echo "source $INSTALL_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
