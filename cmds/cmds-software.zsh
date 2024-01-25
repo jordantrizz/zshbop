@@ -450,3 +450,12 @@ function software_goaccess () {
     fi
 }
 
+# -- fpart
+help_software[fpart]="Install fpart"
+function software_fpart () {
+	if [[ $MACHINE_OS == "linux" && $MACHINE_OS_FLAVOUR == "debian" ]]; then
+		sudo apt-get install fpart bsd-mailx- postfix- --no-install-recommends
+	else
+		_error "fpart not supported on $MACHINE_OS"
+	fi
+}
