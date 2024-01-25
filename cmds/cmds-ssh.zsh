@@ -157,3 +157,16 @@ help_ssh[ssho]='Login with -o "IdentitiesOnly yes" when too may keys in keychain
 ssho () {
 	ssh -o "IdentitiesOnly yes" $@
 }
+
+# -- ssh-clear-known-host
+help_ssh[ssh-remove-kh]='Clear known_hosts file of specific line number'
+ssh-remove-kh () {
+    local LINE=$1
+    if [[ -z $LINE ]]; then
+        _error "Missing line number"
+        return
+    else
+        _loading "Removing line $LINE"
+        sed -i '$LINE' $HOME/.ssh/known_hosts
+    fi
+}
