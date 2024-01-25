@@ -204,7 +204,7 @@ function _proxmox_check () {
         # -- Ensure commands are present
         [[ -x $(command -v pvesh) ]] && _success "Proxmox is installed" || { _error "No pvesh present, not running proxmox or other issue."; return 1 }
         [[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required."; return 1 }
-        [[ -x $(command -v virt-customize) ]] && _success "lshw is installed" || { _error "No virt-customize present, required."; return 1 }
+        [[ -x $(command -v virt-customize) ]] && _success "virt-customize is installed" || { _error "No virt-customize present, required."; return 1 }
     fi
 
     # -- Get Proxmox node name
