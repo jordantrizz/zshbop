@@ -71,7 +71,7 @@ _yellow () { echo -e "${YELLOW}${*}${ECOL}"; }
 # --------------------------------
 usage () {
 USAGE=\
-"Usage: install -h|-s (clean|skipdeps|default|home|git|)|(custom <branch> <location>)
+"Usage: install -h|-s|-o|-d (clean|search|default|home|git|)|(custom <branch> <location>)
 
   Options
     -h          - This help screen
@@ -82,6 +82,7 @@ USAGE=\
   Commands
 
     clean                         - Remove zshbop
+    search                        - Search for zshbop installs
     default                       - Default install
     home                          - Install in home directory
     git                           - Install in ~/git with dev branch
@@ -116,6 +117,40 @@ function zshbop_banner () {
 ##################################
 # -- Functions
 ##################################
+
+# -----------------------------------------------
+# -- _clean_zshbop
+# -----------------------------------------------
+function _clean_zshbop () {
+    _running "Removing zshbop from system"
+    echo "Continue (y/n)?"
+    read CLEAN
+    if [ $CLEAN == "y" ]; then
+        _running "Cleaning up!"
+        rm ~/.zshrc
+        rm -rf /usr/local/sbin/zshbop
+        rm -rf ~/zshbop
+        exit
+    else
+        _loading "Aboring....Goodbye!"
+        exit
+    fi
+}
+
+# -----------------------------------------------
+# -- _search_zshbop
+# -----------------------------------------------
+function _search_zshbop () {
+    local ZSHBOP_LOCATIONS=("~/zshbop" "/usr/local/sbin/zshbop" "$HOME/git/zshbop")
+    _running "Searching for zshbop installs"
+    for ZSHBOP_LOCATION in "${ZSHBOP_LOCATIONS[@]}"; do
+        if [[ -d $ZSHBOP_LOCATION ]]; then
+            _success "Found zshbop install in $ZSHBOP_LOCATION"
+        else
+            _error "No zshbop install found in $ZSHBOP_LOCATION"
+        fi
+    done
+}
 
 # -----------------------------------------------
 # -- check_package
@@ -602,20 +637,12 @@ if [[ $HELP == "1" ]];then
     exit
 # -- clean
 elif [[ $CMD == "clean" ]]; then
-	_running "Removing zshbop from system"
-	echo "Continue (y/n)?"
-	read CLEAN
-	if [ $CLEAN == "y" ]; then
-		_running "Cleaning up!"
-		rm ~/.zshrc
-		rm -rf /usr/local/sbin/zshbop
-		rm -rf ~/zshbop
-		exit
-	else
-		_loading "Aboring....Goodbye!"
-		exit
-	fi
+	_loading "Running zshbop clean"
+    _clean_zshbop
 # -- default
+elif [[ $CMD == "search" ]];
+    _loading "Running zshbop search"
+    _search_zshbop
 elif [[ $CMD == "default" ]]; then
 	pre_flight_check	
     BRANCH=main
