@@ -37,6 +37,23 @@ _divider_dash () { echo "$fg[bright-grey]-----------------$@---------------${RSC
 
 # -- Text Colors
 _grey () { echo "$bg[bright-gray]$fg[black] $@ ${RSC}" }
+_yellow () { echo "$fg[yellow]$@${RSC}" }
+_red () { echo "$fg[red]$@${RSC}" }
+_green () { echo "$fg[green]$@${RSC}" }
+_blue () { echo "$fg[blue]$@${RSC}" }
+_magenta () { echo "$fg[magenta]$@${RSC}" }
+_cyan () { echo "$fg[cyan]$@${RSC}" }
+_white () { echo "$fg[white]$@${RSC}" }
+# -- Text Colors Bright
+_bright_grey () { echo "$fg[bright-gray]$@${RSC}" }
+_bright_yellow () { echo "$fg[yellow]$@${RSC}" }
+_bright_red () { echo "$fg[red]$@${RSC}" }
+_bright_green () { echo "$fg[green]$@${RSC}" }
+_bright_blue () { echo "$fg[blue]$@${RSC}" }
+_bright_magenta () { echo "$fg[magenta]$@${RSC}" }
+_bright_cyan () { echo "$fg[cyan]$@${RSC}" }
+_bright_white () { echo "$fg[white]$@${RSC}" }
+
 RSC=$reset_color # To replace $reset_color :)
 RED_BG="$fg[white]$bg[red]"
 GREEN_BG="$fg[white]$bg[green]"
