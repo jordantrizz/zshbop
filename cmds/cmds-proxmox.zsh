@@ -42,8 +42,11 @@ function proxmox_init () {
     # -- debug
     _debug_all
     ALL_ARGS="$@"
-    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW 
+    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW cpu:=CPU
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
+
+    # -- Set defaults
+    [[ -z $CPU ]] && CPU="1" || CPU=$CPU[2]    
     if [[ -z $MEM ]]; then
         MEM="2048"
     else 
@@ -77,6 +80,7 @@ function proxmox_init () {
     _debugf "DRYRUN: $DRYRUN"
     _debugf "HELP: $HELP"
     _debugf "NAME: $NAME"
+    _debugf "CPU: $CPU"
     _debugf "MEM: $MEM"
     _debugf "NET: $NET"
     _debugf "STORAGE: $STORAGE"
@@ -157,6 +161,7 @@ Command Options:
   createvm <options>
   ------------------
     -name <name>              Name of the VM
+    -cpu <count>              Number of CPU cores (Default: 1)
     -memory <memory>          Memory of VM in MB (Default: 2048) Ex. 512, 1024, 2048, 4096, 8192
     -network <network>        Network bridge to use (Default: vmbr0)
     -storage <storage>        Storage location (Autodetect)
@@ -304,7 +309,9 @@ function _proxmox_createvm () {
     # -- Run QM Command
     _loading2 "-- Creating VM with ID:$VM_ID"
     _loading3 "---- NAME: $NAME MEM: $MEM DISKSIZE: $DISKSIZE NET: $NET OS_RELEASE: $OS_RELEASE"
-    (set -x;qm create $VM_ID --name $NAME --memory $MEM \
+    (set -x;qm create $VM_ID --name $NAME \
+    --cores ${CPU} --sockets 1 \
+    --memory $MEM \
     --bootdisk scsi0 \
     --scsihw virtio-scsi-pci \
     --ide2 media=cdrom,file=none \
