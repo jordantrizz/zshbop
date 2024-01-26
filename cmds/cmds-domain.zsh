@@ -27,7 +27,130 @@ function dom () {
     if [[ $? -eq 0 ]]; then    
         echo ""
         domain-info $1
+        echo ""
+        domain-spf $1
+        echo ""
+        domain-dmarc $1 0
     fi
+
+}
+
+# -- domain-info
+help_domain[domain-info]='Check a domains name servers and www and a record and print them out'
+function domain-info () {
+    # -- Cloudflare IPS
+    local CLOUDFLARE_IPS=(
+            "173.245.48.0/20"
+            "103.21.244.0/22"
+            "103.22.200.0/22"
+            "103.31.4.0/22"
+            "141.101.64.0/18"
+            "108.162.192.0/18"
+            "190.93.240.0/20"
+            "188.114.96.0/20"
+            "197.234.240.0/22"
+            "198.41.128.0/17"
+            "162.158.0.0/15"
+            "104.16.0.0/13"
+            "104.24.0.0/14"
+            "172.64.0.0/13"
+            "131.0.72.0/22"
+            "198.41.128.0/17"
+            "2400:cb00::/32"
+            "2606:4700::/32"
+            "2803:f800::/32"
+            "2c0f:f248::/32"
+            "2a06:98c0::/29"
+            )
+
+    _domain_info_usage () {
+        echo "\
+    Usage: domain-info [-c] <domain name>
+
+    Options:
+        -c       - Compact output.
+    "
+    }
+
+    # -- get_nameservers
+    _domain_info_get_nameservers () {
+        NAMESERVERS=($(dig +short NS $DOMAIN))
+    }
+
+    # -- is_cloudflare
+    _domain_info_is_cloudflare () {
+        local IS_CF
+        if [[ $(echo $NAMESERVERS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)") ]]; then
+            IS_CF=1
+        else
+            IS_CF=0
+        fi
+    }
+
+    # -- get_apex
+    _domain_info_get_record () {
+        RECORD="$1"    
+        RECORD=$(dig +short $RECORD)
+        TEXT=""    
+        for IP in "${(f)RECORD}"; do
+            if [[ $(grepcidr3 -D "$IP" <(echo "$CLOUDFLARE_IPS")) ]]; then
+                TEXT+="$IP = $bg[yellow]$fg[black]CF${reset_color} "
+            else
+                TEXT+="$IP"
+            fi
+        done
+        echo $TEXT
+    }
+
+    _domain_info_get_mx () {
+        MX_TEXT=()
+        RECORD="$1"
+        RECORD=$(dig +short MX $RECORD)
+        TEXT=""    
+        for MX in "${(f)RECORD}"; do
+            MX_TEXT+=($MX)
+        done
+    }
+
+    # -------
+    # -- main
+    # -------
+    zparseopts -D -E c=COMPACT
+    DOMAIN="$1"
+
+    if [[ -z $DOMAIN ]]; then
+        usage
+        _error "Please specifiy a domain"
+        exit
+    fi
+
+    # Get nameservers
+    _domain_info_get_nameservers
+    _domain_info_is_cloudflare
+    APEX_TEXT=$(_domain_info_get_record $DOMAIN)
+    WWW_TEXT=$(_domain_info_get_record www.$DOMAIN)
+    _domain_info_get_mx $DOMAIN
+
+    if [[ $COMPACT ]]; then
+        _loading2 "$DOMAIN - Nameservers: ${(f)NAMESERVERS}"
+        if [[ $IS_CF ]]; then echo -n " = $bg[yellow]$fg[black]CF${reset_color}"; fi
+        echo -n " $bg[red]$fg[black]||||||${reset_color} APEX@: $APEX_TEXT"
+        echo -n " $bg[red]$fg[black]||||||${reset_color} WWW.: $WWW_TEXT"
+    else
+        _loading "Domain: $DOMAIN"    
+        echo -n " Nameservers:"     
+        if [[ $IS_CF ]]; then echo " - $bg[yellow]$fg[black]Cloudflare Nameservers${reset_color}"; fi    
+        echo " ${NAMESERVERS}"
+        echo ""
+        _loading2 "DNS Records"
+        echo " APEX@: $APEX_TEXT"
+        echo " WWW.: $WWW_TEXT"
+        echo " MX:"
+        for item in $MX_TEXT; do
+            echo "   - ${item}"
+        done     
+    fi
+    echo ""
 }
 
 # -- domain
@@ -90,7 +213,6 @@ function domain () {
         shift
         done
     fi
-    echo ""
 
     # -- Get Domain Name Registrar
     if [[ $GET_REGISTRAR -eq 1 ]]; then
@@ -146,53 +268,72 @@ function domain-strip () {
 # -- domain-dmarc
 help_domain[domain-dmarc]='Check a domains dmarc record'
 function domain-dmarc () {
-    local DOMAIN="$1"
+    local DOMAIN="$1" EXTENDED="${2:=1}"
+
     domain-strip $DOMAIN >> /dev/null
     DOMAIN=$OUTPUT_DOMAIN_STRIP
 
     _loading "Checking $DOMAIN for DMARC record"
     DMARC_RECORD=$(dig +short TXT _dmarc.$DOMAIN | tr -d '"')
     if [[ -z $DMARC_RECORD ]]; then
-        echo "No DMARC record found for $DOMAIN"
+        _error "No DMARC record found for $DOMAIN"
     else
-        echo "DMARC record found for $DOMAIN"
+        _success "DMARC record found for $DOMAIN"        
+        echo "$DMARC_RECORD"    
         echo ""
-        echo "$DMARC_RECORD"
-    fi
-    echo ""
 
-    _loading "Breaking down DMARC record"
-    CONFIGS=()
-    CONFIGS=("${(@s/;/)DMARC_RECORD}")
-    KEYS=("v" "pct" "rua" "ruf" "p" "sp" "adkim" "aspf" "fo")
-    for KEY in "${KEYS[@]}"; do
-        FOUND=false
-        for CONFIG in "${CONFIGS[@]}"; do
-            CONFIG="${CONFIG#"${CONFIG%%[![:space:]]*}"}" # remove leading whitespace
-            CONFIG_KEY="${CONFIG%%=*}"
-            VALUE="${CONFIG#*=}"
-            if [[ "$CONFIG_KEY" == "$KEY" ]]; then
-                FOUND=true
-                case "$KEY" in
-                    "v") _green "Version v=DMARC1:${RSC} $VALUE" ;;
-                    "pct") _green "Percentage pct=:${RSC} $VALUE" ;;
-                    "rua") _green "Aggregate Report rua=:${RSC} $VALUE" ;;
-                    "ruf") _green "Forensic Report ruf=:${RSC} $VALUE" ;;
-                    "p") _green "Policy p=(none|quarantine|reject):${RSC} $VALUE" ;;
-                    "sp") _green "Subdomain Policy sp=:${RSC} $VALUE" ;;
-                    "adkim") _green "Policy ADKIM adkim=:${RSC} $VALUE" ;;
-                    "aspf") _green "Policy ASPF aspf=:${RSC} $VALUE" ;;
-                    "fo") _green "Policy FO fo=:${RSC} $VALUE" ;;
-                esac
-                break
-            fi
-        done        
-        if [[ "$FOUND" == false ]]; then                        
-            _yellow "\t$KEY missing"
+        if [[ $EXTENDED == "1" ]]; then
+            _loading "Breaking down DMARC record"
+            CONFIGS=()
+            CONFIGS=("${(@s/;/)DMARC_RECORD}")
+            KEYS=("v" "pct" "rua" "ruf" "p" "sp" "adkim" "aspf" "fo")
+            for KEY in "${KEYS[@]}"; do
+                FOUND=false
+                for CONFIG in "${CONFIGS[@]}"; do
+                    CONFIG="${CONFIG#"${CONFIG%%[![:space:]]*}"}" # remove leading whitespace
+                    CONFIG_KEY="${CONFIG%%=*}"
+                    VALUE="${CONFIG#*=}"
+                    if [[ "$CONFIG_KEY" == "$KEY" ]]; then
+                        FOUND=true
+                        case "$KEY" in
+                            "v") _green "Version v=DMARC1:${RSC} $VALUE" ;;
+                            "pct") _green "Percentage pct=:${RSC} $VALUE" ;;
+                            "rua") _green "Aggregate Report rua=:${RSC} $VALUE" ;;
+                            "ruf") _green "Forensic Report ruf=:${RSC} $VALUE" ;;
+                            "p") _green "Policy p=(none|quarantine|reject):${RSC} $VALUE" ;;
+                            "sp") _green "Subdomain Policy sp=:${RSC} $VALUE" ;;
+                            "adkim") _green "Policy ADKIM adkim=:${RSC} $VALUE" ;;
+                            "aspf") _green "Policy ASPF aspf=:${RSC} $VALUE" ;;
+                            "fo") _green "Policy FO fo=:${RSC} $VALUE" ;;
+                        esac
+                        break
+                    fi
+                done        
+                if [[ "$FOUND" == false ]]; then                        
+                    _yellow "\t$KEY missing"
+                fi
+            done
+            echo ""
+            _loading "DMARC Tools"
+            echo "DMARC Policy Validator: https://vamsoft.com/support/tools/dmarc-policy-validator"
         fi
-    done
-    echo ""
+    fi
+}
 
-    _loading "DMARC Tools"
-    echo "DMARC Policy Validator: https://vamsoft.com/support/tools/dmarc-policy-validator"    
+# -- domain-spf
+help_domain[domain-spf]='Check a domains spf record'
+function domain-spf () {
+    local DOMAIN="$1"
+    domain-strip $DOMAIN >> /dev/null
+    DOMAIN=$OUTPUT_DOMAIN_STRIP
+
+    _loading "Checking $DOMAIN for SPF record"
+    SPF_RECORD=$(dig +short TXT $DOMAIN | grep 'v=spf1')
+    if [[ -z $SPF_RECORD ]]; then
+        _error "No SPF record found for $DOMAIN"
+    else
+        _success "SPF record found for $DOMAIN"
+        echo "$SPF_RECORD"
+    fi    
+
 }
