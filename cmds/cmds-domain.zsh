@@ -142,3 +142,57 @@ function domain-strip () {
     echo $DOMAIN_INPUT
     OUTPUT_DOMAIN_STRIP="$DOMAIN_INPUT"
 }
+
+# -- domain-dmarc
+help_domain[domain-dmarc]='Check a domains dmarc record'
+function domain-dmarc () {
+    local DOMAIN="$1"
+    domain-strip $DOMAIN >> /dev/null
+    DOMAIN=$OUTPUT_DOMAIN_STRIP
+
+    _loading "Checking $DOMAIN for DMARC record"
+    DMARC_RECORD=$(dig +short TXT _dmarc.$DOMAIN | tr -d '"')
+    if [[ -z $DMARC_RECORD ]]; then
+        echo "No DMARC record found for $DOMAIN"
+    else
+        echo "DMARC record found for $DOMAIN"
+        echo ""
+        echo "$DMARC_RECORD"
+    fi
+    echo ""
+
+    _loading "Breaking down DMARC record"
+    CONFIGS=()
+    CONFIGS=("${(@s/;/)DMARC_RECORD}")
+    KEYS=("v" "pct" "rua" "ruf" "p" "sp" "adkim" "aspf" "fo")
+    for KEY in "${KEYS[@]}"; do
+        FOUND=false
+        for CONFIG in "${CONFIGS[@]}"; do
+            CONFIG="${CONFIG#"${CONFIG%%[![:space:]]*}"}" # remove leading whitespace
+            CONFIG_KEY="${CONFIG%%=*}"
+            VALUE="${CONFIG#*=}"
+            if [[ "$CONFIG_KEY" == "$KEY" ]]; then
+                FOUND=true
+                case "$KEY" in
+                    "v") _green "Version v=DMARC1:${RSC} $VALUE" ;;
+                    "pct") _green "Percentage pct=:${RSC} $VALUE" ;;
+                    "rua") _green "Aggregate Report rua=:${RSC} $VALUE" ;;
+                    "ruf") _green "Forensic Report ruf=:${RSC} $VALUE" ;;
+                    "p") _green "Policy p=(none|quarantine|reject):${RSC} $VALUE" ;;
+                    "sp") _green "Subdomain Policy sp=:${RSC} $VALUE" ;;
+                    "adkim") _green "Policy ADKIM adkim=:${RSC} $VALUE" ;;
+                    "aspf") _green "Policy ASPF aspf=:${RSC} $VALUE" ;;
+                    "fo") _green "Policy FO fo=:${RSC} $VALUE" ;;
+                esac
+                break
+            fi
+        done        
+        if [[ "$FOUND" == false ]]; then                        
+            _yellow "\t$KEY missing"
+        fi
+    done
+    echo ""
+
+    _loading "DMARC Tools"
+    echo "DMARC Policy Validator: https://vamsoft.com/support/tools/dmarc-policy-validator"    
+}
