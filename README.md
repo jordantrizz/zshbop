@@ -222,6 +222,8 @@ Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as ne
 | `ZSHBOP_GIT_CHECK` | zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code. | Number | 1 |
 | `GIT_HOME` | A location where you have all your git repositories. | String | $HOME/git |
 | `ZSHBOP_UPDATE_GIT` | Git Repositores to update when running zshbop update | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |
+| `ZSH_IP_PROVIDER` | IP Provider for zshbop | String | eg. ipinfo.io |
+| `ZSH_IP_API_KEY` | API Key for ip-info commmand | String | |
 
 ### Exbin
 * Exbin https://exbin.call-cc.be
