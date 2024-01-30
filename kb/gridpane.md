@@ -167,15 +167,13 @@ gp stack redis -max-memory 300
 * /opt/gridpane/restore.log
 
 # Security
+## Additional Measures
+* Disable xmlrpc ```gp site <site> -disable-xmlrpc```
 ## fail2ban
-Setup fail2ban on server.
-* gp stack -enable-fail2ban-jail wp-login 5 1200
-Setup a site with fail2ban
-* gp site {site.url} -enable-wp-fail2ban
-Block User enumeration
-* gp site {site.url} -configure-wp-fail2ban -block-user-enumeration
-Enable server wide
-*
+* Setup fail2ban on server. ```gp stack -enable-fail2ban-jail wp-login 5 1200```
+* Setup a site with fail2ban ```gp site {site.url} -enable-wp-fail2ban```
+* Block User enumeration ```gp site {site.url} -configure-wp-fail2ban -block-user-enumeration```
+
 
 # Maldet
 ## Installing
