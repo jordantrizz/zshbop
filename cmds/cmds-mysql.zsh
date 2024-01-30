@@ -12,11 +12,45 @@ help_files[mysql]='MySQL related commands'
 # - Init help array
 typeset -gA help_mysql
 
-# - mysql-alldbsize
+# - mysql-dbsizeall
 help_mysql[mysql-alldbsize]='Get size of all databases in MySQL'
 mysql-alldbsize () {
 	echo "Getting all database sizes"
-    mysql -e 'SELECT table_schema AS "Database", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" FROM information_schema.TABLES GROUP BY table_schema ORDER BY SUM(data_length + index_length) DESC;'
+    mysql -e 'SELECT * FROM (
+    SELECT 
+        table_schema AS "Database", 
+        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" 
+    FROM 
+        information_schema.TABLES 
+    GROUP BY 
+        table_schema
+) AS original_query
+
+UNION ALL
+
+SELECT 
+    'Total' AS "Database", 
+    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" 
+FROM 
+    information_schema.TABLES
+
+ORDER BY 
+    CASE 
+        WHEN "Database" = 'Total' THEN 1 
+        ELSE 0 
+    END, 
+    "Size (MB)" DESC;'
+}
+
+# -- mysql-dbsize
+help_mysql[mysql-dbsize]='Get size of a database in MySQL'
+mysql-dbsize () {
+	if [[ -n $1 ]]; then
+		mysql -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" GROUP BY table_schema;"
+	else
+		echo "Usage: $0 <database name>"
+		return 1
+	fi
 }
 
 # - mysql-allrowsize
