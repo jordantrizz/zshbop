@@ -22,3 +22,10 @@
 * ```Set-ExternalInOutlook -AllowList  @{Add="lazyadmin.nl", "lazydev.nl"}```
 * ```Set-ExternalInOutlook -AllowList  @{Remove="lazyadmin.nl", "lazydev.nl"}```
 * Verify ```Get-ExternalInOutlook```
+
+# Microsoft 365
+## CLI for Microsoft 365
+* https://pnp.github.io/cli-microsoft365/
+
+## Export Teams Chat
+* https://arjunumenon.com/export-microsoft-teams-chat-conversations-powershell/
