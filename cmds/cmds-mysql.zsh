@@ -24,16 +24,12 @@ mysql-dbsizeall () {
         information_schema.TABLES 
     GROUP BY 
         table_schema
-) AS original_query
-
-UNION ALL
-
+) AS original_query UNION ALL
 SELECT 
     'Total' AS "Database", 
     ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" 
 FROM 
     information_schema.TABLES
-
 ORDER BY 
     CASE 
         WHEN "Database" = 'Total' THEN 1 
