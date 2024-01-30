@@ -38,74 +38,51 @@ function dom () {
 # -- domain-info
 help_domain[domain-info]='Check a domains name servers and www and a record and print them out'
 function domain-info () {
-    # -- Cloudflare IPS
-    local CLOUDFLARE_IPS=(
-            "173.245.48.0/20"
-            "103.21.244.0/22"
-            "103.22.200.0/22"
-            "103.31.4.0/22"
-            "141.101.64.0/18"
-            "108.162.192.0/18"
-            "190.93.240.0/20"
-            "188.114.96.0/20"
-            "197.234.240.0/22"
-            "198.41.128.0/17"
-            "162.158.0.0/15"
-            "104.16.0.0/13"
-            "104.24.0.0/14"
-            "172.64.0.0/13"
-            "131.0.72.0/22"
-            "198.41.128.0/17"
-            "2400:cb00::/32"
-            "2606:4700::/32"
-            "2803:f800::/32"
-            "2c0f:f248::/32"
-            "2a06:98c0::/29"
-            )
-
     _domain_info_usage () {
-        echo "\
-    Usage: domain-info [-c] <domain name>
-
-    Options:
-        -c       - Compact output.
-    "
+        echo "Usage: domain-info [-c] <domain name>"
+        echo "Options:"
+        echo "-c       - Compact output."
     }
 
     # -- get_nameservers
     _domain_info_get_nameservers () {
+        local NAMESERVERS DOMAIN="$1" NS
         NAMESERVERS=($(dig +short NS $DOMAIN))
-    }
-
-    # -- is_cloudflare
-    _domain_info_is_cloudflare () {
-        local IS_CF
-        if [[ $(echo $NAMESERVERS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)") ]]; then
-            IS_CF=1
-        else
-            IS_CF=0
-        fi
+        for NS in "${NAMESERVERS[@]}"; do            
+            if $(echo $NS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)"); then
+                echo -n "$bg[yellow]$fg[black]CF${reset_color} - $NS "                
+            else
+                echo -n "$NS "
+            fi        
+        done
+        echo "\n"
     }
 
     # -- get_apex
     _domain_info_get_record () {
-        RECORD="$1"    
-        RECORD=$(dig +short $RECORD)
-        TEXT=""    
-        for IP in "${(f)RECORD}"; do
-            if [[ $(grepcidr3 -D "$IP" <(echo "$CLOUDFLARE_IPS")) ]]; then
-                TEXT+="$IP = $bg[yellow]$fg[black]CF${reset_color} "
+        local RECORD="$1"
+        local IPS=$(dig +short $RECORD)
+        local TEXT=""    
+        for IP in "${(f)IPS}"; do            
+            # -- check if IP or cname
+            if $(echo $IP | grep -Eq "([0-9]{1,3}[\.]){3}[0-9]{1,3}"); then
+                if $(cf-ip -q $IP); then
+                    TEXT+="$IP = $bg[yellow]$fg[black]CF${reset_color} "
+                else
+                    TEXT+="$IP"
+                fi
             else
-                TEXT+="$IP"
+                TEXT+="$IP = $bg[green]$fg[black]CNAME${reset_color} "
             fi
         done
         echo $TEXT
     }
 
     _domain_info_get_mx () {
-        MX_TEXT=()
-        RECORD="$1"
-        RECORD=$(dig +short MX $RECORD)
+        local DOMAIN="$1"
+        local MX_TEXT 
+        MX_TEXT=()        
+        RECORD=$(dig +short MX $DOMAIN)
         TEXT=""    
         for MX in "${(f)RECORD}"; do
             MX_TEXT+=($MX)
@@ -116,31 +93,26 @@ function domain-info () {
     # -- main
     # -------
     zparseopts -D -E c=COMPACT
-    DOMAIN="$1"
+    local DOMAIN="$1"
 
     if [[ -z $DOMAIN ]]; then
-        usage
+        _domain_info_usage
         _error "Please specifiy a domain"
-        exit
+        return
     fi
 
-    # Get nameservers
-    _domain_info_get_nameservers
-    _domain_info_is_cloudflare
+    _loading "Getting domain name DNS information for $DOMAIN"
     APEX_TEXT=$(_domain_info_get_record $DOMAIN)
     WWW_TEXT=$(_domain_info_get_record www.$DOMAIN)
     _domain_info_get_mx $DOMAIN
 
-    if [[ $COMPACT ]]; then
-        _loading2 "$DOMAIN - Nameservers: ${(f)NAMESERVERS}"
-        if [[ $IS_CF ]]; then echo -n " = $bg[yellow]$fg[black]CF${reset_color}"; fi
+    if [[ $COMPACT ]]; then        
+        echo "Nameservers $(_domain_info_get_nameservers $DOMAIN)"                
         echo -n " $bg[red]$fg[black]||||||${reset_color} APEX@: $APEX_TEXT"
         echo -n " $bg[red]$fg[black]||||||${reset_color} WWW.: $WWW_TEXT"
     else
-        _loading "Domain: $DOMAIN"    
-        echo -n " Nameservers:"     
-        if [[ $IS_CF ]]; then echo " - $bg[yellow]$fg[black]Cloudflare Nameservers${reset_color}"; fi    
-        echo " ${NAMESERVERS}"
+        _loading2 "Domain: $DOMAIN"
+        echo "Nameservers $(_domain_info_get_nameservers $DOMAIN)"            
         echo ""
         _loading2 "DNS Records"
         echo " APEX@: $APEX_TEXT"
