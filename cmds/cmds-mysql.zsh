@@ -16,26 +16,26 @@ typeset -gA help_mysql
 help_mysql[mysql-dbsizeall]='Get size of all databases in MySQL'
 mysql-dbsizeall () {
 	echo "Getting all database sizes"
-    mysql -e 'SELECT * FROM (
+    mysql -e "SELECT * FROM (
     SELECT 
         table_schema AS "Database", 
-        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" 
+        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)'
     FROM 
         information_schema.TABLES 
     GROUP BY 
         table_schema
 ) AS original_query UNION ALL
 SELECT 
-    'Total' AS "Database", 
-    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "Size (MB)" 
+    'Total' AS 'Database', 
+    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)'
 FROM 
     information_schema.TABLES
 ORDER BY 
     CASE 
-        WHEN "Database" = 'Total' THEN 1 
+        WHEN 'Database' = 'Total' THEN 1 
         ELSE 0 
     END, 
-    "Size (MB)" DESC;'
+    'Size (MB)' DESC;"
 }
 
 # -- mysql-dbsize
