@@ -40,21 +40,24 @@ cf-gws-mx () {
 # -- cf-update-ip-list -- Get Cloudflare IP addresses and store in $HOME/tmp/cloudflare-ips.txt
 help_cloudflare[cf-update-ip-list]='Get Cloudflare IP addresses'
 cf-update-ip-list () {
-    # -- Check if files are older than 1 week
-    if [[ -f $HOME/tmp/cloudflare-ips.txt ]]; then
-        if [[ $(find $HOME/tmp/cloudflare-ips.txt -mtime +7 -print) ]]; then
-            _running "Getting Cloudflare IP addresses"
-            curl -s https://www.cloudflare.com/ips-v4 > $HOME/tmp/cloudflare-ips.txt
-            curl -s https://www.cloudflare.com/ips-v6 >> $HOME/tmp/cloudflare-ips.txt
-            _success "Cloudflare IP addresses saved to $HOME/tmp/cloudflare-ips.txt"
-        else
-            _success "Cloudflare IP addresses already exist in $HOME/tmp/cloudflare-ips.txt"
-        fi
-    else
-        _running "Getting Cloudflare IP addresses"
+    local QUIET=${1:=0}
+
+    function _cf_update_ip_list_do () {
+        local QUIET="$1"
+        [[ $QUIET == "0" ]] && _running "Getting Cloudflare IP addresses"
         curl -s https://www.cloudflare.com/ips-v4 > $HOME/tmp/cloudflare-ips.txt
         curl -s https://www.cloudflare.com/ips-v6 >> $HOME/tmp/cloudflare-ips.txt
-        _success "Cloudflare IP addresses saved to $HOME/tmp/cloudflare-ips.txt"
+        [[ $QUIET == "0" ]] && _success "Cloudflare IP addresses saved to $HOME/tmp/cloudflare-ips.txt"
+    }
+    # -- Check if files are older than 1 week
+    if [[ -f $HOME/tmp/cloudflare-ips.txt ]]; then
+        if [[ $(find $HOME/tmp/cloudflare-ips.txt -mtime +7 -print) ]]; then        
+            _cf_update_ip_list_do            
+        else
+            [[ $QUIET == "0" ]] && _success "Cloudflare IP addresses already exist in $HOME/tmp/cloudflare-ips.txt"
+        fi
+    else
+        _cf_update_ip_list_do $QUIET
     fi
 }
 
@@ -62,49 +65,63 @@ cf-update-ip-list () {
 # -- Usage: ./cf-ip [-q] <ip>
 help_cloudflare[cf-ip]='Check if passed IP is a CF IP'
 function cf-ip () {
-    local IP=$1
+    zparseopts -D -E q=ARG_QUIET
+    local IP=$1 QUIET
+    [[ -n $ARG_QUIET ]] && QUIET=1 || QUIET=0
+    
+    # -- Check IP
+    function _cf_ip_checkinput () {
+        local QUIET="$1"
+        [[ $QUIET == 0 ]] && _loading3 "Checking if $IP is an IP or Domain"
+
+        # -- Check if $IP is ip or domain
+        local IPV4_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+        
+        # Regex for IPv6 address (basic validation)
+        local IPV6_REGEX='^([0-9a-fA-F]{0,4}:){2,7}([0-9a-fA-F]{0,4})$'
+
+        # Regex for domain (basic validation)
+        local DOMAIN_REGEX='^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$'
+
+        if [[ $IP =~ $IPV4_REGEX ]]; then
+            _debug "$IP is an IPv4 address."
+        elif [[ $IP =~ $IPV6_REGEX ]]; then
+            _debug "$IP is an IPv6 address."
+        elif [[ $IP =~ $DOMAIN_REGEX ]]; then
+            DOMAIN=$IP
+            IP=$(dig +short $IP)
+            _debug "$DOMAIN is a domain, resolved to $IP"
+        else
+            _error "Unknown format for $IP"
+            return 1
+        fi
+    }
+
+    function _cf_ip_check_ip () {
+        local QUIET="$1"
+        # -- Check if IP is a Cloudflare IP using grepcidr3        
+        GREPCIDR3=$(grepcidr3 -D $IP <(cat $HOME/tmp/cloudflare-ips.txt))        
+        if [[ -n $GREPCIDR3 ]]; then        
+            [[ $QUIET == "0" ]] && _success "$IP is a Cloudflare IP matched $GREPCIDR3"
+            return 0
+        else
+            [[ $QUIET == "0" ]] && _error "$IP is not a Cloudflare IP"
+            return 1
+        fi
+    }
+
 
     # -- Check if IP is passed
     if [[ -z $IP ]]; then
-        _error "Usage: ./cf-ip <ip>"
+        _error "Usage: ./cf-ip (-q) <ip>"
         return 1
     fi
 
-    _loading "Checking if $IP is a Cloudflare IP"
+    [[ $QUIET == "0" ]] && _loading "Checking if $IP is a Cloudflare IP"
+    _cf_ip_checkinput $QUIET
+    cf-update-ip-list $QUIET
+    _cf_ip_check_ip $QUIET
 
-    # -- Check if $IP is ip or domain
-    local IPV4_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
-
-    # Regex for IPv6 address (basic validation)
-    local IPV6_REGEX='^([0-9a-fA-F]{0,4}:){2,7}([0-9a-fA-F]{0,4})$'
-
-    # Regex for domain (basic validation)
-    local DOMAIN_REGEX='^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$'
-
-    if [[ $IP =~ $IPV4_REGEX ]]; then
-        _loading3 "$IP is an IPv4 address."
-    elif [[ $IP =~ $IPV6_REGEX ]]; then
-        _loading3 "$IP is an IPv6 address."
-    elif [[ $IP =~ $DOMAIN_REGEX ]]; then
-        DOMAIN=$IP
-        IP=$(dig +short $IP)
-        _loading3 "$DOMAIN is a domain, resolved to $IP"
-    else
-        _error "Unknown format."
-    fi
-
-    # -- Check if cloudflare-ips.txt exists and is updated
-    cf-update-ip-list
-
-    # -- Check if IP is a Cloudflare IP using grepcidr3
-    GREPCIDR3=$(grepcidr3 -D $IP <(cat $HOME/tmp/cloudflare-ips.txt))
-    if [[ -n $GREPCIDR3 ]]; then
-        _success "$IP is a Cloudflare IP matched $GREPCIDR3"
-        return 0
-    else
-        _error "$IP is not a Cloudflare IP"
-        return 1
-    fi
 }
 
 function _cf_check_parsewhois () {
