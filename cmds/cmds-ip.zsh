@@ -27,8 +27,8 @@ function ip-info() {
                 if [[ -z $ZSH_IP_API_KEY ]]; then
                     _error "No API key set for ipinfo.io"
                     return 1
-                else
-                    _loading2 "Getting IP information from ipinfo.io"
+                else                
+                    [[ -z $IP ]] && _error "No IP address given, using system IP" || _loading2 "Getting IP information for $IP from ipinfo"
                     curl -s "https://ipinfo.io/$IP?token=$ZSH_IP_API_KEY"
                 fi
                 ;;
@@ -54,7 +54,7 @@ function ip-info() {
         _error "IP provider $ZSH_IP_PROVIDER is not supported"
         return 1
     else
-        _loading "Getting IP information from $ZSH_IP_PROVIDER"
+        _loading "Using provider $ZSH_IP_PROVIDER for IP information"
         _ip_info_do $IP
     fi
 }
