@@ -105,21 +105,22 @@ zshbop_cache-clear-super () {
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _log "${funcstack[1]}:start"
-
-    zparseopts -D -E q+=ARG_QUICK    
+    zparseopts -D -E q+=ARG_QUICK
+    local CMD="$1"
+    CMD_FILE="$ZBR/cmds/cmds-$CMD.zsh"
 
     if [[ -n $ARG_QUICK ]]; then
         _loading "Quick reload of zshbop"
         export RUN_REPORT=0
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
-        init_zshbop
+        init_zshbop        
     elif [[ -n $1 ]]; then
-        if [[ -f cmds/cmds-$1.zsh ]]; then
-            _loading "Quick reload of cmds/cmds-$1.zsh"
-            source cmds/cmds-$1.zsh
+        if [[ -f $CMD_FILE ]]; then
+            _loading "Quick reload of $CMD_FILE"
+            source $CMD_FILE
         else
-            _error "cmds/cmds-$1.zsh doesn't exist"
+            _error "$CMD_FILE doesn't exist"
         fi
     else
         _loading "Reloading zshbop"
