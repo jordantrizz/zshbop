@@ -13,8 +13,8 @@ help_files[mysql]='MySQL related commands'
 typeset -gA help_mysql
 
 # - mysql-dbsizeall
-help_mysql[mysql-alldbsize]='Get size of all databases in MySQL'
-mysql-alldbsize () {
+help_mysql[mysql-dbsizeall]='Get size of all databases in MySQL'
+mysql-dbsizeall () {
 	echo "Getting all database sizes"
     mysql -e 'SELECT * FROM (
     SELECT 
