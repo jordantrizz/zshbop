@@ -16,8 +16,9 @@
 #export GIT_HOME="$HOME/git" # -- A location where you have all your git repositories.
 #ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik) # -- Git Repositores to update when running zshbop update
 #export -p ZSHBOP_UPDATE_GIT > /dev/null
-#export ZSH_IP_PROVIDER="ipinfo.io"
-#export ZSH_IP_API_KEY=""
+#export ZSHBOP_IP_PROVIDER="ipinfo.io"
+#export ZSHBOP_IP_API_KEY=""
+#export ZSHBOP_IP_SCAM="" # API key for scamalytics.com
 
 # =================================================================================================
 # -- Application settings

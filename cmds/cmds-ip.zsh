@@ -22,39 +22,49 @@ function ip-info() {
     # -- Do the actual work
     function _ip_info_do () {
         local IP=$1
-        case $ZSH_IP_PROVIDER in
+        case $ZSHBOP_IP_PROVIDER in
             ipinfo.io)
-                if [[ -z $ZSH_IP_API_KEY ]]; then
+                if [[ -z $ZSHBOP_IP_API_KEY ]]; then
                     _error "No API key set for ipinfo.io"
                     return 1
                 else                
                     [[ -z $IP ]] && _error "No IP address given, using system IP" || _loading2 "Getting IP information for $IP from ipinfo"
-                    curl -s "https://ipinfo.io/$IP?token=$ZSH_IP_API_KEY"
+                    curl -s "https://ipinfo.io/$IP?token=${ZSHBOP_IP_API_KEY}"
                 fi
                 ;;
         esac
     }
 
     # -- Check what provider is set
-    if [[ -z $ZSH_IP_PROVIDER ]]; then
+    if [[ -z $ZSHBOP_IP_PROVIDER ]]; then
         _ip_info_usage
         _error "No IP provider set"
         return 1
     fi
     # -- Check if API key is set
-    if [[ -z $ZSH_IP_API_KEY ]]; then
+    if [[ -z $ZSHBOP_IP_API_KEY ]]; then
         _ip_info_usage
-        _error "No API key set for $ZSH_IP_PROVIDER"
+        _error "No API key set for $ZSHBOP_IP_PROVIDER"
         return 1
     fi
 
     # -- Check if the provider is supported
-    if [[ ! ${IP_PROVIDERS[(r)$ZSH_IP_PROVIDER]} == $ZSH_IP_PROVIDER ]]; then
+    if [[ ! ${IP_PROVIDERS[(r)$ZSHBOP_IP_PROVIDER]} == $ZSHBOP_IP_PROVIDER ]]; then
         _ip_info_usage
-        _error "IP provider $ZSH_IP_PROVIDER is not supported"
+        _error "IP provider $ZSHBOP_IP_PROVIDER is not supported"
         return 1
     else
-        _loading "Using provider $ZSH_IP_PROVIDER for IP information"
+        _loading "Using provider $ZSHBOP_IP_PROVIDER for IP information"
         _ip_info_do $IP
     fi
+}
+
+# -- ip-scam
+help_ip[ip-scam]="Check if an IP is a known scammer"
+function ip-scam() {
+    local IP=$1
+    [[ -z $IP ]] && _error "No IP address given" && return 1
+    [[ -z $ZSHBOP_IP_SCAM ]] && _error "No API key set for scamalytics, set via \$ZSHBOP_IP_SCAM" && return 1
+    _loading "Checking if $IP is a known scammer against scamalytics.com"
+    curl -s "https://api11.scamalytics.com/lmt/?key=${ZSHBOP_IP_SCAM}&ip=$IP" | jq
 }
