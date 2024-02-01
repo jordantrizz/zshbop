@@ -71,11 +71,11 @@ software_smtp-cli () {
 # -- atop
 help_software[atop]='Install atop and configure'
 software_atop () {	
-	if [[ -z $1 ]]; then
+	if [[ -z $2 ]]; then
 		_notice "Missing interval using default 300 seconds"
 		INTERVAL=300		
 	else
-		INTERVAL=$1
+		INTERVAL=$2
 	fi
 	
 	_loading "Installing and Setting up atop top run every $INTERVAL seconds"
