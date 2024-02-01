@@ -71,9 +71,29 @@ software_smtp-cli () {
 # -- atop
 help_software[atop]='Install atop and configure'
 software_atop () {
-	echo "-- Setting up atop"
-	sudo apt-get install atop
+	if [[ -z $1 ]]; then
+		_notice "Missing interval using default 300 seconds"
+		INTERVAL=300
+		return 1
+	else
+		INTERVAL=$1
+	fi
+	
+	_loading "Installing and Setting up atop top run every $INTERVAL seconds"
+	
+	_loading2 "Installing atop"
+	if _cmd_exists atop; then
+		_notice "atop already installed"
+		return 1
+	else
+		_loading3 "Installing atop"
+		sudo apt-get install atop
+	fi
+
+	_loading2 "Setting up atop with interval $INTERVAL"
 	sudo sed -i -e 's/INTERVAL=600/INTERVAL=300/g' /usr/share/atop/atop.daily
+	
+	_loading2 "Restarting atop"
 	sudo systemctl restart atop
 	sudo systemctl enable atop
 }
