@@ -83,8 +83,7 @@ software_atop () {
 	
 	_loading2 "Installing atop"
 	if _cmd_exists atop; then
-		_notice "atop already installed"
-		return 1
+		_notice "atop already installed"		
 	else
 		_loading3 "Installing atop"
 		sudo apt-get install atop
