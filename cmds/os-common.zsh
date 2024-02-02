@@ -19,6 +19,7 @@ os-binary "exa"
 os-binary "glow"
 os-binary "glint"
 
+
 # -- sysfetch
 function sysfetch () {
     DEFAULT_SYSFETCH="neofetch"
@@ -44,6 +45,7 @@ function sysfetch () {
     fi
 }
 
+# -- sysfetch-motd
 function sysfetch-motd () {
     sysfetch
 }
@@ -83,3 +85,22 @@ _joe_ftyperc () {
     fi
 
 }
+
+
+# =========================================================
+# -- grepcidr3
+# =========================================================
+help_corefunc[grepcidr3]='grepcidr3'
+function _check_grepcidr3 () {
+    if [[ $MACHINE_OS == "linux" ]]; then
+        alias grepcidr3="grepcidr3_linux"
+    fi
+
+    if [[ $MACHINE_OS == "mac" ]]; then
+        if _cmd_exists grepcidr3; then
+            function grepcidr3 () { _error "grepcidr3 not installed, install using mac ports"; }
+            return 1
+        fi
+    fi
+}
+_check_grepcidr3
