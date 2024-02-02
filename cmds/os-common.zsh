@@ -97,7 +97,7 @@ function _check_grepcidr3 () {
     fi
 
     if [[ $MACHINE_OS == "mac" ]]; then
-        if _cmd_exists grepcidr3; then
+        if ! _cmd_exists grepcidr3; then
             function grepcidr3 () { _error "grepcidr3 not installed, install using mac ports"; }
             return 1
         fi
