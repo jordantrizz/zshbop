@@ -12,8 +12,8 @@ if [[ $? == "0" ]]; then
 		_warning "exa failed, using default ls alias"
 	else
 		_debug "Using exa"
-		alias ls="${EXA_LINUX}"
-		alias exa="${EXA_LINUX}"
+		alias ls="${EXA_LINUX} -agl"
+		alias exa="${EXA_LINUX} -agl"
 	fi
 fi
 
