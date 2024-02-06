@@ -494,6 +494,9 @@ function init_check_services () {
     else
         _debug "zb_init_check_services_custom is not defined"
     fi
+
+    # -- Docker
+    if (( $+commands[docker] )) && _success "Docker: $(docker --version)" || _log "Docker not installed"
 }
 
 # ==============================================
