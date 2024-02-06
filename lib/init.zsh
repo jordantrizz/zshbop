@@ -496,7 +496,13 @@ function init_check_services () {
     fi
 
     # -- Docker
-    if (( $+commands[docker] )) && _success "Docker: $(docker --version)" || _log "Docker not installed"
+    if (( $+commands[docker] )); then
+        # Count docker running containers
+        DOCKER_RUNNING=$(docker ps -q | wc -l)
+        _success "Docker: $(docker --version) - Running containers: $DOCKER_RUNNING"
+    else
+        _log "Docker not installed"
+    fi
 }
 
 # ==============================================
