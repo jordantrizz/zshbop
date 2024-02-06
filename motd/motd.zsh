@@ -5,4 +5,4 @@
 # ----------------
 
 _cmd_exists host_motd
-[[ $? == "0" ]] && { _loading "Found host motd"; host_motd }|| _notice "No host motd"
+[[ $? == "0" ]] && { _log "Found host motd"; host_motd }|| _log "No host motd"

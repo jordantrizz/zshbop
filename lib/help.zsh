@@ -217,5 +217,5 @@ init_help () {
     export ALL_HELP_COMMANDS
 
     # -- Print out commands and categories count
-    _loading3 "Loaded help - Categories ${#ALL_HELP_CATEGORIES} - Commands ${#ALL_HELP_COMMANDS} - Custom Categories ${#ALL_HELP_CATEGORIES_CUSTOM} - Custom Commands ${#ALL_HELP_COMMANDS_CUSTOM}"
+    _log "Loaded help - Categories ${#ALL_HELP_CATEGORIES} - Commands ${#ALL_HELP_COMMANDS} - Custom Categories ${#ALL_HELP_CATEGORIES_CUSTOM} - Custom Commands ${#ALL_HELP_COMMANDS_CUSTOM}"
 }

@@ -62,15 +62,23 @@ function check_diskspace_wsl () {
 # -- wsl-shortcuts
 help_wsl[wsl-shortcuts]='Create Downloads and Desktop shortcuts for WSL'
 function wsl-shortcuts () {
+	local OUTPUT="" DO=0 OUTPUT_FULL=""
 	# -- Create shortcuts
-	_loading3 "WSL -- Creating shortcuts for Downloads and Desktop"
+	
 	if [[ ! -d "$HOME/Downloads" ]]; then		
 		ln -s /mnt/c/Users/$USER/Downloads ~/Downloads	
-		_loading3 "Created Downloads shortcut"
+		OUTPUT+="$HEADER Created Downloads shortcut."
+		DO=1
 	fi
 	if [[ ! -d "$HOME/Desktop" ]]; then		
 		ln -s /mnt/c/Users/$USER/Desktop ~/Desktop
-		_loading3 "Created Downloads shortcut"
+		OUTPUT+="Created Desktop shortcut"
+		DO=1
+	fi
+	OUTPUT_FULL="WSL: Created shortcuts $OUTPUT"
+	
+	if [[ $DO == 1 ]]; then		
+		_loading3 "$OUTPUT_FULL"
 	fi
 }
 

@@ -289,15 +289,11 @@ fi
 # ==============================================
 function init_os () {
 	_debug_all
-	# -- Loading os defaults
-	_loading "Loading OS configuration for $MACHINE_OS"
-
 	# -- Include common OS configuration
 	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
 	source $ZSHBOP_ROOT/cmds/os-common.zsh
 
-	# Include OS Specific configuration
-	
+	# Include OS Specific configuration	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
         _loading3 "Loaded OS Configuration cmds/os-mac.zsh"
@@ -311,9 +307,7 @@ function init_os () {
     elif [[ $MACHINE_OS = "linux" ]] then
 		_loading3 "Loading cmds/os-linux.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
-	fi
-
-    echo ""
+	fi    
 }
 
 # ==============================================
@@ -361,7 +355,7 @@ function init_sshkeys () {
             eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
         fi
     else
-        _error "Command keychain doesn't exist, please install for SSH keys to work"
+        _warning "Command keychain doesn't exist, please install for SSH keys to work"
     fi
 }
 
@@ -417,7 +411,7 @@ init-app-config () {
 # -- init_cmds
 # ==============================================
 function init_zbr_cmds () {
-    _loading3 "Loading zshbop cmds...."
+    _log "Loading zshbop cmds...."
    	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*.zsh; do
 	  source $CMD_FILE
 	done
@@ -540,8 +534,7 @@ function init_checks () {
 # ==============================================
 function init_kb () {
     local KB_COUNT KB_TOTAL_OUT
-    typeset -A kb_totals    
-    _loading "Loading Knowledge Base"
+    typeset -A kb_totals        
     source "${ZSHBOP_ROOT}/lib/kb.zsh"
     kb_init_topics
     kb_init_aliases
@@ -563,7 +556,7 @@ function init_kb () {
         KB_TOTAL_OUT+="$TAG - $kb_totals[$TAG] | "
     done
     # strip all new lines
-    _loading3 "$KB_TOTAL_OUT"
+    _log "Loading Knowledge Base: $KB_TOTAL_OUT"
 }
 
 ###########################################################
@@ -581,7 +574,7 @@ init_motd () {
     _loading "System Information"
 
     # -- OS specific motd
-    _loading3 "Operating System - ${MACHINE_OS} - ${MACHINE_OS_FLAVOUR}"
+    _loading3 $(os-short)   
 
     # -- system details
     sysfetch-motd
@@ -589,15 +582,11 @@ init_motd () {
     # -- sysinfo
     _loading3 $(cpu 0 1)    
     _loading3 $(mem)
-
-    # -- Check system cpu/mem/disk  
-    _loading "Checking system hardware"
     zshbop_check-system
     echo ""
     
     # -- Check System
-    _loading "Checking System"
-    _loading3 $(os-short)    
+    _loading "Checking System"    
 	init_check_services
     init_check_software    
     software-raid-check
@@ -662,9 +651,9 @@ function init_zshbop () {
         init_omz_plugins     # -- Init OhMyZSH plugins
   	    init_plugins         # -- Init plugins
     fi
-    init_p10k            # -- Init powerlevel10k
-  	zshbop_custom-load   # -- Init custom zshbop
     init_os              # -- Init os defaults # TODO Needs to be refactored    
+    init_p10k            # -- Init powerlevel10k
+  	zshbop_custom-load   # -- Init custom zshbop    
     init_app_config      # -- Init config
     init_zsh_sweep       # -- Init zsh-sweep if installed    
     init_sshkeys         # -- Init ssh keys
