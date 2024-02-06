@@ -24,8 +24,8 @@ function vm-check-detect () {
     local OUTPUT VIRT_WHAT="0" DETECT_METHOD="none" CHECK_CMD
     OUTPUT+="Checking if in virtual environment"
 
-    [[ $MACHINE_OS == "mac" ]] && { _loading3 "Running on Mac...no need to check"; return 0 }
-    [[ $MACHINE_OS2 == "wsl" ]] && { _loading3 "Running on WSL...no need to check"; return 0 }
+    [[ $MACHINE_OS == "mac" ]] && { _log "Running on Mac...no need to check"; return 0 }
+    [[ $MACHINE_OS2 == "wsl" ]] && { _log "Running on WSL...no need to check"; return 0 }
 
     # -- check if virt-what exists
     _cmd_exists virt-what
