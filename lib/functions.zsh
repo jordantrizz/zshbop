@@ -446,9 +446,10 @@ zshbop_help () {
 help_zshbop[report]='Print out errors and warnings'
 function zshbop_report () {
     local LOG_LEVEL="$1"
-    local SHOW_LEVEL=()
+    local SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
     local TAIL_LINES=""
     local ZSHBOP_REPORT=""
+    local LOG_GREP=""
 
     # -- specify how many lines to show
     if [[ -z $2 ]]; then
@@ -477,8 +478,6 @@ function zshbop_report () {
         SHOW_LEVEL=("NOTICE")
     elif [[ $LOG_LEVEL = "log" ]]; then
         SHOW_LEVEL=("LOG")
-    elif [[ $LOG_LEVEL == "less" ]]; then
-        less $ZB_LOG
     elif [[ $LOG_LEVEL = "faults" ]]; then
         SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
     else
@@ -490,13 +489,19 @@ function zshbop_report () {
     _loading "-- zshbop report ------------"
     [[ $LOG_LEVEL != "faults" ]] && _loading3 "Showing - ${SHOW_LEVEL[@]}"
     # -- print out logs
-    for LOG in $SHOW_LEVEL; do
+    for LOG in ${SHOW_LEVEL[@]}; do
         # -- Only print when running zshbop_reports directly.
-        [[ $LOG_LEVEL != "faults" ]] && _loading2 "-- $LOG ------------"
-        [[ $LOG_LEVEL != "faults" ]] && _loading3 "Last $TAIL_LINES $LOG from - grep "\^\[${LOG}\]" $ZB_LOG"        
-        ZSHBOP_REPORT+=$(grep "^\[$LOG\]" $ZB_LOG | tail -n $TAIL_LINES)
+        if [[ $LOG_LEVEL != "faults" ]]; then
+            _loading2 "-- $LOG ------------"
+            _loading3 "Last $TAIL_LINES $LOG from - grep "\^\[${LOG}\]" $ZB_LOG"
+            LOG_GREP+="$(grep "^\[$LOG\]" $ZB_LOG | tail -n $TAIL_LINES)"
+            [[ -n $ZSHBOP_REPORT ]] && ZSHBOP_REPORT+="$LOG_GREP\n"
+        else            
+            ZSHBOP_REPORT+="$(grep "^\[$LOG\]" $ZB_LOG | tail -n $TAIL_LINES)"
+            [[ -n $ZSHBOP_REPORT ]] && ZSHBOP_REPORT+="$LOG_GREP\n"
+        fi        
     done
-    echo "$ZSHBOP_REPORT"
+    echo "$ZSHBOP_REPORT" | tr -s '\n'
 }
 
 # ==============================================

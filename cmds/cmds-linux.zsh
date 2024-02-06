@@ -51,7 +51,7 @@ if [[ $? == "1" ]]; then
 		check_broot
 	}
 	function check_broot () {
-		_error "broot not installed" 0
+		_error "broot not installed"
 	}
 fi
 
