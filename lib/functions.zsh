@@ -445,6 +445,10 @@ zshbop_help () {
 # =========================================================
 help_zshbop[report]='Print out errors and warnings'
 function zshbop_report () {
+    # -- Check if calling from zshbop report or zshbop_report
+    if [[ $1 == "report" ]]; then
+        shift
+    fi        
     local LOG_LEVEL="$1"
     local SHOW_LEVEL=("ERROR" "WARNING" "ALERT")
     local TAIL_LINES=""
