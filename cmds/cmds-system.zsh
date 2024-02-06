@@ -73,12 +73,12 @@ function cpu-features() {
     local OUTPUT="" CPU_QUEIT=${1:=0}     
     # -- Warn running in WSL
     if [[ $MACHINE_OS2 == "wsl" ]]; then
-        OUTPUT+="$(_warning "Running in WSL")\n"
+        OUTPUT+="WSL - "
     fi
 
     # -- Check if in VM
     if [[ $MACHINE_OS2 == "vm" ]]; then
-        OUTPUT+="$(_warning "Running in VM")\n"
+        OUTPUT+="VM - "
     fi
 
     # -- Check if lscpu is installed
@@ -133,15 +133,15 @@ function cpu-features() {
 
     OUTPUT+="CPU Features:"
 
-    for feature in "${FEATURES[@]}"; do        
-        
+    # -- Check for CPU features and print out available or not available
+    for feature in "${FEATURES[@]}"; do                
         if echo "$LSCPU" | grep -iq "$feature"; then
             OUTPUT+=$(_success "$feature available")
         else                    
             if _inarray $feature 0 "${FEATURE_ERROR[@]}"; then
-                OUTPUT+=$(_error "$feature not available")
+                OUTPUT+=$(_error "$feature not available ")
             else
-                OUTPUT+=$(_warning "$feature not available" )
+                OUTPUT+=$(_warning "$feature not available ")
             fi
         fi
     done

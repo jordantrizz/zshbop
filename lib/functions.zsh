@@ -387,7 +387,7 @@ zshbop_custom-load () {
         _log "Checking for $HOME/.zshbop.conf"
         if [[ -f $HOME/.zshbop.conf ]]; then
             ZSHBOP_CUSTOM_CFG="$HOME/.zshbop.conf"
-            _loading3 "Loaded custom zshbop config at $ZSHBOP_CUSTOM_CFG"
+            _loading "Loaded custom zshbop config at $ZSHBOP_CUSTOM_CFG"
             source $ZSHBOP_CUSTOM_CFG
         else
             _warning "No custom zshbop config found. Type zshbop custom for more information"
@@ -614,6 +614,7 @@ fucntion zshbop_install-env () {
 
 help_zshbop[cleanup]='Cleanup old things'
 function zshbop_cleanup () {
+    local QUEIT=${1:=0}
     _log "${funcstack[1]}:start"
     # -- older .zshrc
     OLD_ZSHRC_MD5SUM=(
@@ -623,23 +624,26 @@ function zshbop_cleanup () {
         "3ce94ed5c5c5fe671a5f0474468d5dd3"
     )
     
-    _loading "ZSH Cleanup"
-    _log "Checking for old .zshrc against $ZSHRC_MD5SUM"
-    if [[ -f $HOME/.zshrc ]]; then
-        ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc | awk {' print $1'})"
-        _log "Found $HOME/.zshrc md5sum:$ZSHRC_MD5SUM"
-        for i in $OLD_ZSHRC_MD5SUM; do
-            _log "CUR:$ZSHRC_MD5SUM vs OLD:$i"
-            if [[ $i == $ZSHRC_MD5SUM ]]; then
-                _alert "md5sum matched - Removing old .zshrc"
-                rm $HOME/.zshrc
-                echo "source $ZSHBOP_ROOT/zshbop.zsh" > $HOME/.zshrc
-            else
-                _log "md5sum did not match"
-            fi
-        done
+    if [[ $QUEIT == 0 ]]; then
+        _loading "ZSH Cleanup"
     else
-        _log "No .zshrc found"
+        _log "Checking for old .zshrc against $ZSHRC_MD5SUM"
+        if [[ -f $HOME/.zshrc ]]; then
+            ZSHRC_MD5SUM="$(md5sum $HOME/.zshrc | awk {' print $1'})"
+            _log "Found $HOME/.zshrc md5sum:$ZSHRC_MD5SUM"
+            for i in $OLD_ZSHRC_MD5SUM; do
+                _log "CUR:$ZSHRC_MD5SUM vs OLD:$i"
+                if [[ $i == $ZSHRC_MD5SUM ]]; then
+                    _alert "ZSH Cleanup - md5sum matched - Removing old .zshrc"
+                    rm $HOME/.zshrc
+                    echo "source $ZSHBOP_ROOT/zshbop.zsh" > $HOME/.zshrc
+                else
+                    _log "md5sum did not match"
+                fi
+            done
+        else
+            _log "No .zshrc found"
+        fi
     fi
 }
 

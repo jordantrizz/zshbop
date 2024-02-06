@@ -14,7 +14,7 @@ source ${ZSHBOP_ROOT}/lib/include.zsh
 STARTLOG
 
 # -- Check for old bits
-zshbop_cleanup
+zshbop_cleanup 1
 
 ###########################################################
 ###########################################################

@@ -409,7 +409,7 @@ function init_pkg_manager () {
 init-app-config () {    
 	_log "Setting application configuration"
 	# -- git
-    _loading3 "Setting git configuration"
+    _log "Setting git configuration"
 	git config --global init.defaultBranch main 
 }
 
@@ -587,8 +587,7 @@ init_motd () {
     sysfetch-motd
 
     # -- sysinfo
-    _loading3 $(cpu 0 1)
-    _loading3 $(cpu-features 1)
+    _loading3 $(cpu 0 1)    
     _loading3 $(mem)
 
     # -- Check system cpu/mem/disk  
