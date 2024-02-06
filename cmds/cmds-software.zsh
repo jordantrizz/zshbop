@@ -378,13 +378,15 @@ function bat() {
 # -- glint
 help_software[glint]="Install glint - https://github.com/brigand/glint"
 if [[ $MACHINE_OS == "linux" ]]; then
-    _loading "Check for gblint-linux under $MACHINE_OS"
+    _debug "Check for glint-linux under $MACHINE_OS"
     _cmd_exists glint-linux
     if [[ $? == "0" ]]; then
-		_loading2 "Found glint-linux, setting up alias"
+		_log "Found glint-linux, setting up alias"
     	function glint () { glint-linux $* }
     	function software_glint { _success "Glint installed" }
     else
+		_warning "glint-linux not found"
+		function glint () { _error "Glint not installed, type software glint to install"; return 1; }
 		function software_glint {
     		_loading "Installing glint"
 	    	curl -L -o $HOME/bin/glint-linux https://github.com/brigand/glint/releases/download/v6.3.4/glint-linux
@@ -396,9 +398,11 @@ elif [[ $MACHINE_OS == "mac" ]]; then
     _debug "Check for gblint-linux under $MACHINE_OS"
     _cmd_exists glint-macos
     if [[ $? == "0" ]]; then
+		_log "Found glint-macos, setting up alias"
     	function glint () { glint-macos $* }
     	function software_glint { _success "Glint installed" }
     else
+		_warning "glint-linux not found"
 		function glint () { _error "Glint not installed, type software glint to install"; return 1; }
         function software_glint {
             _loading "Installing glint"
