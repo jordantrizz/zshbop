@@ -69,7 +69,7 @@ check_nala () {
 # ----------------------------------------
 _joe_ftyperc () {
     _debug_all
-    _loading3 "Setting up joe ftyperc"
+    _log "Setting up joe ftyperc"
     if [[ -w $HOME ]]; then
         _debug "Checking for $HOME/.joe folder"
         [[ ! -d $HOME/.joe ]] && mkdir $HOME/.joe
@@ -77,7 +77,7 @@ _joe_ftyperc () {
         _debug "Checking for joe ftyperc in $HOME/"
         if [[ ! -f ~/.joe/ftyperc ]]; then
             _debug "Missing $HOME/.joe/ftyperc, copying"
-            cp $HOME/custom/ftyperc ~/.joe/ftyperc
+            cp $ZSHBOP_ROOT/custom/ftyperc ~/.joe/ftyperc
         fi
     else
         _error "Can't setup \$HOME/.joe unable to write to $HOME"
