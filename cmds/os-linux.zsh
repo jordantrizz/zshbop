@@ -76,7 +76,7 @@ check_diskspace_linux () {
     # wsl = wsl stuffs
     # /init = wsl stuffs
     local DISKSPACE_ERROR=0
-    DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|devfs' | awk '{ print $5 " " $1 }' )
+    DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|tmpfs|cdrom|:\\|wsl|/run|/init|overlay|none|/dev/loop*|devfs|snapfuse' | awk '{ print $5 " " $1 }' )
     DISKUSAGE=("${(@f)${DF_COMMAND}}")
     for OUT in ${DISKUSAGE[@]}; do
         PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1 )
