@@ -20,30 +20,17 @@ function kb_init_aliases () {
 # -- Init kb-topics.zsh
 # -- This function will create a multi dimensional array to store all the KB topics
 # ==================================================
-function kb_init_topics () {
-    local KB_FILE KB_TOPIC KB_TOPIC_FILE KB_TOPIC_DESC KB_DIRS KB_TAG
-
-    # -- Create multi dimensional array
-    typeset -gA kb_topics
-    typeset -gA kb_topics_desc
-    typeset -gA kb_topics_tag
-    typeset -gA kb_topics_dirs
-
+function kb_init_topics () {    
     # -- Check if kb directory exists
-    if [[ -d $ZSHBOP_ROOT/kb ]]; then
-        kb_topics_dirs[zb]="$ZSHBOP_ROOT/kb"                
-        _debug "Found KB directory $ZSHBOP_ROOT/kb"        
-    fi
+    if [[ -d $ZSHBOP_ROOT/kb ]]; then        
+        KB_DIR="$ZSHBOP_ROOT/kb"                
+        _debug "Found and processing KB directory $KB_DIR"      
+        local KB_FILE KB_TOPIC KB_TOPIC_FILE KB_TOPIC_DESC KB_DIRS KB_TAG
+        # -- Create multi dimensional array
+        typeset -gA kb_topics
+        typeset -gA kb_topics_desc
+        #typeset -gA kb_topics_tag  
 
-    if [[ -d $ZBC/kb ]]; then
-        kb_topics_dirs[zbc]="$ZBC/kb"            
-        _debug "Found KB directory $ZBC/kb"
-    fi
-
-    # -- Process kb directory array
-    for KB_DIR_ID in ${(k)kb_topics_dirs}; do
-        KB_DIR=${kb_topics_dirs[$KB_DIR_ID]}        
-        _debug "Processing KB directory $KB_DIR"
         # -- Go through all files and create an array
         for KB_FILE in $KB_DIR/*.md; do
             # -- Get the file name and add to array
@@ -52,10 +39,34 @@ function kb_init_topics () {
             # -- Get Topic Description and add to array
             KB_TOPIC_DESC=$(grep -E '^#\$\$#' $KB_FILE | sed 's/#$$# //g')            
             kb_topics_desc[$KB_TOPIC]=$KB_TOPIC_DESC
-            # -- KB Flag                        
-            kb_topics_tag[$KB_TOPIC]=$KB_DIR_ID
-        done
-    done
+            # -- KB tag # TODO need to figure out tagging kbs                    
+            #kb_topics_tag[$KB_TOPIC]=$KB_DIR_ID
+        done    
+    fi
+
+    # -- Check if kb directory exists
+    if [[ -d $ZBC/kb ]]; then
+        local KB_DIR_CUSTOM KB_FILE_CUSTOM KB_TOPIC_CUSTOM KB_TOPIC_DESC_CUSTOM KB_TOPIC_TAG_CUSTOM
+        # -- Create multi dimensional array for custom kb's
+        typeset -gA kb_topics_custom
+        typeset -gA kb_topics_desc_custom
+        #typeset -gA kb_topics_tag_custom     
+        
+        KB_DIR_CUSTOM="$ZBC/kb"
+        _debug "Found and processing Custom KB directory $ZBC/kb"        
+            
+        # -- Go through all files and create an array
+        for KB_FILE_CUSTOM in $KB_DIR_CUSTOM/*.md; do
+            # -- Get the file name and add to array
+            KB_TOPIC_CUSTOM=$(basename $KB_FILE_CUSTOM| sed s/.md//g)
+            kb_topics_custom[$KB_TOPIC_CUSTOM]=$KB_FILE_CUSTOM
+            # -- Get Topic Description and add to array
+            KB_TOPIC_DESC_CUSTOM=$(grep -E '^#\$\$#' $KB_FILE_CUSTOM | sed 's/#$$# //g')            
+            kb_topics_desc_custom[$KB_TOPIC_CUSTOM]=$KB_TOPIC_DESC_CUSTOM
+            # -- KB tags # TODO need to figure out tagging kbs            
+            #kb_topics_tag_custom[$KB_TOPIC_CUSTOM]=
+        done   
+    fi     
 }
 
 # ==================================================
@@ -63,29 +74,70 @@ function kb_init_topics () {
 # -- This function will print out all the KB topics in a nice format
 # ==================================================
 function kb_print_topics () {
-    local KB_TOPIC KB_OUTPUT OUTPUT_STYLE
+    local KB_TOPIC KB_OUTPUT OUTPUT_STYLE KB_TOPIC_DESC
     OUTPUT_STYLE=${1:-c}
     # -- Print out all the KB topics and sort
+
+    # -- Print out all the KB topics into a table and sort
+    # $1 = kb_topics or kb_topics_custom
+    function _kb_print_topics_table () {
+        local KB_OUTPUT KB_OUTPUT2 KB_TOPIC KB_TOPIC_DESC KB_TOPIC_FILE
+        local RKB_TOPIC_TYPE="${1}"
+        local RKB_TOPIC_DESC="${1}_desc"
+        local RKB_TOPIC_FILE="${1}"
+
+        KB_OUTPUT="Topic\tDescription\tFile\n"
+        KB_OUTPUT+="-----\t-----------\t----\n"
+        for KB_TOPIC in ${(konP)RKB_TOPIC_TYPE}; do            
+            [[ -z ${${(P)RKB_TOPIC_DESC}[$KB_TOPIC]} ]] && KB_TOPIC_DESC="--" || KB_TOPIC_DESC="${${(P)RKB_TOPIC_DESC}[$KB_TOPIC]}"            
+            KB_TOPIC_FILE="${${(P)RKB_TOPIC_TYPE}[$KB_TOPIC]}"
+            KB_OUTPUT+="$KB_TOPIC\t${KB_TOPIC_DESC}\t${KB_TOPIC_FILE}\n"
+        done        
+        KB_OUTPUT2+=$(echo $KB_OUTPUT | column -t -s $'\t')
+        echo "$KB_OUTPUT2"
+    }
     
     if [[ $OUTPUT_STYLE == "c" ]]; then
-        _banner_yellow "KB Topics"
-        KB_OUTPUT="Topic\tDescription\n"
-        KB_OUTPUT+="-----\t-----------\n"
-        for KB_TOPIC in ${(kon)kb_topics}; do
-            KB_TOPIC_DESC=${kb_topics_desc[$KB_TOPIC]}
-            KB_OUTPUT+="$KB_TOPIC\t${kb_topics_desc[$KB_TOPIC]}\n"
-        done
-        KB_OUTPUT2="$(_banner_yellow "KB Topics")\n\n"
-        KB_OUTPUT2+=$(echo $KB_OUTPUT | column -t -s $'\t')
-        echo "$KB_OUTPUT2" | less
+        {_banner_yellow "KB Topics"
+        _kb_print_topics_table kb_topics
+        echo ""
+        _banner_yellow "Custom KB Topics"
+        _kb_print_topics_table kb_topics_custom } | less
     elif [[ $OUTPUT_STYLE == "_auto" ]]; then
         _debug "Running autocomplete"
         AUTO_KB=()
         for KB_TOPIC in ${(kon)kb_topics}; do
             AUTO_KB+=($KB_TOPIC)
         done
-        echo "$AUTO_KB"
+        # -- Add custom KB topics but don't add duplicate
+        for KB_TOPIC_CUSTOM in ${(kon)kb_topics_custom}; do
+            if [[ ! ${AUTO_KB[(r)$KB_TOPIC_CUSTOM]} ]]; then
+                AUTO_KB+=($KB_TOPIC_CUSTOM)
+            fi
+        done
+        echo $AUTO_KB
     fi    
+}
+
+# ==================================================
+# -- kb_search
+# -- This function will search for a KB article
+# ==================================================
+function kb_search () {
+    local KB_SEARCH OUTPUT
+    KB_SEARCH="$1"
+    _loading3 "Searching for KB article $KB_SEARCH in KB topics"        
+    for KB_TOPIC in ${(kon)kb_topics}; do
+        if [[ $KB_TOPIC == *$KB_SEARCH* ]]; then
+            echo "$KB_TOPIC\n"
+        fi
+    done
+    _loading3 "Searching in Custom KB topics"
+    for KB_TOPIC_CUSTOM in ${(kon)kb_topics_custom}; do
+        if [[ $KB_TOPIC_CUSTOM == *$KB_SEARCH* ]]; then
+            echo "$KB_TOPIC_CUSTOM\n"            
+        fi
+    done
 }
 
 # ==================================================
@@ -147,14 +199,14 @@ md-reader () {
 # -- Usage:
 # -- kb <article>
 # ====================================================================================================
-kb () {    
+function kb () {    
     # -- args
     zparseopts -D -E c=CAT
     if [[ -n "$CAT" ]]; then
         echo "Using cat on $1"
         MD_READER="cat"
     fi
-    KB=$1
+    KB="$1"
 
     # -- debug function
     _debug_all
@@ -174,10 +226,18 @@ kb () {
     elif [[ -z $KB ]]; then
         kb_usage
         return 1
-    elif [[ kb_topics[$KB] ]]; then
-        _banner_yellow "Found KB file $kb_topics[$KB], showing via $MD_READER"
-        _debug "Running $MD_READER $kb_topics[$KB]"
-        md-reader $kb_topics[$KB]
+    elif [[ -n $KB ]]; then
+        # -- Check if topic exists
+        if [[ -z $kb_topics[$KB] ]]; then
+            _banner_red "KB topic $KB not found"
+            kb_search $KB            
+            return 1
+        else
+            _banner_yellow "Found KB file $kb_topics[$KB], showing via $MD_READER"
+            _debug "Running $MD_READER $kb_topics[$KB]"
+            md-reader $kb_topics[$KB]
+        fi
+    # TODO Incorporate custom KB articles.
     elif [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
         _banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
         KB_COMBINED="\n"
@@ -190,17 +250,9 @@ kb () {
         KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
         _debug "$KB_COMBINED"
         md-reader-text $KB_COMBINED
-    elif [[ -a $ZSHBOP_ROOT/kb/$1.md ]]; then
-        _banner_yellow "Found zshbop KB file $ZSH_ROOT/kb/$1.md, showing via $MD_READER"
-        _debug "Running $MD_READER $ZSH_ROOT/kb/$1.md"
-        md-reader $ZSH_ROOT/kb/$1.md
-    elif [[ -a $ZBC/kb/$1.md ]]; then
-        _banner_yellow "Found zshbop custom KB file $ZBC/kb/$1.md, both via $MD_READER"
-        _debug "Running $MD_READER $ZBC/kb/$1.md"
-        md-reader $ZBC/kb/$1.md        
     else
         kb_usage
-            return 1
+        return 1
     fi
 }
 
