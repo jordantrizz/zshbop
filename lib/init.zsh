@@ -7,20 +7,27 @@
 # =========================================================
 # -- init_core - core functions
 # =========================================================
+_debug_load
+init_log () {
+    # -- Logging function that called init_log
+    ZSHBOP_LOAD+=(${funcstack[2]})
+}
 init_core () {
     _debug_all
     _debug "Loading zshbop core"
     export ZSHBOP_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD) # -- current branch
     export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
+    init_log
 }
 init_core
 
-_debug_load
+
 init_include () {
     source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
     source ${ZSHBOP_ROOT}/lib/functions-core.zsh # -- core functions
     source ${ZSHBOP_ROOT}/lib/functions.zsh # -- zshbop functions
     source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include aliases
+    init_log
 }
 init_include
 
@@ -69,6 +76,7 @@ init_path () {
 	if [[ ! -d $ZSHBOP_CACHE_DIR ]]; then
 		mkdir $ZSHBOP_CACHE_DIR > /dev/null
 	fi
+    init_log
 }
 
 # ==============================================
@@ -90,6 +98,7 @@ init_add_path () {
 	else
 		_debug "Can't find $DIR"
 	fi
+    init_log
 }
 
 # ==============================================
@@ -132,6 +141,7 @@ init_detectos () {
     elif [[ $MACHINE_OS == "linux" ]]; then        
         _get-os-install-date 0
     fi
+    init_log
 }
 
 # ==============================================
@@ -181,6 +191,7 @@ init_omz_plugins () {
 	
 	# aliases
 	alias genpass="genpass-apple"
+    init_log
 }
 
 # ==============================================
@@ -197,6 +208,7 @@ function init_zsh_sweep () {
         _debug "There is no $REPOS_DIR/zsh-sweep, run repos pull zsh-sweep"
     fi
     [[ "$ZSH_EVAL_CONTEXT" == "toplevel" ]] && DEBUG="0"
+    init_log
 }
 
 
@@ -210,6 +222,7 @@ function init_p10k () {
 	export POWERLEVEL9K_VCS_MAX_SYNC_LATENCY_SECONDS="0" # Don't wait for Git status even for a millisecond, so that prompt always updates
 	export POWERLEVEL9K_DISK_USAGE_ONLY_WARNING="true"
 	export POWERLEVEL9K_DISK_USAGE_WARNING_LEVEL="90"
+    init_log
 }
 
 # ==============================================
@@ -226,6 +239,7 @@ function init_fzf () {
 	else
 	    _debug "fzf is not installed, consider it"
 	fi
+    init_log
 }
 
 # ==============================================
@@ -238,6 +252,7 @@ function init_plugins () {
 	else
 		eval ${ZSHBOP_PLUGIN_MANAGER}
 	fi
+    init_log
 }
 
 # ==============================================
@@ -266,6 +281,7 @@ function init_antidote () {
     antidote bundle < $ANTIDOTE_PLUGINS > $ANTIDOTE_STATIC
     _log "Sourcing antidote static file $ANTIDOTE_STATIC"
     source $ANTIDOTE_STATIC
+    init_log
 }
 
 # ==============================================
@@ -275,13 +291,14 @@ function init_antigen () {
 	_debug "Loading antigen"
 	_loading "Loading antigen"
     if [[ -e $ZSHBOP_ROOT/lib/antigen.zsh ]]; then
-  _debug "- Loading antigen from $ZSHBOP_ROOT/lib/antigen.zsh"
-  # shellcheck source=./antigen.zsh
-  source ${ZSHBOP_ROOT}/lib/antigen.zsh >/dev/null 2>&1
-  antigen init ${ZSHBOP_ROOT}/.antigenrc >/dev/null 2>&1
-else
-  _echo "	- Couldn't load antigen.."
-fi
+        _debug "- Loading antigen from $ZSHBOP_ROOT/lib/antigen.zsh"
+        # shellcheck source=./antigen.zsh
+        source ${ZSHBOP_ROOT}/lib/antigen.zsh >/dev/null 2>&1
+        antigen init ${ZSHBOP_ROOT}/.antigenrc >/dev/null 2>&1
+    else
+        _echo "	- Couldn't load antigen.."
+    fi
+init_log
 }
 
 # ==============================================
@@ -307,7 +324,8 @@ function init_os () {
     elif [[ $MACHINE_OS = "linux" ]] then
 		_loading3 "Loading cmds/os-linux.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
-	fi    
+	fi
+    init_log
 }
 
 # ==============================================
@@ -357,6 +375,7 @@ function init_sshkeys () {
     else
         _warning "Command keychain doesn't exist, please install for SSH keys to work"
     fi
+    init_log
 }
 
 # ==============================================
@@ -394,7 +413,8 @@ function init_pkg_manager () {
             _debug "Found port setting \$PKG_MANAGER to port"
             export PKG_MANAGER="port"
         fi
-	fi	
+	fi
+    init_log
 }
 
 # ==============================================
@@ -405,6 +425,7 @@ init-app-config () {
 	# -- git
     _log "Setting git configuration"
 	git config --global init.defaultBranch main 
+    init_log
 }
 
 # ==============================================
@@ -415,6 +436,7 @@ function init_zbr_cmds () {
    	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*.zsh; do
 	  source $CMD_FILE
 	done
+    init_log
 }
 
 # ==============================================
@@ -428,6 +450,7 @@ function init_app_config () {
 
      # -- set .joe location
     _joe_ftyperc
+    init_log
 }
 
 # ==============================================
@@ -444,6 +467,7 @@ init_check_software () {
 
     # -- check if broot is installed
     check_broot
+    init_log
 }
 
 # ==============================================
@@ -503,6 +527,7 @@ function init_check_services () {
     else
         _log "Docker not installed"
     fi
+    init_log
 }
 
 # ==============================================
@@ -516,6 +541,7 @@ function init_home_bin () {
         _loading2 "\$ZSHBOP_HOME/bin does not exist...creating home bin"
         mkdir $ZSHBOP_HOME/bin
     fi
+    init_log
 }
 
 # ==============================================
@@ -536,6 +562,7 @@ function init_checks () {
 
     # Detect if VM
     vm-check-detect   
+    init_log
 }
 
 # ==============================================
@@ -566,6 +593,7 @@ function init_kb () {
     done
     # strip all new lines
     _log "Loading Knowledge Base: $KB_TOTAL_OUT"
+    init_log
 }
 
 ###########################################################
@@ -621,6 +649,7 @@ init_motd () {
     
     # -- last echo to keep motd clean
     echo ""
+    init_log
 }
 
 # ==============================================
@@ -633,7 +662,8 @@ function init_zshbop () {
 	# -- Start init
     # --------------------------------------------------
 	_debug_all
-    echo "$bg[yellow]$fg[black] * Initilizing zshbop${RSC} - $(zshbop_version)"
+    echo "$bg[yellow]$fg[black] * Initializing zshbop${RSC}"
+    echo "$(zshbop_version) - $ZSHBOP_ROOT"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
     # --------------------------------------------------
@@ -644,6 +674,7 @@ function init_zshbop () {
         _loading3 "Loading includes...." 
         init_include        # -- Include files
     fi
+    init_path            # -- Set paths
     init_detectos        # -- Detect operating system
     init_zbr_cmds        # -- Include commands
     init_help            # -- Load help
@@ -651,8 +682,7 @@ function init_zshbop () {
     # -- Include Commands First as a dependency for all below commands.
     # --------------------------------------------------    
     init_checks          # -- Init checks
-    zsh-check-version    # -- Check zsh
-    init_path            # -- Set paths
+    zsh-check-version    # -- Check zsh    
     init_home_bin        # -- Check if home bin exists	
 	init_pkg_manager     # -- Init package manager     
     init-app-config      # -- Common application configuration
@@ -662,12 +692,20 @@ function init_zshbop () {
     fi
     init_os              # -- Init os defaults # TODO Needs to be refactored    
     init_p10k            # -- Init powerlevel10k
-  	zshbop_custom-load   # -- Init custom zshbop    
-    init_app_config      # -- Init config
-    init_zsh_sweep       # -- Init zsh-sweep if installed    
+  	init_app_config      # -- Init config
+    init_zsh_sweep       # -- Init zsh-sweep if installed
+
+    # -- Print out what loaded
+    _loading3 "Loaded: $ZSHBOP_LOAD"
+    echo ""
+ 
+    
+    # -- Load custom then commands dependant on custom    
+    zshbop_custom-load   # -- Init custom zshbop    
     init_sshkeys         # -- Init ssh keys
     init_kb              # -- Init Knowledge Base
     
+
     # -- Check if init_custom_startup is defined as a function and then execute it    
     _debug "Checking if init_custom_startup is defined as a function"
     if whence -f init_custom_startup > /dev/null; then
@@ -676,8 +714,6 @@ function init_zshbop () {
     else
         _debug "init_custom_startup is not defined"
     fi
-
-    echo ""
     
     _debug "init_zshbop: \$funcstack = $funcstack"
     if [[ $ZSHBOP_RELOAD == "1" ]]; then

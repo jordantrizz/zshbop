@@ -65,6 +65,7 @@ export RUN_REPORT="0"
 export ZSHBOP_RELOAD="0"
 typeset -a ZSHBOP_UPDATE_GIT=()
 export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository 
+typeset -a ZSHBOP_LOAD=()
 
 # -- Software specific
 GIT_CONFIG="${ZSHBOP_HOME}/.gitconfig"
