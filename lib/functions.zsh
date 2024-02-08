@@ -531,7 +531,7 @@ function zshbop_check-system () {
 
 	# -- check disk space
 	_debug "Checking disk space on $MACHINE_OS"
-    _loading3 "$(check_diskspace)"
+    _loading3 "$(check-diskspace)"
 
     #TODO block devices needs to be compacted.
 	# -- check block devices
