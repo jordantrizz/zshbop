@@ -24,18 +24,8 @@ function gc () {
 help_git[glc]='Glint commit and push'
 function glc () {
 	_cmd_exists glint
-	if [[ $? == "0" ]]; then
-    _loading "Committing using glint"
-    echo "build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
-ci: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
-docs: Documentation only changes
-feat: A new feature
-fix: A bug fix
-perf: A code change that improves performance
-refactor: A code change that neither fixes a bug nor adds a feature
-style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-test: Adding missing tests or correcting existing tests
-"
+	if _cmd_exists glint; then
+        _loading "Committing using glint"
 		glint commit
 		git push
 	else
@@ -235,7 +225,9 @@ function gl {
 help_git[git-check]="Check for uncommitted changes and unpushed commits in all Git repositories"
 function git-check () {
     local GIT_DIR
-    if [[ -n $1 ]]; then
+    if [[ $1 == "-h" ]]; then
+        echo "Usage: git-check <directory>"
+    elif [[ -n $1 ]]; then
         _loading "Using \$1 as \$GIT_HOME: $1"
         GIT_DIR="$1"
         [[ -d $1 ]] || { _error "$1 is not a directory"; return 1; }
