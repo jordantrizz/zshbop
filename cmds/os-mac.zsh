@@ -34,7 +34,7 @@ auto-ls-color () { \ls -aG;echo "\n"; }
 
 # -- check_diskspace
 check_diskspace_mac () {
-	check_diskspace_linux
+	linux-checkdiskspace
 }
 
 # -- interfaces

@@ -193,10 +193,14 @@ usedspace () {
 	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
 }
 
-# -- check_diskspace
-help_linux[check_diskspace2]="Check diskspace based on OS"
-check_diskspace () {
-	check_diskspace_${MACHINE_OS} $@
+# -- check-diskspace
+help_linux[check-diskspace]="Check diskspace based on OS"
+check-diskspace () {
+	if [[ $MACHINE_OS == "linux" ]]; then
+		linux-checkdiskspace
+	else
+		_error "check-diskspace not supported on $MACHINE_OS"
+	fi	
 }
 
 # -- check_blockdevices
