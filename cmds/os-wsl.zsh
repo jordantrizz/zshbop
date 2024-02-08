@@ -12,6 +12,21 @@ typeset -gA help_wsl
 alias traceroute="sudo traceroute -M icmp"
 
 # ==================================================
+# -- Run Commands
+# --
+# -- These commands run on WSL startup
+# ==================================================
+# -- init_wsl
+init_wsl () {
+	_debug " -- Running init_wsl"
+	wsl-fixes
+	wsl-fixscreen
+	wsl-backupwtc
+	wsl-shortcuts
+	init_log
+}
+
+# ==================================================
 # -- Functions
 # ==================================================
 
@@ -43,8 +58,45 @@ function wsl-fixes () {
 # -- wsl-backupwtc 
 help_wsl[wsl-backupwtc]='Backup Windows Terminal configuration.'
 wsl-backupwtc () {
-        cp /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json  $ZSH_ROOT/files/wt_settings.json
-        gcp "Backup of Windows Terminals settings.json"
+	local WT_SOURCE="$(echo /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
+	local WT_DEST="$ZSHBOP_TEMP/wt-settings.json"
+	local QUEIT=${1:=0}		
+	local OUTPUT=""
+
+	OUTPUT+="Copying Windows Terminal settings - "	
+	if [[ ! -d "/mnt/c" ]]; then
+		_error "/mnt/c does not exist, is WSL installed?"
+		return 1
+	fi
+	
+	# -- Checking if Windows Terminal settings.json exists"
+	if [[ ! -f $WT_SOURCE ]]; then
+		_error "Windows Terminal config not found at $WT_SOURCE "
+		return 1
+	fi
+
+	# -- Check if temp folder exists
+	if [[ ! -d "$ZSHBOP_TEMP" ]]; then
+		_error "Temp folder $ZSHBOP_TEMP doesn't exist"
+		return 1
+	fi
+
+	# -- Check if settings.json exists and see if source is newer	
+	if [[ -f $WT_DEST ]]; then		
+		if [[ $WT_SOURCE -nt $WT_DEST ]]; then
+			OUTPUT+="Source is newer, backing up"
+			cp $WT_SOURCE $WT_DEST
+			OUTPUT+="backup completed at $ZSHBOP_TEMP/settings.json"
+		else
+			OUTPUT+="Source is not newer, skipping backup."			
+		fi
+	else
+		OUTPUT+="No backup of settings.json found, backing up"		
+		cp $WT_SOURCE $WT_DEST
+		OUTPUT+="backup completed at $ZSHBOP_TEMP/settings.json"
+	fi
+	
+	[[ $QUEIT == 0 ]] && _loading3 "$OUTPUT"	
 }
 
 # -- check_diskspace_wsl
@@ -82,10 +134,3 @@ function wsl-shortcuts () {
 	fi
 }
 
-# ==================================================
-# -- Run Commands
-# --
-# -- These commands run on WSL startup
-# ==================================================
-wsl-fixscreen
-wsl-shortcuts

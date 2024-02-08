@@ -325,7 +325,8 @@ function init_os () {
     elif [[ $MACHINE_OS2 = "wsl" ]]; then				
         _loading3 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
-        source $ZSHBOP_ROOT/cmds/os-wsl.zsh	
+        source $ZSHBOP_ROOT/cmds/os-wsl.zsh
+        init_wsl
 	# -- Linux
     elif [[ $MACHINE_OS = "linux" ]] then
 		_loading3 "Loading cmds/os-linux.zsh"
