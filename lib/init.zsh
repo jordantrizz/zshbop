@@ -527,7 +527,7 @@ function init_check_services () {
             DOCKER_RUNNING=$(echo $DOCKER_RUNNING | wc -l)        
             _success "Docker: $(docker --version) - Running containers: $DOCKER_RUNNING"
         else        
-            _warning "Docker: $(docker --version) - reporting error."
+            _warning "Docker: Command exists but reporting error."
         fi
     else
         _log "Docker not installed"
