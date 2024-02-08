@@ -378,13 +378,13 @@ function bat() {
 # -- glint
 help_software[glint]="Install glint - https://github.com/brigand/glint"
 if [[ $MACHINE_OS == "linux" ]]; then
-    _debug "Check for glint-linux under $MACHINE_OS"
-    _cmd_exists glint-linux
-    if [[ $? == "0" ]]; then
+    _debug "Check for glint-linux under $MACHINE_OS"    
+    if _cmd_exists glint-linux; then
 		_log "Found glint-linux, setting up alias"
     	function glint () { glint-linux $* }
     	function software_glint { _success "Glint installed" }
     else
+		_cmd_exists glint-linux		
 		_warning "glint-linux not found"
 		function glint () { _error "Glint not installed, type software glint to install"; return 1; }
 		function software_glint {
