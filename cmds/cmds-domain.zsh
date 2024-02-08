@@ -1,15 +1,8 @@
-# --
+# ==================================================
 # domain commands
-#
-# Example help: help_domain[wp]='Generate phpinfo() file'
-#
-# --
+# ==================================================
 _debug " -- Loading ${(%):-%N}"
-
-# - Init help array
 typeset -gA help_domain
-
-# What help file is this?
 help_files[domain]="Domain Name functions and commands."
 
 # -- domaincheck
