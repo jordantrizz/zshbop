@@ -69,7 +69,8 @@ function interfaces_linux () {
 }
 
 # -- check_diskspace_linux
-check_diskspace_linux () {
+help_linux[linux-checkdiskspace]="Check disk space"
+function linux-checkdiskspace () {
     ALERT="98" # alert level
     # :\\ = wsl drive letters
     # /run = not requires
