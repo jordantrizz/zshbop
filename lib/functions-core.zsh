@@ -177,10 +177,10 @@ function _cmd_exists () {
 # -- checkroot - check if running as root
 # =========================================================
 help_corefunc[_checkroot]="Check if running as root"
-_checkroot () {
-        _debug_all
+_checkroot () {     
+    _debug_all    
     if [[ $EUID -ne 0 ]]; then        
-        zb_logger "ERROR" 0 "Requires root...exiting - $funcstack"
+        zb_logger "WARNING" 0 "Requires root...exiting - $funcstack"
         return 1
     else
         _debug "Running as root"

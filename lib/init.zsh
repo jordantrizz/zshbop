@@ -522,7 +522,7 @@ function init_check_services () {
     # -- Docker
     if (( $+commands[docker] )); then        
         # Count docker running containers
-        DOCKER_RUNNING=$(docker ps -q)
+        DOCKER_RUNNING=$(docker ps -q 2>/dev/null)
         if [[ $? == "0" ]]; then
             DOCKER_RUNNING=$(echo $DOCKER_RUNNING | wc -l)        
             _success "Docker: $(docker --version) - Running containers: $DOCKER_RUNNING"
