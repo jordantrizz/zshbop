@@ -64,7 +64,13 @@ init_path () {
 	
 	# Golang Path?
 	export PATH=$PATH:$HOME/go/bin
-	
+    init_log
+}
+
+# =========================================================
+# -- init_dirs - setup all the required directories for ZSHBOP
+# =========================================================
+init_dirs () {
 	# Creating $HOME/tmp
 	_debug "Creating \$HOME/tmp folder"
 	if [[ ! -d $HOME/tmp ]]; then
@@ -680,6 +686,7 @@ function init_zshbop () {
         init_include        # -- Include files
     fi
     init_path            # -- Set paths
+    init_dirs            # -- Set directories 
     init_detectos        # -- Detect operating system
     init_zbr_cmds        # -- Include commands
     init_help            # -- Load help
