@@ -6,12 +6,26 @@
 # --
 _debug " -- Loading ${(%):-%N}"
 HELP_CATEGORY='software'
-
-# What help file is this?
 help_files[${HELP_CATEGORY}]='Software related commands'
 
 # - Init help array
 typeset -gA help_software
+
+# ==================================================
+# -- zsh completion
+# ==================================================
+_software() {
+  # -- Walk help_software and add to completion
+    local -a options
+    options=("${(@k)help_software}")
+
+    _values 'software command' $options
+}
+
+# ==================================================
+# Associate the _software function with the software command
+# ==================================================
+compdef _software software
 
 # -- software - Core software command
 function software () {
@@ -26,6 +40,7 @@ function software () {
 		$run_software $@
 	fi
 }
+
 
 # -- csf-install - Install csf.
 help_software[csf-install]='Installs CSF. Config Server Firewall'
@@ -479,5 +494,45 @@ function software_fpart () {
 		sudo apt-get install fpart bsd-mailx- postfix- --no-install-recommends
 	else
 		_error "fpart not supported on $MACHINE_OS"
+	fi
+}
+
+# -- software_cryptomator_cli
+if [[ -f $HOME/bin/cryptomator-cli.jar ]]; then
+	export CRYPTOMATOR_CLI_JAR=$HOME/bin/cryptomator-cli.jar
+	function cryptomator-cli () {
+		java -jar $HOME/bin/cryptomator-cli.jar $@
+	}
+else
+	alias cryptomator-cli="echo 'cryptomator-cli not installed'"
+fi
+help_software[cryptomator-cli]="Install cryptomator-cli"
+function software_cryptomator-cli () {
+	_loading "Installing cryptomator-cli via github jar"
+	CRYPTOMATOR_JAR_DL="https://github.com/cryptomator/cli/releases/download/0.5.1/cryptomator-cli-0.5.1.jar"
+
+	# -- check if we have java
+	_loading3 "Checking for java"
+	if _cmd_exists java; then
+		_success "Java installed"
+	else
+		if [[ $MACHINE_OS == "linux" ]] && [[ $MACHINE_OS_FLAVOUR == "ubuntu" ]]; then		
+			_loading3 "Installing openjdk-17-jdk openjdk-17-jre libfuse2 via apt"
+			sudo apt install openjdk-17-jdk openjdk-17-jre libfuse2
+		else
+			_error "Java not installed, please install java and try again"
+			return 1
+		fi
+	fi
+
+	_loading3 "Downloading cryptomator-cli.jar"
+	# -- Check if cryptomator-cli.jar exists
+	if [[ -f $HOME/bin/cryptomator-cli.jar ]]; then
+		_success "cryptomator-cli.jar already exists"
+		return 0
+	else
+		_loading3 "Downloading cryptomator-cli.jar"	
+		wget -O $HOME/bin/cryptomator-cli.jar $CRYPTOMATOR_JAR_DL
+		_success "cryptomator-cli installed, reload zshbop"
 	fi
 }
