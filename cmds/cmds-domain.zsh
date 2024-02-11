@@ -80,6 +80,7 @@ function domain-info () {
         for MX in "${(f)RECORD}"; do
             MX_TEXT+=($MX)
         done
+        echo "${MX_TEXT[@]}"
     }
 
     # -------
@@ -97,7 +98,7 @@ function domain-info () {
     _loading "Getting domain name DNS information for $DOMAIN"
     APEX_TEXT=$(_domain_info_get_record $DOMAIN)
     WWW_TEXT=$(_domain_info_get_record www.$DOMAIN)
-    _domain_info_get_mx $DOMAIN
+    MX_TEXT=$(_domain_info_get_mx $DOMAIN)    
 
     if [[ $COMPACT ]]; then        
         echo "Nameservers $(_domain_info_get_nameservers $DOMAIN)"                
