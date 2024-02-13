@@ -25,8 +25,7 @@ function gh-web () {
 		if [[ $remote_url == *github.com* ]]; then
 			repo_url=${remote_url%.git}
 			repo_url=${repo_url/github.com/github.com\/(open)}
-			echo "Opening $repo_url"
-			open $repo_url
+			echo "Repo URL is $repo_url"			
 		else
 			echo "This doesn't seem to be a GitHub repository."
 		fi
