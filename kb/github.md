@@ -9,12 +9,7 @@ sudo apt update
 sudo apt install gh
 ```
 
-## Posting Gists
-```
-gh gist create /usr/local/bin/gphourlyworker -d "gphourlyworker fix"
-```
-
-## Posting Releases
-```
-gh release create 0.2.4a
-```
+## Common Commands
+* Posting Gists - ```gh gist create /usr/local/bin/gphourlyworker -d "gphourlyworker fix"```
+* Posting Releases - ```gh release create 0.2.4a```
+* Visit Project Page at github.com - ```gh repo view --web```
