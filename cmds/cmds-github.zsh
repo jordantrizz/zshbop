@@ -22,7 +22,7 @@ function gh-web () {
 	_debug "MODE: $MODE"
 
 	_gh_web_gh () {
-		gh repo view --web
+		gh repo view --web		
 	}
 
 	_gh_web_alt () {
@@ -33,7 +33,7 @@ function gh-web () {
 			repo_url=${repo_url/git\@/https:\/\/}
 			echo "Repo URL is $repo_url"
 		else
-			echo "This doesn't seem to be a GitHub repository."
+			echo "This doesn't seem to be a GitHub repository. Run 'git config --get remote.origin.url' to see the remote URL."
 		fi
 	
 	}
