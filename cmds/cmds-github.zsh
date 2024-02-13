@@ -18,18 +18,34 @@ function gh-start () {
 # ==================================================
 help_github[gh-web]='Open the current repository in the browser'
 function gh-web () {
-	if _cmd_exists "gh"; then
+	MODE=${1:=0}
+	_debug "MODE: $MODE"
+
+	_gh_web_gh () {
 		gh repo view --web
-	else
+	}
+
+	_gh_web_alt () {
 		remote_url=$(git config --get remote.origin.url)
 		if [[ $remote_url == *github.com* ]]; then
 			repo_url=${remote_url%.git}
-			repo_url=${repo_url/github.com/github.com\/(open)}
-			echo "Repo URL is $repo_url"			
+			repo_url=${repo_url/github.com:/github.com\/}
+			repo_url=${repo_url/git\@/https:\/\/}
+			echo "Repo URL is $repo_url"
 		else
 			echo "This doesn't seem to be a GitHub repository."
 		fi
+	
+	}
+	_cmd_exists gh
+	if [[ $? == 0 ]] && [[ $MODE == "0" ]]; then
+		_gh_web_gh
+	elif [[ $MODE == "1" ]]; then
+		_gh_web_alt
+	else
+		_gh_web_alt
 	fi
+
 }
 
 
