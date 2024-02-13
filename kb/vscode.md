@@ -36,3 +36,6 @@ If you're using Keychain and a different shell than bash such as zsh, you'll nee
 ```
 keychain -q --eval
 ```
+
+# Common Configurations
+* Terminal Copy on Select - ```terminal.integrated.copyOnSelection```
