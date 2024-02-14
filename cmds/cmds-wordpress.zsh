@@ -122,8 +122,12 @@ function wp-backupsite () {
         return 1
     fi
     SITE="$1"
+	CURR_DIR=$(pwd)
+
+	_loading "Backing up $SITE to $HOME/backups"
 	
 	# -- check if wp-cli is installed
+	_loading3 "Checking if wp-cli is installed"
 	_cmd_exists wp
 	if [[ $? == "1" ]]; then
 		_error "Can't find wp-cli:"
@@ -132,6 +136,7 @@ function wp-backupsite () {
 
 
     WP_CHECK=$(wp --allow-root core is-installed)
+	_loading3 "Checking if WordPress is installed in the current directory $CURR_DIR"
     if [[ $? == "1" ]]; then
         _error "$WP_CHECK"
     fi
@@ -141,8 +146,9 @@ function wp-backupsite () {
         mkdir $HOME/backups
     fi
 
-    echo "Backing up ${SITE}..."
+    _loading "Exporting database for ${SITE}..."
     wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
+	_loading "Backing up files for ${SITE}..."
     tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
 }
 
