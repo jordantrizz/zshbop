@@ -115,13 +115,21 @@ alias wp-skip="wp --skip-themes --skip-plugins"
 
 # -- wp-backupsite
 help_wordpress[wp-backupsite]="Backup WordPress site on server to ~/backups"
-wp-backupsite () {
+function wp-backupsite () {
     if [[ -z $1 ]]; then
         echo "Usage: wp-backupsite <domain>"
         echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
         return 1
     fi
     SITE="$1"
+	
+	# -- check if wp-cli is installed
+	_cmd_exists wp
+	if [[ $? == "1" ]]; then
+		_error "Can't find wp-cli:"
+		return 1
+	fi
+
 
     WP_CHECK=$(wp --allow-root core is-installed)
     if [[ $? == "1" ]]; then
@@ -134,7 +142,7 @@ wp-backupsite () {
     fi
 
     echo "Backing up ${SITE}..."
-    /usr/local/bin/wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
+    wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
     tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
 }
 
