@@ -136,10 +136,11 @@ function wp-backupsite () {
 		_loading3 "wp-cli is installed"
 	fi
 
-    WP_CHECK=$(wp --allow-root core is-installed)
 	_loading3 "Checking if WordPress is installed in the current directory $CURR_DIR"
+    WP_CHECK=$(wp --allow-root core is-installed)	
     if [[ $? == "1" ]]; then
-        _error "$WP_CHECK"
+        _error "WordPress is not installed in $CURR_DIR"
+		echo "$WP_CHECK"
     else
 		_loading3 "WordPress is installed in $CURR_DIR"
 	fi
