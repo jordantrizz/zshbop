@@ -141,6 +141,7 @@ function wp-backupsite () {
     if [[ $? == "1" ]]; then
         _error "WordPress is not installed in $CURR_DIR"
 		echo "$WP_CHECK"
+		return 1
     else
 		_loading3 "WordPress is installed in $CURR_DIR"
 	fi
@@ -151,6 +152,7 @@ function wp-backupsite () {
     fi
 
     _loading "Exporting database for ${SITE}..."
+	_loading3 "wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz"
     wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
 	_loading "Backing up files for ${SITE}..."
     tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
