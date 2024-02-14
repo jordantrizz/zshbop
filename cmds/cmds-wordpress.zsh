@@ -116,22 +116,46 @@ alias wp-skip="wp --skip-themes --skip-plugins"
 # -- wp-backupsite
 help_wordpress[wp-backupsite]="Backup WordPress site on server to ~/backups"
 function wp-backupsite () {
-    if [[ -z $1 ]]; then
-        echo "Usage: wp-backupsite <domain>"
-        echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
-        return 1
-    fi
-    SITE="$1"
-	CURR_DIR=$(pwd)
+	local SITE=${1} ACTION=${2}	
+	local CURR_DIR=$(pwd)
+	local DRYRUN=${3:=0}
+	_wp_backupsite_usge () {
+		echo "Usage: wp-backupsite <domain> <action> <dryrun>"
+		echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
+		echo ""
+		echo "  Options:"
+		echo "	domain <site.com>      - domain name of the site"
+		echo "	action <db|files|all>  - db, files, all (optional)"
+		echo "	dryrun <1>             - dryrun mode (optional)"
+		echo ""
+		echo "  Example: wp-backupsite example.com"
+	}
 
-	_loading "Backing up $SITE to $HOME/backups"
+	# -- Check if site is defined
+    if [[ -z $SITE ]]; then
+		_wp_backupsite_usge
+		return 1
+	fi
+	
+	# -- Check if action is defined
+	if [[ -z $ACTION ]]; then
+		ACTION="all"		
+	elif [[ $ACTION != "db" && $ACTION != "files" && $ACTION != "all" ]]; then
+		_wp_backupsite_usge
+		_error "Invalid action: $ACTION"
+		return 1
+	fi
+	
+
+	_loading "Backing up $ACTION for $SITE to $HOME/backups"
+	[[ $DRYRUN == "1" ]] && _loading3 "Dryrun mode enabled"
 	
 	# -- check if wp-cli is installed
 	_loading3 "Checking if wp-cli is installed"
 	_cmd_exists wp
 	if [[ $? == "1" ]]; then
 		_error "Can't find wp-cli:"
-		return 1
+		[[ $DRYRUN == "0" ]] && return 1
 	else
 		_loading3 "wp-cli is installed"
 	fi
@@ -141,7 +165,7 @@ function wp-backupsite () {
     if [[ $? == "1" ]]; then
         _error "WordPress is not installed in $CURR_DIR"
 		echo "$WP_CHECK"
-		return 1
+		[[ $DRYRUN == "0" ]] && return 1
     else
 		_loading3 "WordPress is installed in $CURR_DIR"
 	fi
@@ -151,11 +175,16 @@ function wp-backupsite () {
         mkdir $HOME/backups
     fi
 
-    _loading "Exporting database for ${SITE}..."
-	_loading3 "wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz"
-    wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
-	_loading "Backing up files for ${SITE}..."
-    tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
+	if [[ $ACTION == "db" || $ACTION == "all" ]]; then
+    	_loading "Exporting database for ${SITE}..."
+		_loading3 "wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz"
+    	[[ $DRYRUN == "0" ]] && wp --allow-root db export - | gzip > ${HOME}/backups/db_${SITE}-$(date +%Y-%m-%d-%H%M%S).sql.gz
+	fi
+
+	if [[ $ACTION == "files" || $ACTION == "all" ]]; then
+		_loading "Backing up files for ${SITE}..."
+    	[[ $DRYRUN == "0" ]] && tar --create --gzip --absolute-names --file=${HOME}/backups/wp_${SITE}-$(date +%Y-%m-%d-%H%M%S).tar.gz --exclude='*.tar.gz' --exclude='*.zip'--exclude='wp-content/cache' --exclude='wp-content/ai1wm-backups' .
+	fi
 }
 
 # -- wp-skip
