@@ -132,14 +132,17 @@ function wp-backupsite () {
 	if [[ $? == "1" ]]; then
 		_error "Can't find wp-cli:"
 		return 1
+	else
+		_loading3 "wp-cli is installed"
 	fi
-
 
     WP_CHECK=$(wp --allow-root core is-installed)
 	_loading3 "Checking if WordPress is installed in the current directory $CURR_DIR"
     if [[ $? == "1" ]]; then
         _error "$WP_CHECK"
-    fi
+    else
+		_loading3 "WordPress is installed in $CURR_DIR"
+	fi
 
     if [[ ! -d $HOME/backups ]]; then
         echo "$HOME/backups directory doesn't exist...creating..."
