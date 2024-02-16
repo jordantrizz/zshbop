@@ -12,20 +12,34 @@ help_files[ssh]='SSH related commands'
 # - Init help array
 typeset -gA help_ssh
 
+# ==================================================================
+# -- Setup completion for pk using _pk
+# ==================================================================
+compdef _pk pk
+function _pk () {
+    # -- Get all public keys
+    local SSHKEY_FILES=$(find ~/.ssh -type f -name "*.pub")
+    local SSHKEYS=("${(@f)${SSHKEY_FILES}}")
+    _describe 'pk' SSHKEYS    
+}
+
+# ==================================================================
 # - List public ssh-keys
+# ==================================================================
+
 help_ssh[pk]='List public ssh-keys'
 function pk () {
+    local ACTION=$1
     function _pk_usage() {
-        echo "Usage: pk <ssh-key>"
-        echo "   -p : print public key"
+        echo "Usage: pk (<ssh-key>|all)"
         echo "   -h : help"
         echo "   Examples:"
         echo "      pk ~/.ssh/id_rsa"
-        echo "      pk -p ~/.ssh/id_rsa"
+        echo "      pk all"
         return
     }
 	
-    local SSHKEY_FILE SSHKEY_MODE="echo"
+    local SSHKEY_FILE
 
     # -- Check Vars
     if [[ $SSHKEY_FILE == "-h" ]]; then
@@ -33,34 +47,32 @@ function pk () {
         return
     fi
 
-    # -- Check if print
-    if [[ $1 == "-p" ]]; then
-        SSHKEY_MODE="cat"
-        SSHKEY_FILE="$2"
-    fi
-
-    # -- Check if file
-    if [[ -z $2 ]]; then
-        SSHKEY_FILE=("${(@f)$(\ls -1 $HOME/.ssh/*.pub)}")                 
-    else        
-        if [[ ! -f $SSHKEY_FILE ]]; then
-            _error "Can't find $SSHKEY_FILE"
+    # -- Check if print    
+    if [[ $ACTION == "all" ]]; then    
+        local SSHKEY_FILES=($(find ~/.ssh -type f -name "*.pub"))
+        for PUBKEY in ${SSHKEY_FILES}; do
+            _banner_grey "-- $PUBKEY --"
+            cat "$PUBKEY"
+            echo ""            
+        done         
+    elif  [[ -n $ACTION ]]; then
+        if [[ ! -f $ACTION ]]; then
+            _error "Can't find $ACTION"
             _pk_usage
             return
-        fi
-    fi
-
-    # -- Print    
-    _loading "Action listing public keys"
-	for PUBKEY in ${SSHKEY_FILE}; do
-		if [[ $SSHKEY_MODE == "cat" ]]; then
-            _banner_grey "-- $PUBKEY --"
-            $SSHKEY_MODE "$PUBKEY"
+        else
+            _loading "Priting SSH Key: $ACTION"
+            cat "$ACTION"
+            return
+        fi        
+    elif [[ -z $ACTION ]]; then
+        _loading "Action listing public keys"
+        local SSHKEY_FILES=$(find ~/.ssh -type f -name "*.pub")
+        for PUBKEY in ${SSHKEY_FILES}; do
+            echo "$PUBKEY"
             echo ""
-		else            
-            $SSHKEY_MODE "$PUBKEY"
-        fi
-	done	
+        done	
+    fi
 	# | xargs -L 1 -I {} sh -c 'echo {};cat {};_banner_grey '-----------------------------''
 }
 
@@ -168,5 +180,20 @@ ssh-remove-kh () {
     else
         _loading "Removing line $LINE"
         sed -i '$LINE' $HOME/.ssh/known_hosts
+    fi
+}
+
+# ==================================================================
+# -- ssh-get-pubkey-from-private
+# ==================================================================
+help_ssh[ssh-get-pubkey-from-private]='Get public key from private key'
+ssh-get-pubkey-from-private () {
+    local SSHKEY_FILE=$1
+    if [[ -z $SSHKEY_FILE ]]; then
+        _error "Missing <ssh-key>"
+        return
+    else
+        _loading "Getting public key from $SSHKEY_FILE"
+        ssh-keygen -y -f $SSHKEY_FILE
     fi
 }
