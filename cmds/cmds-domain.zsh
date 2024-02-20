@@ -16,14 +16,22 @@ help_domain[domain-info]='Check a domains name servers and www and a record and 
 help_domain[dom]='Check a domains availability, www, mx etc'
 function dom () {
     local DOMAIN="$1"
-    domain $1    
+    # Check if email, and strip domain out
+    if [[ $DOMAIN == *"@"* ]]; then
+        _loading "Detected email address, stripping domain"
+        DOMAIN=$(echo $DOMAIN | cut -d "@" -f 2)        
+    fi
+    
+    domain $DOMAIN
+
+    _loading "Checking $DOMAIN"
     if [[ $? -eq 0 ]]; then    
         echo ""
-        domain-info $1
+        domain-info $DOMAIN
         echo ""
-        domain-spf $1
+        domain-spf $DOMAIN
         echo ""
-        domain-dmarc $1 0
+        domain-dmarc $DOMAIN 0
     fi
 
 }
