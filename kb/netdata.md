@@ -1,29 +1,19 @@
 # Install/Uninstall/Update/Claim
-## Install netdata
-* ```bash <(curl -Ss https://my-netdata.io/kickstart.sh)```
+* Install netdata ```bash <(curl -Ss https://get.netdata.cloud/kickstart.sh)```
+* Uninstall netdata ```/usr/libexec/netdata/netdata-uninstaller.sh --yes```
+* Uninstall Everything Netdata ```sudo wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh --uninstall --non-interactive```
+* Update netdata ```wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh```
+* Update netdata with custom temp directory ```env TMPDIR=/root/tmp bash <(curl -Ss https://get.netdata.cloud/kickstart.sh)```
 
-## Uninstall netdata
-* ```/usr/libexec/netdata/netdata-uninstaller.sh --yes```
-
-## Uninstall Everything Netdata
-```sudo wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --uninstall --non-interactive```
-
-## Update netdata
-* ```wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --dry-run```
-
-## Claim Node thats already Claimed
-```
-rm /opt/netdata/var/lib/netdata/registry/netdata.public.unique.id
-```
-
-Then run your claimid again.
+## Automatic Updates
+* ```/etc/netdata/edit-config netdata.conf```
+* Set auto-update to yes
+## Automatic Updates with Custom Temp Directory
+* ```env TMPDIR=/root/tmp /etc/netdata/edit-config netdata.conf```
 
 # Common Commands
 * Reload health ```netdatacli reload-health```
-
-# Install Notes
-## Specify different temporary directory, instead of default /tmp
-* ```env TMPDIR=/root/tmp bash <(curl -Ss https://my-netdata.io/kickstart.sh)```
+* Remove claim from a node thats already claimed ``rm /opt/netdata/var/lib/netdata/registry/netdata.public.unique.id```
 
 # Configuration
 ## Editing Confg
@@ -34,7 +24,6 @@ Copies default config to override directory.
 * https://learn.netdata.cloud/docs/getting-started/manage-and-configure/
 
 # Alarms
-
 ## Disable Email (Doesn't Work for Cloud)
 1. Edit health_alarm_notify.conf
 ```/etc/netdata/edit-config health_alarm_notify.conf```
