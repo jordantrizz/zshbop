@@ -8,7 +8,6 @@ _debug " -- Loading ${(%):-%N}"
 
 # -- repos - Install popular github.com Repositories
 help_core[repos]='Install popular github.com repositories.'
-
 function repos () {
 	# debug
 	_debug_all $@
@@ -70,13 +69,9 @@ function repos () {
     GIT_REPOS[docker-autocompose]="docker-autocompose"
     GIT_REPOS_URL[docker-autocompose]="https://github.com/Red5d/docker-autocompose.git"
 
-    # =====================================
-    # -- Functions
-    # =====================================
-
-    # -------------
+    # =============================================
 	# -- repos pull
-    # -------------
+    # =============================================
 
     if [[ $1 == 'pull' ]] && [[ -n "$2" ]]; then
 		_debug "Checking if $2 is in \$GIT_REPO"
@@ -108,9 +103,9 @@ function repos () {
 			echo "No such repository $2"
 			return 1
 		fi		
-    # -------------
+    # =========================
 	# -- repos list
-    # -------------
+    # =========================
 	elif [[ $1 == 'list' ]]; then
 		_loading "Listing repos pulled"
 		if [ "$(find "$REPOS_DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
@@ -128,9 +123,9 @@ function repos () {
             _error "No repos pulled"
         fi
         echo ""
-	# ---------------
+	# =========================
 	# -- repos update
-    # ---------------
+    # =========================
 	elif [[ $1 == 'update' ]]; then
         [[ $funcstack[2] == "zshbop_update" ]] && _loading2 "Updating repos" || _loading "Updating repos"
 		if [ "$(find "$REPOS_DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
@@ -147,12 +142,27 @@ function repos () {
 		else
 			_loading2 "No repos to update"
 		fi
-	# ---------------
+	# =========================
 	# -- repos dir
-	# ---------------
+	# =========================
 	elif [[ $1 == 'dir' ]]; then
 		_debug "Changing directory to $REPOS_DIR"
 		cd $REPOS_DIR
+	# =========================
+	# -- repos branch
+	# =========================
+	elif [[ $1 == 'branch' ]] && [[ -n "$2" ]] && [[ -n "$3" ]]; then
+		_debug "Changing branch for $2 to $3"
+		_if_marray "$2" GIT_REPOS
+		if [[ $MARRAY_VALID == "0" ]]; then
+			_debug "Found repository - changing branch"
+			REPO="$REPOS_DIR/$2"
+			_debug "Changing branch for $REPO to $3"
+			git --git-dir=$REPO/.git --work-tree=$REPO checkout $3
+		else
+			_error "No such repository $2"
+			return 1
+		fi	
 	else
     	echo "Usage: repos <pull <repo>|list|update>"
         echo ""
