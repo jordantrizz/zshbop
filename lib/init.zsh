@@ -527,18 +527,7 @@ function init_check_services () {
     fi
 
     # -- Docker
-    if (( $+commands[docker] )); then        
-        # Count docker running containers
-        DOCKER_RUNNING=$(docker ps -q 2>/dev/null)
-        if [[ $? == "0" ]]; then
-            DOCKER_RUNNING=$(echo $DOCKER_RUNNING | wc -l)        
-            _success "Docker: $(docker --version) - Running containers: $DOCKER_RUNNING"
-        else        
-            _warning "Docker: Command exists but reporting error."
-        fi
-    else
-        _log "Docker not installed"
-    fi
+    docker-checks
     init_log
 }
 
@@ -637,7 +626,7 @@ init_motd () {
     # -- Check System
     _loading "Checking System"    
 	init_check_services
-    init_check_software    
+    init_check_software      
     software-raid-check
     screen-sessions
     echo ""
