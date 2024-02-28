@@ -10,7 +10,7 @@ _debug " -- Loading ${(%):-%N}"
 help_checks[docker-checks]='Run all checks for docker'
 function docker-checks () {
     # Check if docker is installed and then check if errors
-    if ! docker-check-installed; then
+    if docker-check-installed; then
         docker-check-errors
     fi
 }
