@@ -750,9 +750,9 @@ zshbop_install-software () {
 function zshbop () {
 	_debug_all
     if [[ -z $1 ]]; then
-		zshbop_help
+		zshbop_help | less
     elif [[ $1 == "help" ]]; then
-		zshbop_help
+		zshbop_help | less
     elif [[ -n $1 ]]; then
 		_debug "-- Running zshbop $1"
         zshbop_cmd=(zshbop_${1})
