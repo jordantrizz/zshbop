@@ -772,3 +772,24 @@ function wp-delete-wp-themes () {
 
     _success "Theme deletion completed."
 }
+
+# =========================================================
+# -- wp-domain
+# =========================================================
+help_wordpress[wp-domain]='Get domain name from WordPress site'
+function wp-domain () {
+	local SITE_PATH="$1"
+	if [[ -z $SITE_PATH ]]; then
+		# Use current directory
+		SITE_PATH=$(pwd)
+	fi
+	if [[ ! -d $SITE_PATH ]]; then
+		echo "Path $SITE_PATH doesn't exist"
+		return 1
+	fi
+	if ! wp core is-installed --path="$SITE_PATH" &>/dev/null; then
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+	wp --allow-root option get siteurl --path="$SITE_PATH"
+}
