@@ -145,11 +145,8 @@ function gbd {
 # -- gbl
 help_git[gbl]="Git branch list"
 function gbl {
-    _loading "Listing local branches"
-    git branch
-    echo ""
-    _loading "Listing remote branches"
-    git branch -a
+    _loading "Listing local and remote branches"
+    git --no-pager branch -a
 }
 
 # -- gtpush - Git tag push
