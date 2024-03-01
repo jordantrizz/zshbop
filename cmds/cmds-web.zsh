@@ -97,11 +97,34 @@ function php-opcode() {
     fi
 }
 
-# -- http-errorcodes
-help_web[http-errorcodes]="Print out a list of http error codes"
-function http-errorcodes() {
-    declare -A HTTTP_ERROR_CODES
-    HTTTP_ERROR_CODES=(
+# -- http-status-codes
+help_web[http-status-codes]="Print out a list of http error codes"
+function http-status-codes() {
+    declare -A HTTTP_STATUS_CODES
+    HTTTP_STATUS_CODES=(
+        [100]="Continue"
+        [101]="Switching Protocols"
+        [102]="Processing"
+        [103]="Early Hints"
+        [200]="OK"
+        [201]="Created"
+        [202]="Accepted"
+        [203]="Non-Authoritative Information"
+        [204]="No Content"
+        [205]="Reset Content"
+        [206]="Partial Content"
+        [207]="Multi-Status"
+        [208]="Already Reported"
+        [226]="IM Used"
+        [300]="Multiple Choices"
+        [301]="Moved Permanently"
+        [302]="Found"
+        [303]="See Other"
+        [304]="Not Modified"
+        [305]="Use Proxy"
+        [306]="Switch Proxy"
+        [307]="Temporary Redirect"
+        [308]="Permanent Redirect"
         [400]="Bad Request"
         [401]="Unauthorized"
         [402]="Payment Required"
@@ -155,41 +178,41 @@ function http-errorcodes() {
         [1001]="DNS resolution error"
     )
 
-    function _http_errorcodes_usage () {
+    function _http_status_codes_usage () {
         echo ""
-        echo "Usage: http-errorcodes [code]"
+        echo "Usage: http-status-codes [code]"
         echo "You can search for a specific code by passing it as an argument"
     }
     
-    function _httpd_errorcodes_print () {
+    function _httpd_status_codes_print () {
         _loading "Listing all http error codes:"
         echo ""
-        for code in "${(@ok)HTTTP_ERROR_CODES[@]}"; do
-            echo "$code - ${HTTTP_ERROR_CODES[$code]}"            
+        for code in "${(@ok)HTTTP_STATUS_CODES[@]}"; do
+            echo "$code - ${HTTTP_STATUS_CODES[$code]}"            
         done        
-        _http_errorcodes_usage
+        _http_status_codes_usage
     }
 
-    _httpd_errorcodes_search () {
+    _httpd_status_codes_search () {
         local SEARCH_CODE=$1
         _loading "Searching for $SEARCH_CODE"
         echo ""
-        for code in "${(@ok)HTTTP_ERROR_CODES}"; do
+        for code in "${(@ok)HTTTP_STATUS_CODES}"; do
             if [[ $code == *"$SEARCH_CODE"* ]]; then
-                echo "$code - ${HTTTP_ERROR_CODES[$code]}"
+                echo "$code - ${HTTTP_STATUS_CODES[$code]}"
             fi
         done        
-        _http_errorcodes_usage
+        _http_status_codes_usage
     }
     
     if [[ $# -eq 0 ]]; then
-        _httpd_errorcodes_print
+        _httpd_status_codes_print
     elif [[ $# -eq 1 && ${HTTTP_ERROR_CODES[$1]} ]]; then
         code=$1
         echo "$code - ${HTTTP_ERROR_CODES[$code]}"
     # -- Check if theres a partial match ie 4 would print all 4xx codes
     else
-        _httpd_errorcodes_search $1    
+        _httpd_status_codes_search $1    
     fi    
 }
 
