@@ -688,6 +688,7 @@ function init_zshbop () {
     init_home_bin        # -- Check if home bin exists	
 	init_pkg_manager     # -- Init package manager     
     init-app-config      # -- Common application configuration
+    zshbop_custom-load   # -- Init custom zshbop  
   	if [[ $ZSHBOP_RELOAD == "0" ]]; then
         init_omz_plugins     # -- Init OhMyZSH plugins
   	    init_plugins         # -- Init plugins
@@ -700,10 +701,8 @@ function init_zshbop () {
     # -- Print out what loaded
     _loading3 "Loaded: $ZSHBOP_LOAD"
     echo ""
- 
-    
+     
     # -- Load custom then commands dependant on custom    
-    zshbop_custom-load   # -- Init custom zshbop    
     init_sshkeys         # -- Init ssh keys
     init_kb              # -- Init Knowledge Base
     
