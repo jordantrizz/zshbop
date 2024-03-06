@@ -197,3 +197,11 @@ ssh-get-pubkey-from-private () {
         ssh-keygen -y -f $SSHKEY_FILE
     fi
 }
+
+# ==================================================================
+# -- ssh-password - Force ssh password authentication versus default
+# ==================================================================
+help_ssh[ssh-password]='Force ssh password authentication versus default'
+ssh-password () {
+        ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no ${@}    
+}
