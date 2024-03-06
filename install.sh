@@ -236,7 +236,7 @@ function _install_zsh () {
 
         while [[ ! -w $ZSH_INSTALL_PATH ]]; do
             _error "Can't write to $ZSH_INSTALL_PATH"
-            echo -n "Where should we install zsh?: "
+            echo -n "Where should we install zsh? (/usr/local): "
             read ZSH_INSTALL_PATH
             ((i++)) && ((i==5)) && _error "Can't write to $ZSH_INSTALL_PATH, exiting." && exit 1
         done
