@@ -105,6 +105,7 @@ USAGE=\
 "
 echo "$USAGE"
 }
+
 # --------------------------------
 # -- zshbop_banner
 # --------------------------------
@@ -208,6 +209,53 @@ function check_package () {
     done
 }
 
+# ================================================
+# -- _install_zsh - install zsh
+# ================================================
+function _install_zsh () {
+    echo -n "Do you want to install zsh via (s)udo or (b)inary? (s/b): "
+    read ZSH_INSTALL
+
+    # -- Confirm if sudo or binary install
+    if [ "$ZSH_INSTALL" == "s" ] || [ "$ZSH_INSTALL" == "S" ]; then
+        _loading "Installing zsh via sudo"
+        install_package zsh
+        if [[ $? -gt 0 ]]; then
+            _error "zsh install failed...."
+            exit 1
+        else
+            _success "zsh installed successfully"
+            ZSH_BIN=$(which zsh)
+        fi
+
+    elif [ "$ZSH_INSTALL" == "b" ] || [ "$ZSH_INSTALL" == "B" ]; then
+        _loading "Installing zsh via binary"
+        # -- Ask where to install zsh binary and loop until valid path is writable, ask five times then exit
+        echo -n "Where should we install zsh?: "
+        read ZSH_INSTALL_PATH
+
+        while [[ ! -w $ZSH_INSTALL_PATH ]]; do
+            _error "Can't write to $ZSH_INSTALL_PATH"
+            echo -n "Where should we install zsh?: "
+            read ZSH_INSTALL_PATH
+            ((i++)) && ((i==5)) && _error "Can't write to $ZSH_INSTALL_PATH, exiting." && exit 1
+        done
+
+        # -- Download zsh binary
+        # -- Resolve $ZSH_INSTALL_PATH to absolute path
+        ZSH_INSTALL_PATH=$(cd $ZSH_INSTALL_PATH && pwd)
+        echo "Downloading zsh binary to $ZSH_INSTALL_PATH"
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)" -- -d $ZSH_INSTALL_PATH -q -e no
+        if [[ $? -gt 0 ]]; then
+            _error "zsh binary install failed...."
+            exit 1
+        else
+            _success "zsh binary installed successfully in $ZSH_INSTALL_PATH/bin/zsh"
+            ZSH_BIN="$ZSH_INSTALL_PATH/bin/zsh"
+        fi
+    fi
+}
+
 # -----------------------------------------------
 # -- check_zsh
 # -----------------------------------------------
@@ -216,51 +264,16 @@ function _check_zsh () {
     echo -n "$(_loading "Checking if zsh is installed.")"
     if ! [ -x "$(command -v zsh)" ]; then
         _error "zsh is not installed."
-        echo -n "Do you want to install zsh via (s)udo or (b)inary? (s/b): "
-        read ZSH_INSTALL
-
-        # -- Confirm if sudo or binary install
-        if [ "$ZSH_INSTALL" == "s" ] || [ "$ZSH_INSTALL" == "S" ]; then
-            _loading "Installing zsh via sudo"
-            install_package zsh
-            if [[ $? -gt 0 ]]; then
-                _error "zsh install failed...."
-                exit 1
-            else
-                _success "zsh installed successfully"
-                ZSH_BIN=$(which zsh)
-            fi
-
-        elif [ "$ZSH_INSTALL" == "b" ] || [ "$ZSH_INSTALL" == "B" ]; then
-            _loading "Installing zsh via binary"
-            # -- Ask where to install zsh binary and loop until valid path is writable, ask five times then exit
-            echo -n "Where should we install zsh?: "
-            read ZSH_INSTALL_PATH
-
-            while [[ ! -w $ZSH_INSTALL_PATH ]]; do
-                _error "Can't write to $ZSH_INSTALL_PATH"
-                echo -n "Where should we install zsh?: "
-                read ZSH_INSTALL_PATH
-                ((i++)) && ((i==5)) && _error "Can't write to $ZSH_INSTALL_PATH, exiting." && exit 1
-            done
-
-            # -- Download zsh binary
-            # -- Resolve $ZSH_INSTALL_PATH to absolute path
-            ZSH_INSTALL_PATH=$(cd $ZSH_INSTALL_PATH && pwd)
-            echo "Downloading zsh binary to $ZSH_INSTALL_PATH"
-            sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh-bin/master/install)" -- -d $ZSH_INSTALL_PATH -q -e no
-            if [[ $? -gt 0 ]]; then
-                _error "zsh binary install failed...."
-                exit 1
-            else
-                _success "zsh binary installed successfully in $ZSH_INSTALL_PATH/bin/zsh"
-                ZSH_BIN="$ZSH_INSTALL_PATH/bin/zsh"
-            fi
-        fi
+        _install_zsh
     else
-        ZSH_BIN=$(which zsh)
-        echo " -- $(_success "zsh is installed in $ZSH_BIN!")"
-
+        # -- Check if ZSH is at least 5.8
+        if [[ $(zsh --version) == *"5.8"* ]]; then
+            ZSH_BIN=$(which zsh)
+            echo " -- $(_success "zsh is installed in $ZSH_BIN! and at least 5.8")"
+        else
+            _error "zsh is installed but not at least 5.8"
+            _install_zsh
+        fi
     fi 
 }
 
