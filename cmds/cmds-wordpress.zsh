@@ -817,12 +817,16 @@ function wp-plugin-install () {
 		echo "WordPress is not installed in the $SITE_PATH directory."
 		return 1
 	fi
+
+	# -- Install plugin
+	_running "Installing $PLUGIN_NAME in $SITE_PATH"
 	wp --allow-root plugin install "$PLUGIN_NAME" --path="$SITE_PATH" --activate
 	# -- Chown the plugin directory in $SITE_PATH to the wp-content/plugins user and group
 	# Get the user and group of the wp-content directory
 	local WP_CONTENT_USER=$(stat -c '%U' "$SITE_PATH/wp-content")
 	local WP_CONTENT_GROUP=$(stat -c '%G' "$SITE_PATH/wp-content")
 	# Chown the plugin directory to the user and group of the wp-content directory
+	_running "Chowning $SITE_PATH/wp-content/plugins/$PLUGIN_NAME to $WP_CONTENT_USER:$WP_CONTENT_GROUP"
 	chown -R "$WP_CONTENT_USER:$WP_CONTENT_GROUP" "$SITE_PATH/wp-content/plugins/$PLUGIN_NAME"
 
 }
