@@ -800,7 +800,7 @@ function wp-domain () {
 help_wordpress[wp-plugin-install]='Install WordPress plugin'
 function wp-plugin-install () {
 	local PLUGIN_NAME="$1"
-	local SITE_PATH="$2=:."
+	local SITE_PATH="$2"
 	if [[ -z $PLUGIN_NAME ]]; then
 		echo "Usage: wp-plugin-install <plugin-name> [path]"
 		return 1
@@ -817,7 +817,7 @@ function wp-plugin-install () {
 		echo "WordPress is not installed in the $SITE_PATH directory."
 		return 1
 	fi
-	wp --allow-root plugin install "$PLUGIN_NAME" --path="$SITE_PATH"
+	wp --allow-root plugin install "$PLUGIN_NAME" --path="$SITE_PATH" --activate
 	# -- Chown the plugin directory in $SITE_PATH to the wp-content/plugins user and group
 	# Get the user and group of the wp-content directory
 	local WP_CONTENT_USER=$(stat -c '%U' "$SITE_PATH/wp-content")
