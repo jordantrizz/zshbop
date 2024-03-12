@@ -818,15 +818,17 @@ function wp-plugin-install () {
 		return 1
 	fi
 
+
+	_loading "Installing $PLUGIN_NAME in $SITE_PATH"
 	# -- Install plugin
-	_running "Installing $PLUGIN_NAME in $SITE_PATH"
+	_loading3 "Running - wp --allow-root plugin install $PLUGIN_NAME --path=$SITE_PATH --activate"
 	wp --allow-root plugin install "$PLUGIN_NAME" --path="$SITE_PATH" --activate
 	# -- Chown the plugin directory in $SITE_PATH to the wp-content/plugins user and group
 	# Get the user and group of the wp-content directory
 	local WP_CONTENT_USER=$(stat -c '%U' "$SITE_PATH/wp-content")
 	local WP_CONTENT_GROUP=$(stat -c '%G' "$SITE_PATH/wp-content")
 	# Chown the plugin directory to the user and group of the wp-content directory
-	_running "Chowning $SITE_PATH/wp-content/plugins/$PLUGIN_NAME to $WP_CONTENT_USER:$WP_CONTENT_GROUP"
+	_loading3 "Running - chown -R $WP_CONTENT_USER:$WP_CONTENT_GROUP $SITE_PATH/wp-content/plugins/$PLUGIN_NAME"
 	chown -R "$WP_CONTENT_USER:$WP_CONTENT_GROUP" "$SITE_PATH/wp-content/plugins/$PLUGIN_NAME"
 
 }
