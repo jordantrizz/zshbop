@@ -102,3 +102,12 @@ realpath_cache_ttl = 300
 ```
 php -r "echo gethostbyaddr('127.0.0.1');"
 ```
+
+# Error Logging
+## PHP Error Logging
+```
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE & ~E_WARNING
+display_errors = Off
+log_errors = On
+error_log = /var/log/php_errors.log
+```
