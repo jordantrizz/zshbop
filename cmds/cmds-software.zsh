@@ -184,7 +184,7 @@ php-install () {
 	_loading "For Ubuntu"
 	echo "apt-get install php74-{mbstring,mysql}"
 	_loading "For Ubuntu and Litespeed"
-	echo "apt-get install lsphp81-{recode,snmp,pecl-apcu,ldap,pecl-memcached,imap,odbc,xmlrpc,intl,process,pecl-igbinary,pear,pecl-imagick,tidy,pspell,pdo,pecl-mcrypt,soap,mbstring,mysqli}"
+	echo "apt-get install -f lsphp81-{snmp,ldap,imap,intl,tidy,pspell,mysql,redis,igbinary,opcache,curl,imagick,memcached,msgpack}"
 }
 
 # -- aws-cli
