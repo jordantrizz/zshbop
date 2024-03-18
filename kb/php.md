@@ -111,3 +111,8 @@ display_errors = Off
 log_errors = On
 error_log = /var/log/php_errors.log
 ```
+
+# Errors
+## zend_mm_heap corrupted
+* https://stackoverflow.com/questions/12375814/what-does-zend-mm-heap-corrupted-mean
+* https://serverpilot.io/docs/fix-php-error-zend_mm_heap-corrupted/
