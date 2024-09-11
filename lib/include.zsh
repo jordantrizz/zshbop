@@ -36,7 +36,7 @@ umask 022
 export TERM="xterm-256color"
 export HISTSIZE=5000
 export PAGER='less -Q -j16'
-export EDITOR='joe-wrapper'
+export EDITOR='joe-wrapper.sh'
 export BLOCKSIZE='K'
 
 # Language
