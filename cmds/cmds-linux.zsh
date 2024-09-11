@@ -366,7 +366,11 @@ rename-ext () {
         fi
 }
 
-# -- add-path
+# ====================================
+# -- add-path $PATH
+# -- Add to $PATH
+# $PATH is a colon separated list of directories
+# ====================================
 help_linux[add-path]='Add to $PATH'
 add-path () {
 	if [[ -z $1 ]]; then
@@ -377,10 +381,22 @@ add-path () {
 	fi
 }
 
-# -- paths
+# ====================================
+# -- paths - print out $PATH on new lines
+# ====================================
 help_linux[paths]='print out \$PATH on new lines'
-paths () {
-	echo ${PATH:gs/:/\\n}
+paths () {	
+	_loading "Printing out \$PATH on new lines"
+	GET_PATHS=$(echo $PATH | tr ":" "\n")
+	echo "$GET_PATHS" | sort
+	
+	_loading "Printing out duplicates"
+	# Only print out matches greater than 1
+	echo "$GET_PATHS" | sort | uniq -c | awk '$1 > 1'
+
+	# Get Total Paths
+	_total_paths=$(echo $PATH | tr ":" "\n" | wc -l)
+	_notice "Total paths: $_total_paths"
 }
 
 # -- catvet

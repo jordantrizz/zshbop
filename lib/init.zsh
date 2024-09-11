@@ -1,9 +1,7 @@
 #!/usr/bin/env zsh
-# *********************************************************
-# *********************************************************
+# =================================================================================================
 # -- init.zsh - zshbop functions 
-# *********************************************************
-# *********************************************************
+# =================================================================================================
 
 # =========================================================
 # -- debug_load
@@ -47,32 +45,89 @@ init_path () {
 	_debug_all
 
 	# Default paths to look for
-	export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
-	export PATH=$PATH:$HOME/.local/bin
-	export PATH=$PATH:$HOME/.cargo/bin
+    init_add_path $HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
+    init_add_path $HOME/.local/bin
+    init_add_path $HOME/.cargo/bin
+    init_add_path $HOME/go/bin
+	#export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
+	#export PATH=$PATH:$HOME/.local/bin
+	#export PATH=$PATH:$HOME/.cargo/bin
         
 	# Extra software
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
-	export PATH=$PATH:$HOME/bin/aws-cli # aws-cli https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
-	export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
-    export PATH=$PATH:/root/.acme.sh/ # acme.sh
-    export PATH=$PATH:/opt/netdata/bin # netdata alternative path
+    init_add_path /usr/local/lsws/bin/
+    init_add_path /root/.acme.sh/
+    init_add_path /opt/netdata/bin
+    
+	#export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
+	#export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
+	#export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
+	#export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
+	#export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
+	#export PATH=$PATH:$HOME/bin/aws-cli # aws-cli https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+	#export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
+	#export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
+	#export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
+    #export PATH=$PATH:/root/.acme.sh/ # acme.sh
+    #export PATH=$PATH:/opt/netdata/bin # netdata alternative path
 	
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
 	_log "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
-	#init_add_path $ZSHBOP_ROOT/repos
-	init_add_path $HOME/bin
-	init_add_path $HOME/git
-	init_add_path $ZSHBOP_ROOT/repos
+	init_add_path_dirs $HOME/bin
+	init_add_path_dirs $HOME/git
+	init_add_path_dirs $ZSHBOP_ROOT/repos
 	
-	# Golang Path?
-	export PATH=$PATH:$HOME/go/bin
+    init_fix_path
+    init_log
+}
+
+# ==============================================
+# -- init_add_path_dirs
+# ==============================================
+init_add_path_dirs () {
+	DIR="$@"
+	if [[ -d $DIR ]]; then
+		if [ "$(find "$DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+	    _debug "Adding $DIR to \$PATH"
+	        i=0
+	        for NAME in $DIR/*; do
+	            _debug "$funcstack[1] - found $NAME, adding to \$PATH"
+	                init_add_path $NAME
+	            i=$((i+1))
+	        done
+	        _log " Found $i folders and added them to \$PATH"
+		fi
+	else
+		_debug "Can't find $DIR"
+	fi
+    init_log
+}
+
+# =========================================================
+# -- init_add_path
+# =========================================================
+init_add_path () {
+    _debug_all
+    _debugf "Adding $1 to \$PATH"
+    # Check if $1 already in $PATH
+    if [[ $PATH == *$1* ]]; then
+        _debugf "Error - $1 already in \$PATH"
+    else
+        export PATH=$PATH:$1
+        _debugf "Success - Added $1 to \$PATH"        
+        _debugf "PATH has $(echo $PATH | tr ':' '\n' | wc -l) paths"
+    fi
+    init_log
+}
+
+# =========================================================
+# -- init_fix_path
+# -- Go through $PATH and unique it and remove any duplicates
+# =========================================================
+init_fix_path () {
+    _debug_all
+    _debugf "Fixing \$PATH"
+    export PATH=$(echo $PATH | tr ':' '\n' | awk '!x[$0]++' | tr '\n' ':')
+    _debugf "Fixed \$PATH"
     init_log
 }
 
@@ -90,28 +145,6 @@ init_dirs () {
 	_debug "Creating \$ZSHBOP_CACHE_DIR folder"
 	if [[ ! -d $ZSHBOP_CACHE_DIR ]]; then
 		mkdir $ZSHBOP_CACHE_DIR > /dev/null
-	fi
-    init_log
-}
-
-# ==============================================
-# -- init_add_path
-# ==============================================
-init_add_path () {
-	DIR="$@"
-	if [[ -d $DIR ]]; then
-		if [ "$(find "$DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
-	    _debug "Adding $DIR to \$PATH"
-	        i=0
-	        for NAME in $DIR/*; do
-	            _debug "$funcstack[1] - found $NAME, adding to \$PATH"
-	                export PATH=$PATH:$NAME
-	            i=$((i+1))
-	        done
-	        _log " Found $i folders and added them to \$PATH"
-		fi
-	else
-		_debug "Can't find $DIR"
 	fi
     init_log
 }
