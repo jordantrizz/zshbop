@@ -28,19 +28,6 @@ _wp-cli-check () {
 }
 
 # =========================================================
-# -- _wp-install-check
-# =========================================================
-help_inc_wordpress[_wp-install-check]='Check if WordPress is installed'
-_wp-install-check () {
-	# Check if WordPress is installed
-	WP_EXISTS=$(wp core is-installed 2> /dev/null)
-	if [[ $? == 1 ]]; then
-		_error "WordPress is not installed in the current directory."
-		return 1
-	fi
-}
-
-# =========================================================
 # =========================================================
 # =========================================================
 # =========================================================
@@ -156,15 +143,18 @@ alias wp-skip="wp --skip-themes --skip-plugins"
 # -- wp-backupsite
 help_wordpress[wp-backupsite]="Backup WordPress site on server to ~/backups"
 function wp-backupsite () {
-	local SITE=${1} ACTION=${2}	
-	local CURR_DIR=$(pwd)
-	local DRYRUN=${3:=0}
+	local DIR ACTION CURR_DIR DRYRUN SITE WP_CLI_SITE
+	DIR=${1}
+	ACTION=${2}
+	DRYRUN=${3=0}
+	CURR_DIR=$(pwd)
+
 	_wp_backupsite_usge () {
-		echo "Usage: wp-backupsite <domain> <action> <dryrun>"
+		echo "Usage: wp-backupsite <dir> <action> <dryrun>"
 		echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
 		echo ""
 		echo "  Options:"
-		echo "	domain <site.com>      - domain name of the site"
+		echo "	directory <div>      - domain name of the site"
 		echo "	action <db|files|all>  - db, files, all (optional)"
 		echo "	dryrun <1>             - dryrun mode (optional)"
 		echo ""
@@ -172,9 +162,9 @@ function wp-backupsite () {
 	}
 
 	# -- Check if site is defined
-    if [[ -z $SITE ]]; then
-		_wp_backupsite_usge
-		return 1
+    if [[ -z $DIR ]]; then
+		# Set to Current Directory
+		DIR=$CURR_DIR
 	fi
 	
 	# -- Check if action is defined
@@ -187,7 +177,7 @@ function wp-backupsite () {
 	fi
 	
 
-	_loading "Backing up $ACTION for $SITE to $HOME/backups"
+	_loading "Backing up $ACTION for $DIR to $HOME/backups"
 	[[ $DRYRUN == "1" ]] && _loading3 "Dryrun mode enabled"
 	
 	# -- check if wp-cli is installed
@@ -200,15 +190,18 @@ function wp-backupsite () {
 		_loading3 "wp-cli is installed"
 	fi
 
-	_loading3 "Checking if WordPress is installed in the current directory $CURR_DIR"
+	_loading3 "Checking if WordPress is installed in the current directory $DIR"
     WP_CHECK=$(wp --allow-root core is-installed)	
     if [[ $? == "1" ]]; then
-        _error "WordPress is not installed in $CURR_DIR"
-		echo "$WP_CHECK"
-		[[ $DRYRUN == "0" ]] && return 1
+        _error "WordPress is not installed in $DIR"
+        echo "$WP_CHECK"
+        [[ $DRYRUN == "0" ]] && return 1
     else
-		_loading3 "WordPress is installed in $CURR_DIR"
-	fi
+        WP_CLI_SITE=$(wp --skip-plugins --skip-themes --allow-root option get siteurl)
+        # Remove http and https
+        SITE=$(echo $WP_CLI_SITE | sed 's/https\?:\/\///')
+        _success "WordPress is installed in $DIR with domain $SITE"
+    fi
 
     if [[ ! -d $HOME/backups ]]; then
         echo "$HOME/backups directory doesn't exist...creating..."
@@ -978,6 +971,79 @@ function wp-user-count () {
 		# Use mysql
 		USER_COUNT=$(wp db query "SELECT COUNT(*) FROM wp_users" --path="$SITE_PATH" --skip-plugins --skip-themes --skip-column-names)
 		echo "User count: $USER_COUNT"
+	else
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+}
+
+# =====================================
+# -- wp-memory-info
+# ===================================
+help_wordpress[wp-memory-info]='Get memory info from WordPress'
+wp-memory-info () {
+	local CURRENT_DIR="$(pwd)"
+    
+    _wp-memory-info-usage() {
+        echo "Usage: wp-memory-info [-f|-i]"
+        echo "Options:"
+        echo "  -f      - Create file in current directory called wpmem.php"
+        echo "  -i      - Show wp-cli info"
+        echo "  -h      - Show this help message"
+    }
+    
+    _wp-memory-info-file() {
+        local OUTPUT_FILE="$CURRENT_DIR/wpmem.php"
+		local PHP_FILE="$SCRIPT_DIR/php/wpmem.php"        
+		cp $PHP_FILE $OUTPUT_FILE
+		[[ $? == "1" ]] && { _error "Failed to copy $PHP_FILE to $OUTPUT_FILE"; return 1; }
+        # Use a heredoc to write PHP code to a file
+        echo "Created memory info script at $OUTPUT_FILE"
+    }
+    
+	_wp-memory-info-wpcli () {
+		echo "Not completed"
+	}
+
+    # Parse options
+	zparseopts -D -E h=ARG_HELP f=ARG_FILE i=ARG_INFO
+	# Check if the user provided any options
+	[[ -n $ARG_HELP ]] && { _wp-memory-info-usage; return 0; }
+	[[ -n $ARG_FILE ]] && { _wp-memory-info-file; return 0; }
+	[[ -n $ARG_INFO ]] && { _wp-memory-info-wpcli; return 0; }
+	# If no options were provided, show usage
+	_wp-memory-info-usage
+
+}
+# =====================================
+# -- wp-site
+# =====================================
+help_wordpress[wp-site]='Get site information'
+function wp-site () {
+	local SITE_PATH="$1"
+	[[ -z $SITE_PATH ]] && SITE_PATH=$(pwd)
+	[[ ! -d $SITE_PATH ]] && { echo "Path $SITE_PATH doesn't exist"; return 1; }
+
+	# Check if WordPress is installed using wp-cli
+	_wp-install-check $SITE_PATH
+	if [[ $? == 0 ]]; then
+		_loading "Getting site information for $SITE_PATH"
+		_loading2 "Checking for updates"
+		wp --allow-root core check-update --path="$SITE_PATH"
+
+		# -- Get the site url
+		SITE_URL=$(wp --allow-root option get siteurl --path="$SITE_PATH")
+		echo "Site URL: $SITE_URL"
+		# -- Get other domain setting
+		SITE_HOME_URL=$(wp --allow-root option get home --path="$SITE_PATH")
+		echo "Home URL: $SITE_HOME_URL"
+		# -- Get the site name
+		SITE_NAME=$(wp --allow-root option get blogname --path="$SITE_PATH")
+		echo "Site Name: $SITE_NAME"
+		# -- Get the site description
+		SITE_DESCRIPTION=$(wp --allow-root option get blogdescription --path="$SITE_PATH")
+		echo "Site Description: $SITE_DESCRIPTION"
+
 	else
 		echo "WordPress is not installed in the $SITE_PATH directory."
 		return 1

@@ -1,15 +1,8 @@
-# --
+# =============================================================================
 # dns commands
-#
-# Example help: help_dns[wp]='Generate phpinfo() file'
-#
-# --
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
-
-# - Init help array
 typeset -gA help_dns
-
-# What help file is this?
 help_files[dns]='DNS Commands'
 
 # --
@@ -17,7 +10,9 @@ help_files[dns]='DNS Commands'
 # --
 help_dns[dt]='DNS tool that displays information about your domain. https://github.com/42wim/dt type '
 
+# =====================================
 # -- dnst
+# =====================================
 help_dns[dnst]='Run dnstracer on root name servers' 
 dnst () {
 	server=""
@@ -31,13 +26,17 @@ dnst () {
 	dnstracer -o -s $server.root-servers.net -4 -r 1 $1
 }
 
+# =====================================
 # -- mx
+# =====================================
 help_dns[mx]='Look up MX records.'
 mx () {
 	dig $1 mx
 }
 
+# =====================================
 # -- dig wrapper
+# =====================================
 help_dns[digw]="Dig wrapper to turn urls into domains"
 digw () {
 	if [[ -z $@ ]]; then
@@ -49,4 +48,24 @@ digw () {
 		_loading2 "Domain --> $DOMAIN"
 		dig $DOMAIN
 	fi
+}
+
+# =====================================
+# -- ptr
+# =====================================
+help_dns[ptr]='Look up PTR records.'
+ptr () {
+	if [[ -z $1 ]]; then
+		_error "ptr <ip>"
+		return 1
+	fi
+	
+	# -- check if the ip is valid
+	if ! _validate_ip $1; then
+		_error "Invalid IP"
+		return 1
+	fi
+
+	_loading "Running - dig -x $1"
+	dig -x $1
 }

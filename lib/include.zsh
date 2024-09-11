@@ -1,8 +1,6 @@
-# =========================================================
-# =========================================================
+# =============================================================================
 # -- include.zsh -- zshbop include file
-# =========================================================
-# =========================================================
+# =============================================================================
 
 # -- Potential zshbop paths, including old zsh path, left over from .zshrc removal
 ZSHBOP_PATHS=("$HOME/zshbop" "$HOME/zsh" "$HOME/git/zshbop" "$HOME/git/zsh" "/usr/local/sbin/zshbop" "/usr/local/sbin/zsh")
@@ -36,7 +34,7 @@ umask 022
 export TERM="xterm-256color"
 export HISTSIZE=5000
 export PAGER='less -Q -j16'
-export EDITOR='joe-wrapper'
+export EDITOR='joe-wrapper.sh'
 export BLOCKSIZE='K'
 
 # Language
@@ -66,26 +64,30 @@ typeset -a ZSHBOP_LOAD=()
 export ZSHBOP_TEMP="$HOME/tmp"
 export SSHK="${ZSHBOP_HOME}/.ssh"
 export TMP="${ZSHBOP_HOME}/tmp"
-
+export INIT_LAST_CORE=()
+export INIT_LAST_CUSTOM=()
+export DEBUGF="0"
 
 # -- Software specific
 GIT_CONFIG="${ZSHBOP_HOME}/.gitconfig"
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify # -- ohmyzsh specific environment variables
 
 # -- Required Software
-REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
+ZB_REQUIRED_PACKAGES=('git' 'zsh' 'wget' 'curl' 'sudo' 'jq')
 
 # -- Optional Software
-OPTIONAL_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'sudo' 'screen' 'wget' 'joe')
-OPTIONAL_SOFTWARE+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
-OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'lynx' 'ncdu')
-OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'md5sum')
-OPTIONAL_SOFTWARE+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
+ZB_OPTIONAL_PACKAGES=('sudo' 'screen' 'wget' 'joe')
+ZB_OPTIONAL_PACKAGES+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
+ZB_OPTIONAL_PACKAGES+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'lynx' 'ncdu')
+ZB_OPTIONAL_PACKAGES+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'md5sum')
+ZB_OPTIONAL_PACKAGES+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
 
 # -- Extra Software
-EXTRA_SOFTWARE=('fzf' 'shellcheck' 'npm' 'golang-go' 'aspell-en' 'ngxtop')
-EXTRA_SOFTWARE+=('apt-select' 'semgrep' 'mosh' 'keychain' 'gh' 'pwgen')
-EXTRA_SOFTWARE+=('python3' 'python3-pip' 'php-cli')
+ZB_EXTRA_PACKAGES=('fzf' 'shellcheck' 'npm' 'golang-go' 'aspell-en')
+ZB_EXTRA_PACKAGES+=('mosh' 'keychain' 'gh' 'pwgen' 'python3' 'python3-pip')
+ZB_EXTRA_PACKAGES+=('php-cli' 'libssl-dev' 'strace')
+
+ZB_BINARIES=('ngxtop' 'apt-select' 'semgrep' 'doge' 'cargo')
 
 # -- Take $EDITOR run it through alias and strip it down
 EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
@@ -98,11 +100,15 @@ EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 # -- OMZ History Plugin
 setopt extended_history       # record timestamp of command in HISTFILE
 setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
+setopt hist_ignore_all_dups   # remove older duplicate entries from the history
 setopt hist_ignore_dups       # ignore duplicated commands history list
 setopt hist_ignore_space      # ignore commands that start with space
+setopt hist_reduce_blanks     # remove superfluous blanks from history items
+setopt hist_save_no_dups      # do not write a duplicate event to the history file
 setopt hist_verify            # show command with history expansion to user before running it
 setopt share_history          # share command history data
-
+setopt inc_append_history     # allow multiple terminal sessions to append to one history
+setopt share_history          # share command history data
 
 # =========================================================
 # -- Debugging and Logging
@@ -122,16 +128,18 @@ function STARTLOG() {
     SCRIPT_NAME=$(basename "$0")
     SCRIPT_NAME="${SCRIPT_NAME%.*}"
     export ZB_LOG_STATUS="1"
-    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m> $SCRIPT_NAME ${funcstack[0]}\e[0m" > "$ZB_LOG"
+    DEBUG_LOG="$ZB_LOG"
+    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m> $SCRIPT_NAME ${funcstack[0]}\e[0m" > "$DEBUG_LOG"
 }
 export STARTLOG
 
 # -- Stop log
 function STOPLOG() {
- SCRIPT_NAME=$(basename "$0")
- SCRIPT_NAME="${SCRIPT_NAME%.*}"
- export ZB_LOG_STATUS="0"
- echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m< $SCRIPT_NAME ${funcstack[0]}\e[0m" >> "$ZB_LOG"
+    SCRIPT_NAME=$(basename "$0")
+    SCRIPT_NAME="${SCRIPT_NAME%.*}"
+    export ZB_LOG_STATUS="0"
+    DEBUG_LOG="$ZB_LOG"
+    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m< $SCRIPT_NAME ${funcstack[0]}\e[0m" >> "$DEBUG_LOG"
 }
 export STOPLOG
 
@@ -144,13 +152,59 @@ export STOPLOG
 # -- 1 - +debug
 # --------------------------------
 ZSH_DEBUG="0"
+ZSH_DEBUG_LOG="0"
+DEBUGF_LOG="0"
 DEBUG_MSG=""
 DEBUGF_MSG=""
+
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
-#_debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$ZB_LOG"; } || { echo "$DEBUG_MSG" >> "$ZB_LOG"; } } # -- debug for core
-_debug () { [[ $ZSH_DEBUG == 1 ]] && { zb_logger "DEBUG" 1 "$@"; } || { zb_logger "DEBUG" 0 "$@" } } # -- debug for core
-_debugf () { DEBUGF_MSG="\033[36m** [DEBUG]: $@\033[0m"; [[ $DEBUGF == 1 ]] && { echo $DEBUGF_MSG | tee -a "$ZB_LOG" >&2; } || { echo "$DEBUGF_MSG" >> "$ZB_LOG"; } } # -- debugf for debugging third party scripts
-_debug_load () { _debug "Loading $funcstack" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) } # -- debug load
+[[ -f $ZSHBOP_ROOT/.debug_log ]] && export ZSH_DEBUG_LOG=1 || export ZSH_DEBUG_LOG=0 # -- zshbop debugging log
+[[ -f $ZSHBOP_ROOT/.debugf_log ]] && export DEBUGF_LOG=1 || export DEBUGF_LOG=0 # -- zshbop debugging log
+
+_debug () { 
+    local funcstack="${funcstack[1]}"
+    DEBUG_MSG="\033[36m** [DEBUG]: $funcstack -- $@\033[0m";
+    # Log to screen
+    [[ $ZSH_DEBUG == 1 ]] && echo $DEBUG_MSG
+    # Log to file.
+    [[ $ZSH_DEBUG_LOG == 1 ]] && zb_logger "DEBUG" 0 "$@"; 
+}
+
+_debugf () { 
+    # Get previous function calling _debugf
+    local funcstack="${funcstack[2]}"
+    [[ -z $funcstack ]] && funcstack="${funcstack[1]}"
+    DEBUGF_MSG="\033[36m** [DEBUGF]: $funcstack -- $@\033[0m";
+    # Echo to screen.
+    [[ $DEBUGF == 1 ]] && echo $DEBUGF_MSG >&2
+    # Log to file.
+    [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$@"; 
+}
+
+function _debugf_status () { echo "\$DEBUGF = $DEBUGF" }
+function debugf () {    
+    if [[ $1 == on ]]; then
+        export DEBUGF="1"
+        _debugf_status
+    elif [[ $1 == off ]]; then
+        export DEBUGF="0"
+        _debugf_status
+    else
+        [[ $DEBUGF == 1 ]] && { export DEBUGF="0"; _debugf_status; return 0; }
+        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; _debugf_status; return 0; }  
+        export DEBUGF="0"
+        echo "Debugging was never set, setting to 0"          
+    fi
+}
+
+_debug_load () { 
+    local MESSAGE="Loading $funcstack"
+    local DEBUG_LOAD_MSG="\033[36m** [DEBUG_LOAD]: $MESSAGE \033[0m";
+    # Echo to screen.
+    [[ $DEBUGF == 1 ]] && echo $DEBUG_LOAD_MSG
+    # Log to file.
+    [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$MESSAGE"
+}
 
 # ================================================
 # -- zbdebug
@@ -175,13 +229,12 @@ _debug_all () {
 # -- Logging errors and Warnings
 # TODO - Allow color in logs while still being able to grep for errors
 ZSH_VERBOSE="0"
-ZSHBOP_LOGS=""
 LOG_MSG=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
-_log () { zb_logger "LOG" 1 "$@" }
+_log () { zb_logger "LOG" 0 "$@" }
 _error () { zb_logger "ERROR" 1 "$@" }
-_error2 () { zb_logger "ERROR" 1 "$@" }
 _warning () { zb_logger "WARNING" 1 "$@" }
+_warning_log () { zb_logger "WARNING" 0 "$@" }
 _alert () { zb_logger "ALERT" 1 "$@" }
 _notice () { zb_logger "NOTICE" 1 "$@" }
 # -- Log to both. # TODO Why?
@@ -189,14 +242,18 @@ _dlog () { _log "${*}"; _debug "${*}" }
 _elog () { _log "${*}"; _error "${*}" }
 
 # --------------------------------------------------
-# -- zshbop_log
-# -- args: $1 = LOG_TYPE, $2 - LOG_ECHO = 1, $3 - LOG_MSG
+# -- zb_logger $LOG_TYPE, $LOG_ECHO, $LOG_MSG
+# -- args: 
+# LOG_TYPE - LOG, ERROR, WARNING, ALERT, NOTICE, DEBUG
+# LOG_ECHO - 1 or 0 to echo the message
+# LOG_MSG - Message to log
 # --------------------------------------------------
-function zb_logger() {
+function zb_logger () {
     local LOG_TYPE="${1:=LOG}" LOG_ECHO=${2:=1} LOG_MSG="${3}"
+    local DEBUG_LOG="$ZB_LOG"
     
     function zb_echo () { echo "$LOG_OUTPUT"; }
-    function zb_log () { echo "[$LOG_TYPE] $LOG_MSG" >> "$ZB_LOG"; }
+    function zb_log () { echo "[$LOG_TYPE] $LOG_MSG" >> "$DEBUG_LOG"; }
     function zb_log_echo () { zb_echo; zb_log; }
     
     # -- Log Types
@@ -227,4 +284,4 @@ function zb_logger() {
 # ---------------
 source ${ZSHBOP_ROOT}/lib/init.zsh # -- include init
 source ${ZSHBOP_ROOT}/lib/help.zsh # -- include help functions
-source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedge Base
+source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedgeecc Base

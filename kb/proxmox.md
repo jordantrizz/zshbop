@@ -5,6 +5,88 @@
 * Restart Proxmox ```systemctl restart pve-cluster```
 
 # Common Tasks
+## Setting up Thin LVM
+```
+lvcreate -L 100G -n data pve
+lvconvert --type thin-pool pve/data
+```
+## Converting OVH LVM to LVM Thin
+* Unmount, reduce and convert
+```
+unmount /dev/vg/data
+lvreduce -L -5G /dev/vg/data
+lvconvert --type thin-pool /dev/vg/data
+```
+* Confirm
+```
+lvs -a
+```
+* Rename
+```
+lvchange -an vg/data
+lvrename vg data host-data
+```
+* Add to proxmox
+```
+pvesm add lvmthin host-data --thinpool host-data  --vgname vg
+```
+* Extend to max
+```
+lvextend -l +100%FREE /dev/vg/host-data
+```
+* Set as default
+```
+pvesm set defaultstorage host-data
+```
+
+## Slack Alerts
+1. Method: Post
+2. URL: https://hooks.slack.com/services
+3. Headers 'Content-Type: application/json'
+4. Body
+```
+{
+  "username": "Proxmox",
+  "icon_emoji": ":shield:",
+  "text": "*{{title}}*",
+  "attachments": [
+    {
+      "fallback": "{{title}} – {{message}}",
+      "color": "#439FE0",
+      "title": "{{title}}",
+      "text": "{{escape message}}",
+      "ts": {{timestamp}},
+      "fields": [
+        {
+          "title": "Host",
+          "value": "{{fields.hostname}}",
+          "short": true
+        },
+        {
+          "title": "Type",
+          "value": "{{fields.type}}",
+          "short": true
+        },
+        {
+          "title": "Job ID",
+          "value": "{{fields.job-id}}",
+          "short": true
+        },
+        {
+          "title": "Severity",
+          "value": "{{severity}}",
+          "short": true
+        },
+        {
+          "title": "When",
+          "value": "<!date^{{timestamp}}^{date_short} {time}|{{timestamp}}>",
+          "short": true
+        }
+      ]
+    }
+  ]
+}
+```
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
 ```
@@ -37,7 +119,15 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 
 ## Forward 443 to 8006
 * Ensure you put in your interface for management otherwise all traffic will be redirected for all IP's
-```/sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.1.1 --dport 443 -j REDIRECT --to-ports 8006```
+```
+/sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.1.1 --dport 443 -j REDIRECT --to-ports 8006
+```
+
+* Add to /etc/network/interfaces
+```
+    post-up /sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.80.52 --dport 443 -j REDIRECT --to-ports 8006
+    post-down /sbin/iptables -t nat -D PREROUTING -p tcp -d 192.168.80.52 --dport 443 -j REDIRECT --to-ports 8006
+```
 
 ## Block 8006 and Forward to CF Host
 * Create /etc/systemd/system/netcat-redirect.service
@@ -73,7 +163,46 @@ WantedBy=multi-user.target
 systemctl restart corosync.service pvedaemon.service pve-firewall.service pve-ha-crm.service pve-ha-lrm.service pvestatd.service
 ```
 
+## Guest Tools (qemu-guest-agent)
+* Install qemu-guest-agent on the VM
+* Edit the VM config
+```
+qm set 102 --agent enabled=1
+```
+
+## Enabling CPU/Memory Hotplug
+* Edit the VM config
+* Under VM->Hardware->Processor->Enable Numa is checked.
+* Under VM->Options->Hotplug->CPU/Memory is checked.
+## NUMA, CPU Hotplug, and Memory Hotplug in Proxmox – Key Points
+### NUMA Support
+* Best for VMs with >1 socket or >8 vCPUs on multi-socket hosts.
+* Improves memory access efficiency when configured properly.
+* Misconfiguration can lead to cross-node memory access and performance hits.
+* Low overhead when used appropriately.
+  
+### CPU Hotplug
+* Allows dynamic vCPU addition without reboot (guest OS support required).
+* Minimal overhead; mostly safe for general use.
+* May cause issues with CPU affinity or in older guest OSes.
+* Good for flexible scaling but test for stability.
+  
+### Memory Hotplug
+* Enables live memory scaling, but comes with higher overhead.
+* May cause NUMA imbalance or memory fragmentation.
+* Not ideal for performance-critical workloads.
+* Prefer fixed memory or ballooning unless dynamic scaling is essential.
+
+### Numa Best Practices
+* Use NUMA for large, high-performance VMs.
+* Enable hotplug features only if you need live scaling.
+* Always test VM behavior after hot-adding resources.
+* For latency-sensitive workloads, plan fixed allocations and disable hotplug features for consistency.
+
 # Troubleshooting
+## unable to create VM 100 - no such logical volume vg/data
+* If you change the storage type from LVM to LVM-then and the name of the storage you need to up date /etc/pve/storage.cfg
+
 ## Backup Stuck
 * Unmount storage that is affected with unmount -f or -l
 * Kill vzdump process with kill -9
@@ -179,6 +308,25 @@ INTERFACESv4="vmbr1"
 ```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
 
+## Samba Backups on Hetzner
+1. Edit /etc/fstab
+```
+//u111111.your-storagebox.de/backup  /mnt/HetznerSB  cifs credentials=/root/.smbcredentials,_netdev,vers=3.0,iocharset=utf8,x-systemd.automount  0  0
+```
+2. Create /root/.smbcredentials
+```
+username=yourusername
+password=yourpassword
+```
+3. Set permissions
+```
+chmod 600 /root/.smbcredentials
+```
+4. Mount
+```
+mount -a
+```
+
 # Common Issues
 ## Locale
 ```
@@ -195,3 +343,34 @@ Select en_US.UTF8
 
 ## Connection error - server offline? (Behind Cloudflare)
 I enabled "Disable Chunked Encoding" under Cloudflare Zero Trust > Access > Tunnels > (my tunnel) > Public hostnames > (hostname for pve) > Additional Application Settings > HTTP Settings > Disable Chunked Encoding
+
+# Proxmox VE Helper
+* Kernel Clean - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/kernel-clean.sh)"`
+* Post Install - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)"`
+* Microcode Update - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/microcode.sh)"`
+## Monitor-all
+bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/monitor-all.sh)"
+```
+🛈 Virtual machines without the QEMU guest agent installed must be excluded.
+🛈 Prior to generating any new CT/VM not found in this repository, it's necessary to halt Proxmox VE Monitor-All by running systemctl stop ping-instances.
+All commands are run from the Proxmox VE shell..
+
+To add or remove Monitor-All in Proxmox VE:
+
+Copy
+bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/monitor-all.sh)"
+
+
+To make setup changes, first stop the service: systemctl stop ping-instances
+To edit pause time:
+
+Copy
+nano /usr/local/bin/ping-instances.sh
+To add excluded instances:
+
+Copy
+nano /etc/systemd/system/ping-instances.service
+After changes have been saved, systemctl daemon-reload and start the service: systemctl start ping-instances
+
+Monitor-All logs : cat /var/log/ping-instances.log
+```

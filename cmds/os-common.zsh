@@ -5,18 +5,14 @@
 # -- Variables
 AUTO_LS_CHPWD="false" # -- dont list on directory change
 DEFAULT_LS="ls -al --color=tty"
+alias ls="${DEFAULT_LS}"
 
 # -- aliases
 alias less="less -X"
 
-# -- ls/exa
-alias ls="${DEFAULT_LS}"
-DEFAULT_EXA="${EXA_CMD} --long --all --group"
-
 # -- os-binary
-os-binary "fastfetch"
-os-binary "exa"
 os-binary "glow"
+os-binary "fastfetch"
 os-binary "glint"
 os-binary "plik"
 
@@ -104,3 +100,48 @@ function _check_grepcidr3 () {
     fi
 }
 _check_grepcidr3
+
+# ===============================================
+# -- _detect_ls
+# ===============================================
+DEFAULT_EXA="${EXA_CMD} --long --all --group"
+function _detect_ls () {
+    local LS_CMD="ls"
+    
+    # First check if we have eza
+    _debugf "Checking for eza"
+    os-binary eza
+    if [[ $? == "0" ]]; then
+        _debug "eza success, checking if it runs"
+        EZA_RETURN=$(eza -al)
+        if [[ $? -gt "0" ]]; then
+            _debugf "eza failed, skipping"
+        else
+            _debugf "eza success, using eza for ls alias"
+            alias ls="eza -al"
+            return 0
+        fi
+    fi
+
+    # Next check if we have exa
+    _debugf "Checking for exa"
+    os-binary exa
+    if [[ $? == "0" ]]; then
+        _debugf "exa success, using exa for ls alias"    
+        EXA_RETURN=$(exa -al)
+        if [[ $? -gt "0" ]]; then
+            _debugf "exa failed, skipping"
+        else
+            _debugf "exa success, using exa for ls alias"
+            alias ls="exa -al"
+            return 0
+        fi
+    else
+        _debugf "exa failed, skipping"
+    fi
+
+    # Default to ls
+    _debugf "Defaulting to ls"
+    alias ls="${DEFAULT_LS}"    
+}
+_detect_ls

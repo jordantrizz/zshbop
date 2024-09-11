@@ -6,6 +6,9 @@ help_files[zsh]='ZSH commands'
 typeset -gA help_zsh
 
 # -- Hide hostname and turn off ZSH autocomplete for recording
+# ===============================================
+# -- anonymize-shell
+# ===============================================
 help_zsh[anonymize-shell]='Hide hostname and turn off ZSH autocomplete for recording'
 function anonymize-shell () {
 	export HIDE_HOSTNAME=1
@@ -17,7 +20,9 @@ function anonymize-shell () {
 	echo "Shell Anonymized"
 }
 
+# ===============================================
 # -- debugz - return alias if binary exists for os
+# ===============================================
 help_zsh[debugz]='Debug ZSH Function'
 function debugz() {
   local func_name="$1"
@@ -27,4 +32,15 @@ function debugz() {
   set -x
   $func_name "$@"
   set +x
+}
+
+# ===============================================
+# -- zsh-list-comps
+# ===============================================
+help_zsh[zsh-list-comps]='List all zsh completions'
+function zsh-list-comps() {
+  for command in ${(k)_comps}; do
+    completions=${_comps[$command]}
+    printf "%-32s %s\n" $command $completions
+  done
 }

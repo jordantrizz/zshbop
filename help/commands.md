@@ -3,14 +3,15 @@
 <a href="https://www.buymeacoffee.com/jordantrask" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
 <!--ts-->
-   * [jordantrizz/ZSH - Commands](#jordantrizzzsh---commands)
-   * [Core](#core)
-   * [General](#general)
-   * [Coding](#coding)
-   * [Web](#web)
-   * [Ubuntu/Debian Specific](#ubuntudebian-specific)
-   * [Exim](#exim)
-   * [WSL](#wsl)
+- [jordantrizz/ZSH - Commands](#jordantrizzzsh---commands)
+- [Core](#core)
+- [General](#general)
+- [Coding](#coding)
+- [Binaries](#binaries)
+- [Web](#web)
+- [Ubuntu/Debian Specific](#ubuntudebian-specific)
+- [Exim](#exim)
+- [WSL](#wsl)
 
 <!-- Added by: jtrask, at: Fri Dec 18 08:46:17 EST 2020 -->
 
@@ -66,4 +67,4 @@ eximcq | Clears Exim queue of messages.
 # WSL
 Command | Description |
  --- | --- |
-wsl-screen | Fixes screen error "Cannot make directory '/var/run/screen': Permission denied" when rebooting your system
+wsl-screen-fix | Fixes screen error "Cannot make directory '/var/run/screen': Permission denied" when rebooting your system

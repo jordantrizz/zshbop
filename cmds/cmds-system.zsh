@@ -1,11 +1,7 @@
-# --
-# Core commands
-#
-# Example help: help_wordpress[wp]='Generate phpinfo() file'
-#
-# --
+# =============================================================================
+# -- System Commands
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
-# What help file is this?
 help_files[system]='System commands'
 
 # - Init help array
@@ -154,9 +150,11 @@ function cpu-features() {
 }
 
 
+# ========================================
 # -- mem
+# ========================================
 help_system[mem]='Get memory information'
-function mem () {
+function mem () {    
     if [[ $MACHINE_OS == "linux" ]]; then
         # -- Memory
         SWAP_USED=$(free -m | awk 'NR==3 {print $3}')

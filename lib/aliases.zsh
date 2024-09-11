@@ -9,7 +9,6 @@ _debug_load
 # -----------------
 
 alias joe="joe --wordwrap -nobackups -tab 4"
-function joe-wrapper { joe --wordwrap -nobackups -tab 4 $@ }
 alias sbin="cd /usr/local/sbin"
 alias which="which -a"
 alias randpass="pwgen -s 5 1;pwgen -s 15 1;pwgen -s 20 1;pwgen -sy 20 1"
@@ -36,9 +35,6 @@ alias lynx="lynx  -accept_all_cookies $@"
 alias gitp="git submodule foreach git pull origin master"
 alias gits="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gitr="cd ~/git;"
-
-# -- Ubuntu Specific
-alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
 
 # -- Software
 alias yabs='yabs.sh'

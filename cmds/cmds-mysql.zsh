@@ -12,79 +12,104 @@ help_files[mysql]='MySQL related commands'
 # - Init help array
 typeset -gA help_mysql
 
-# - mysql-dbsizeall
-help_mysql[mysql-dbsizeall]='Get size of all databases in MySQL'
-function mysql-dbsizeall () {
-    mysql -e "
-    SELECT * FROM (
-        SELECT 
-            table_schema AS 'Database', 
-            ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
-        FROM 
-            information_schema.TABLES 
-        GROUP BY 
-            table_schema
-    ) AS original_query
-    UNION ALL
-    SELECT 
-        'Total' AS 'Database', 
-        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
-    FROM 
-        information_schema.TABLES
-    ORDER BY 
-        CASE 
-            WHEN 'Database' = 'Total' THEN 1 
-            ELSE 0 
-        END, 
-        'Size (MB)' DESC;
-    "
-}
 
-# -- mysql-dbsize
-help_mysql[mysql-dbsize]='Get size of a database in MySQL'
-mysql-dbsize () {
-	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" GROUP BY table_schema;"
+# ===============================================
+# -- mysql-db-size
+# ===============================================
+help_mysql[mysql-db-size]='Get size of all databases in MySQL'
+function mysql-db-size () {
+	_mysql-db-size-usage () {
+		echo "Usage: mysql-db-size [-d <database> | -a | -l ]"
+		echo ""
+		echo "  -d <database>  - Get size of a specific database"
+		echo "  -a             - Get size of all databases"
+		echo "  -l             - List all databases"
+	}
+	local DATABASE=""
+	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL l=ARG_LIST
+
+	_debugf "ARG_DATABASE: $ARG_DATABASE ARG_ALL: $ARG_ALL ARG_LIST: $ARG_LIST"
+
+	if [[ -n $ARG_DATABASE ]]; then
+		DATABASE=${ARG_DATABASE[2]}
+		_loading "Getting size of database $DATABASE"
+		_mysql_wrapper -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${DATABASE}\" GROUP BY table_schema;"
+	elif [[ -n $ARG_ALL ]]; then
+		_loading "Getting size of all databases"
+		_mysql_wrapper -e "
+		SELECT * FROM (
+			SELECT 
+				table_schema AS 'Database', 
+				ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
+			FROM 
+				information_schema.TABLES 
+			GROUP BY 
+				table_schema
+		) AS original_query
+		UNION ALL
+		SELECT 
+			'Total' AS 'Database', 
+			ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
+		FROM 
+			information_schema.TABLES
+		ORDER BY 
+			CASE 
+				WHEN 'Database' = 'Total' THEN 1 
+				ELSE 0 
+			END, 
+			'Size (MB)' DESC;
+		"
+	elif [[ -n $ARG_LIST ]]; then
+		_loading "Listing all databases"
+		mysql -e 'show databases'
 	else
-		echo "Usage: $0 <database name>"
-		return 1
+		_mysql-db-size-usage
+		_error "Please specify an option to use, -d, -a or -l"
 	fi
 }
 
-# - mysql-allrowsize
-help_mysql[mysql-allrowsize]='The number of rows of all tables in MySQL'
-mysql-allrowsize () {
+# ===============================================
+# - mysql-db-rowsize-all
+# ===============================================
+help_mysql[mysql-db-rowsize-all]='The number of rows of all tables in MySQL'
+mysql-db-rowsize-all () {
 	if [[ $1 ]]; then
 		LIMIT="limit $1"
 	else
 		LIMIT=""
 	fi
-	mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE table_schema NOT IN ('performance_schema', 'sys') ORDER BY table_rows DESC ${LIMIT};"
+	_mysql_wrapper -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE table_schema NOT IN ('performance_schema', 'sys') ORDER BY table_rows DESC ${LIMIT};"
 }
 
-# - mysql-dbrowsize
-help_mysql[mysql-dbrowsize]='Get number of rows in a table'
-mysql-dbrowsize () {
+# ===============================================
+# - mysql-db-rowsize
+# ===============================================
+help_mysql[mysql-db-rowsize]='Get number of rows in a table'
+mysql-db-rowsize () {
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
+		_mysql_wrapper -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
         echo "Usage: $0 <database name>"
         return 1
     fi
 }
 
-# - mysql-dbtablesize
-help_mysql[mysql-dbtablesize]='Get size of all tables in database'
-mysql-dbtablesize () {
+# ===============================================
+# - mysql-db-table-size
+# ===============================================
+help_mysql[mysql-db-table-size]='Get size of all tables in database'
+mysql-db-table-size () {
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;"
+		_mysql_wrapper -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;"
 	else
 		echo "Usage: $0 <database name>"
 		return 1
 	fi
 }
 
+# ===============================================
 # - mysql-datafree
+# ===============================================
 help_mysql[mysql-datafree]='List tables that have white space'
 mysql-datafree () {
 	mysql -e "SELECT TABLE_SCHEMA, ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables where DATA_FREE > 0 ORDER by DATA_FREE DESC;"
@@ -96,11 +121,13 @@ mysql-msds () {
 	zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g"
 }
 
+# ===============================================
 # - mysql-myisam
+# ===============================================
 help_mysql[mysql-myisam]='Locate myisam tables in MySQL'
 mysql-myisam () {
     _loading "Checking all databases for MyISAM Tables"
-	mysql_output=$(mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';")
+	mysql_output=$(_mysql_wrapper -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';")
     if [[ $mysql_output ]]; then
         _loading2 "Found MyISAM tables"
         echo $mysql_output
@@ -289,7 +316,9 @@ mysql-logins () {
 	mysql -e 'select host,user,password,plugin from mysql.user;'
 }
 
+# ===============================================
 # -- mysql-backupall
+# ===============================================
 help_mysql[mysql-backup-all-dbs]='Backup all databases on server'
 mysql-backup-all-dbs () {
     local MYSQL_BACKUP_HOST="127.0.0.1"
@@ -321,38 +350,75 @@ mysql-backup-all-dbs () {
     done
 }
 
+# ===============================================
 # -- mysql-backup-db
+# ===============================================
 help_mysql[mysql-backup-db]='Backup a single databases on a server'
 mysql-backup-db () {
+	local BACKUP_DIR="$HOME/backups"
     if [[ -z $1 ]];then
-	    echo "Usage: mysql-backupdb <database>"
+	    echo "Usage: mysql-backupdb [-d <database>|-l]"
     	return
 	fi
-	MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
-	echo "-- Running backup of $1 to ${1}-${MYSQL_BACKUPDB_DATE}.sql"
-	mysqldump $1 > $1-$MYSQL_BACKUPDB_DATE.sql
-	echo " -- Completed backup of $1 to ${1}-${MYSQL_BACKUPDB_DATE}.sql"
+
+	zparseopts -D -E d:=ARG_DATABASE l=ARG_LIST
+
+	if [[ -n $ARG_DATABASE ]]; then
+		DATABASE=${ARG_DATABASE[2]}
+		# Check if backup dir exists
+		if [[ ! -d $BACKUP_DIR ]]; then
+			mkdir -p $BACKUP_DIR
+		fi
+		
+		_loading "Running backup of database: $DATABASE"
+		local MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
+		local MYSQL_BACKUP_FILE="$BACKUP_DIR/${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
+		
+		_loading2 "-- Running backup of $DATABASE to $MYSQL_BACKUP_FILE"
+		_loading3 "_mysqldump_wrapper $DATABASE > $MYSQL_BACKUP_FILE"
+
+		_mysqldump_wrapper $DATABASE > $MYSQL_BACKUP_FILE
+		if [[ $? == "1" ]]; then
+			_error " -- Error backing up $DATABASE"
+		else
+			_success " -- Completed backup of $DATABASE to $MYSQL_BACKUP_FILE"
+		fi	
+	elif [[ -n $ARG_LIST ]]; then
+		_loading "Listing all databases"
+		_mysql_wrapper -e 'show databases'
+	else
+		_mysql-backup-db-usage
+		_error "Please specify an option to use, -d or -l"
+	fi
 }
 
+# ===============================================
 # -- mysql-mycli
+# ===============================================
 help_mysql[mysql-mycli]="Install and run mycli"
 
+# ===============================================
 # -- mysqlt
+# ===============================================
 help_mysql[mysqlt]="Run mysqltuner.pl --noinfo --nogood"
 mysqlt () {
 	mysqltuner.pl --noinfo --nogood
 }
 
+# ===============================================
 # -- mysqlt-html
+# ===============================================
 help_mysql[mysqlt-html]="Run mysqltuner.pl --verbose --json | j2 -f json basic.html.j2 > mysql.html"
 mysqlt-html () {
 	# might need apt-get install libjson-perl
 	mysqltuner.pl --verbose --json | j2 -f json $ZBR/bin/MySQLTuner-perl/templates/basic.html.j2 > mysql.html
 }
 
-# -- mysql-createuser
-help_mysql[mysql-createuser]="Create MySQL 8.0 user, provide username as first argument and a random password will be generated"
-mysql-createuser () {
+# ===============================================
+# -- mysql-create-user
+# ===============================================
+help_mysql[mysql-create-user]="Create MySQL 8.0 user, provide username as first argument and a random password will be generated"
+mysql-create-user () {
 	MYSQL_USER="$1"
 	if [[ -z $MYSQL_USER ]]; then
 		echo "Usage: mysql-createuser <user>"
@@ -371,25 +437,98 @@ mysql-ps () {
 	mysql -e 'show full processlist'
 }
 
+# ===============================================
 # -- mysql-myisam2innodb
+# ===============================================
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
-mysql-myisam2innodb () {
-	if [[ -z $1 ]]; then
-		_error "Please specify the database"
-		return 1
-	else
-		DB_NAME="$1"
-		echo "Upgrading MyISAM tables to InnoDB in database $DB_NAME..."
-		tables=$(mysql $DB_NAME -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
+function mysql-myisam2innodb () {
+	_mysql-myisam2innodb-usage () {
+		echo "Usage: mysql-myisam2innodb [-d<database>|-a] -b"
+		echo "Commands:"
+		echo "  -d <database>  - Convert MyISAM tables to InnoDB in a specific database"
+		echo "  -a             - Convert MyISAM tables to InnoDB in all databases"
+		echo "Options:"
+		echo "  -sb             - Skip backup"
+	}
 
-		echo "$tables" | while read table; do
-    		if [[ $table != "Name" ]]; then
-      			echo "Upgrading table $table to InnoDB..."
-      			mysql $DB_NAME -e "ALTER TABLE $table ENGINE=InnoDB;"
-      			echo "Table $table upgraded to InnoDB successfully."
-    		fi
-  		done
+	_mysql-myisam2innodb-get-tables () {
+		local DATABASES
+		# Find all databases that have myisam tables
+		DATABASES=$(_mysql_wrapper -e "SHOW DATABASES;" | awk '{print $1}')
+		echo "$DATABASES" | while read database; do
+			if [[ $database != "Database" ]]; then
+				TABLES=$(_mysql_wrapper $database -e "SHOW TABLE STATUS
+				WHERE Engine = 'MyISAM';" | awk '{print $1}')
+				if [[ -n $TABLES ]]; then
+					echo "$database"				
+				fi
+			fi
+		done		
+	}
+
+	_mysql-myisam2innodb-convert () {
+		DATABASE=$1
+		# Backup Database?
+		if [[ $SKIP_BACKUP == 0 ]]; then
+			_loading2 "Backup database (${DATABASE}) before converting? [y/n]"
+			read REPLY
+			if [[ $REPLY =~ ^[Yy]$ ]]; then
+				mysql-backup-db -d $DATABASE
+			fi
+		else
+			_loading2 "Skipping backup of database ${DATABASE}"
+		fi
+
+		echo "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
+		TABLES=$(_mysql_wrapper $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" | awk '{print $1}')
+
+		echo "$TABLES" | while read table; do
+			if [[ $table != "Name" ]]; then
+				echo "Upgrading table $table to InnoDB..."
+				_mysql_wrapper $DATABASE -e "ALTER TABLE $table ENGINE=InnoDB;"
+				echo "Table $table upgraded to InnoDB successfully."
+			fi
+		done
 		echo "All MyISAM tables have been upgraded to InnoDB."
+	}
+
+	local DATABASE MODE
+	local MYISAM_DATABASES=()
+	local SKIP_BACKUP=0
+
+	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL sb=ARG_SKIP_BACKUP	
+	[[ $ARG_DATABASE  ]] && DATABASE=${ARG_DATABASE[2]}
+	[[ $ARG_ALL ]] && MODE="all" || MODE="single"
+	[[ $ARG_SKIP_BACKUP ]] && SKIP_BACKUP=1
+	
+	[[ -z $MODE ]] && { _mysql-myisam2innodb-usage; _error "Please specify an option to use, -d or -a"; return 1; }
+
+	[[ $MODE == "single" ]] && [[ -z $DATABASE ]] && { _mysql-myisam2innodb-usage; _error "Please specify a database to convert"; return 1; }
+
+	if [[ $MODE == "single" ]]; then
+		_loading "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
+		_mysql-myisam2innodb-convert $DATABASE
+	elif [[ $MODE == "all" ]]; then
+		_loading "Upgrading all MyISAM tables to InnoDB..."
+		MYISAM_DATABASES=($(_mysql-myisam2innodb-get-tables))
+		
+		if [[ -z $MYISAM_DATABASES ]]; then
+			_success "No MyISAM tables found"
+			return 1
+		else
+			_success "Found MyISAM tables in the following databases: ${MYISAM_DATABASES[@]}"
+		fi
+
+		for DATABASE in "${MYISAM_DATABASES[@]}"; do
+			_loading3 "Processing database $DATABASE..."
+			_mysql-myisam2innodb-convert $DATABASE
+		done
+		_success "All MyISAM tables in all databases have been upgraded to InnoDB."
+		echo "All MyISAM tables in all databases have been upgraded to InnoDB."
+	else
+		_mysql-myisam2innodb-usage
+		_error "Please specify an option to use, -d or -a"
+		return 1
 	fi
 }
 
@@ -399,10 +538,12 @@ mysql-uptime () {
     mysql -e "select TIME_FORMAT(SEC_TO_TIME(VARIABLE_VALUE ),'%Hh %im') as Uptime from performance_schema.global_status where VARIABLE_NAME='Uptime';"
 }
 
+# ===============================================
 # -- mysql-config
+# ===============================================
 help_mysql[mysql-config]='Output MySQL running configuration'
 mysql-config () {
-      mysql --raw -B -N -e 'SHOW VARIABLES;'
+	$MYSQL_BIN --raw -B -N -e 'SHOW VARIABLES;'
 }
 
 # -- mysql-adddb

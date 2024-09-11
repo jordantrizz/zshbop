@@ -1,6 +1,7 @@
 #compdef zshbop
 _zshbop() {
     local -a subcommands
+    local -a branch_subcommands
 
     # Populate the subcommands array with keys and descriptions from help_core
     for key in ${(k)help_core}; do
@@ -12,7 +13,36 @@ _zshbop() {
     done
 
     # Provide the completion for the first argument (subcommands)
-    _describe -t commands 'zshbop subcommands' subcommands
+    if (( CURRENT == 2 )); then
+        _describe -t commands 'zshbop subcommands' subcommands
+    elif (( CURRENT == 3 )); then
+        case $words[2] in
+            branch)
+                # Grab local branches
+                local_branches=("-r:Checkout remote branch")
+                git --no-pager -C ${ZSHBOP_ROOT} branch | sed 's/\* //' | while read -r line; do
+                    local_branches+=("${line}")
+                done
+                _describe -t commands 'branch subcommands' local_branches                
+                ;;
+            *)
+                # Add more cases here for other subcommands if needed
+                ;;
+        esac
+    elif (( CURRENT == 4 )); then
+        case $words[3] in
+            -r)
+                local remote_branches=()
+                git --no-pager -C ${ZSHBOP_ROOT} branch -r | awk '{print $1}' | sed 's/origin\///' | grep -v HEAD | while read -r line; do
+                    remote_branches+=("${line}")
+                done
+                _values 'remote branches' $remote_branches
+                ;;
+            *)
+                # Add more cases here for other subcommands if needed
+                ;;
+        esac
+    fi
 }
 
 # Tell Zsh to use the _zshbop function for completing zshbop commands
