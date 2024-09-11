@@ -1,7 +1,6 @@
 # MySQL
 
-## MySQL Tools
-* Mytop - https://www.digitalocean.com/community/tutorials/how-to-use-mytop-to-monitor-mysql-performance
+
 
 ## MySQL .my.cnf Formatting
 ```
@@ -53,6 +52,54 @@ password="qweqwe"
 * In most cases, which won’t use Operating System File Cache. 
 * However, there have been cases when using buffered IO with InnoDB made sense. 
 * If you’re still running MyISAM, you will need OS cache for the “data” part of your tables.
+
+
+## MySQL Tools
+### MyTop
+* Mytop - https://www.digitalocean.com/community/tutorials/how-to-use-mytop-to-monitor-mysql-performance
+
+### MySQL Tuner
+https://github.com/major/MySQLTuner-perl
+
+### automysqlbackup
+https://sourceforge.net/projects/automysqlbackup/
+
+#### Backup user.
+Sometimes you have to do both localhost and 127.0.0.1 depending.
+```
+CREATE USER 'automysqlbackup'@'localhost' IDENTIFIED BY 'secure-password';
+CREATE USER 'automysqlbackup'@'127.0.0.1' IDENTIFIED BY 'secure-password';
+GRANT SELECT, SHOW VIEW, LOCK TABLES, EVENT ON *.* TO 'automysqlbackup'@'localhost';
+GRANT SELECT, SHOW VIEW, LOCK TABLES, EVENT ON *.* TO 'automysqlbackup'@'127.0.0.1'
+GRANT EXECUTE ON sys.* TO 'automysqlbackup'@'localhost';
+GRANT EXECUTE ON sys.* TO 'automysqlbackup'@'127.0.0.1';
+FLUSH PRIVILEGES;
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+#### Configuration
+```
+CONFIG_backup_dir='/var/backup/db'
+CONFIG_db_exclude=( 'performance_schema' 'information_schema' )
+CONFIG_db_exclude_pattern=()
+CONFIG_do_monthly="01"
+CONFIG_do_weekly="5"
+CONFIG_rotation_daily=7
+CONFIG_mysql_dump_latest='yes'
+CONFIG_mysql_dump_max_allowed_packet='512M'
+CONFIG_mysql_dump_username='automysqlbackup'
+CONFIG_mysql_dump_password='secure-password'
+CONFIG_mysql_dump_host='localhost'
+CONFIG_mysql_dump_port=3306
+CONFIG_mysql_dump_socket=''
+```
+
+#### Cron
+```
+# Runs at 00:00 every day
+0 0 * * * /usr/local/bin/automysqlbackup
+```
 
 # Notes
 ## Enable Password Authentication

@@ -20,27 +20,21 @@ alias traceroute="sudo traceroute -M icmp"
 init_wsl () {
 	_debug " -- Running init_wsl"
 	wsl-fixes
-	wsl-fixscreen
-	wsl-backupwtc
+	wsl-screen-fix
+	wsl-backupwtc 1
 	wsl-shortcuts
 	init_log
+	wsl-paths
+	wsl-check-wslu
 }
 
-# ==================================================
+# =================================================================================================
 # -- Functions
+# =================================================================================================
+
 # ==================================================
-
-# -- wsl-fixscreen - Fix screen when in WSL.
-help_wsl[wsl-fixscreen]='Fix screen under WSL'
-function wsl-fixscreen () {
-	# -- Screen fix https://github.com/microsoft/WSL/issues/1245 
-	if [ -d "/run/screen" ]; then
-	else
-		sudo /etc/init.d/screen-cleanup start
-	fi
-}
-
 # -- wsl-fixes
+# ==================================================
 help_wsl[wsl-fixes]='Fix issues under WSL'
 function wsl-fixes () {
 	# -- Fix traceroute on WSL
@@ -55,7 +49,9 @@ function wsl-fixes () {
 	fi
 }
 
+# ==================================================
 # -- wsl-backupwtc 
+# ==================================================
 help_wsl[wsl-backupwtc]='Backup Windows Terminal configuration.'
 wsl-backupwtc () {
 	local WT_SOURCE="$(echo /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
@@ -99,9 +95,11 @@ wsl-backupwtc () {
 	[[ $QUEIT == 0 ]] && _loading3 "$OUTPUT"	
 }
 
+# ==================================================
 # -- check_diskspace_wsl
-help_wsl[check_diskspace_wsl]='Check disk space under WSL'
-function check_diskspace_wsl () {
+# ==================================================
+help_wsl[wsl-check-diskspace]='Check disk space under WSL'
+function wsl-check-diskspace () {
     # -- Check disk space
     if [[ $1 == "show" ]]; then
         _error "Checking disk space for WSL not implemented yet."
@@ -111,7 +109,9 @@ function check_diskspace_wsl () {
     
 }
 
+# ==================================================
 # -- wsl-shortcuts
+# ==================================================
 help_wsl[wsl-shortcuts]='Create Downloads and Desktop shortcuts for WSL'
 function wsl-shortcuts () {
 	local OUTPUT="" DO=0 OUTPUT_FULL=""
@@ -134,3 +134,45 @@ function wsl-shortcuts () {
 	fi
 }
 
+# ==================================================
+# -- wsl-screen-fix
+# ==================================================
+help_wsl[wsl-screen-fix]='Fix screen under WSL'
+wsl-screen-fix () {
+	# check if screen is installed
+	_cmd_exists screen
+	if [[ $? -ne 0 ]]; then
+		_debug " -- screen not installed"
+		return 1
+	else
+		if [[  ! -d "/run/screen" ]]; then
+			_debug " -- Running wsl-screen-fix"
+			sudo /etc/init.d/screen-cleanup start
+		fi
+	fi
+}
+
+# ==================================================
+# -- wsl-paths
+# ==================================================
+help_wsl[wsl-paths]='Set WSL paths for Visual Studio Code'
+function wsl-paths () {
+	# Get current windows user
+	local WINDOWS_USER=$(/mnt/c/Windows/System32/cmd.exe /c 'echo %USERNAME%' 2> /dev/null | sed -e 's/\r//g')
+	# -- Set WSL paths for Visual Studio Code
+	export PATH=$PATH:"/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code/bin"
+}
+
+
+# ==================================================
+# -- wsl-check-wslu
+# ==================================================
+help_wsl[wsl-check-wslu]='Check if WSLU is installed'
+function wsl-check-wslu () {
+	# -- Check if WSLU is installed
+	_cmd_exists wslu
+	if [[ $? -ne 0 ]]; then
+		_log "WSLU not installed, run 'sudo apt install wslu' to install"
+		return 1
+	fi
+}

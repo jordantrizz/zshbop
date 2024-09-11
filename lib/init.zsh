@@ -1,17 +1,22 @@
 #!/usr/bin/env zsh
-# *********************************************************
-# *********************************************************
+# =================================================================================================
 # -- init.zsh - zshbop functions 
-# *********************************************************
-# *********************************************************
+# =================================================================================================
 
 # =========================================================
 # -- debug_load
 # =========================================================
 _debug_load
 function init_log () {
-    # -- Logging function that called init_log
-    ZSHBOP_LOAD+=(${funcstack[2]})
+    local ZSBBOP_FUNC_LOADING="${funcstack[2]}"
+
+    # Check if $ZSBBOP_FUNC_LOADING is already in $ZSHBOP_LOAD
+    if [[ " ${ZSHBOP_LOAD[@]} " =~ " ${ZSBBOP_FUNC_LOADING} " ]]; then
+        _debug "Already loaded $ZSBBOP_FUNC_LOADING"
+    else
+        _debug "Loading $ZSBBOP_FUNC_LOADING"
+        ZSHBOP_LOAD+=($ZSBBOP_FUNC_LOADING)
+    fi
 }
 
 # =========================================================
@@ -24,7 +29,7 @@ init_core () {
     export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
     source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
     source ${ZSHBOP_ROOT}/lib/function-overrides.zsh # -- variables
-    source ${ZSHBOP_ROOT}/lib/functions-core.zsh # -- core functions
+    source ${ZSHBOP_ROOT}/lib/functions-internal.zsh # -- core functions
     init_log
     
 }
@@ -47,32 +52,77 @@ init_path () {
 	_debug_all
 
 	# Default paths to look for
-	export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
-	export PATH=$PATH:$HOME/.local/bin
-	export PATH=$PATH:$HOME/.cargo/bin
-        
+    init_add_path $HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
+    init_add_path $HOME/.local/bin
+    init_add_path $HOME/.cargo/bin
+    init_add_path $HOME/go/bin
+
 	# Extra software
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
-	export PATH=$PATH:$HOME/bin/aws-cli # aws-cli https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
-	export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
-	export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
-    export PATH=$PATH:/root/.acme.sh/ # acme.sh
-    export PATH=$PATH:/opt/netdata/bin # netdata alternative path
-	
+    init_add_path /usr/local/lsws/bin/
+    init_add_path /root/.acme.sh/
+    init_add_path /opt/netdata/bin
+
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
 	_log "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
-	#init_add_path $ZSHBOP_ROOT/repos
-	init_add_path $HOME/bin
-	init_add_path $HOME/git
-	init_add_path $ZSHBOP_ROOT/repos
+	init_add_path_dirs $HOME/bin
+	init_add_path_dirs $HOME/git
+    init_add_path_dirs $ZSHBOP_ROOT/bin
+	init_add_path_dirs $ZSHBOP_ROOT/repos
+
+    init_add_path /snap/bin
 	
-	# Golang Path?
-	export PATH=$PATH:$HOME/go/bin
+    init_fix_path
+    init_log
+}
+
+# ==============================================
+# -- init_add_path_dirs
+# ==============================================
+init_add_path_dirs () {
+	DIR="$@"
+	if [[ -d $DIR ]]; then
+		if [ "$(find "$DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
+        _debug "Adding $DIR to \$PATH"
+            i=0
+            for NAME in $DIR/*; do
+                _debug "$funcstack[1] - found $NAME, adding to \$PATH"
+                    init_add_path $NAME
+                i=$((i+1))
+            done
+            _log " Found $i folders and added them to \$PATH"
+		fi
+	else
+		_debug "Can't find $DIR"
+	fi
+    init_log
+}
+
+# =========================================================
+# -- init_add_path
+# =========================================================
+init_add_path () {
+    _debug_all
+    _debugf "Adding $1 to \$PATH"
+    # Check if $1 already in $PATH
+    if [[ $PATH == *$1* ]]; then
+        _debugf "Error - $1 already in \$PATH"
+    else
+        export PATH=$PATH:$1
+        _debugf "Success - Added $1 to \$PATH"        
+        _debugf "PATH has $(echo $PATH | tr ':' '\n' | wc -l) paths"
+    fi
+    init_log
+}
+
+# =========================================================
+# -- init_fix_path
+# -- Go through $PATH and unique it and remove any duplicates
+# =========================================================
+init_fix_path () {
+    _debug_all
+    _debugf "Fixing \$PATH"
+    export PATH=$(echo $PATH | tr ':' '\n' | awk '!x[$0]++' | tr '\n' ':')
+    _debugf "Fixed \$PATH"
     init_log
 }
 
@@ -90,28 +140,6 @@ init_dirs () {
 	_debug "Creating \$ZSHBOP_CACHE_DIR folder"
 	if [[ ! -d $ZSHBOP_CACHE_DIR ]]; then
 		mkdir $ZSHBOP_CACHE_DIR > /dev/null
-	fi
-    init_log
-}
-
-# ==============================================
-# -- init_add_path
-# ==============================================
-init_add_path () {
-	DIR="$@"
-	if [[ -d $DIR ]]; then
-		if [ "$(find "$DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
-	    _debug "Adding $DIR to \$PATH"
-	        i=0
-	        for NAME in $DIR/*; do
-	            _debug "$funcstack[1] - found $NAME, adding to \$PATH"
-	                export PATH=$PATH:$NAME
-	            i=$((i+1))
-	        done
-	        _log " Found $i folders and added them to \$PATH"
-		fi
-	else
-		_debug "Can't find $DIR"
 	fi
     init_log
 }
@@ -206,7 +234,7 @@ init_omz_plugins () {
 		web-search
 		urltools
 		ufw
-		ubuntu
+		ubuntu        
 	)
 	export OMZ_PLUGINS=$(echo $plugins | fmt)
 	_debug "OMZ plugins - $OMZ_PLUGINS"
@@ -271,7 +299,7 @@ function init_fzf () {
 # -- Initialize ZSH plugins
 # ==============================================
 function init_plugins () {
-	_loading3 "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
+	_log "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
 	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
 		init_antigen	
 	else
@@ -291,6 +319,11 @@ function init_antidote () {
 	_log "Loading antidote"
 	zstyle ':antidote:bundle' use-friendly-names 'yes' # remove slashes and user friendly names
 	zstyle ':antidote:bundle' file "${ZBR}/.zsh_plugins.txt"
+
+    # for H-S-MW
+    zstyle :plugin:history-search-multi-word reset-prompt-protect 1
+    zstyle ":history-search-multi-word" page-size "8"
+
 	export ANTIDOTE_DIR="${ZBR}/antidote"
 	export ANTIDOTE_PLUGINS="${ZBR}/.zsh_plugins.txt"
 	export ANTIDOTE_STATIC="${ZSHBOP_CACHE_DIR}/.zsh_plugins.zsh"
@@ -331,6 +364,7 @@ init_log
 # ==============================================
 function init_os () {
 	_debug_all
+    _log "Loading OS specific configuration"
 	# -- Include common OS configuration
 	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
 	source $ZSHBOP_ROOT/cmds/os-common.zsh
@@ -338,23 +372,23 @@ function init_os () {
 	# Include OS Specific configuration	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
-        _loading3 "Loaded OS Configuration cmds/os-mac.zsh"
+        _log "Loaded OS Configuration cmds/os-mac.zsh"
         source $ZSHBOP_ROOT/cmds/os-mac.zsh   
     # -- WSL Linux
     elif [[ $MACHINE_OS2 = "wsl" ]]; then				
-        _loading3 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
+        _log "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
         source $ZSHBOP_ROOT/cmds/os-wsl.zsh
         init_wsl
 	# -- Linux
     elif [[ $MACHINE_OS = "linux" ]] then
-		_loading3 "Loading cmds/os-linux.zsh"
+		_log "Loading cmds/os-linux.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
     elif [[ $MACHINE_OS = "synology" ]] then
-		_loading3 "Loading cmds/os-linux.zsh"
+		_log "Loading cmds/os-linux.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
 	else
-        _loading3 "No OS specific configuration found"
+        _log "No OS specific configuration found"
     fi
     init_log
 }
@@ -363,6 +397,7 @@ function init_os () {
 # -- Load default SSH keys into keychain
 # ==============================================
 function init_sshkeys () {
+    _loading2 "Loading SSH keys"
     _debug_all
 
     # -- Load SSH keys into keychain
@@ -388,6 +423,9 @@ function init_sshkeys () {
                 if [[ -f $SSH_KEY ]]; then
                     _dlog "-- Loading -- $SSH_KEY"
                     eval `keychain -q --eval --agents ssh $SSH_KEY`
+                    if [[ $? -ne 0 ]]; then
+                        _error "-- Can't load $SSH_KEY"
+                    fi
                 else
                     _error "-- Can't find $SSH_KEY, please check your CUSTOM_SSH_KEY array in .zshbop.conf" 0
                 fi
@@ -404,7 +442,7 @@ function init_sshkeys () {
             eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
         fi
     else
-        _warning "Command keychain doesn't exist, please install for SSH keys to work"
+        _warning_log "Command keychain doesn't exist, please install for SSH keys to work"
     fi
     init_log
 }
@@ -501,32 +539,82 @@ init_check_software () {
     init_log
 }
 
+# ===============================================
+# -- init_check_oom - Check for OOM killer
+# ===============================================
+function init_check_oom () {
+    # -- Check if OOM killer is running
+    	# Check if journalctl is installed
+	_cmd_exists journalctl
+    local OOM_COUNT
+	if [[ $? == 0 ]]; then		
+		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process' | wc -l)
+	elif [[ -f /var/log/syslog ]]; then		
+		OOM_COUNT=$(grep -i 'Out of memory: Killed process' /var/log/syslog | wc -l)
+		return 1
+	else
+        _warning "Can't detect OOM killer events"
+        return 1
+    fi
+    
+    # -- Check if OOM killer has killed any processes
+    if [[ $OOM_COUNT -gt 0 ]]; then
+        _warning "OOM killer has killed $OOM_COUNT processes"
+    else
+        _success "No OOM killer events found"
+    fi
+    init_log
+}
+
 # ==============================================
 # -- init_check_services
 # ==============================================
 function init_check_services () {
     # -- Check system software versions
+    _log "Checking system software versions"
+    # -- Create an array of commands and versions
+    typeset -A check_services
+    check_services=(
+        # -- system
+        [pveversion]="pveversion 2>/dev/null"        
+        [mongod]="mongod --version | head -1"
+        [nginx]="nginx -v 2>&1"
+        [litespeed]="litespeed -v"
+        [redis-server]="redis-server --version"
+        
+    )
 
-    # -- cloudflared
-    if (( $+commands[cloudflared] )) && _alert "cloudflared: $(cloudflared -v)" || _log "cloudflared Server not installed"
+    # -- Commands that we want to warn about if installed
+    typeset -A warn_commands
+    warn_commands=(
+        [cloudflared]="cloudflared -v"        
+    )
 
-    # -- proxmox 
-    if (( $+commands[pveversion] )) && _success "Proxmox: $(pveversion 2>/dev/null)" || _log "Proxmox Server not installed"
- 
-	# - mysql	    
-	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || { _log "MySQL Server not installed";_warning "MySQL not installed, but could be using remote database" }
 
-    # -- mongodb
-    if (( $+commands[mongod] )) && _success "MongoDB: $(mongod --version | head 1)" || _log "MongoDB Server not installed"
-	
-	# - nginx
-	if (( $+commands[nginx] )) && _success "Nginx: $(nginx -v 2>&1 >/dev/null)" || _log "Nginx not installed"	
-	
-	# - litespeed
-	if (( $+commands[litespeed] )) && _success "Litespeed: $(litespeed -v)" || _log "Litespeed not installed"
-		
-	# - Redis
-	if (( $+commands[redis-server] )) && _success "Redis: $(redis-server --version)" || _log "Redis not installed"
+    # -- Check if each command is installed and print version
+    for cmd in "${(k)check_services[@]}"; do
+        if command -v $cmd &>/dev/null; then
+            _success "$cmd: $(eval ${check_services[$cmd]})"
+        else
+            _log "$cmd not installed"
+        fi
+    done
+
+    # -- Check for commands that should have warnings
+    for cmd in "${(k)warn_commands[@]}"; do
+        if command -v $cmd &>/dev/null; then
+            _warning "WARNING: ${warn_commands[$cmd]}"
+        fi
+    done
+
+    # -- mysql
+    if command -v mysqld &>/dev/null; then    
+        _log "MySQL Server installed"
+        _success "MySQL: $(mysqld --version 2> /dev/null)"
+    else
+        _log "MySQL Server not installed"
+        _warning "MySQL not installed, but could be using remote database"
+    fi
 
 	# - Netdata    
     if [[ -f /opt/netdata/bin/netdata ]]; then
@@ -651,7 +739,7 @@ function init_detect_install_type () {
 # ==============================================
 function init_completion () {
     _debug_all
-    _loading "Loading completion"
+    _log "Loading completion"
     # -- Load completion
     fpath+=($ZSHBOP_ROOT/completion $fpath)
     autoload -U compinit
@@ -662,9 +750,8 @@ function init_completion () {
 # -- init_software
 # ==============================================
 function init_software () {
-    _debug_all
-    _loading "Loading software"
-    _log "Loading zshbop cmds...."
+    _debug_all    
+    _log "Loading software from software/*.zsh"
     source ${ZSHBOP_ROOT}/software/_init.zsh
    	for SOFTWARE_FILE in "${ZSHBOP_ROOT}/software/"*.zsh; do
         # If starts with an _ skip
@@ -675,6 +762,41 @@ function init_software () {
             source $SOFTWARE_FILE
         fi
 	done
+    init_log
+}
+
+# ==============================================
+# -- init_last
+# ==============================================
+function init_last () {
+    _debug_all
+    _log "Running last commands"
+    
+    # Debugging: Print the PATH variable
+    _debugf "Current PATH: $PATH"
+
+    # -- Check if INIT_LAST_CORE array has any commands
+    if [[ -n $INIT_LAST_CORE ]]; then
+        _log "Running \$INIT_LAST_CORE functions"
+        for CMD in $INIT_LAST_CORE; do
+            _debugf "Running $CMD"
+            $CMD
+        done
+    else
+        _debugf "No \$INIT_LAST_CORE commands"
+    fi
+    
+    # -- Check if INIT_LAST_CUSTOM array has any commands
+    if [[ -n $INIT_LAST_CUSTOM ]]; then
+        _log "Running \$INIT_LAST_CUSTOM functions"
+        for CMD in $INIT_LAST_CUSTOM; do
+            _debug "Running $CMD"
+            $CMD
+        done
+    else
+        _debug "No \$INIT_LAST_CUSTOM commands"
+    fi
+
     init_log
 }
 
@@ -689,25 +811,14 @@ function init_software () {
 # ==============================================
 init_motd () {
 	# -- Start motd
-    _debug_all
-    _loading "System Information"
+    _debug_all    
+    system
 
-    # -- OS specific motd
-    _loading3 $(os-short)   
-
-    # -- system details
-    sysfetch-motd
-
-    # -- sysinfo
-    _loading3 $(cpu 0 1)    
-    _loading3 $(mem)
-    zshbop_check-system
-    echo ""
-    
     # -- Check System
     _loading "Checking System"    
 	init_check_services
-    init_check_software      
+    init_check_software
+    init_check_oom
     software-raid-check
     screen-sessions
     init_detect_install_type
@@ -718,23 +829,14 @@ init_motd () {
     source "${ZSHBOP_ROOT}/motd/motd.zsh"
 
 	# -- Environment check
-	_loading2  "Run zshbop check or system-specs."
-    #env-install to install default and extra tools. Run system-specs for more system details."
-    # TODO - add system-specs
-    echo ""
-	
-    # -- run report after exec zsh
-    if [[ $RUN_REPORT == "1" ]]; then
-        zshbop_report
-        export RUN_REPORT=0
-    else
-        zshbop_report faults
-    fi
-    
+	_loading3 "Run 'zshbop check' for system checks or 'zshbop report' for a system report"
+
     # -- last echo to keep motd clean
     echo ""
     init_log
 }
+
+
 
 # ==============================================
 # -- init_zshbop -- initialize zshbop
@@ -746,8 +848,7 @@ function init_zshbop () {
 	# -- Start init
     # --------------------------------------------------
 	_debug_all
-    echo "$bg[yellow]$fg[black] * Initializing zshbop${RSC}"
-    echo "$(zshbop_version) - $ZSHBOP_ROOT"
+    echo "$bg[yellow]$fg[black] * Initializing zshbop${RSC} - $(zshbop_version) - $ZSHBOP_ROOT"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
     # --------------------------------------------------
@@ -783,7 +884,7 @@ function init_zshbop () {
     init_zsh_sweep       # -- Init zsh-sweep if installed
 
     # -- Print out what loaded
-    _loading3 "Loaded: $ZSHBOP_LOAD"
+    _log "Loaded zshbop functions: $ZSHBOP_LOAD"
     echo ""
      
     # -- Load custom then commands dependant on custom    
@@ -807,7 +908,10 @@ function init_zshbop () {
         init_motd           # -- Init motd
     fi
 
-	# Remove Duplicates in $PATH
-	_debug "Removing duplicates in \$PATH"
-	typeset -U PATH
+    # -- Run last commands
+    init_last
+
+    # -- End init
+    _log "${funcstack[1]}:end"
+    init_log
 }

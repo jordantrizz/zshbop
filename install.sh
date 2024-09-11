@@ -271,7 +271,11 @@ function _check_zsh () {
         _install_zsh
     else
         # -- Check if ZSH is at least 5.8
-        if [[ $(zsh --version) == *"5.8"* ]]; then
+        ZSH_VERSION=$(zsh --version | awk '{print $2}')
+        # Split the version into minor and major
+        ZSH_MAJOR=$(echo $ZSH_VERSION | cut -d'.' -f1)
+        ZSH_MINOR=$(echo $ZSH_VERSION | cut -d'.' -f2)
+        if [[ $ZSH_MAJOR -ge 5 ]] && [[ $ZSH_MINOR -ge 8 ]]; then        
             ZSH_BIN=$(which zsh)
             echo " -- $(_success "zsh is installed in $ZSH_BIN! and at least 5.8")"
         else

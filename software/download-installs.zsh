@@ -175,11 +175,32 @@ software_glint () {
 	fi
 }
 
-
 # --------------------------------------------------
 # -- change
 # --------------------------------------------------
 help_software[change]="Install change - https://raw.githubusercontent.com/adamtabrams/change"
 software_change () {
 	_software_install change "https://raw.githubusercontent.com/adamtabrams/change/master/change"
+}
+
+# ===============================================
+# -- software_eza
+# ===============================================
+help_software[eza]="Install eza"
+software_eza () {
+	_cmd_exists nix
+	if [[ $? -ge 1 ]]; then
+		_error "Nix not found, please install nix first"
+		return 1
+	fi
+	nix profile install nixpkgs#eza
+}
+
+# ===============================================
+# -- software_vhwinfo
+# ===============================================
+help_software[vhwinfo]='Temporarily downloads vhwinfo and displays system information.'
+vhwinfo () {
+        echo " -- Downloading vhwinfo.sh via wget and running"
+        wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
 }

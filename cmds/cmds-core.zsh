@@ -9,7 +9,9 @@ help_files[core]='Core commands'
 typeset -gA help_core
 help_core[kb]='Knowledge Base'
 
+# =====================================
 # -- os - return os
+# =====================================
 help_core[os]='Return OS'
 function os () {
   echo "\$MACHINE_OS: $MACHINE_OS | \$MACHINE_OS2: $MACHINE_OS2"
@@ -26,7 +28,9 @@ function os () {
   echo "\$OS_INSTALL_DATE2: $OS_INSTALL_DATE2 | \$OS_INSTALL_METHOD2: $OS_INSTALL_METHOD2"
 }
 
+# =====================================
 # -- os - return os
+# =====================================
 help_core[os]='Return OS'
 function os-short () {
   local OUTPUT
@@ -37,5 +41,22 @@ function os-short () {
   echo $OUTPUT
 }
 
+# ====================================================================================================
+# -- system
+# ====================================================================================================
+help_core[system]='System Information'
+function system () {
+    _loading "System Information"
 
+    # -- OS specific motd
+    _loading3 $(os-short)   
 
+    # -- system details
+    sysfetch-motd
+
+    # -- sysinfo
+    _loading3 $(cpu 0 1)    
+    _loading3 $(mem)
+    zshbop_check-system
+    echo ""
+}

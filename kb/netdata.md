@@ -5,6 +5,10 @@
 * Update netdata ```wget -O /tmp/netdata-kickstart.sh https://get.netdata.cloud/kickstart.sh && sh /tmp/netdata-kickstart.sh```
 * Update netdata with custom temp directory ```env TMPDIR=/root/tmp bash <(curl -Ss https://get.netdata.cloud/kickstart.sh)```
 
+# Unclaim
+* Edit `/var/lib/netdata/cloud.d/cloud.conf`
+* Remove `claimed_id` line
+
 ## Automatic Updates
 * ```/etc/netdata/edit-config netdata.conf```
 * Set auto-update to yes

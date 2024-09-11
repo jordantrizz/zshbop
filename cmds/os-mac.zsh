@@ -7,10 +7,10 @@ typeset -gA help_mac
 
 # Mac PATH
 # - Mac Ports in /opt/local/bin
-export PATH=$PATH:/opt/local/bin:/opt/local/sbin/
-export PATH=$PATH:/usr/local/sbin
+init_add_path /opt/local/bin:/opt/local/sbin/
+init_add_path /usr/local/sbin
 # - Visual Studio Code
-export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+init_add_path PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 
 # -- auto-ls zsh plugin - needs to be defined in order
 DEFAULT_LS="ls -Gal"
@@ -31,17 +31,6 @@ help_mac[mac-flush-dns]="Flush DNS cache"
 function mac-flush-dns () {
     sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder
 }
-
-# -- ls/exa
-_cmd_exists bin/exa-mac_x86_64
-if [[ $? == "0" ]]; then
-    _debug "exa success, using exa for ls alias"
-    alias ls="exa-mac_x86_64 -al"
-else
-	_debug "exa failed, using default ls alias"
-    alias ls="${DEFAULT_LS}"
-fi
-
 
 # - auto-ls
 # Be sure to call it auto-ls-<name of your function>

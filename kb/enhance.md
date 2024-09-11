@@ -1,5 +1,33 @@
+- [Enhance](#enhance)
+  - [Common File Locations](#common-file-locations)
+- [Common CLI Commands](#common-cli-commands)
+  - [Control Panel](#control-panel)
+- [Backup Enhance Control Panel](#backup-enhance-control-panel)
+  - [Databases](#databases)
+  - [Files](#files)
+- [copy control panel assets](#copy-control-panel-assets)
+- [copy cloudflare key (if in use)](#copy-cloudflare-key-if-in-use)
+- [MySQL](#mysql)
+- [Docker](#docker)
+  - [Common Commands](#common-commands)
+- [DNS](#dns)
+  - [Opening UFW](#opening-ufw)
+  - [Disabling systemd-resolved](#disabling-systemd-resolved)
+    - [Create /etc/systemd/resolved.conf.d/disable-stub.conf](#create-etcsystemdresolvedconfddisable-stubconf)
+    - [Restart systemd-resolved](#restart-systemd-resolved)
+- [Common Issues](#common-issues)
+  - [PHP-FPM Errors on Nginx](#php-fpm-errors-on-nginx)
+  - [New Server Not Showing in Control Panel](#new-server-not-showing-in-control-panel)
+  - [wp-cli as root](#wp-cli-as-root)
+  - [Rotate site error logs](#rotate-site-error-logs)
+  - [Rotate mysql logs if enabled](#rotate-mysql-logs-if-enabled)
+- [Notes](#notes)
+  - [Litespeed lsphp Containers](#litespeed-lsphp-containers)
+
+
 # Enhance
 ## Common File Locations
+* Enhance Directory:  /var/local/enhance
 * Site Logs: /var/local/enhance/webserver_logs/
 * Litespeed Error Log: /var/local/enhance/litespeedlogs/error.log
 * Litespeed Configuration: /var/local/enhance/litespeed
@@ -7,7 +35,25 @@
 # Common CLI Commands
 ## Control Panel
 * appcd-cli change-webserver lite-speed - Change webserver to LiteSpeed, rebuilds docker container.
-* 
+
+# Backup Enhance Control Panel
+## Databases
+* sudo -u orchd pg_dump -O -d orchd > /var/orchd/orchd.sql
+* sudo -u orchd pg_dump -O -d authd > /var/orchd/authd.sql
+## Files
+* /etc/ssl/certs/enhance
+* /etc/ssl/private/enhance
+* /var/local/enhance/orchd/private
+* /var/local/enhance/rca.pw
+
+# copy control panel assets
+
+scp -r /var/www/control-panel/assets root@9.9.9.9:/var/www/control-panel/
+
+# copy cloudflare key (if in use)
+
+scp /var/local/enhance/orchd/cloudflare.key root@9.9.9.9:/var/local/enhance/orchd/cloudflare.key
+
 # MySQL
 * Configuration: /var/local/enhance/mysql/conf.d/enhance.cnf
 
@@ -16,7 +62,33 @@
 * Start Docker Container and show output - docker start 01a31fd0ca8e -ai
 * Stop Docker Container - docker stop 01a31fd0ca8e
 
+# DNS
+## Opening UFW
+```
+ufw allow 53/udp
+ufw allow 53/tcp
+```
+
+## Disabling systemd-resolved
+### Create /etc/systemd/resolved.conf.d/disable-stub.conf
+```
+mkdir -p /etc/systemd/resolved.conf.d
+```
+Add the following to /etc/systemd/resolved.conf.d/disable-stub.conf
+```
+[Resolve]
+DNSStubListener=no
+```
+### Restart systemd-resolved
+```
+systemctl restart systemd-resolved
+```
 # Common Issues
+## PHP-FPM Errors on Nginx
+Ensure you log all PHP errors, as such you need to set the follow PHP-FPM configuration variable to true.
+```
+catch_workers_output
+```
 ## New Server Not Showing in Control Panel
 * Check `journalctl -u enhcontrold` for errors
 * Try running /var/local/enhance/controld/enhcontrold

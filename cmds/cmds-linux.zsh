@@ -1,55 +1,29 @@
+# ===============================================
 # -- Linux commands
+# ===============================================
 _debug " -- Loading ${(%):-%N}"
-
 help_files[linux]='Linux related commands'
-
-# - Init help array
 typeset -gA help_linux
 
+# ===============================================
 # -- swap-find - find what's using swap.
+# ===============================================
 help_linux[swap-find]='Find what processes are using swap.'
 swap-find () {
 	find /proc -maxdepth 2 -path "/proc/[0-9]*/status" -readable -exec awk -v FS=":" '{process[$1]=$2;sub(/^[ \t]+/,"",process[$1]);} END {if(process["VmSwap"] && process["VmSwap"] != "0 kB") printf "%10s %-30s %20s\n",process["Pid"],process["Name"],process["VmSwap"]}' '{}' \; | awk '{print $(NF-1),$0}' | sort -h | cut -d " " -f2-
 }
 
+# ===============================================
 # -- dir-filecount
+# ===============================================
 help_linux[dir-filecount]='Count how many files are in each directory, recusively and report back a total.'
 dir-filecount () {
 	find -maxdepth 1 -type d | sort | while read -r dir; do n=$(find "$dir" -type f | wc -l); printf "%4d : %s\n" $n "$dir"; done
 }
 
-# -- vhwinfo - Run vhwinfo.
-help_linux[vhwinfo]='Temporarily downloads vhwinfo and displays system information.'
-vhwinfo () {
-        echo " -- Downloading vhwinfo.sh via wget and running"
-        wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
-}
-
-# -- needrestart - check if system needs a restart
-help_linux[needrestart]='Check if system needs a restart'
-_cmd_exists needrestart
-if [[ $? == "1" ]]; then
-	needrestart () {
-		_debug "needrestart not installed"
-		_notice "needrestart not installed"
-		echo 'Press any key to install needrestart...'; read -k1 -s
-		sudo apt-get install needrestart
-	}
-fi
-
-# -- broot -
-help_linux[broot]='Get an overview of a directory, even a big one'
-_cmd_exists broot
-if [[ $? == "1" ]]; then
-	function broot () {
-		check_broot
-	}
-	function check_broot () {
-		_error "broot not installed"
-	}
-fi
-
+# ===============================================
 # -- backup
+# ===============================================
 help_linux[backup]='Backup a folder in a tar file'
 backup () {
 	if [[ -z $1 ]]; then
@@ -69,7 +43,9 @@ backup () {
 	fi
 }
 
+# ===============================================
 # -- ps2
+# ===============================================
 help_linux[ps2]='Show long usernames in ps :)'
 ps2 () {
     if [[ $@ =~ .u* ]] || [[ *u ]]; then
@@ -82,13 +58,17 @@ ps2 () {
     fi
 }
 
+# ===============================================
 # -- ps-cpu
+# ===============================================
 help_linux[ps-cpu]='Show top 5 CPU applications'
 ps-cpu () {
     ps aux --sort -pcpu | head -5
 }
 
+# ===============================================
 # -- ps-mem2
+# ===============================================
 help_linux[ps-mem2]='Show memory as human readable and sort'
 function ps-mem2() {
     local sortbyfield="rss"
@@ -99,7 +79,9 @@ function ps-mem2() {
     eval "$ps_cmd | $awk_cmd | $cut_cmd"
 }
 
+# ===============================================
 # -- ps-mem
+# ===============================================
 help_linux[ps-mem]="List processes with human readable memory"
 ps-mem () {
 	# PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
@@ -139,13 +121,16 @@ ps-mem () {
 	fi
 }
 
+# ===============================================
 # -- fork
+# ===============================================
 help_linux[fork]='Fork command into background'
 fork () {
 	(setsid "$@" &);
 }
-
+# ===============================================
 # -- sysr
+# ===============================================
 help_linux[sysr]='Systemctl restart shortcut'
 sysr () {
 	if [[ -z $@ ]]; then
@@ -156,7 +141,10 @@ sysr () {
         systemctl restart "$@"
     fi
 }
+
+# ===============================================
 # -- syss
+# ===============================================
 help_linux[syss]='Systemctl status shortcut'
 syss () {
 	if [[ -z $@ ]]; then
@@ -168,7 +156,9 @@ syss () {
     fi
 }
 
+# ===============================================
 # -- sysrld
+# ===============================================
 help_linux[sysrld]='Systemctl reload shortcut'
 sysrld () {
     if [[ -z $@ ]]; then
@@ -180,14 +170,17 @@ sysrld () {
     fi
 }
 
-
+# ===============================================
 # -- usedspace
+# ===============================================
 help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
 usedspace () {
 	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
 }
 
+# ===============================================
 # -- check-diskspace
+# ===============================================
 help_linux[check-diskspace]="Check diskspace based on OS"
 check-diskspace () {
 	if [[ $MACHINE_OS == "linux" ]]; then
@@ -197,7 +190,9 @@ check-diskspace () {
 	fi
 }
 
+# ===============================================
 # -- check_blockdevices
+# ===============================================
 check_blockdevices () {
     if [[ $MACHINE_OS == "linux" ]]; then
         OUTPUT=""
@@ -218,7 +213,9 @@ check_blockdevices () {
     fi
 }
 
+# ===============================================
 # -- check_diskspace
+# ===============================================
 help_linux[check_diskspace2]="Check diskspace2"
 check_diskspace2 () {
 	OUTPUT=""
@@ -248,7 +245,9 @@ check_diskspace2 () {
 
 }
 
+# ===============================================
 # -- speed-convert
+# ===============================================
 help_linux[speed-convert]="Convert data speeds"
 speed-convert () {
 	VALUE="$1"
@@ -282,13 +281,17 @@ speed-convert () {
 	fi
 }
 
+# ===============================================
 # -- utc
+# ===============================================
 help_linux[utc]="Display UTC date and time"
 function utc () {
 	date -u
 }
 
+# ===============================================
 # -- datetz
+# ===============================================
 help_linux[datetz]="Display specified timezone date and time"
 datetz () {
 	env TZ=":US/Pacific" date
@@ -297,11 +300,15 @@ datetz () {
 	env TZ="UTC" date
 }
 
+# ===============================================
 # -- swappiness
+# ===============================================
 help_linux[swappiness]="Display swappiness"
 swappiness () { mem } # alias to mem
 
+# ===============================================
 # -- ubuntu-lts
+# ===============================================
 help_linux[ubuntu-lts]="Display Ubuntu LTS version"
 ubuntu-lts () {
     lts_data=$(curl -s https://changelogs.ubuntu.com/meta-release-lts)
@@ -319,14 +326,16 @@ ubuntu-lts () {
     echo "$combined"
 }
 
+# ===============================================
 # -- Screen sessions
+# ===============================================
 help_linux[screen-sessions]="Display screen sessions"
 screen-sessions () {
 	local SSESSIONS_OUTPUT SSESSIONS
 	# -- Check if on WSL
-	if [[ $MACHINE_OS2 == "wsl" && ! -d "/run/screen" ]]; then
+	if [[ $MACHINE_OS2 == "wsl" ]]; then
 		_loading3 "Detect wsl, running wsl-screen fix"
-		wsl-screen
+		wsl-screen-fix
 	fi
 
     _cmd_exists screen
@@ -349,11 +358,13 @@ screen-sessions () {
 			echo "$(_loading2 Screen Sessions:) $(_loading3b $SSESSIONS_OUTPUT)"
         fi
     else
-        _error "Screen not installed"
+        _warning "Screen not installed"
     fi
 }
 
+# ===============================================
 # -- rename-ext
+# ===============================================
 help_linux[rename-ext]='Rename file extensions'
 rename-ext () {
         if [[ -z $1 ]] || [[ -z $2 ]]; then
@@ -366,7 +377,10 @@ rename-ext () {
         fi
 }
 
+# ===============================================
 # -- add-path
+# ===============================================
+
 help_linux[add-path]='Add to $PATH'
 add-path () {
 	if [[ -z $1 ]]; then
@@ -377,34 +391,57 @@ add-path () {
 	fi
 }
 
-# -- paths
+# ===============================================
+# -- paths - print out $PATH on new lines
+# ===============================================
 help_linux[paths]='print out \$PATH on new lines'
-paths () {
-	echo ${PATH:gs/:/\\n}
+paths () {	
+	_loading "Printing out \$PATH on new lines"
+	GET_PATHS=$(echo $PATH | tr ":" "\n")
+	echo "$GET_PATHS" | sort
+	
+	_loading "Printing out duplicates"
+	# Only print out matches greater than 1
+	echo "$GET_PATHS" | sort | uniq -c | awk '$1 > 1'
+
+	# Get Total Paths
+	_total_paths=$(echo $PATH | tr ":" "\n" | wc -l)
+	_notice "Total paths: $_total_paths"
 }
 
+# ===============================================
 # -- catvet
+# ===============================================
+
 help_linux[catvet]='Print out special formatting characters in a file or via pipe'
 catvet () {
 	echo "To print out the special formatting characters..."
 	echo "echo 'testing\n' | cat -vet"
 }
 
-# -- view-std
-help_linux[view-std]='View standard output and error'
-view-std () {
-	if [[ -z $1 ]]; then
-		echo "Usage: view-std <command>"
-		return 1
-	else
-		eval "{ { $1; } 2>&3 | sed 's/^/STDOUT: /'; } 3>&1 1>&2 | sed 's/^/STDERR: /'"
-	fi
+# ===============================================
+# -- std-view
+# ===============================================
+help_linux[std-view]="Print stdout and stderr on command output"
+function std-view() {
+    if [[ -z $1 ]]; then
+        echo "Usage: std-view <command>"
+        return 1
+    else
+        # Use process substitution for cleaner handling of streams
+        eval "$1 > >(sed 's/^/STDOUT: /') 2> >(sed 's/^/STDERR: /' >&2)"
+    fi
 }
 
+# ===============================================
+# -- get-os-install-date
+# ===============================================
 help_linux[get-os-install-date]='Get the date the OS was installed'
 alias get-os-install-date="_get_os_install_date"
 
+# ===============================================
 # -- swappiness-set <size> - set swap size
+# ===============================================
 help_linux[swappiness-set]='Set swappiness'
 swappiness-set () {
 	if [[ -z $1 ]]; then
@@ -417,7 +454,9 @@ swappiness-set () {
 	fi
 }
 
+# ===============================================
 # -- Reset Swap
+# ===============================================
 help_linux[swap-reset]='Reset swap'
 swap-reset () {
 	# -- Check if swap is on or off
@@ -481,7 +520,7 @@ function date-more () {
 # =================================================================================================
 # -- lsof-mem
 # =================================================================================================
-help_linux[lsof-mem]='List memory usage of a process'
+help_linux[lsof-mem]='List open file memory usage of a process'
 lsof-mem () {
 	local PID=$1
 	# Default to human readable unless defined.
@@ -529,12 +568,14 @@ sum-mem () {
 		return 1
 	fi
 	# get pid process name
+	
 	PARENT_NAME=$(cat /proc/${PARENT_PID}/comm)
 	_loading "Getting total memory usage for $PARENT_PID ($PARENT_NAME) and all child processes"
 
 	# Get all child PIDs, get-pids is newlined add to array	
 	_loading2 "Getting all child PIDs for $PARENT_PID"
 	local ALL_PIDS=($(get-pids $PARENT_PID))
+	_debug "All PIDS: $ALL_PIDS"
 	
 	# Iterate over each PID and sum their memory usage
 	for PID in $ALL_PIDS; do
@@ -598,29 +639,320 @@ function compress () {
 	fi
 }
 
-# =================================================================================================
-# -- geekbench-run
-# =================================================================================================
-help_linux[geekbench-run]='Run geekbench'
-geekbench-run () {
-	# Download geekbench
-	_loading "Downloading geekbench"
-	DOWNLOAD_URL=$(wget -qO- https://www.geekbench.com/download/linux/ | sed -n "s/.*URL=\([^']*\).*/\1/p")
-	wget -O /tmp/Geekbench-6.3.0-Linux.tar.gz "$DOWNLOAD_URL"
+# ===============================================
+# -- sstrace - strace a process
+# ===============================================
+help_linux[sstrace]='Strace a process'
+sstrace () {
+	_usage_sstrace () {
+		echo "Usage: sstrace -n <process_name>|-u <username>|-p <pid>|[-o <file|stdout>]"
+	}
+	# Trap SIGINT (Ctrl + C) to print a message
+    trap '_sstrace_exit $OUTPUT;' SIGINT
 
-	# Extract geekbench
-	_loading "Extracting geekbench"
-	tar -xvf /tmp/Geekbench-6.3.0-Linux.tar.gz -C /tmp
+	_sstrace_exit () {
+		echo "Strace interrupted by user - exiting - $@"	
+		[[ $1 == "file" ]] && { sleep 1;_loading3 "File saved to $FILE" }
+	}		
 
-	# Run geekbench
-	_loading "Running geekbench"
-	/tmp/Geekbench-6.3.0-Linux/geekbench_x86_64
+	_sstrace_pids () {
+		local PIDS=("$@") STRACE_PIDS=()
+		for PID in $PIDS; do
+			STRACE_PIDS+=("-p $PID")
+		done
+		echo $STRACE_PIDS
+	}
+		
+	local STRACE_ARG=()	
+	local STRACE_OUTPUT=()
+	local PID PROCESS_NAME PUSERNAME 
+	local ARG_PID ARG_PROCESS_NAME ARG_PUSERNAME ARG_OUTPUT
+	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE OUTPUT
+	local MESSAGE
+	local DATE=$(date +%Y-%m-%d-%H-%M-%S)
+	local FILE_PATH="/tmp"
+	local FILE="$FILE_PATH/sstrace-$PID-$DATE.log"
+	
+	
+	zparseopts -D -E p:=ARG_PID n:=ARG_PROCESS_NAME u:=ARG_PUSERNAME o:=ARG_OUTPUT
+
+	# Get the process name
+	[[ -n $ARG_PID ]] && PID=$ARG_PID[2]
+	[[ -n $ARG_PROCESS_NAME ]] && PROCESS_NAME=$ARG_PROCESS_NAME[2]
+	[[ -n $ARG_PUSERNAME ]] && PUSERNAME=$ARG_PUSERNAME[2]
+	[[ -n $ARG_OUTPUT ]] && OUTPUT=$ARG_OUTPUT[2] || OUTPUT="file"
+	
+	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT+=(-o $FILE)
+
+	_debugf "PID: $PID - PROCESS_NAME: $PROCESS_NAME - PUSERNAME: $PUSERNAME"
+		
+	# Check if strace is installed
+	_cmd_exists strace
+	if [[ $? == "1" ]]; then
+		_error "strace not installed"
+		return 1
+	fi
+	
+	# Process name
+	if [[ -n $PROCESS_NAME ]]; then
+		_loading "Stracing process $PROCESS_NAME"
+		PIDS=$(pgrep $PROCESS_NAME)	
+		[[ -z $PIDS ]] && { _error "Process $PROCESS_NAME not found"; return 1; }
+		
+		MESSAGE="Stracing process $PROCESS_NAME"
+	# PID
+	elif [[ -n $PID ]]; then
+		[[ -z $PID ]] && { _error "Process $PID not found"; return 1; }
+		_loading "Stracing process with PID: $PID"
+		PIDS=$(pgrep -P $PID)
+		PIDS=($PID $PIDS)
+
+		MESSAGE="Stracing process $PID"
+	# PUSERNAME
+	elif [[ -n $PUSERNAME ]]; then		
+		_loading "Stracing process with username $PUSERNAME"		
+		PIDS=$(pgrep -u $PUSERNAME)
+		[[ -z $PIDS ]] && { _error "Process $PUSERNAME not found"; return 1; }
+				
+		MESSAGE="Stracing process $PUSERNAME"
+	else
+		_error "No process name or PID provided"
+		_usage_sstrace
+	fi
+
+	PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))	
+	_loading2 "$MESSAGE with PIDs: $PIDS_SAME_LINE"
+	STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
+	_debugf "strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]}"
+	eval $(strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]})
 }
 
-# =================================================================================================
-# -- geekbench-run-oneliner
-# =================================================================================================
-help_linux[geekbench-install]='Print out oneliner to download, and run geekbench'
-geekbench-install () {
-    echo 'cd /tmp && wget -O Geekbench.tar.gz "$(wget -qO- https://www.geekbench.com/download/linux/ | sed -n "s/.*URL=\([^'\'']*\).*/\1/p")" && tar -xzf Geekbench.tar.gz && ./Geekbench-6.3.0-Linux/geekbench6'
+
+# ===============================================
+# -- smartctl-all-disks
+# ===============================================
+help_linux[smartctl-all-disks]='Run smartctl on all disks'
+smartctl-all-disks () {	
+	_smartctl-all-disks-usage () {
+		echo "Usage: smartctl-all-disks [option]"
+		echo "  -all-details"
+		echo "  -errors-only"
+		echo "  -errors-serial"
+		echo "  -h, --help"
+	}
+
+	local ALL_DETAILS ERRORS_ONLY ERRORS_SERIAL HELP SMARTCTL_OUTPUT
+
+	zparseopts -D -E h:=HELP all-details=ALL_DETAILS errors-only=ERRORS_ONLY errors-serial=ERRORS_SERIAL
+	[[ -n $HELP ]] && { _smartctl-all-disks-usage; return 1; }
+
+	# Check if smartctl is installed
+	_cmd_exists smartctl
+	if [[ $? == "1" ]]; then
+		_error "smartctl not installed"
+		return 1
+	fi
+
+	# Get a list of all block devices
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop" | grep -v "^sr" | grep -v "^ram" | grep -v "^zram" | grep -v "^zd"))
+	if [[ -n $ALL_DETAILS ]]; then
+		_loading "Running smartctl on all disks"
+		for i in $DEVICES; do
+			echo "Disk $i"
+			smartctl -i -A /dev/$i
+		done
+	elif [[ -n $ERRORS_SERIAL ]]; then
+		_loading "Running smartctl on all disks, showing errors and serial only."
+		for i in $DEVICES; do
+			_loading2 "Disk $i"
+			SMARTCTL_OUTPUT=$(smartctl -i -A /dev/$i)
+			echo $SMARTCTL_OUTPUT | egrep -E -i "Serial Number|Device Model|Firmware Version|User Capacity|TRIM Command|SMART support is"
+			echo $SMARTCTL_OUTPUT | egrep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW""			
+		done
+	elif [[ -n $ERRORS_ONLY ]]; then
+		_loading "Running smartctl on all disks, showing errors only."
+		for i in $DEVICES; do
+			echo "Disk $i - smartctl --quietmode=errorsonly -i -A /dev/$i"
+			smartctl --quietmode=errorsonly -i -A /dev/$i
+		done
+	else
+		_smartctl-all-disks-usage
+	fi
+}
+
+# =====================================
+# -- whatprovides - find what package provides a command
+# =====================================
+help_linux[whatprovides]='Find what package provides a specific command'
+function whatprovides() {
+    if [[ -z $1 ]]; then
+        _error "Usage: whatprovides <command>"
+        return 1
+    fi
+
+	local COMMAND_NAME=$1
+	_loading "Searching for '$COMMAND_NAME'..."
+    _loading2 "1. Checking if $COMMAND_NAME is installed"
+    # First check if the command is already installed
+	
+	_cmd_exists $COMMAND_NAME
+	if [[ $? == "0" ]]; then
+		_success "Command $COMMAND_NAME is already installed"		
+	else
+		_error "Command $COMMAND_NAME is not installed"
+	fi
+
+	# Try whatprovides-db first
+	_loading2 "2. Checking whatprovides-db for $COMMAND_NAME"
+	whatprovides-db $COMMAND_NAME
+	if [[ $? == "0" ]]; then
+		_success "Command $COMMAND_NAME found in whatprovides-db"
+		_loading3 "Package: ${whatprovides_db[$COMMAND_NAME]}"		
+	else
+		_error "Command $COMMAND_NAME not found in whatprovides-db, trying apt-file"
+	fi
+    
+	_loading2 "3. Searching for '$COMMAND_NAME' using apt-file..."
+	    # If command is not installed, we need apt-file
+	_cmd_exists apt-file
+	if [[ $? == "1" ]]; then
+		_error "apt-file is not installed"
+		_loading3 "Installing apt-file..."3
+		sudo apt-get install apt-file
+		if [[ $? == "0" ]]; then
+			_success "apt-file installed"
+		else
+			_error "apt-file failed to install"
+			return 1
+		fi
+	fi
+
+	_loading3 "apt-file is already installed"
+	_loading3 "Updating apt-file..."
+	sudo apt-file update
+	apt-file search "$COMMAND_NAME"
+}
+
+# =====================================
+# -- whatprovides-db - A database of whatprovides for quicker lookups
+# =====================================
+help_linux[whatprovides-db]='A database of whatprovides for quicker lookups'
+function whatprovides-db () {
+	# Database of common commands and their packages
+	typeset -gA whatprovides_db
+	# Add commands to the database
+	whatprovides_db[netstat]="net-tools"
+	whatprovides_db[ss]="iproute2"
+	whatprovides_db[ifconfig]="net-tools"
+	whatprovides_db[traceroute]="traceroute"
+
+	if [[ -z $1 ]]; then
+		_error "Usage: whatprovides-db <command>"
+		return 1
+	fi
+
+	local COMMAND_NAME=$1
+	_loading "Searching for packages that provide '$COMMAND_NAME'..."
+
+	# Check if the command is in the database
+	if [[ -n $whatprovides_db[$COMMAND_NAME] ]]; then
+		_loading2 "Command $COMMAND_NAME is in the database"
+		_loading3 "Package: $whatprovides_db[$COMMAND_NAME]"
+	else
+		_loading2 "Command $COMMAND_NAME is not in the database"
+	fi
+	
+}
+
+# =====================================
+# -- last-boots
+# =====================================
+help_linux[last-boot]="Get last boot times"
+function last-boots () {
+    _loading "Running journalctl --list-boots"
+    journalctl --list-boots
+}
+
+# =====================================
+# -- journalctl-cron
+# =====================================
+help_linux[journalctl-cron]="Get cron logs last 48 hours"
+function journalctl-cron () {
+    _loading "Running journalctl -u cron.service --since '48 hours ago'"
+    journalctl -u cron.service --since '48 hours ago'
+}
+
+# =====================================
+# -- syslog-cron
+# =====================================
+help_linux[syslog-cron]="Get cron logs from syslog"
+function syslog-cron () {
+	_loading "Running grep CRON /var/log/syslog"
+	grep -i 'CRON' /var/log/syslog
+}
+
+
+# ====================================
+# -- oom-check
+# ====================================
+help_linux[oom-check]='Check for OOM killer running, list all oom killed processes with timestamps'
+oom-check () {
+	# Check if journalctl is installed
+	_cmd_exists journalctl
+	if [[ $? == 0 ]]; then
+		_loading "Running journalctl -k | grep -i 'oom'"
+		journalctl -k | grep -i 'Out of memory: Killed process'
+	elif [[ -f /var/log/syslog ]]; then
+		_loading "Running grep -i 'Out of memory: Killed process' /var/log/syslog"
+		grep -i 'Out of memory: Killed process' /var/log/syslog
+		return 1
+	fi
+}
+
+# =============================================
+# -- ps-top
+# =============================================
+help_linux[ps-top]='Show processes using ps and refresh a configurable amount of time'
+ps-top() {
+  	# Help flag
+	_ps-top-usage () {
+		
+		echo "Usage: ps-top [interval] [cpu|mem] [topN]"
+		echo "  interval: Time in seconds to refresh (default: 2)"
+		echo "  cpu|mem: Sort by CPU usage or memory usage (default: cpu)"		
+		echo "  topN: Show top N processes (default: 0, show all)"
+		echo "  -h, --help: Show this help message"
+		echo "  Example: ps-top 2 cpu 10"		
+	}
+
+	if [[ $1 == "-h" || $1 == "--help" ]]; then
+		_ps-top-usage
+		return 0
+	fi
+
+	local INTERVAL="${1:-2}"
+	local SORTFIELD="${2:-cpu}"
+	local TOPN="${3:-0}"
+	local SORTCOL TOPCMD CMD
+
+	case "$SORTFIELD" in
+		cpu) SORTCOL=3 ;;
+		mem) SORTCOL=4 ;;
+		*)
+		echo "Invalid sort field: '$SORTFIELD' (use cpu or mem)"
+		return 1
+		;;
+	esac
+
+	if (( TOPN > 0 )); then
+		TOPCMD=" | head -n $TOPN"
+	else
+		TOPCMD=""
+	fi
+
+	CMD="ps -eo user:32,pid,%cpu,%mem,cmd --forest \
+		| { read -r header; echo \"\$header\"; tail -n +2 \
+			| sort -nrk${SORTCOL},${SORTCOL}${TOPCMD}; }"
+
+	watch -n "$INTERVAL" "$CMD"
 }

@@ -1,3 +1,5 @@
+# Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Popular Links](#popular-links)
 - [GridPane CLI Commands](#gridpane-cli-commands)
   - [Set Default Site](#set-default-site)
@@ -9,6 +11,7 @@
   - [Unlock SSL Renewal Failures](#unlock-ssl-renewal-failures)
   - [Configure Nginx](#configure-nginx)
     - [Nginx Rate Limiting](#nginx-rate-limiting)
+      - [Whitelist Page wp Zone](#whitelist-page-wp-zone)
       - [Update wp-login.php Rate Limiting](#update-wp-loginphp-rate-limiting)
         - [Directive: limit\_req\_zone](#directive-limit_req_zone)
         - [Directive: limit\_req](#directive-limit_req)
@@ -25,6 +28,8 @@
   - [MySQL Configuration](#mysql-configuration)
   - [MySQL Slow Query Log](#mysql-slow-query-log)
 - [GridPane Fix Commands](#gridpane-fix-commands)
+- [Redis](#redis)
+  - [Redus Auth](#redus-auth)
 - [Caching](#caching)
   - [Redis Page Cache](#redis-page-cache)
     - [Enable Redis Page Cache](#enable-redis-page-cache)
@@ -40,6 +45,7 @@
   - [Update PHP memory per site.](#update-php-memory-per-site)
   - [Enable php-fpm slow log](#enable-php-fpm-slow-log)
   - [PHP FPM pm.max-requests](#php-fpm-pmmax-requests)
+  - [PHP: Changing CLI PHP Version](#php-changing-cli-php-version)
 - [Cache](#cache)
   - [Commands](#commands)
 - [Backups](#backups)
@@ -62,9 +68,11 @@
   - [Regenerate Nginx Config](#regenerate-nginx-config)
 - [Enable Debug Mode](#enable-debug-mode)
 - [Create Vanilla Nginx Config](#create-vanilla-nginx-config)
+- [GridPane Deployment Issues](#gridpane-deployment-issues)
+  - [GCP](#gcp)
 - [Notes](#notes)
   - [Check Caching](#check-caching)
-    - [Redis](#redis)
+    - [Redis](#redis-1)
     - [Nginx](#nginx-1)
 
 
@@ -104,6 +112,14 @@ examplewebsite.com-ssl_fail-3.date
 https://gridpane.com/kb/configure-nginx/
 
 ### Nginx Rate Limiting
+
+#### Whitelist Page wp Zone
+* Edit /etc/nginx/extra.d/whitelist-request-uri-rate-limit-whitelist.conf
+```
+~my-request-uri.php 0;
+```
+
+
 #### Update wp-login.php Rate Limiting
 ##### Directive: limit_req_zone
 * Config location: /etc/nginx/common/limits.conf
@@ -200,6 +216,11 @@ MySQL slow query log output can be viewed in the following log: /var/log/mysql/s
 * Clear single site cache ```gp fix cache site.com```
 * Clear all sites on server cache ``` gp fix cache```
 
+
+# Redis
+## Redus Auth
+To be able to interact with GridPane's redis instance, you need to auth due to protected-mode being enabled. The password is stored in /opt/gridpane/object.auth
+
 # Caching
 ## Redis Page Cache
 ### Enable Redis Page Cache
@@ -236,6 +257,11 @@ gp stack redis -max-memory 300
 * gp stack php -site-slowlog-trace-depth 15 site.url
 ## PHP FPM pm.max-requests
 * gp stack php site-pm-max-requests 5000 site.url
+
+## PHP: Changing CLI PHP Version
+* System Wide - `update-alternatives --config php`
+* Per User Ubuntu 24 chroot) - cp /usr/local/bin
+* Per User (Ubuntu 24 chroot Litespeed) - `cp /usr/bin/php8.1 /opt/gridpane/chroot/bin/php`
 
 # Cache
 ## Commands
@@ -298,6 +324,12 @@ gp stack redis -max-memory 300
 
 # Create Vanilla Nginx Config
 * gp conf nginx generate https-vanilla site.com
+
+# GridPane Deployment Issues
+## GCP
+1. Install full Ubuntu
+   * ```apt-get install -y ubuntu-server```
+2. Ensure that GPC firewall rules allow tcp port 11371 ingress
 
 # Notes
 
