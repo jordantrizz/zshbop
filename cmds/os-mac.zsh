@@ -7,10 +7,10 @@ typeset -gA help_mac
 
 # Mac PATH
 # - Mac Ports in /opt/local/bin
-export PATH=$PATH:/opt/local/bin:/opt/local/sbin/
-export PATH=$PATH:/usr/local/sbin
+init_add_path /opt/local/bin:/opt/local/sbin/
+init_add_path /usr/local/sbin
 # - Visual Studio Code
-export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+init_add_path PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 
 # -- auto-ls zsh plugin - needs to be defined in order
 DEFAULT_LS="ls -Gal"
