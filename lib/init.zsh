@@ -304,7 +304,7 @@ function init_fzf () {
 # -- Initialize ZSH plugins
 # ==============================================
 function init_plugins () {
-	_loading3 "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
+	_log "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
 	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
 		init_antigen	
 	else
@@ -364,6 +364,7 @@ init_log
 # ==============================================
 function init_os () {
 	_debug_all
+    _loading3 "Loading OS specific configuration"
 	# -- Include common OS configuration
 	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
 	source $ZSHBOP_ROOT/cmds/os-common.zsh
@@ -371,23 +372,23 @@ function init_os () {
 	# Include OS Specific configuration	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
-        _loading3 "Loaded OS Configuration cmds/os-mac.zsh"
+        _log "Loaded OS Configuration cmds/os-mac.zsh"
         source $ZSHBOP_ROOT/cmds/os-mac.zsh   
     # -- WSL Linux
     elif [[ $MACHINE_OS2 = "wsl" ]]; then				
-        _loading3 "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
+        _log "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
         source $ZSHBOP_ROOT/cmds/os-wsl.zsh
         init_wsl
 	# -- Linux
     elif [[ $MACHINE_OS = "linux" ]] then
-		_loading3 "Loading cmds/os-linux.zsh"
+		_log "Loading cmds/os-linux.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
     elif [[ $MACHINE_OS = "synology" ]] then
-		_loading3 "Loading cmds/os-linux.zsh"
+		_log "Loading cmds/os-linux.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
 	else
-        _loading3 "No OS specific configuration found"
+        _log "No OS specific configuration found"
     fi
     init_log
 }
@@ -437,7 +438,7 @@ function init_sshkeys () {
             eval `keychain -q --eval --agents ssh $HOME/.ssh/client*`
         fi
     else
-        _warning "Command keychain doesn't exist, please install for SSH keys to work"
+        _warning_log "Command keychain doesn't exist, please install for SSH keys to work"
     fi
     init_log
 }
@@ -684,7 +685,7 @@ function init_detect_install_type () {
 # ==============================================
 function init_completion () {
     _debug_all
-    _loading "Loading completion"
+    _log "Loading completion"
     # -- Load completion
     fpath+=($ZSHBOP_ROOT/completion $fpath)
     autoload -U compinit
@@ -695,9 +696,8 @@ function init_completion () {
 # -- init_software
 # ==============================================
 function init_software () {
-    _debug_all
-    _loading "Loading software"
-    _log "Loading zshbop cmds...."
+    _debug_all    
+    _log "Loading software from software/*.zsh"
     source ${ZSHBOP_ROOT}/software/_init.zsh
    	for SOFTWARE_FILE in "${ZSHBOP_ROOT}/software/"*.zsh; do
         # If starts with an _ skip
@@ -722,21 +722,9 @@ function init_software () {
 # ==============================================
 init_motd () {
 	# -- Start motd
-    _debug_all
-    _loading "System Information"
+    _debug_all    
+    system
 
-    # -- OS specific motd
-    _loading3 $(os-short)   
-
-    # -- system details
-    sysfetch-motd
-
-    # -- sysinfo
-    _loading3 $(cpu 0 1)    
-    _loading3 $(mem)
-    zshbop_check-system
-    echo ""
-    
     # -- Check System
     _loading "Checking System"    
 	init_check_services
@@ -751,19 +739,8 @@ init_motd () {
     source "${ZSHBOP_ROOT}/motd/motd.zsh"
 
 	# -- Environment check
-	_loading2  "Run zshbop check or system-specs."
-    #env-install to install default and extra tools. Run system-specs for more system details."
-    # TODO - add system-specs
-    echo ""
-	
-    # -- run report after exec zsh
-    if [[ $RUN_REPORT == "1" ]]; then
-        zshbop_report
-        export RUN_REPORT=0
-    else
-        zshbop_report faults
-    fi
-    
+	_loading3 "Run 'zshbop check' for system checks or 'zshbop report' for a system report"
+
     # -- last echo to keep motd clean
     echo ""
     init_log
@@ -779,8 +756,7 @@ function init_zshbop () {
 	# -- Start init
     # --------------------------------------------------
 	_debug_all
-    echo "$bg[yellow]$fg[black] * Initializing zshbop${RSC}"
-    echo "$(zshbop_version) - $ZSHBOP_ROOT"
+    echo "$bg[yellow]$fg[black] * Initializing zshbop${RSC} - $(zshbop_version) - $ZSHBOP_ROOT"
 	_debug "\$ZSHBOP_ROOT = $ZSHBOP_ROOT"
 
     # --------------------------------------------------
@@ -816,7 +792,7 @@ function init_zshbop () {
     init_zsh_sweep       # -- Init zsh-sweep if installed
 
     # -- Print out what loaded
-    _loading3 "Loaded: $ZSHBOP_LOAD"
+    _loading3 "Loaded zshbop: $ZSHBOP_LOAD"
     echo ""
      
     # -- Load custom then commands dependant on custom    

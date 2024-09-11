@@ -37,5 +37,22 @@ function os-short () {
   echo $OUTPUT
 }
 
+# ====================================================================================================
+# -- system
+# ====================================================================================================
+help_core[system]='System Information'
+function system () {
+    _loading "System Information"
 
+    # -- OS specific motd
+    _loading3 $(os-short)   
 
+    # -- system details
+    sysfetch-motd
+
+    # -- sysinfo
+    _loading3 $(cpu 0 1)    
+    _loading3 $(mem)
+    zshbop_check-system
+    echo ""
+}

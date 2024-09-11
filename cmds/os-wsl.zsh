@@ -21,7 +21,7 @@ init_wsl () {
 	_debug " -- Running init_wsl"
 	wsl-fixes
 	wsl-fixscreen
-	wsl-backupwtc
+	wsl-backupwtc 1
 	wsl-shortcuts
 	init_log
 }

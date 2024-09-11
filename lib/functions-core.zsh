@@ -23,6 +23,7 @@ _loading () { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] 
 _loading2 () { echo "$bg[bright-grey]$fg[black] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
 _loading2b () { echo "$fg[bright-white] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
 _loading3 () { echo "$fg[bright-grey] *** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG})}
+_loading3_log () { echo "[LOAD] *** ${@} >> ${ZB_LOG}" }
 _loading3b () { echo "$fg[bright-grey] ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG})}
 _loading4 () { echo "$fg[bright-grey] **** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) }
 alias _loading_grey=_loading2

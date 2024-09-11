@@ -182,6 +182,7 @@ _log () { zb_logger "LOG" 1 "$@" }
 _error () { zb_logger "ERROR" 1 "$@" }
 _error2 () { zb_logger "ERROR" 1 "$@" }
 _warning () { zb_logger "WARNING" 1 "$@" }
+_warning_log () { zb_logger "WARNING" 0 "$@" }
 _alert () { zb_logger "ALERT" 1 "$@" }
 _notice () { zb_logger "NOTICE" 1 "$@" }
 # -- Log to both. # TODO Why?
@@ -192,7 +193,7 @@ _elog () { _log "${*}"; _error "${*}" }
 # -- zshbop_log
 # -- args: $1 = LOG_TYPE, $2 - LOG_ECHO = 1, $3 - LOG_MSG
 # --------------------------------------------------
-function zb_logger() {
+function zb_logger () {
     local LOG_TYPE="${1:=LOG}" LOG_ECHO=${2:=1} LOG_MSG="${3}"
     
     function zb_echo () { echo "$LOG_OUTPUT"; }

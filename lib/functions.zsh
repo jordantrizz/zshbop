@@ -141,14 +141,12 @@ zshbop_reload () {
         esac
         return 1
     elif [[ -n $ARG_QUICK ]]; then
-        _loading "Quick reload of zshbop"
-        export RUN_REPORT=0
+        _loading "Quick reload of zshbop"        
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
         init_zshbop
     else
-        _loading "Reloading zshbop"
-        export RUN_REPORT=1
+        _loading "Reloading zshbop"        
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
         _log "Running exec zsh"

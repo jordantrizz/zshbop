@@ -83,7 +83,7 @@ function vm-check-detect () {
         fi
     fi
     export $VMTYPE
-    _loading3 "$OUTPUT"
+    _log "$OUTPUT"
     
 }
 
