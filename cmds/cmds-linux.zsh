@@ -633,10 +633,98 @@ geekbench-run () {
 	/tmp/Geekbench-6.3.0-Linux/geekbench_x86_64
 }
 
-# =================================================================================================
+# ===============================================
 # -- geekbench-run-oneliner
-# =================================================================================================
+# ===============================================
 help_linux[geekbench-install]='Print out oneliner to download, and run geekbench'
 geekbench-install () {
     echo 'cd /tmp && wget -O Geekbench.tar.gz "$(wget -qO- https://www.geekbench.com/download/linux/ | sed -n "s/.*URL=\([^'\'']*\).*/\1/p")" && tar -xzf Geekbench.tar.gz && ./Geekbench-6.3.0-Linux/geekbench6'
+}
+
+
+# ===============================================
+# -- sstrace - strace a process
+# ===============================================
+help_linux[sstrace]='Strace a process'
+sstrace () {
+	_usage_sstrace () {
+		echo "Usage: sstrace -n <process_name>|-u <username>|-p <pid>"
+	}
+	# Trap SIGINT (Ctrl + C) to print a message
+    trap 'echo "Strace interrupted by user"; sleep 1;_loading3 "File saved to $FILE" ' SIGINT
+
+	_sstrace_pids () {
+		local PIDS=("$@") STRACE_PIDS=()
+		for PID in $PIDS; do
+			STRACE_PIDS+=("-p $PID")
+		done
+		echo $STRACE_PIDS
+	}
+		
+	local STRACE_ARG=()	PID PROCESS_NAME PUSERNAME ARG_PID ARG_PROCESS_NAME ARG_PUSERNAME
+	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE
+	local FILE_PATH="/tmp"
+	local DATE=$(date +%Y-%m-%d-%H-%M-%S)
+	
+	zparseopts -D -E p:=ARG_PID n:=ARG_PROCESS_NAME u:=ARG_PUSERNAME
+
+	# Get the process name
+	[[ -n $ARG_PID ]] && PID=$ARG_PID[2]
+	[[ -n $ARG_PROCESS_NAME ]] && PROCESS_NAME=$ARG_PROCESS_NAME[2]
+	[[ -n $ARG_PUSERNAME ]] && PUSERNAME=$ARG_PUSERNAME[2]
+
+	_debugm "PID: $PID - PROCESS_NAME: $PROCESS_NAME - PUSERNAME: $PUSERNAME"
+		
+	# Check if strace is installed
+	_cmd_exists strace
+	if [[ $? == "1" ]]; then
+		_error "strace not installed"
+		return 1
+	fi
+
+	if [[ -n $PROCESS_NAME ]]; then
+		_loading "Stracing process $PROCESS_NAME"
+		FILE="$FILE_PATH/sstrace-$PROCESS_NAME-$DATE.log"
+		PIDS=$(pgrep $PROCESS_NAME)		
+		if [[ -z $PIDS ]]; then
+			_error "Process $ARGS_PROCESS_NAME not found"
+			return 1
+		fi
+		# Print PIDS without newlines		
+		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
+		_loading "Stracing process $PROCESS_NAME with PID's $PIDS_SAME_LINE"
+		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
+		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"
+		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"
+	elif [[ -n $PID ]]; then	
+		_loading "Stracing process with PID: $PID"
+		FILE="$FILE_PATH/sstrace-$PID-$DATE.log"
+		PIDS=$(pgrep -P $PID)			
+		if [[ -z $PIDS ]]; then
+			_error "Process $ARGS_PROCESS_NAME not found"
+			return 1
+		fi
+		PIDS=($PID $PIDS)
+		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
+		_loading "Stracing process $PID with PID's $PIDS_SAME_LINE"
+		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))	
+		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"
+		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"
+	elif [[ -n $PUSERNAME ]]; then
+		_loading "Stracing process with username $$PUSERNAME"
+		FILE="$FILE_PATH/sstrace-$PUSERNAME-$DATE.log"
+		PIDS=$(pgrep -u $PUSERNAME)
+		if [[ -z $PIDS ]]; then
+			_error "Process $$PUSERNAME not found"
+			return 1
+		fi
+		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
+		_loading "Stracing process $PUSERNAME with PID's $PIDS_SAME_LINE"
+		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
+		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"
+		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"		
+	else
+		_error "No process name or PID provided"
+		_usage_sstrace
+	fi
 }
