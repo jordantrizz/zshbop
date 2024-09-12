@@ -144,13 +144,37 @@ export STOPLOG
 # -- 1 - +debug
 # --------------------------------
 ZSH_DEBUG="0"
+ZSH_DEBUG_LOG="0"
+DEBUGF_LOG="0"
 DEBUG_MSG=""
 DEBUGF_MSG=""
+
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
-#_debug () { DEBUG_MSG="\033[36m[DEBUG]: $@\033[0m"; [[ $ZSH_DEBUG == 1 ]] && { echo "$DEBUG_MSG" | tee -a "$ZB_LOG"; } || { echo "$DEBUG_MSG" >> "$ZB_LOG"; } } # -- debug for core
-_debug () { [[ $ZSH_DEBUG == 1 ]] && { zb_logger "DEBUG" 1 "$@"; } || { zb_logger "DEBUG" 0 "$@" } } # -- debug for core
-_debugf () { DEBUGF_MSG="\033[36m** [DEBUG]: $@\033[0m"; [[ $DEBUGF == 1 ]] && { echo $DEBUGF_MSG | tee -a "$ZB_LOG" >&2; } || { echo "$DEBUGF_MSG" >> "$ZB_LOG"; } } # -- debugf for debugging third party scripts
-_debug_load () { _debug "Loading $funcstack" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}) } # -- debug load
+[[ -f $ZSHBOP_ROOT/.debug_log ]] && export ZSH_DEBUG_LOG=1 || export ZSH_DEBUG_LOG=0 # -- zshbop debugging log
+[[ -f $ZSHBOP_ROOT/.debugf_log ]] && export DEBUGF_LOG=1 || export DEBUGF_LOG=0 # -- zshbop debugging log
+
+_debug () { 
+    DEBUG_MSG="\033[36m** [DEBUG]: $@\033[0m";
+    # Log to screen
+    [[ $ZSH_DEBUG == 1 ]] && echo $DEBUG_MSG
+    # Log to file.
+    [[ $ZSH_DEBUG_LOG == 1 ]] && zb_logger "DEBUG" 0 "$@"; 
+}
+_debugf () { 
+    DEBUGF_MSG="\033[36m** [DEBUGF]: $@\033[0m";
+    # Echo to screen.
+    [[ $DEBUGF == 1 ]] && echo $DEBUGF_MSG
+    # Log to file.
+    [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$@"; 
+} 
+_debug_load () { 
+    local MESSAGE="Loading $funcstack"
+    local DEBUG_LOAD_MSG="\033[36m** [DEBUG_LOAD]: $MESSAGE \033[0m";
+    # Echo to screen.
+    [[ $DEBUGF == 1 ]] && echo $DEBUG_LOAD_MSG
+    # Log to file.
+    [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$MESSAGE"
+}
 
 # ================================================
 # -- zbdebug
@@ -175,10 +199,9 @@ _debug_all () {
 # -- Logging errors and Warnings
 # TODO - Allow color in logs while still being able to grep for errors
 ZSH_VERBOSE="0"
-ZSHBOP_LOGS=""
 LOG_MSG=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
-_log () { zb_logger "LOG" 1 "$@" }
+_log () { zb_logger "LOG" 0 "$@" }
 _error () { zb_logger "ERROR" 1 "$@" }
 _error2 () { zb_logger "ERROR" 1 "$@" }
 _warning () { zb_logger "WARNING" 1 "$@" }
@@ -190,8 +213,11 @@ _dlog () { _log "${*}"; _debug "${*}" }
 _elog () { _log "${*}"; _error "${*}" }
 
 # --------------------------------------------------
-# -- zshbop_log
-# -- args: $1 = LOG_TYPE, $2 - LOG_ECHO = 1, $3 - LOG_MSG
+# -- zb_logger $LOG_TYPE, $LOG_ECHO, $LOG_MSG
+# -- args: 
+# LOG_TYPE - LOG, ERROR, WARNING, ALERT, NOTICE, DEBUG
+# LOG_ECHO - 1 or 0 to echo the message
+# LOG_MSG - Message to log
 # --------------------------------------------------
 function zb_logger () {
     local LOG_TYPE="${1:=LOG}" LOG_ECHO=${2:=1} LOG_MSG="${3}"
@@ -228,4 +254,4 @@ function zb_logger () {
 # ---------------
 source ${ZSHBOP_ROOT}/lib/init.zsh # -- include init
 source ${ZSHBOP_ROOT}/lib/help.zsh # -- include help functions
-source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedge Base
+source ${ZSHBOP_ROOT}/lib/kb.zsh # -- Built in Knolwedgeecc Base

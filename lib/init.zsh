@@ -8,8 +8,15 @@
 # =========================================================
 _debug_load
 function init_log () {
-    # -- Logging function that called init_log
-    ZSHBOP_LOAD+=(${funcstack[2]})
+    local ZSBBOP_FUNC_LOADING="${funcstack[2]}"
+
+    # Check if $ZSBBOP_FUNC_LOADING is already in $ZSHBOP_LOAD
+    if [[ " ${ZSHBOP_LOAD[@]} " =~ " ${ZSBBOP_FUNC_LOADING} " ]]; then
+        _debug "Already loaded $ZSBBOP_FUNC_LOADING"
+    else
+        _debug "Loading $ZSBBOP_FUNC_LOADING"
+        ZSHBOP_LOAD+=($ZSBBOP_FUNC_LOADING)
+    fi
 }
 
 # =========================================================
@@ -364,7 +371,7 @@ init_log
 # ==============================================
 function init_os () {
 	_debug_all
-    _loading3 "Loading OS specific configuration"
+    _log "Loading OS specific configuration"
 	# -- Include common OS configuration
 	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
 	source $ZSHBOP_ROOT/cmds/os-common.zsh
@@ -792,7 +799,7 @@ function init_zshbop () {
     init_zsh_sweep       # -- Init zsh-sweep if installed
 
     # -- Print out what loaded
-    _loading3 "Loaded zshbop: $ZSHBOP_LOAD"
+    _log "Loaded zshbop functions: $ZSHBOP_LOAD"
     echo ""
      
     # -- Load custom then commands dependant on custom    
