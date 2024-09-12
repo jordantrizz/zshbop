@@ -246,7 +246,7 @@ init_omz_plugins () {
 		web-search
 		urltools
 		ufw
-		ubuntu
+		ubuntu        
 	)
 	export OMZ_PLUGINS=$(echo $plugins | fmt)
 	_debug "OMZ plugins - $OMZ_PLUGINS"
