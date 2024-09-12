@@ -331,6 +331,11 @@ function init_antidote () {
 	_log "Loading antidote"
 	zstyle ':antidote:bundle' use-friendly-names 'yes' # remove slashes and user friendly names
 	zstyle ':antidote:bundle' file "${ZBR}/.zsh_plugins.txt"
+
+    # for H-S-MW
+    zstyle :plugin:history-search-multi-word reset-prompt-protect 1
+    zstyle ":history-search-multi-word" page-size "8"
+
 	export ANTIDOTE_DIR="${ZBR}/antidote"
 	export ANTIDOTE_PLUGINS="${ZBR}/.zsh_plugins.txt"
 	export ANTIDOTE_STATIC="${ZSHBOP_CACHE_DIR}/.zsh_plugins.zsh"
