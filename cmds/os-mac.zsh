@@ -32,17 +32,6 @@ function mac-flush-dns () {
     sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder
 }
 
-# -- ls/exa
-_cmd_exists bin/exa-mac_x86_64
-if [[ $? == "0" ]]; then
-    _debug "exa success, using exa for ls alias"
-    alias ls="exa-mac_x86_64 -al"
-else
-	_debug "exa failed, using default ls alias"
-    alias ls="${DEFAULT_LS}"
-fi
-
-
 # - auto-ls
 # Be sure to call it auto-ls-<name of your function>
 export AUTO_LS_COMMANDS=('color' git-status)
