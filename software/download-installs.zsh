@@ -175,11 +175,31 @@ software_glint () {
 	fi
 }
 
-
 # --------------------------------------------------
 # -- change
 # --------------------------------------------------
 help_software[change]="Install change - https://raw.githubusercontent.com/adamtabrams/change"
 software_change () {
 	_software_install change "https://raw.githubusercontent.com/adamtabrams/change/master/change"
+}
+
+# ===============================================
+# -- software_nix
+# ===============================================
+help_software[nix]="Install nix"
+software_nix () {
+	curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+}
+
+# ===============================================
+# -- software_eza
+# ===============================================
+help_software[eza]="Install eza"
+software_eza () {
+	_cmd_exists nix
+	if [[ $? -ge 1 ]]; then
+		_error "Nix not found, please install nix first"
+		return 1
+	fi
+	nix profile install nixpkgs#eza
 }
