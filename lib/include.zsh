@@ -98,11 +98,15 @@ EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}
 # -- OMZ History Plugin
 setopt extended_history       # record timestamp of command in HISTFILE
 setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
+setopt hist_ignore_all_dups   # remove older duplicate entries from the history
 setopt hist_ignore_dups       # ignore duplicated commands history list
 setopt hist_ignore_space      # ignore commands that start with space
+setopt hist_reduce_blanks     # remove superfluous blanks from history items
+setopt hist_save_no_dups      # do not write a duplicate event to the history file
 setopt hist_verify            # show command with history expansion to user before running it
 setopt share_history          # share command history data
-
+setopt inc_append_history     # allow multiple terminal sessions to append to one history
+setopt share_history          # share command history data
 
 # =========================================================
 # -- Debugging and Logging
