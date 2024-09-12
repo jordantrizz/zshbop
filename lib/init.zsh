@@ -81,6 +81,7 @@ init_path () {
 	_log "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
 	init_add_path_dirs $HOME/bin
 	init_add_path_dirs $HOME/git
+    init_add_path_dirs $ZSHBOP_ROOT/bin
 	init_add_path_dirs $ZSHBOP_ROOT/repos
 	
     init_fix_path
