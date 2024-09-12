@@ -412,7 +412,7 @@ zshbop_custom-load () {
         _log "Checking for $HOME/.zshbop.conf"
         if [[ -f $HOME/.zshbop.conf ]]; then
             ZSHBOP_CUSTOM_CFG="$HOME/.zshbop.conf"
-            _loading2 "Loaded custom zshbop config - $ZSHBOP_CUSTOM_CFG"
+            _log "Loaded custom zshbop config - $ZSHBOP_CUSTOM_CFG"
             source $ZSHBOP_CUSTOM_CFG
         else
             _warning "No custom zshbop config found. Type zshbop custom for more information"
