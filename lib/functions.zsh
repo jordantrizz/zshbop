@@ -11,22 +11,9 @@ _debug_load
 # zbd
 help_zshbop_quick[zbd]='Change directory to $ZBR'
 alias zbd="cd $ZBR"
-# zbu
-help_zshbop_quick[zbu]='Update zshbop'
-alias zbu="zshbop_update"
 # zbr
 help_zshbop_quick[zbr]='Reload zshbop'
 alias zbr="zshbop_reload"
-# zbur
-help_zshbop_quick[zbur]='Update and reload zshbop'
-alias zbur="zshbop_update;zshbop_reload"
-# zbqr
-help_zshbop_quick[zbqr]='Quick reload zshbop'
-alias zbqr="zshbop_reload -q"
-# zbuqr
-help_zshbop_quick[zbuqr]='Update and quick reload zshbop'
-alias zbuqr="zshbop_update;zshbop_reload -q"
-
 # zbuf
 help_zshbop_quick[zbuf]='Update and reset zshbop'
 alias zbuf="git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull;git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$ZSHBOP_BRANCH"
@@ -248,49 +235,57 @@ zshbop_check-updates () {
     fi
 }
 
+
+help_zshbop_quick[zbu]='Update zshbop'
+function zbu () { zshbop_update }
+help_zshbop_quick[zbur]='Update and reload zshbop'
+function zbur () { zshbop_update; zshbop_reload }
+help_zshbop_quick[zbqr]='Quick reload zshbop'
+function zbqr () { zshbop_reload -q }
+help_zshbop_quick[zbuqr]='Update and quick reload zshbop'
+function zbuqr () { zshbop_update; zshbop_reload -q }
+help_zshbop_quick[zbu]='Update zshbop'
+function zbu () { zshbop_update }
 # =========================================================
 # -- zshbop_update ()
-# --
 # -- Update ZSHBOP
 # =========================================================
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
     _log "${funcstack[1]}:start"
 	_debug_all
-    _loading "START UPDATING ZSHBOP"
-
-    # -- print out zshbop version
-    zshbop_version
+    _loading "Updating zshbop - $(zshbop_version)"
 
     # -- Pull zshbop down from git using current branch
     _loading2 "Pulling zshbop updates"
-
-    # -- Changed branch from develop to dev - 2021-05-01
     if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
     	_debug "Detected old branch name develop"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
-        [[ $? -eq "1" ]] && { _error "Failed to pull latest changes"; return 1 }
+        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
-        [[ $? -eq "1" ]] && { _error "Failed to pull latest changes"; return 1 }
+        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
     else
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
-        [[ $? -eq "1" ]] && { _error "Failed to pull latest changes"; return 1 }
+        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes" }
     fi
+    echo ""
 
-    # Update repos
+    # Update repos    
 	repos update
+    echo ""
 
 	# Update $ZBC aka custom zshbop directory
-	_loading2 "Updating custom zshbop directory $ZBC"
+	_loading "Updating custom zshbop directory $ZBC"
 	if [[ $ZBC ]]; then
 		_loading2 "Found zshbop custom, running git pull if a git repostiory"
 		git --git-dir=${ZBC}/.git --work-tree=${ZBC} pull
 	else
 		_loading2 "No zshbop-custom to update"
 	fi
+    echo ""
 
     # -- Update $ZSHBOP_UPDATE_GIT git repositories from custom config.
-    _loading2 "Updating \$ZSHBOP_UPDATE_GIT git repositores."
+    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
     if [[ $ZSHBOP_UPDATE_GIT ]]; then
         _debug "Found \$ZSHBOP_UPDATE_GIT which continas $ZSH_UPDATE_GIT"
         for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
@@ -306,10 +301,10 @@ zshbop_update () {
             fi
         done
     fi
+    echo ""
 
     # Reload scripts
-    _warning "Type zb reload to reload zshbop, or restart your shell."
-    _banner_yellow "**** END UPDATING ZSHBOP ****"
+    _warning "Type zb reload to reload zshbop, or restart your shell."    
     echo ""
 }
 
@@ -778,6 +773,26 @@ function zshbop_plugins () {
     _loading "Antigen Plugins:"
     cat "${ZBR}/.zsh_plugins.txt"
 }
+
+# =========================================================
+# -- zshbop_setup
+# =========================================================
+help_zshbop[setup]='Setup zshbop, run first'
+function zshbop_setup () {
+    _log "${funcstack[1]}:start"
+    _loading "Setting up zshbop"
+    _loading2 "Checking for required software"
+    zshbop_check
+
+    _loading2 "Checking for nix"
+    _cmd_exists "nix"
+    if [[ $? == "0" ]]; then
+        _loading2 "Nix is installed"
+    else
+        _loading2 "Nix is not installed.."
+    fi
+}
+
 
 # =========================================================
 # =========================================================
