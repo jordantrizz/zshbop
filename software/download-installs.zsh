@@ -184,14 +184,6 @@ software_change () {
 }
 
 # ===============================================
-# -- software_nix
-# ===============================================
-help_software[nix]="Install nix"
-software_nix () {
-	curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-}
-
-# ===============================================
 # -- software_eza
 # ===============================================
 help_software[eza]="Install eza"
