@@ -648,10 +648,15 @@ geekbench-install () {
 help_linux[sstrace]='Strace a process'
 sstrace () {
 	_usage_sstrace () {
-		echo "Usage: sstrace -n <process_name>|-u <username>|-p <pid>"
+		echo "Usage: sstrace -n <process_name>|-u <username>|-p <pid>|[-o <file|stdout>]"
 	}
 	# Trap SIGINT (Ctrl + C) to print a message
-    trap 'echo "Strace interrupted by user"; sleep 1;_loading3 "File saved to $FILE" ' SIGINT
+    trap '_sstrace_exit $OUTPUT;' SIGINT
+
+	_sstrace_exit () {
+		echo "Strace interrupted by user - exiting - $@"	
+		[[ $1 == "file" ]] && { sleep 1;_loading3 "File saved to $FILE" }
+	}		
 
 	_sstrace_pids () {
 		local PIDS=("$@") STRACE_PIDS=()
@@ -661,19 +666,24 @@ sstrace () {
 		echo $STRACE_PIDS
 	}
 		
-	local STRACE_ARG=()	PID PROCESS_NAME PUSERNAME ARG_PID ARG_PROCESS_NAME ARG_PUSERNAME
-	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE
+	local STRACE_ARG=()	PID PROCESS_NAME PUSERNAME 
+	local ARG_PID ARG_PROCESS_NAME ARG_PUSERNAME ARG_OUTPUT
+	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE OUTPUT STRACE_OUTPUT
 	local FILE_PATH="/tmp"
 	local DATE=$(date +%Y-%m-%d-%H-%M-%S)
 	
-	zparseopts -D -E p:=ARG_PID n:=ARG_PROCESS_NAME u:=ARG_PUSERNAME
+	zparseopts -D -E p:=ARG_PID n:=ARG_PROCESS_NAME u:=ARG_PUSERNAME o:=ARG_OUTPUT
 
 	# Get the process name
 	[[ -n $ARG_PID ]] && PID=$ARG_PID[2]
 	[[ -n $ARG_PROCESS_NAME ]] && PROCESS_NAME=$ARG_PROCESS_NAME[2]
 	[[ -n $ARG_PUSERNAME ]] && PUSERNAME=$ARG_PUSERNAME[2]
+	[[ -n $ARG_OUTPUT ]] && OUTPUT=$ARG_OUTPUT[2] || OUTPUT="file"
 
-	_debugm "PID: $PID - PROCESS_NAME: $PROCESS_NAME - PUSERNAME: $PUSERNAME"
+	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT="-o $FILE"
+	[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
+
+	_debugf "PID: $PID - PROCESS_NAME: $PROCESS_NAME - PUSERNAME: $PUSERNAME"
 		
 	# Check if strace is installed
 	_cmd_exists strace
@@ -683,6 +693,7 @@ sstrace () {
 	fi
 
 	if [[ -n $PROCESS_NAME ]]; then
+		[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
 		_loading "Stracing process $PROCESS_NAME"
 		FILE="$FILE_PATH/sstrace-$PROCESS_NAME-$DATE.log"
 		PIDS=$(pgrep $PROCESS_NAME)		
@@ -694,9 +705,10 @@ sstrace () {
 		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
 		_loading "Stracing process $PROCESS_NAME with PID's $PIDS_SAME_LINE"
 		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
-		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"
+		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"	
 		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"
-	elif [[ -n $PID ]]; then	
+	elif [[ -n $PID ]]; then
+		[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
 		_loading "Stracing process with PID: $PID"
 		FILE="$FILE_PATH/sstrace-$PID-$DATE.log"
 		PIDS=$(pgrep -P $PID)			
@@ -708,9 +720,10 @@ sstrace () {
 		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
 		_loading "Stracing process $PID with PID's $PIDS_SAME_LINE"
 		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))	
-		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"
-		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"
+		_debugf "strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]}"
+		eval "$(strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]})"
 	elif [[ -n $PUSERNAME ]]; then
+		
 		_loading "Stracing process with username $$PUSERNAME"
 		FILE="$FILE_PATH/sstrace-$PUSERNAME-$DATE.log"
 		PIDS=$(pgrep -u $PUSERNAME)
@@ -721,8 +734,8 @@ sstrace () {
 		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
 		_loading "Stracing process $PUSERNAME with PID's $PIDS_SAME_LINE"
 		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
-		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"
-		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"		
+		_debugf "strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]}"
+		eval "$(strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]})"		
 	else
 		_error "No process name or PID provided"
 		_usage_sstrace
