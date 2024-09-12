@@ -11,8 +11,8 @@ alias ls="${DEFAULT_LS}"
 alias less="less -X"
 
 # -- os-binary
-os-binary "fastfetch"
 os-binary "glow"
+os-binary "fastfetch"
 os-binary "glint"
 os-binary "plik"
 
