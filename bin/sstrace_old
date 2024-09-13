@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+# Do we have any input?
+if(!$ARGV[0]) {
+  print "Super strace, will strace a running application and all of its children.\nUsage: $0 <process>\nExample: $0 apache2\n";
+  exit;
+}
+# get the data we need!
+@pids = `pgrep @ARGV[0]`;
+# this is the old method, if pidof doesn't exist uncomment if the above breaks
+#@pids = `ps auxwwf | grep apache | awk \'\{ print \$2\}\'`;
+# get some variables for the current time! Gotta be iso 8601 YYYY-MM-DDThh:mm:ssTZD (eg 1997-07-16T19:20:30+01:00)
+#my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime time;
+$date = `date +%FT%H:%M:%S%:z`;
+chomp ($date);
+#$year += 1900;
+#$mon += 1;
+#$date = "$year-$mon-$mdayT$hour:$min:$sec";
+# the strace command! this can be replaced with any command
+$go="strace -f -s 40000 -o /tmp/sstrace-$date";
+# the separator
+$sep = " -p ";
+$i=0;
+foreach $pid (@pids) {
+chomp ($pid);
+$go = $go . $sep .  $pid;
+$i++;
+}
+print $go . "\n";
+exec $go;
