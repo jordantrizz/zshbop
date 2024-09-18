@@ -9,6 +9,7 @@
   - [Unlock SSL Renewal Failures](#unlock-ssl-renewal-failures)
   - [Configure Nginx](#configure-nginx)
     - [Nginx Rate Limiting](#nginx-rate-limiting)
+      - [Whitelist Page wp Zone](#whitelist-page-wp-zone)
       - [Update wp-login.php Rate Limiting](#update-wp-loginphp-rate-limiting)
         - [Directive: limit\_req\_zone](#directive-limit_req_zone)
         - [Directive: limit\_req](#directive-limit_req)
@@ -104,6 +105,14 @@ examplewebsite.com-ssl_fail-3.date
 https://gridpane.com/kb/configure-nginx/
 
 ### Nginx Rate Limiting
+
+#### Whitelist Page wp Zone
+* Edit /etc/nginx/extra.d/whitelist-request-uri-rate-limit-whitelist.conf
+```
+~my-request-uri.php 0;
+```
+
+
 #### Update wp-login.php Rate Limiting
 ##### Directive: limit_req_zone
 * Config location: /etc/nginx/common/limits.conf
