@@ -4,7 +4,7 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_[powershell]="Powershell commands"
+help_files[powershell]="Powershell commands"
 
 # - Init help array
 typeset -gA help_powershell
