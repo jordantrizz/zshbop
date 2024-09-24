@@ -168,3 +168,37 @@ redis-clearstats () {
 	_notice "Clearing redis stats"
 	redis-cli config resetstat
 }
+
+# ===============================================
+# -- redis-get-db-size-all
+# ===============================================
+help_redis[redis-get-db-size-all]="Get the size of all redis databases"
+redis-get-db-size-all () {
+	_loading "Getting the size of all redis databases"
+	if ! pgrep redis-server > /dev/null; then
+		_error "Redis is not running"
+		return
+	fi
+
+	# -- Check if redis needs auth
+	if [[ -n $(redis-pass) ]]; then
+		REDIS_CMD="redis-cli -a $(redis-pass)"
+	else
+		REDIS_CMD="redis-cli"
+	fi
+
+	_loading "Redis Database Keyspace Information"
+	# -- Get the size of all redis databases
+	$REDIS_CMD info keyspace
+
+	_loading "Redis Database Size Information"
+	# Get a list of databases
+	REDIS_DB_LIST=$($REDIS_CMD info | grep -oP 'db[0-9]+')
+	# Remove the db prefix
+	REDIS_DB_LIST=$(echo $REDIS_DB_LIST | sed 's/db//g')
+	# Get the size of each database
+	for DB in $REDIS_DB_LIST; do
+		echo "select $DB\nDBSIZE" | redis-cli
+	done
+
+}
