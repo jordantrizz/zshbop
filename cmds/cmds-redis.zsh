@@ -197,9 +197,11 @@ redis-get-db-size-all () {
 	# Remove the db prefix
 	REDIS_DB_LIST=($(echo $REDIS_DB_LIST | sed 's/db//g'))
 	# Get the size of each database
-	for DB in $REDIS_DB_LIST; do
-		_loading3 "Database $DB"
-		echo "select $DB\nDBSIZE" | redis-cli
+	for DB in $REDIS_DB_LIST; do		
+		DB_SIZE=$(echo "select $DB\nDBSIZE" | redis-cli --raw 2> /dev/null)
+		# Remove OK from the output
+		DB_SIZE=$(echo $DB_SIZE | sed 's/OK//g')
+		echo "DB $DB: $DB_SIZE"
 	done
 
 }
