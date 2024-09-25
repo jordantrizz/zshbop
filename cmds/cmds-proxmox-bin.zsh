@@ -381,6 +381,14 @@ function _proxmox_createvm () {
     # -- Run QM Command
     _loading2 "-- Creating VM with ID:$VM_ID"
     _loading3 "---- NAME: $NAME MEM: $MEM DISKSIZE: $DISKSIZE NET: $NET OS_RELEASE: $OS_RELEASE"
+
+    # -- Secondary check to see if any variables are empty
+    [[ -z $NAME ]] && { _error "Name is missing";return 1; }
+    [[ -z $MEM ]] && { _error "Memory is missing";return 1; }
+    [[ -z $DISKSIZE ]] && { _error "Disksize is missing";return 1; }
+    [[ -z $NET ]] && { _error "Network is missing";return 1; }
+    [[ -z $OS_RELEASE ]] && { _error "OS Release is missing";return 1; }
+
     (set -x;qm create $VM_ID --name $NAME \
     --cores ${CPU} --sockets 1 \
     --memory $MEM \
