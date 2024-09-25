@@ -33,12 +33,12 @@ function proxmox_init () {
 
     # -- Set defaults
     [[ -z $CPU ]] && CPU="1" || CPU=${CPU[2]}
-    if [[ -z $MEM ]]; then        
+    if [[ -z $MEM ]]; then
         MEM="2048"
     else 
         MEM=${MEM[2]}
         _proxmox_memorygb $MEM
-        _loading "Memory set to $MEM"
+        _loading3 "Memory set to $MEM"
     fi
 
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
@@ -691,7 +691,7 @@ function _proxmox_create_lxc () {
 # -- _proxmox_memorygb
 # ===============================================
 function _proxmox_memorygb () {
-    local MEM=$1    
+    MEM=$1
     # Check if $MEM has G at the end
     if [[ $MEM == *G ]]; then
         _loading3 "Memory $MEM has G at the end, converting to MB"
