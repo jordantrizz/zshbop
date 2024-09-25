@@ -24,6 +24,7 @@ init_wsl () {
 	wsl-backupwtc 1
 	wsl-shortcuts
 	init_log
+	wsl-paths
 }
 
 # =================================================================================================
@@ -47,7 +48,9 @@ function wsl-fixes () {
 	fi
 }
 
+# ==================================================
 # -- wsl-backupwtc 
+# ==================================================
 help_wsl[wsl-backupwtc]='Backup Windows Terminal configuration.'
 wsl-backupwtc () {
 	local WT_SOURCE="$(echo /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
@@ -91,9 +94,11 @@ wsl-backupwtc () {
 	[[ $QUEIT == 0 ]] && _loading3 "$OUTPUT"	
 }
 
+# ==================================================
 # -- check_diskspace_wsl
-help_wsl[check_diskspace_wsl]='Check disk space under WSL'
-function check_diskspace_wsl () {
+# ==================================================
+help_wsl[wsl-check-diskspace]='Check disk space under WSL'
+function wsl-check-diskspace () {
     # -- Check disk space
     if [[ $1 == "show" ]]; then
         _error "Checking disk space for WSL not implemented yet."
@@ -103,7 +108,9 @@ function check_diskspace_wsl () {
     
 }
 
+# ==================================================
 # -- wsl-shortcuts
+# ==================================================
 help_wsl[wsl-shortcuts]='Create Downloads and Desktop shortcuts for WSL'
 function wsl-shortcuts () {
 	local OUTPUT="" DO=0 OUTPUT_FULL=""
@@ -143,4 +150,16 @@ wsl-screen-fix () {
 		fi
 	fi
 }
+
+# ==================================================
+# -- wsl-paths
+# ==================================================
+help_wsl[wsl-paths]='Set WSL paths for Visual Studio Code'
+function wsl-paths () {
+	# Get current windows user
+	local WINDOWS_USER=$(/mnt/c/Windows/System32/cmd.exe /c 'echo %USERNAME%' 2> /dev/null | sed -e 's/\r//g')
+	# -- Set WSL paths for Visual Studio Code
+	export PATH=$PATH:"/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code/bin"
+}
+
 
