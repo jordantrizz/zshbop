@@ -37,7 +37,7 @@ function proxmox_init () {
         MEM="2048"
     else 
         MEM=${MEM[2]}
-        MEM_OUTPUT=$(_proxmox_memorygb $MEM)
+        _proxmox_memorygb $MEM
         if [[ $? -ne 0 ]]; then
             _error "Memory $MEM is not a valid number"
             return 1
@@ -387,8 +387,8 @@ function _proxmox_createvm () {
     _proxmox_download_cloudimage
 
     # -- Run QM Command
-    _loading2 "-- Creating VM with ID:$VM_ID"
-    _loading3 "---- NAME: $NAME MEM: $MEM DISKSIZE: $DISKSIZE NET: $NET OS_RELEASE: $OS_RELEASE"
+    _loading2 "Creating VM with ID:$VM_ID"
+    _loading3 "NAME: $NAME MEM: $MEM DISKSIZE: $DISKSIZE NET: $NET OS_RELEASE: $OS_RELEASE"
 
     # -- Secondary check to see if any variables are empty
     [[ -z $NAME ]] && { _error "Name is missing";return 1; }
@@ -709,7 +709,7 @@ function _proxmox_memorygb () {
             _error "MEM is not between 1 and 128"
             return 1
         else
-            MEM=$((MEM*1024))
+            MEM=$((MEM*1024))            
         fi
     else
         # -- Check if MEM is not a number between 512 and 100000        
