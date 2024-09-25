@@ -83,6 +83,8 @@ init_path () {
 	init_add_path_dirs $HOME/git
     init_add_path_dirs $ZSHBOP_ROOT/bin
 	init_add_path_dirs $ZSHBOP_ROOT/repos
+
+    init_add_path /snap/bin
 	
     init_fix_path
     init_log
