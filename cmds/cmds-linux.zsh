@@ -779,5 +779,7 @@ smartctl-all-disks () {
 			echo "Disk $i"
 			smartctl --quietmode=errorsonly -i -A /dev/$i
 		done
+	else
+		_smartctl-all-disks-usage
 	fi
 }
