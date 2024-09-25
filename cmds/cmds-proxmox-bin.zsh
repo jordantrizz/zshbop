@@ -38,6 +38,7 @@ function proxmox_init () {
     else 
         MEM=${MEM[2]}
         _proxmox_memorygb $MEM
+        _loading "Memory set to $MEM"
     fi
 
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
