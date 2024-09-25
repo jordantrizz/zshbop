@@ -4,12 +4,34 @@
 _debug " -- Loading ${(%):-%N}"
 
 # What help file is this?
-help_filesfiles[m365]="Microsoft 365 Powershell commands"
+help_files[m365]="Microsoft 365 Powershell commands"
 
 # - Init help array
 typeset -gA help_m365
 
 _debug " -- Loading ${(%):-%N}"
+
+# ===============================================
+# -- _m365-check
+# ===============================================
+_m365-check () {
+    _cmd_exists m365
+    if [[ $? -ne 0 ]]; then
+        _error "Microsoft 365 CLI is not installed. Run m365-install-npm"
+        return 1
+    else
+        _loading "Microsoft 365 CLI is installed."        
+    fi
+
+    # Check if logged in
+    M365_STATUS=$(m365 status)
+    if [[ $M365_STATUS == "Logged in" ]]; then    
+        _loading "Microsoft 365 CLI is logged in. Run m365-npm-setup"        
+    else
+        _error "Microsoft 365 CLI is not logged in."
+        return 1
+    fi
+}
 
 # ===============================================
 # -- m365-install-npm
@@ -32,7 +54,7 @@ m365-npm-cli () {
 help_m365[m365-npm-setup]='Setup Microsoft 365 nodejs cli.'
 m365-npm-setup () {
     _loading "Setting up Microsoft 365 CLI - m365 cli setup"
-    m365 cli setup
+    m365 setup
 }
 
 
@@ -41,21 +63,24 @@ m365-npm-setup () {
 # ===============================================
 help_m365[m365-npm-login]='Login to Microsoft 365 nodejs cli.'
 m365-npm-login () {
-    _loading "Logging in to Microsoft 365 CLI - m365 login"
-    m365 login
+    _m365-npm-login () {
+        echo "Usage: m365-npm-login -u <username>"
+    }
+    
+    zparseopts -D -E u:=ARG_USERNAME
+
+    if [[ -n $ARG_USERNAME ]]; then
+        USERNAME=${ARG_USERNAME[2]}
+        _loading "Logging in to Microsoft 365 CLI - m365 login"
+        m365 login -u $USERNAME
+    else
+        _error "You must specify a username."
+        _m365-npm-login
+        return 1
+    fi
+    
+
 }
-
-# ===============================================
-# -- m365-
-# ===============================================
-help_m365[m365-connect-exo]='Connect to Exchange Online.'
-m365-connect-exo () {
-    powershell-check 1
-    [[ $? -ne 0 ]] && { echo "Powershell is not installed."; return 1; }
-
-    pwsh -c "Connect-ExchangeOnline"
-}
-
 # ===============================================
 # -- m365-add-user-group
 # ===============================================
@@ -161,6 +186,8 @@ m365-get-user () {
 # ===============================================
 help_m365[m365-get-groups]='Get all groups in Microsoft 365.'
 m365-get-groups () {
+    _m365-check
+    [[ $? -ne 0 ]] && return 1
     _loading "Getting all groups"
     m365 entra m365group list | jq '.[] | {displayName: .displayName, id: .id}'
 }
