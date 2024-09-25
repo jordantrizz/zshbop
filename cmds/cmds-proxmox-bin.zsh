@@ -30,19 +30,16 @@ function proxmox_init () {
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
 
     # -- Set defaults
-    [[ -z $CPU ]] && CPU="1" || CPU=$CPU[2]    
+    [[ -z $CPU ]] && CPU="1" || CPU=${CPU[2]}
     if [[ -z $MEM ]]; then
         MEM="2048"
     else 
         MEM=${MEM[2]}
-        # -- Check if MEM is not a number between 512 and 100000        
-        if ! [[ $MEM =~ ^[0-9]+$ ]]; then        
-            _error "MEM is not a number"
+        _proxmox_memorygb $MEM
+        if [[ $? -ne 0 ]]; then
+            _error "Memory $MEM is not a valid number"
             return 1
-        elif [[ $MEM -lt 512 ]]; then
-            _error "MEM is less than 512"
-            return 1
-        fi    
+        fi
     fi
 
     # -- Get VM ID
@@ -675,4 +672,32 @@ function _proxmox_create_lxc () {
         _debugf "pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${STORAGE}:16 --storage ${STORAGE} --unprivileged 1 --onboot 1"
         pct create 101 local:vztmpl/ubuntu-22.10-standard_22.10-1_amd64.tar.zst --hostname dhcp --memory 512 --swap 512 --cores 1 --net0 name=eth0,bridge=vmbr1,ip=10.0.0.2/24 --ostype ubuntu --rootfs ${STORAGE}:16 --storage ${STORAGE} --unprivileged 1 --onboot 1
         [[ $? -eq 0 ]] && _loading3 "Ubuntu 22.10 Container created successfully" || { _error "Ubuntu 22.10 Container creation failed"; return 1 }
+}
+
+# ===============================================
+# -- _proxmox_memorygb
+# ===============================================
+function _proxmox_memorygb () {
+    local MEM=$1    
+    # Check if $MEM has G at the end
+    if [[ $MEM == *G ]]; then
+        # -- Check if MEM is not a number between 1 and 128
+        MEM=${MEM%G}
+        if ! [[ $MEM =~ ^[0-9]+$ ]]; then
+            _error "MEM is not a number between 1 and 128"
+            return 1
+        elif [[ $MEM -lt 1 ]] || [[ $MEM -gt 128 ]]; then
+            _error "MEM is not between 1 and 128"
+            return 1
+        fi
+    else
+        # -- Check if MEM is not a number between 512 and 100000        
+        if ! [[ $MEM =~ ^[0-9]+$ ]]; then        
+            _error "MEM is not a number"
+            return 1
+        elif [[ $MEM -lt 512 ]]; then
+            _error "MEM is less than 512"
+            return 1
+        fi
+    fi
 }
