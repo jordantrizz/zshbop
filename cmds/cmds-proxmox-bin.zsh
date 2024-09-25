@@ -29,6 +29,8 @@ function proxmox_init () {
     zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW cpu:=CPU
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
 
+    _loading "Starting Proxmox Helper"
+
     # -- Set defaults
     [[ -z $CPU ]] && CPU="1" || CPU=${CPU[2]}
     if [[ -z $MEM ]]; then
@@ -46,6 +48,7 @@ function proxmox_init () {
 
     # -- Get VM ID
     _proxmox_getid
+    echo ""
 
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
@@ -95,8 +98,13 @@ function proxmox_init () {
         fi
         _debugf "Creating VM"
         _loading "Creating Proxmox VM"
+        echo ""
+
         _proxmox_check || return 1
+        echo ""
+
         _proxmox_createvm
+        echo ""
     # -- Create template
     elif [[ $1 == "createtemp" ]]; then
         _debugf "Creating template"
@@ -284,7 +292,7 @@ function _proxmox_download_cloudimage () {
         _error "Couldn't get Ubuntu Image for $OS_RELEASE"
         return
     else
-        _loading2 "OS: $OS_RELEASE is valid"
+        _loading3 "OS: $OS_RELEASE is valid"
     fi
     echo ""
 
@@ -691,6 +699,7 @@ function _proxmox_memorygb () {
     local MEM=$1    
     # Check if $MEM has G at the end
     if [[ $MEM == *G ]]; then
+        _loading3 "Memory $MEM has G at the end, converting to MB"
         # -- Check if MEM is not a number between 1 and 128
         MEM=${MEM%G}
         if ! [[ $MEM =~ ^[0-9]+$ ]]; then
