@@ -756,7 +756,7 @@ smartctl-all-disks () {
 		echo "  -h, --help"
 	}
 
-	local ALL_DETAILS ERRORS_ONLY ERRORS_SERIAL HELP SMARTCTL_CMD
+	local ALL_DETAILS ERRORS_ONLY ERRORS_SERIAL HELP SMARTCTL_OUTPUT
 
 	zparseopts -D -E h:=HELP all-details=ALL_DETAILS errors-only=ERRORS_ONLY errors-serial=ERRORS_SERIAL
 	[[ -n $HELP ]] && { _smartctl-all-disks-usage; return 1; }
@@ -778,10 +778,11 @@ smartctl-all-disks () {
 		done
 	elif [[ -n $ERRORS_SERIAL ]]; then
 		_loading "Running smartctl on all disks, showing errors and serial only."
-		for i in $DEVICES; do			
-			SMARTCTL_CMD=$(smartctl -i -A /dev/$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL"")
-			echo $SMARTCTL_CMD
-			eval $SMARTCTL_CMD
+		for i in $DEVICES; do
+			_loading2 "Disk $i"
+			SMARTCTL_OUTPUT=$(smartctl -i -A /dev/$i)
+			echo $SMARTCTL_OUPUT | grep -E -i "SERIAL|Device Model|Firmware Version|User Capacity|TRIM Command|SMART support is"
+			echo $SMARTCTL_OUTPUT | grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW""			
 		done
 	elif [[ -n $ERRORS_ONLY ]]; then
 		_loading "Running smartctl on all disks, showing errors only."
