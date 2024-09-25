@@ -46,10 +46,6 @@ function proxmox_init () {
         fi
     fi
 
-    # -- Get VM ID
-    _proxmox_getid
-    echo ""
-
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20000" || DISKSIZE=$DISKSIZE[2]
@@ -98,6 +94,10 @@ function proxmox_init () {
         fi
         _debugf "Creating VM"
         _loading "Creating Proxmox VM"
+        echo ""
+
+        # -- Get VM ID
+        _proxmox_getid
         echo ""
 
         _proxmox_check || return 1
@@ -245,7 +245,7 @@ function _proxmox_check () {
 # ===================================================================
 function _proxmox_getid () {
     # -- Get Proxmox VM ID
-    _loading2 "Getting Proxmox VM ID"
+    _loading2 "Generating Proxmox VM ID"
     if [[ -z $VM_ID ]]; then
         _loading3 "No VM ID set, getting random VM ID"
         VM_ID=$(pvesh get /cluster/nextid);
@@ -295,12 +295,12 @@ function _proxmox_download_cloudimage () {
         _loading3 "OS: $OS_RELEASE is valid"
     fi
     echo ""
-
+    
     # -- Generate OS download URL and path
     IMAGE_FILE="${OS_RELEASE}-server-cloudimg-amd64.img"
     IMAGE_URL="https://cloud-images.ubuntu.com/${OS_RELEASE}/current/${IMAGE_FILE}"
     IMAGE_FILE_PATH="${TEMP_DIR}/${IMAGE_FILE}"
-    _loading3 "Fetching $OS_RELEASE Image from $IMAGE_URL into $IMAGE_FILE_PATH"
+    _loading2 "Fetching $OS_RELEASE Image from $IMAGE_URL into $IMAGE_FILE_PATH"
 
     # -- Check if $IMAGE_FILE exists
     _loading4 "Checking if $IMAGE_FILE exists in $TEMP_DIR"
