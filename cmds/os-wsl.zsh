@@ -134,3 +134,21 @@ function wsl-shortcuts () {
 	fi
 }
 
+# ==================================================
+# -- wsl-screen-fix
+# ==================================================
+help_wsl[wsl-screen-fix]='Fix screen under WSL'
+wsl-screen-fix () {
+	# check if screen is installed
+	_cmd_exists screen
+	if [[ $? -ne 0 ]]; then
+		_debug " -- screen not installed"
+		return 1
+	else
+		if [[  ! -d "/run/screen" ]]; then
+			_debug " -- Running wsl-screen-fix"
+			sudo /etc/init.d/screen-cleanup start
+		fi
+	fi
+}
+

@@ -324,7 +324,7 @@ help_linux[screen-sessions]="Display screen sessions"
 screen-sessions () {
 	local SSESSIONS_OUTPUT SSESSIONS
 	# -- Check if on WSL
-	if [[ $MACHINE_OS2 == "wsl" && ! -d "/run/screen" ]]; then
+	if [[ $MACHINE_OS2 == "wsl" ]]; then
 		_loading3 "Detect wsl, running wsl-screen fix"
 		wsl-screen
 	fi
