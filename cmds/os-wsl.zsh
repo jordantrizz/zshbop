@@ -25,6 +25,7 @@ init_wsl () {
 	wsl-shortcuts
 	init_log
 	wsl-paths
+	wsl-check-wslu
 }
 
 # =================================================================================================
@@ -163,3 +164,15 @@ function wsl-paths () {
 }
 
 
+# ==================================================
+# -- wsl-check-wslu
+# ==================================================
+help_wsl[wsl-check-wslu]='Check if WSLU is installed'
+function wsl-check-wslu () {
+	# -- Check if WSLU is installed
+	_cmd_exists wslu
+	if [[ $? -ne 0 ]]; then
+		_log "WSLU not installed, run 'sudo apt install wslu' to install"
+		return 1
+	fi
+}
