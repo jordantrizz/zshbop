@@ -769,7 +769,7 @@ smartctl-all-disks () {
 	fi
 
 	# Get a list of all block devices
-	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop" | grep -v "^sr" | grep -v "^ram" | grep -v "^zram" | grep -v "^zd"))
 
 	if [[ -n $ALL_DETAILS ]]; then
 		_loading "Running smartctl on all disks"
