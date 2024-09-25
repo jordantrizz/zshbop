@@ -709,7 +709,7 @@ function _proxmox_memorygb () {
             _error "MEM is not between 1 and 128"
             return 1
         else
-            MEM=$((MEM*1024))            
+            MEM=$((MEM*1024))
         fi
     else
         # -- Check if MEM is not a number between 512 and 100000        
