@@ -41,8 +41,6 @@ function proxmox_init () {
         if [[ $? -ne 0 ]]; then
             _error "Memory $MEM is not a valid number"
             return 1
-        else
-            MEM=$MEM_OUTPUT
         fi
     fi
 
