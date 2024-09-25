@@ -36,9 +36,6 @@ alias gitp="git submodule foreach git pull origin master"
 alias gits="git submodule update --init --recursive;git submodule update --recursive --remote"
 alias gitr="cd ~/git;"
 
-# -- Ubuntu Specific
-alias wsl-screen="sudo /etc/init.d/screen-cleanup start"
-
 # -- Software
 alias yabs='yabs.sh'
 alias mysqltuner='mysqltuner.pl'
