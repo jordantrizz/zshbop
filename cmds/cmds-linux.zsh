@@ -759,8 +759,7 @@ smartctl-all-disks () {
 	local ALL_DETAILS ERRORS_ONLY ERRORS_SERIAL HELP
 
 	zparseopts -D -E h:=HELP all-details:=ALL_DETAILS errors-only:=ERRORS_ONLY errors-serial:=ERRORS_SERIAL
-	[[ -n $HELP ]] && { _smartctl-all-disks-usage; return 1; }
-	[[ -n $ALL_DETAILS ]] && { _smartctl-all-disks-usage; return 0; }
+	[[ -n $HELP ]] && { _smartctl-all-disks-usage; return 1; }	
 
 	# Get a list of all block devices
 	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
