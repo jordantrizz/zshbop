@@ -747,18 +747,17 @@ sstrace () {
 # -- smartctl-all-disks
 # ===============================================
 help_linux[smartctl-all-disks]='Run smartctl on all disks'
-smartctl-all-disks () {
-	_smartctl-all-disks () {
-		_usage_smartctl-all-disks () {
-			echo "Usage: smartctl-all-disks [option]"
-			echo "-all-details"
-			echo "-errors-only"
-			echo "-errors-serial"
-			echo "-h, --help"
-		}
+smartctl-all-disks () {	
+	_smartctl-all-disks-usage () {
+		echo "Usage: smartctl-all-disks [option]"
+		echo "-all-details"
+		echo "-errors-only"
+		echo "-errors-serial"
+		echo "-h, --help"
+	}
 	zparseopts -D -E h:=HELP a:=ALL_DETAILS e:=ERRORS_ONLY s:=ERRORS_SERIAL
-	[[ -n $HELP ]] && { _usage_smartctl-all-disks; return 1; }
-	[[ -n $ALL_DETAILS ]] && { _smartctl-all-disks-details; return 0; }
+	[[ -n $HELP ]] && { _smartctl-all-disks-usage; return 1; }
+	[[ -n $ALL_DETAILS ]] && { _smartctl-all-disks-usage; return 0; }
 
 	# Get a list of all block devices
 	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
