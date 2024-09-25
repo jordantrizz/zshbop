@@ -750,16 +750,23 @@ help_linux[smartctl-all-disks]='Run smartctl on all disks'
 smartctl-all-disks () {	
 	_smartctl-all-disks-usage () {
 		echo "Usage: smartctl-all-disks [option]"
-		echo "-all-details"
-		echo "-errors-only"
-		echo "-errors-serial"
-		echo "-h, --help"
+		echo "  -all-details"
+		echo "  -errors-only"
+		echo "  -errors-serial"
+		echo "  -h, --help"
 	}
 
 	local ALL_DETAILS ERRORS_ONLY ERRORS_SERIAL HELP
 
-	zparseopts -D -E h:=HELP all-details:=ALL_DETAILS errors-only:=ERRORS_ONLY errors-serial:=ERRORS_SERIAL
-	[[ -n $HELP ]] && { _smartctl-all-disks-usage; return 1; }	
+	zparseopts -D -E h:=HELP all-details=ALL_DETAILS errors-only=ERRORS_ONLY errors-serial=ERRORS_SERIAL
+	[[ -n $HELP ]] && { _smartctl-all-disks-usage; return 1; }
+
+	# Check if smartctl is installed
+	_cmd_exists smartctl
+	if [[ $? == "1" ]]; then
+		_error "smartctl not installed"
+		return 1
+	fi
 
 	# Get a list of all block devices
 	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
