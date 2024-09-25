@@ -13,41 +13,54 @@ help_files[mysql]='MySQL related commands'
 typeset -gA help_mysql
 
 # - mysql-dbsizeall
-help_mysql[mysql-dbsizeall]='Get size of all databases in MySQL'
-function mysql-dbsizeall () {
-    mysql -e "
-    SELECT * FROM (
-        SELECT 
-            table_schema AS 'Database', 
-            ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
-        FROM 
-            information_schema.TABLES 
-        GROUP BY 
-            table_schema
-    ) AS original_query
-    UNION ALL
-    SELECT 
-        'Total' AS 'Database', 
-        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
-    FROM 
-        information_schema.TABLES
-    ORDER BY 
-        CASE 
-            WHEN 'Database' = 'Total' THEN 1 
-            ELSE 0 
-        END, 
-        'Size (MB)' DESC;
-    "
-}
+help_mysql[mysql-db-size]='Get size of all databases in MySQL'
+function mysql-db-size () {
+	_mysql-db-size-usage () {
+		echo "Usage: mysql-db-size [-d <database> | -a | -l ]"
+		echo ""
+		echo "  -d <database>  - Get size of a specific database"
+		echo "  -a             - Get size of all databases"
+		echo "  -l             - List all databases"
+	}
 
-# -- mysql-dbsize
-help_mysql[mysql-dbsize]='Get size of a database in MySQL'
-mysql-dbsize () {
-	if [[ -n $1 ]]; then
+	zparseopts -D -E d:=ARG_DATABASE a:=ARG_ALL l=ARG_LIST
+
+	_debugf "ARG_DATABASE: $ARG_DATABASE ARG_ALL: $ARG_ALL ARG_LIST: $ARG_LIST"
+
+	if [[ -n $ARG_DATABASE ]]; then
+		_loading "Getting size of database $ARG_DATABASE"
 		mysql -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" GROUP BY table_schema;"
+	elif [[ -n $ARG_ALL ]]; then
+		_loading "Getting size of all databases"
+		mysql -e "
+		SELECT * FROM (
+			SELECT 
+				table_schema AS 'Database', 
+				ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
+			FROM 
+				information_schema.TABLES 
+			GROUP BY 
+				table_schema
+		) AS original_query
+		UNION ALL
+		SELECT 
+			'Total' AS 'Database', 
+			ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' 
+		FROM 
+			information_schema.TABLES
+		ORDER BY 
+			CASE 
+				WHEN 'Database' = 'Total' THEN 1 
+				ELSE 0 
+			END, 
+			'Size (MB)' DESC;
+		"
+	elif [[ -n $ARG_LIST ]]; then
+		_loading "Listing all databases"
+		mysql -e 'show databases'
 	else
-		echo "Usage: $0 <database name>"
-		return 1
+		_mysql-db-size-usage
+		_error "Please specify an option to use, -d, -a or -l"
 	fi
 }
 
