@@ -741,3 +741,44 @@ sstrace () {
 		_usage_sstrace
 	fi
 }
+
+
+# ===============================================
+# -- smartctl-all-disks
+# ===============================================
+help_linux[smartctl-all-disks]='Run smartctl on all disks'
+smartctl-all-disks () {
+	_smartctl-all-disks () {
+		_usage_smartctl-all-disks () {
+			echo "Usage: smartctl-all-disks [option]"
+			echo "-all-details"
+			echo "-errors-only"
+			echo "-errors-serial"
+			echo "-h, --help"
+		}
+	zparseopts -D -E h:=HELP a:=ALL_DETAILS e:=ERRORS_ONLY s:=ERRORS_SERIAL
+	[[ -n $HELP ]] && { _usage_smartctl-all-disks; return 1; }
+	[[ -n $ALL_DETAILS ]] && { _smartctl-all-disks-details; return 0; }
+
+	# Get a list of all block devices
+	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop"))
+
+	if [[ -n $ALL_DETAILS ]]; then
+		_loading "Running smartctl on all disks"
+		for i in $DEVICES; do
+			echo "Disk $i"
+			smartctl -i -A /dev/$i
+		done
+	elif [[ -n $ERRORS_SERIAL ]]; then
+		for i in $DEVICES; do
+			echo "Disk $i"
+			smartctl -i -A /dev/sd$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL""		
+		done
+	elif [[ -n $ERRORS_ONLY ]]; then
+		_loading "Running smartctl on all disks, showing errors only."
+		for i in $DEVICES; do
+			echo "Disk $i"
+			smartctl --quietmode=errorsonly -i -A /dev/$i
+		done
+	fi
+}
