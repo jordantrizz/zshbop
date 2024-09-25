@@ -780,10 +780,10 @@ smartctl-all-disks () {
 		_loading "Running smartctl on all disks, showing errors and serial only."
 		for i in $DEVICES; do
 			echo "Disk $i - smartctl -i -A /dev/$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL""
-			smartctl -i -A /dev/$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL""		
+			smartctl -i -A /dev/$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL"
 		done
 	elif [[ -n $ERRORS_ONLY ]]; then
-		_loading "Running smartctl on all disks, showing errors only."		
+		_loading "Running smartctl on all disks, showing errors only."
 		for i in $DEVICES; do
 			echo "Disk $i - smartctl --quietmode=errorsonly -i -A /dev/$i"
 			smartctl --quietmode=errorsonly -i -A /dev/$i
