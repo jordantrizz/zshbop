@@ -374,10 +374,10 @@ function _proxmox_createvm () {
     fi
 
     # -- Check if VM_ID is taken
-    _loading2 "Checking if VMID $VM_ID is taken"
+    _loading3 "Checking if VMID $VM_ID is taken"
     QM_LIST=$(qm list | awk '{print $1}')
     if echo "$QM_LIST" | grep -q "$VM_ID"; then
-        echo "VMID $VM_ID is taken."
+        _error "VMID $VM_ID is taken."
         return 1
     else
         _loading3 "VMID $VM_ID is available."
