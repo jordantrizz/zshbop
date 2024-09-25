@@ -22,14 +22,15 @@ function mysql-db-size () {
 		echo "  -a             - Get size of all databases"
 		echo "  -l             - List all databases"
 	}
-
+	local DATABASE=""
 	zparseopts -D -E d:=ARG_DATABASE a:=ARG_ALL l=ARG_LIST
 
 	_debugf "ARG_DATABASE: $ARG_DATABASE ARG_ALL: $ARG_ALL ARG_LIST: $ARG_LIST"
 
 	if [[ -n $ARG_DATABASE ]]; then
-		_loading "Getting size of database $ARG_DATABASE"
-		mysql -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" GROUP BY table_schema;"
+		DATABASE=${ARG_DATABASE[2]}
+		_loading "Getting size of database $DATABASE"
+		mysql -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${DATABASE}\" GROUP BY table_schema;"
 	elif [[ -n $ARG_ALL ]]; then
 		_loading "Getting size of all databases"
 		mysql -e "
