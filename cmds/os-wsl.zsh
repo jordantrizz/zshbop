@@ -20,27 +20,19 @@ alias traceroute="sudo traceroute -M icmp"
 init_wsl () {
 	_debug " -- Running init_wsl"
 	wsl-fixes
-	wsl-fixscreen
+	wsl-screen-fix
 	wsl-backupwtc 1
 	wsl-shortcuts
 	init_log
 }
 
-# ==================================================
+# =================================================================================================
 # -- Functions
+# =================================================================================================
+
 # ==================================================
-
-# -- wsl-fixscreen - Fix screen when in WSL.
-help_wsl[wsl-fixscreen]='Fix screen under WSL'
-function wsl-fixscreen () {
-	# -- Screen fix https://github.com/microsoft/WSL/issues/1245 
-	if [ -d "/run/screen" ]; then
-	else
-		sudo /etc/init.d/screen-cleanup start
-	fi
-}
-
 # -- wsl-fixes
+# ==================================================
 help_wsl[wsl-fixes]='Fix issues under WSL'
 function wsl-fixes () {
 	# -- Fix traceroute on WSL

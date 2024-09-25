@@ -326,7 +326,7 @@ screen-sessions () {
 	# -- Check if on WSL
 	if [[ $MACHINE_OS2 == "wsl" ]]; then
 		_loading3 "Detect wsl, running wsl-screen fix"
-		wsl-screen
+		wsl-screen-fix
 	fi
 
     _cmd_exists screen
