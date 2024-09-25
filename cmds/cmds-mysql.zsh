@@ -12,7 +12,9 @@ help_files[mysql]='MySQL related commands'
 # - Init help array
 typeset -gA help_mysql
 
-# - mysql-dbsizeall
+# ===============================================
+# -- mysql-db-size
+# ===============================================
 help_mysql[mysql-db-size]='Get size of all databases in MySQL'
 function mysql-db-size () {
 	_mysql-db-size-usage () {
@@ -303,7 +305,9 @@ mysql-logins () {
 	mysql -e 'select host,user,password,plugin from mysql.user;'
 }
 
+# ===============================================
 # -- mysql-backupall
+# ===============================================
 help_mysql[mysql-backup-all-dbs]='Backup all databases on server'
 mysql-backup-all-dbs () {
     local MYSQL_BACKUP_HOST="127.0.0.1"
@@ -335,17 +339,32 @@ mysql-backup-all-dbs () {
     done
 }
 
+# ===============================================
 # -- mysql-backup-db
+# ===============================================
 help_mysql[mysql-backup-db]='Backup a single databases on a server'
 mysql-backup-db () {
     if [[ -z $1 ]];then
-	    echo "Usage: mysql-backupdb <database>"
+	    echo "Usage: mysql-backupdb [-d <database>|-l]"
     	return
 	fi
-	MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
-	echo "-- Running backup of $1 to ${1}-${MYSQL_BACKUPDB_DATE}.sql"
-	mysqldump $1 > $1-$MYSQL_BACKUPDB_DATE.sql
-	echo " -- Completed backup of $1 to ${1}-${MYSQL_BACKUPDB_DATE}.sql"
+
+	zparseopts -D -E d:=ARG_DATABASE l=ARG_LIST
+
+	if [[ -n $ARG_DATABASE ]]; then
+		DATABASE=${ARG_DATABASE[2]}
+		_loading "Running backup of database: $DATABASE"
+		MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
+		echo "-- Running backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
+		mysqldump $DATABASE > $DATABASE-$MYSQL_BACKUPDB_DATE.sql
+		echo " -- Completed backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
+	elif [[ -n $ARG_LIST ]]; then
+		_loading "Listing all databases"
+		mysql -e 'show databases'
+	else
+		_mysql-backup-db-usage
+		_error "Please specify an option to use, -d or -l"
+	fi
 }
 
 # -- mysql-mycli
