@@ -35,10 +35,12 @@ function proxmox_init () {
         MEM="2048"
     else 
         MEM=${MEM[2]}
-        _proxmox_memorygb $MEM
+        MEM_OUTPUT=$(_proxmox_memorygb $MEM)
         if [[ $? -ne 0 ]]; then
             _error "Memory $MEM is not a valid number"
             return 1
+        else
+            MEM=$MEM_OUTPUT
         fi
     fi
 
@@ -689,6 +691,8 @@ function _proxmox_memorygb () {
         elif [[ $MEM -lt 1 ]] || [[ $MEM -gt 128 ]]; then
             _error "MEM is not between 1 and 128"
             return 1
+        else
+            MEM=$((MEM*1024))
         fi
     else
         # -- Check if MEM is not a number between 512 and 100000        
