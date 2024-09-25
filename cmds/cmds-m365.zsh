@@ -129,10 +129,51 @@ m365-add-email () {
         pwsh -c "Set-Mailbox -Identity $ARG_USERNAME -EmailAddresses @{Add=\"$EMAIL\"}"
     elif [[ $MODE == "domain" ]]; then
         _loading "Adding domain $DOMAIN to all users"
-        pwsh -c "\$users = Get-Mailbox -ResultSize Unlimited foreach (\$user in \$users) { \$alias = \$user.Alias + \"@$DOMAIN\" Set-Mailbox -Identity \$user.Identity -EmailAddresses @{Add=\$alias -Whatif} }"
+        m365 entra user list --query "[].userPrincipalName" --output text | while read user; do
+            _loading2 "Adding $DOMAIN to $user"
+            pwsh -c "Set-Mailbox -Identity $user -EmailAddresses @{Add=\"$user@$DOMAIN\"}"
+        done
     else
         _error "You must specify either an email or a domain."
         m365_add_email_usage
+        return 1
+    fi
+}
+
+# ===============================================
+# -- m365-set-primary-email
+# ===============================================
+help_m365[m365-set-primary-email]='Set the primary email for a Microsoft 365 account.'
+m365-set-primary-email () {
+    m365_set_primary_email_usage () {
+        echo "Usage: m365-set-primary-email [-e <email> -u <username>|-all <domain>]"
+    }
+
+    zparseopts -D -E e:=ARG_EMAIL u:=ARG_USERNAME a:=ARG_ALL
+
+    _debugf "ARG_EMAIL: $ARG_EMAIL ARG_USERNAME: $ARG_USERNAME ARG_ALL: $ARG_ALL"
+    if [[ -n $ARG_EMAIL ]]; then
+        MODE="email"
+        EMAIL=${ARG_EMAIL[2]}
+        USERNAME=${ARG_USERNAME[2]}
+    elif [[ -n $ARG_ALL ]]; then
+        MODE="all"
+        DOMAIN=${ARG_ALL[2]}
+    fi
+
+    if [[ $MODE == "email" ]]; then
+        _loading "Setting primary email to $EMAIL for $USERNAME"
+        _loading3 "Running: m365 entra user set --userName $USERNAME --mailNickname $USERNAME --userPrincipalName $USERNAME@$DOMAIN"
+        m365 entra user set --userName $EMAIL --mailNickname $USERNAME --userPrincipalName $USERNAME@$DOMAIN
+    elif [[ $MODE == "all" ]]; then
+        _loading "Setting primary email to $DOMAIN for all users"
+        m365 entra user list --query "[].userPrincipalName" --output text | while read user; do
+            _loading2 "Setting primary email to $user@$DOMAIN for $user"
+            pwsh -c "Set-Mailbox -Identity $user -PrimarySmtpAddress $user@$DOMAIN"
+        done
+    else
+        _error "You must specify either an email or a domain."
+        m365_set_primary_email_usage
         return 1
     fi
 }
@@ -251,3 +292,4 @@ m365-group-disable-welcome () {
     _loading "Disabling welcome email for $ARG_GROUP"
     pwsh -c "Set-UnifiedGroup -Identity $ARG_GROUP -UnifiedGroupWelcomeMessageEnabled:$false"
 }
+
