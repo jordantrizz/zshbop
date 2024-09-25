@@ -770,7 +770,6 @@ smartctl-all-disks () {
 
 	# Get a list of all block devices
 	DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop" | grep -v "^sr" | grep -v "^ram" | grep -v "^zram" | grep -v "^zd"))
-
 	if [[ -n $ALL_DETAILS ]]; then
 		_loading "Running smartctl on all disks"
 		for i in $DEVICES; do
@@ -778,14 +777,15 @@ smartctl-all-disks () {
 			smartctl -i -A /dev/$i
 		done
 	elif [[ -n $ERRORS_SERIAL ]]; then
+		_loading "Running smartctl on all disks, showing errors and serial only."
 		for i in $DEVICES; do
-			echo "Disk $i"
-			smartctl -i -A /dev/sd$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL""		
+			echo "Disk $i - smartctl -i -A /dev/$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL""
+			smartctl -i -A /dev/$i |grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW"|"SERIAL""		
 		done
 	elif [[ -n $ERRORS_ONLY ]]; then
-		_loading "Running smartctl on all disks, showing errors only."
+		_loading "Running smartctl on all disks, showing errors only."		
 		for i in $DEVICES; do
-			echo "Disk $i"
+			echo "Disk $i - smartctl --quietmode=errorsonly -i -A /dev/$i"
 			smartctl --quietmode=errorsonly -i -A /dev/$i
 		done
 	else
