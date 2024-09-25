@@ -34,10 +34,10 @@ _m365-check () {
 }
 
 # ===============================================
-# -- m365-install-npm
+# -- m365-npm
 # ===============================================
-help_m365[m365-npm-cli]='Install Microsoft 365 nodejs cli.'
-m365-npm-cli () {
+help_m365[m365-cli]='Install Microsoft 365 nodejs cli.'
+m365-cli () {
     # check if node is available
     _cmd_exists node
     if [[ $? -ne 0 ]]; then
@@ -49,21 +49,21 @@ m365-npm-cli () {
 }
 
 # ===============================================
-# -- m365-npm-setup
+# -- m365-setup
 # ===============================================
-help_m365[m365-npm-setup]='Setup Microsoft 365 nodejs cli.'
-m365-npm-setup () {
+help_m365[m365-setup]='Setup Microsoft 365 nodejs cli.'
+m365-setup () {
     _loading "Setting up Microsoft 365 CLI - m365 cli setup"
     m365 setup
 }
 
 
 # ===============================================
-# -- m365-npm-login
+# -- m365-login
 # ===============================================
-help_m365[m365-npm-login]='Login to Microsoft 365 nodejs cli.'
-m365-npm-login () {
-    _m365-npm-login () {
+help_m365[m365-login]='Login to Microsoft 365 nodejs cli.'
+m365-login () {
+    _m365-login () {
         echo "Usage: m365-npm-login -u <username>"
     }
     
@@ -113,20 +113,22 @@ m365-add-email () {
         echo "Usage: m365-add-email [-e <email> -u <username>|-d <domain>]"
     }
 
+    local MODE M365_EMAIL M365_USERNAME M365_DOMAIN
     zparseopts -D -E e:=ARG_EMAIL u:=ARG_USERNAME d:=ARG_DOMAIN a:=ARG_ALL
 
     _debugf "ARG_EMAIL: $ARG_EMAIL ARG_USERNAME: $ARG_USERNAME ARG_DOMAIN: $ARG_DOMAIN ARG_ALL: $ARG_ALL"
     if [[ -n $ARG_EMAIL ]]; then
         MODE="email"
-        EMAIL=$ARG_EMAIL
+        M365_EMAIL=$ARG_EMAIL
+        M365_USERNAME=${ARG_USERNAME[2]}
     elif [[ -n $ARG_DOMAIN ]]; then
         MODE="domain"
-        DOMAIN=$ARG_DOMAIN
+        M365_DOMAIN=$ARG_DOMAIN
     fi
 
     if [[ $MODE == "email" ]]; then
-        _loading "Adding email $EMAIL to $ARG_USERNAME"
-        pwsh -c "Set-Mailbox -Identity $ARG_USERNAME -EmailAddresses @{Add=\"$EMAIL\"}"
+        _loading "Adding email $M365_EMAIL to $M365_USERNAME"
+        m365 entra user set --userName $M365_USERNAME --mailNickname $M365_USERNAME --userPrincipalName $M365_EMAIL
     elif [[ $MODE == "domain" ]]; then
         _loading "Adding domain $DOMAIN to all users"
         m365 entra user list --query "[].userPrincipalName" --output text | while read user; do
@@ -146,31 +148,61 @@ m365-add-email () {
 help_m365[m365-set-primary-email]='Set the primary email for a Microsoft 365 account.'
 m365-set-primary-email () {
     m365_set_primary_email_usage () {
-        echo "Usage: m365-set-primary-email [-e <email> -u <username>|-all <domain>]"
+        echo "Usage: m365-set-primary-email [-u <username@domain> -e <new-email>|-all <domain>]"
     }
 
-    zparseopts -D -E e:=ARG_EMAIL u:=ARG_USERNAME a:=ARG_ALL
+    local MODE M365_EMAIL M365_USERNAME DOMAIN CHECK_USER USER_FIRST_PART COUNT
+    zparseopts -D -E e:=ARG_EMAIL u:=ARG_USERNAME all:=ARG_ALL count:=ARG_COUNT
 
-    _debugf "ARG_EMAIL: $ARG_EMAIL ARG_USERNAME: $ARG_USERNAME ARG_ALL: $ARG_ALL"
+    _debugf "ARG_EMAIL: $ARG_EMAIL ARG_USERNAME: $ARG_USERNAME ARG_ALL: $ARG_ALL ARG_COUNT: $ARG_COUNT"
     if [[ -n $ARG_EMAIL ]]; then
         MODE="email"
-        EMAIL=${ARG_EMAIL[2]}
-        USERNAME=${ARG_USERNAME[2]}
+        M365_EMAIL=${ARG_EMAIL[2]}
+        M365_USERNAME=${ARG_USERNAME[2]}
     elif [[ -n $ARG_ALL ]]; then
         MODE="all"
         DOMAIN=${ARG_ALL[2]}
+    else
+        _error "You must specify either an email or a domain."
+        m365_set_primary_email_usage
+        return 1
+    fi
+
+    if [[ -n $ARG_COUNT ]]; then
+        DO_COUNT=${ARG_COUNT[2]}
+    else
+        DO_COUNT=0
     fi
 
     if [[ $MODE == "email" ]]; then
-        _loading "Setting primary email to $EMAIL for $USERNAME"
-        _loading3 "Running: m365 entra user set --userName $USERNAME --mailNickname $USERNAME --userPrincipalName $USERNAME@$DOMAIN"
-        m365 entra user set --userName $EMAIL --mailNickname $USERNAME --userPrincipalName $USERNAME@$DOMAIN
-    elif [[ $MODE == "all" ]]; then
+        _loading "Setting primary email to $M365_EMAIL for $M365_USERNAME"
+        _loading3 "Running: m365 entra user set --userName $M365_USERNAME --userPrincipalName $M365_EMAIL"
+        m365 entra user set --userName $M365_USERNAME --userPrincipalName $M365_EMAIL
+    elif [[ $MODE == "all" ]]; then    
         _loading "Setting primary email to $DOMAIN for all users"
         m365 entra user list --query "[].userPrincipalName" --output text | while read user; do
-            _loading2 "Setting primary email to $user@$DOMAIN for $user"
-            pwsh -c "Set-Mailbox -Identity $user -PrimarySmtpAddress $user@$DOMAIN"
+            _loading2 "Setting $DOMAIN as primary email for $user"
+            # Get the user's first part of their email before @ and last part after @
+            USER_FIRST_PART=$(echo $user | cut -d'@' -f1)
+            USER_LAST_PART=$(echo $user | cut -d'@' -f2)
+            
+            # Check if the user is already using the domain
+            if [[ $USER_LAST_PART == $DOMAIN ]]; then
+                _loading3 "User $user is already using $DOMAIN, skipping."
+                continue
+            else
+                _loading3 "User $user is not using $DOMAIN, setting it as primary email"
+            fi
+
+            _loading3 "Running: m365 entra user set --userName $user --userPrincipalName $USER_FIRST_PART@$DOMAIN"
+            m365 entra user set --userName $user --userPrincipalName $USER_FIRST_PART@$DOMAIN            
+            COUNT=$((COUNT+1))
+            if [[ $COUNT -eq $DO_COUNT ]]; then
+                _error "Stopping after $DO_COUNT users."
+                break
+            fi
         done
+        return 1
     else
         _error "You must specify either an email or a domain."
         m365_set_primary_email_usage
@@ -209,6 +241,7 @@ m365-get-user () {
         echo "Usage: m365-get-user -u <username>"
     }
 
+    local M365_USERNAME
     zparseopts -D -E u:=ARG_USERNAME
 
     _debugf "ARG_USERNAME: $ARG_USERNAME"
@@ -216,10 +249,12 @@ m365-get-user () {
         _error "You must specify a username."
         m365_get_user_usage
         return 1
+    else
+        M365_USERNAME=${ARG_USERNAME[2]}
     fi
 
-    _loading "Getting user $ARG_USERNAME"
-    pwsh -c "Get-Mailbox -Identity $ARG_USERNAME"
+    _loading "Getting user $M365_USERNAME"
+    m365 entra user get --userName $M365_USERNAME
 }
 
 # ===============================================
@@ -293,3 +328,140 @@ m365-group-disable-welcome () {
     pwsh -c "Set-UnifiedGroup -Identity $ARG_GROUP -UnifiedGroupWelcomeMessageEnabled:$false"
 }
 
+# ===============================================
+# -- m365-shared-mailbox
+# ===============================================
+help_m365[m365-shared-mailbox]='Create a shared mailbox in Microsoft 365.'
+m365-shared-mailbox () {
+    m365_shared_mailbox_usage () {
+        echo "Usage: m365-shared-mailbox -n <name> -e <email>"
+    }
+
+    zparseopts -D -E n:=ARG_NAME e:=ARG_EMAIL
+
+    _debugf "ARG_NAME: $ARG_NAME ARG_EMAIL: $ARG_EMAIL"
+    if [[ -z $ARG_NAME || -z $ARG_EMAIL ]]; then
+        _error "You must specify a name and an email."
+        m365_shared_mailbox_usage
+        return 1
+    fi
+
+    _loading "Creating shared mailbox $ARG_NAME with email $ARG_EMAIL"
+    pwsh -c "New-Mailbox -Name $ARG_NAME -Shared -PrimarySmtpAddress $ARG_EMAIL"
+}
+
+# ===============================================
+# -- m365-convert-mailbox-shared
+# ===============================================
+help_m365[m365-convert-mailbox-shared]='Convert a mailbox to a shared mailbox in Microsoft 365.'
+m365-convert-mailbox-shared () {
+    m365_convert_mailbox_shared_usage () {
+        echo "Usage: m365-convert-mailbox-shared -u <username> -upn <userprincipalname>"
+    }
+
+    local M365_USERNAME M365_UPN
+    zparseopts -D -E u:=ARG_USERNAME upn:=ARG_USERPRINCIPALNAME
+
+    _debugf "ARG_USERNAME: $ARG_USERNAME"
+    if [[ -z $ARG_USERNAME ]]; then
+        _error "You must specify a username."
+        m365_convert_mailbox_shared_usage
+        return 1
+    else
+        M365_USERNAME=${ARG_USERNAME[2]}
+    fi
+
+    if [[ -n $ARG_USERPRINCIPALNAME ]]; then 
+        M365_UPN=${ARG_USERPRINCIPALNAME[2]}
+    else
+        # Get User Principal Name
+        echo "Enter your Microsoft 365 username: "
+        read M365_UPN
+    fi
+
+    _loading "Converting mailbox $M365_USERNAME to shared mailbox"
+    pwsh -c "Import-Module ExchangeOnlineManagement;
+    Connect-ExchangeOnline -UserPrincipalName $M365_UPN -ShowProgress \$true;
+    Set-Mailbox -Identity $M365_USERNAME -Type Shared;
+    Get-Mailbox -Identity $M365_USERNAME | Select-Object -Property UserPrincipalName, RecipientTypeDetails"
+}
+
+# ===============================================
+# -- m365-set-display-name
+# ===============================================
+help_m365[m365-set-display-name]='Set the display name for a user in Microsoft 365.'
+m365-set-display-name () {
+    m365_set_display_name_usage () {
+        echo "Usage: m365-set-display-name -u <username> -n <name>"
+    }
+
+    local M365_USERNAME M365_NAME
+    zparseopts -D -E u:=ARG_USERNAME n:=ARG_NAME
+
+    _debugf "ARG_USERNAME: $ARG_USERNAME ARG_NAME: $ARG_NAME"
+    if [[ -z $ARG_USERNAME || -z $ARG_NAME ]]; then
+        _error "You must specify a username and a name."
+        m365_set_display_name_usage
+        return 1
+    else
+        M365_USERNAME=${ARG_USERNAME[2]}
+        M365_NAME=${ARG_NAME[2]}
+    fi
+
+    _loading "Setting display name for $M365_USERNAME to $M365_NAME"
+    m365 entra user set --userName $M365_USERNAME --displayName $M365_NAME
+}
+
+# ===============================================
+# -- m365-get-license
+# ===============================================
+help_m365[m365-get-license]='Get the licenses for a user in Microsoft 365.'
+m365-get-license () {
+    m365_get_license_usage () {
+        echo "Usage: m365-get-license -u <username>"
+    }
+
+    local M365_USERNAME
+    zparseopts -D -E u:=ARG_USERNAME
+
+    _debugf "ARG_USERNAME: $ARG_USERNAME"
+    if [[ -z $ARG_USERNAME ]]; then
+        _error "You must specify a username."
+        m365_get_license_usage
+        return 1
+    else
+        M365_USERNAME=${ARG_USERNAME[2]}
+    fi
+
+    _loading "Getting licenses for $M365_USERNAME"
+    m365 entra user license list --userName $M365_USERNAME --output text
+}
+
+# ===============================================
+# -- m365-remove-license
+# ===============================================
+help_m365[m365-remove-license]='Remove a license from a user in Microsoft 365.'
+m365-remove-license () {
+    m365_remove_license_usage () {
+        echo "Usage: m365-remove-license -u <username> -lid <license-id>"
+    }
+
+    local M365_USERNAME M365_LICENSE
+    zparseopts -D -E u:=ARG_USERNAME lid:=ARG_LICENSE
+
+    _debugf "ARG_USERNAME: $ARG_USERNAME ARG_LICENSE: $ARG_LICENSE"
+    if [[ -z $ARG_USERNAME || -z $ARG_LICENSE ]]; then
+        _error "You must specify a username and a license."
+        m365_remove_license_usage
+        return 1
+    else
+        M365_USERNAME=${ARG_USERNAME[2]}
+        M365_LICENSE=${ARG_LICENSE[2]}
+    fi
+
+    _loading "Removing license $M365_LICENSE from $M365_USERNAME"
+    m365 entra user license remove --userName $M365_USERNAME --ids $M365_LICENSE
+
+    _loading "License removed, getting updated licenses for $M365_USERNAME"
+    m365 entra user license list --userName $M365_USERNAME --output text
+}
