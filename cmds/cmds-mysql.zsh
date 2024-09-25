@@ -367,25 +367,33 @@ mysql-backup-db () {
 	fi
 }
 
+# ===============================================
 # -- mysql-mycli
+# ===============================================
 help_mysql[mysql-mycli]="Install and run mycli"
 
+# ===============================================
 # -- mysqlt
+# ===============================================
 help_mysql[mysqlt]="Run mysqltuner.pl --noinfo --nogood"
 mysqlt () {
 	mysqltuner.pl --noinfo --nogood
 }
 
+# ===============================================
 # -- mysqlt-html
+# ===============================================
 help_mysql[mysqlt-html]="Run mysqltuner.pl --verbose --json | j2 -f json basic.html.j2 > mysql.html"
 mysqlt-html () {
 	# might need apt-get install libjson-perl
 	mysqltuner.pl --verbose --json | j2 -f json $ZBR/bin/MySQLTuner-perl/templates/basic.html.j2 > mysql.html
 }
 
-# -- mysql-createuser
-help_mysql[mysql-createuser]="Create MySQL 8.0 user, provide username as first argument and a random password will be generated"
-mysql-createuser () {
+# ===============================================
+# -- mysql-create-user
+# ===============================================
+help_mysql[mysql-create-user]="Create MySQL 8.0 user, provide username as first argument and a random password will be generated"
+mysql-create-user () {
 	MYSQL_USER="$1"
 	if [[ -z $MYSQL_USER ]]; then
 		echo "Usage: mysql-createuser <user>"
