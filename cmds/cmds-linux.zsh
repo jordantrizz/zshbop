@@ -781,8 +781,8 @@ smartctl-all-disks () {
 		for i in $DEVICES; do
 			_loading2 "Disk $i"
 			SMARTCTL_OUTPUT=$(smartctl -i -A /dev/$i)
-			echo $SMARTCTL_OUPUT | grep -E -i "SERIAL|Device Model|Firmware Version|User Capacity|TRIM Command|SMART support is"
-			echo $SMARTCTL_OUTPUT | grep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW""			
+			echo $SMARTCTL_OUPUT | egrep -E -i "SERIAL|Device Model|Firmware Version|User Capacity|TRIM Command|SMART support is"
+			echo $SMARTCTL_OUTPUT | egrep -E -i "^  "5"|^"197"|^"198"|"FAILING_NOW""			
 		done
 	elif [[ -n $ERRORS_ONLY ]]; then
 		_loading "Running smartctl on all disks, showing errors only."
