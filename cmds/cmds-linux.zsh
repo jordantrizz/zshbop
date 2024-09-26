@@ -665,6 +665,7 @@ sstrace () {
 	local PID PROCESS_NAME PUSERNAME 
 	local ARG_PID ARG_PROCESS_NAME ARG_PUSERNAME ARG_OUTPUT
 	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE OUTPUT
+	local MESSAGE
 	local DATE=$(date +%Y-%m-%d-%H-%M-%S)
 	local FILE_PATH="/tmp"
 	local FILE="$FILE_PATH/sstrace-$PID-$DATE.log"
@@ -678,7 +679,7 @@ sstrace () {
 	[[ -n $ARG_PUSERNAME ]] && PUSERNAME=$ARG_PUSERNAME[2]
 	[[ -n $ARG_OUTPUT ]] && OUTPUT=$ARG_OUTPUT[2] || OUTPUT="file"
 	
-	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT+=("-o $FILE")
+	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT+=(-o $FILE)
 
 	_debugf "PID: $PID - PROCESS_NAME: $PROCESS_NAME - PUSERNAME: $PUSERNAME"
 		
@@ -689,52 +690,38 @@ sstrace () {
 		return 1
 	fi
 	
-
+	# Process name
 	if [[ -n $PROCESS_NAME ]]; then
 		_loading "Stracing process $PROCESS_NAME"
 		PIDS=$(pgrep $PROCESS_NAME)	
-		if [[ -z $PIDS ]]; then
-			_error "Process $ARGS_PROCESS_NAME not found"
-			return 1
-		fi
+		[[ -z $PIDS ]] && { _error "Process $PROCESS_NAME not found"; return 1; }
 		
-		# Print PIDS without newlines		
-		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
-		_loading "Stracing process $PROCESS_NAME with PID's $PIDS_SAME_LINE"
-		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
-		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"	
-		eval "$(strace -f -s 40000 -o ${FILE} ${STRACE_ARG[@]})"
+		MESSAGE="Stracing process $PROCESS_NAME"
+	# PID
 	elif [[ -n $PID ]]; then
-		_loading "Stracing process with PID: $PID"		
+		[[ -z $PID ]] && { _error "Process $PID not found"; return 1; }
+		_loading "Stracing process with PID: $PID"
 		PIDS=$(pgrep -P $PID)
-		if [[ -z $PIDS ]]; then
-			_error "Process $ARGS_PROCESS_NAME not found"
-			return 1
-		fi
 		PIDS=($PID $PIDS)
-		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
-		
-		_loading "Stracing process $PID with PID's $PIDS_SAME_LINE"
-		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))	
-		_debugf "strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]}"
-		eval "$(strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]})"
-	elif [[ -n $PUSERNAME ]]; then
-		
-		_loading "Stracing process with username $$PUSERNAME"		
+
+		MESSAGE="Stracing process $PID"
+	# PUSERNAME
+	elif [[ -n $PUSERNAME ]]; then		
+		_loading "Stracing process with username $PUSERNAME"		
 		PIDS=$(pgrep -u $PUSERNAME)
-		if [[ -z $PIDS ]]; then
-			_error "Process $$PUSERNAME not found"
-			return 1
-		fi
-		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
-		_loading "Stracing process $PUSERNAME with PID's $PIDS_SAME_LINE"
-		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
-		_debugf "strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]}"
-		eval "$(strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]})"		
+		[[ -z $PIDS ]] && { _error "Process $PUSERNAME not found"; return 1; }
+				
+		MESSAGE="Stracing process $PUSERNAME"
 	else
 		_error "No process name or PID provided"
 		_usage_sstrace
 	fi
+
+	PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))	
+	_loading2 "$MESSAGE with PIDs: $PIDS_SAME_LINE"
+	STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
+	_debugf "strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]}"
+	eval $(strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]})
 }
 
 
