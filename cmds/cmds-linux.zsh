@@ -677,9 +677,8 @@ sstrace () {
 	[[ -n $ARG_PROCESS_NAME ]] && PROCESS_NAME=$ARG_PROCESS_NAME[2]
 	[[ -n $ARG_PUSERNAME ]] && PUSERNAME=$ARG_PUSERNAME[2]
 	[[ -n $ARG_OUTPUT ]] && OUTPUT=$ARG_OUTPUT[2] || OUTPUT="file"
-
-	[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
-	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT=("-o $FILE")
+	
+	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT+=("-o $FILE")
 
 	_debugf "PID: $PID - PROCESS_NAME: $PROCESS_NAME - PUSERNAME: $PUSERNAME"
 		
