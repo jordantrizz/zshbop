@@ -663,8 +663,10 @@ sstrace () {
 	local STRACE_ARG=()	PID PROCESS_NAME PUSERNAME 
 	local ARG_PID ARG_PROCESS_NAME ARG_PUSERNAME ARG_OUTPUT
 	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE OUTPUT STRACE_OUTPUT
-	local FILE_PATH="/tmp"
 	local DATE=$(date +%Y-%m-%d-%H-%M-%S)
+	local FILE_PATH="/tmp"
+	local FILE="$FILE_PATH/sstrace-$PID-$DATE.log"
+	
 	
 	zparseopts -D -E p:=ARG_PID n:=ARG_PROCESS_NAME u:=ARG_PUSERNAME o:=ARG_OUTPUT
 
@@ -703,8 +705,8 @@ sstrace () {
 		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"
 	elif [[ -n $PID ]]; then
 		[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
-		_loading "Stracing process with PID: $PID"
-		FILE="$FILE_PATH/sstrace-$PID-$DATE.log"
+		[[ $OUTPUT == "file" ]] && STRACE_OUTPUT="-o $FILE"
+		_loading "Stracing process with PID: $PID"		
 		PIDS=$(pgrep -P $PID)			
 		if [[ -z $PIDS ]]; then
 			_error "Process $ARGS_PROCESS_NAME not found"
@@ -712,6 +714,7 @@ sstrace () {
 		fi
 		PIDS=($PID $PIDS)
 		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
+		
 		_loading "Stracing process $PID with PID's $PIDS_SAME_LINE"
 		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))	
 		_debugf "strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]}"
