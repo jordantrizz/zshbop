@@ -85,7 +85,7 @@ ZB_OPTIONAL_PACKAGES+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
 # -- Extra Software
 ZB_EXTRA_PACKAGES=('fzf' 'shellcheck' 'npm' 'golang-go' 'aspell-en')
 ZB_EXTRA_PACKAGES+=('mosh' 'keychain' 'gh' 'pwgen' 'python3' 'python3-pip')
-ZB_EXTRA_PACKAGES+=('php-cli' 'libssl-dev')
+ZB_EXTRA_PACKAGES+=('php-cli' 'libssl-dev' 'strace')
 
 ZB_BINARIES=('ngxtop' 'apt-select' 'semgrep' 'doge' 'cargo')
 
