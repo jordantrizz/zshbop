@@ -1,55 +1,29 @@
+# ===============================================
 # -- Linux commands
+# ===============================================
 _debug " -- Loading ${(%):-%N}"
-
 help_files[linux]='Linux related commands'
-
-# - Init help array
 typeset -gA help_linux
 
+# ===============================================
 # -- swap-find - find what's using swap.
+# ===============================================
 help_linux[swap-find]='Find what processes are using swap.'
 swap-find () {
 	find /proc -maxdepth 2 -path "/proc/[0-9]*/status" -readable -exec awk -v FS=":" '{process[$1]=$2;sub(/^[ \t]+/,"",process[$1]);} END {if(process["VmSwap"] && process["VmSwap"] != "0 kB") printf "%10s %-30s %20s\n",process["Pid"],process["Name"],process["VmSwap"]}' '{}' \; | awk '{print $(NF-1),$0}' | sort -h | cut -d " " -f2-
 }
 
+# ===============================================
 # -- dir-filecount
+# ===============================================
 help_linux[dir-filecount]='Count how many files are in each directory, recusively and report back a total.'
 dir-filecount () {
 	find -maxdepth 1 -type d | sort | while read -r dir; do n=$(find "$dir" -type f | wc -l); printf "%4d : %s\n" $n "$dir"; done
 }
 
-# -- vhwinfo - Run vhwinfo.
-help_linux[vhwinfo]='Temporarily downloads vhwinfo and displays system information.'
-vhwinfo () {
-        echo " -- Downloading vhwinfo.sh via wget and running"
-        wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
-}
-
-# -- needrestart - check if system needs a restart
-help_linux[needrestart]='Check if system needs a restart'
-_cmd_exists needrestart
-if [[ $? == "1" ]]; then
-	needrestart () {
-		_debug "needrestart not installed"
-		_notice "needrestart not installed"
-		echo 'Press any key to install needrestart...'; read -k1 -s
-		sudo apt-get install needrestart
-	}
-fi
-
-# -- broot -
-help_linux[broot]='Get an overview of a directory, even a big one'
-_cmd_exists broot
-if [[ $? == "1" ]]; then
-	function broot () {
-		check_broot
-	}
-	function check_broot () {
-		_error "broot not installed"
-	}
-fi
-
+# ===============================================
 # -- backup
+# ===============================================
 help_linux[backup]='Backup a folder in a tar file'
 backup () {
 	if [[ -z $1 ]]; then
@@ -69,7 +43,9 @@ backup () {
 	fi
 }
 
+# ===============================================
 # -- ps2
+# ===============================================
 help_linux[ps2]='Show long usernames in ps :)'
 ps2 () {
     if [[ $@ =~ .u* ]] || [[ *u ]]; then
@@ -82,13 +58,17 @@ ps2 () {
     fi
 }
 
+# ===============================================
 # -- ps-cpu
+# ===============================================
 help_linux[ps-cpu]='Show top 5 CPU applications'
 ps-cpu () {
     ps aux --sort -pcpu | head -5
 }
 
+# ===============================================
 # -- ps-mem2
+# ===============================================
 help_linux[ps-mem2]='Show memory as human readable and sort'
 function ps-mem2() {
     local sortbyfield="rss"
@@ -99,7 +79,9 @@ function ps-mem2() {
     eval "$ps_cmd | $awk_cmd | $cut_cmd"
 }
 
+# ===============================================
 # -- ps-mem
+# ===============================================
 help_linux[ps-mem]="List processes with human readable memory"
 ps-mem () {
 	# PS_OUTPUT=$(ps -afu | awk 'NR>1 {$5=int($5/1024)"M";} NR>1 {$6=int($6/1024)"M";}{ print;}')
@@ -139,13 +121,16 @@ ps-mem () {
 	fi
 }
 
+# ===============================================
 # -- fork
+# ===============================================
 help_linux[fork]='Fork command into background'
 fork () {
 	(setsid "$@" &);
 }
-
+# ===============================================
 # -- sysr
+# ===============================================
 help_linux[sysr]='Systemctl restart shortcut'
 sysr () {
 	if [[ -z $@ ]]; then
@@ -156,7 +141,10 @@ sysr () {
         systemctl restart "$@"
     fi
 }
+
+# ===============================================
 # -- syss
+# ===============================================
 help_linux[syss]='Systemctl status shortcut'
 syss () {
 	if [[ -z $@ ]]; then
@@ -168,7 +156,9 @@ syss () {
     fi
 }
 
+# ===============================================
 # -- sysrld
+# ===============================================
 help_linux[sysrld]='Systemctl reload shortcut'
 sysrld () {
     if [[ -z $@ ]]; then
@@ -180,14 +170,17 @@ sysrld () {
     fi
 }
 
-
+# ===============================================
 # -- usedspace
+# ===============================================
 help_linux[usedspace]='Show disk space and not count symlinks or tmpfs'
 usedspace () {
 	find / -maxdepth 1 -type d | xargs du -b --exclude=/proc --exclude=/dev --exclude=/run -h -d 1
 }
 
+# ===============================================
 # -- check-diskspace
+# ===============================================
 help_linux[check-diskspace]="Check diskspace based on OS"
 check-diskspace () {
 	if [[ $MACHINE_OS == "linux" ]]; then
@@ -197,7 +190,9 @@ check-diskspace () {
 	fi
 }
 
+# ===============================================
 # -- check_blockdevices
+# ===============================================
 check_blockdevices () {
     if [[ $MACHINE_OS == "linux" ]]; then
         OUTPUT=""
@@ -218,7 +213,9 @@ check_blockdevices () {
     fi
 }
 
+# ===============================================
 # -- check_diskspace
+# ===============================================
 help_linux[check_diskspace2]="Check diskspace2"
 check_diskspace2 () {
 	OUTPUT=""
@@ -248,7 +245,9 @@ check_diskspace2 () {
 
 }
 
+# ===============================================
 # -- speed-convert
+# ===============================================
 help_linux[speed-convert]="Convert data speeds"
 speed-convert () {
 	VALUE="$1"
@@ -282,13 +281,17 @@ speed-convert () {
 	fi
 }
 
+# ===============================================
 # -- utc
+# ===============================================
 help_linux[utc]="Display UTC date and time"
 function utc () {
 	date -u
 }
 
+# ===============================================
 # -- datetz
+# ===============================================
 help_linux[datetz]="Display specified timezone date and time"
 datetz () {
 	env TZ=":US/Pacific" date
@@ -297,11 +300,15 @@ datetz () {
 	env TZ="UTC" date
 }
 
+# ===============================================
 # -- swappiness
+# ===============================================
 help_linux[swappiness]="Display swappiness"
 swappiness () { mem } # alias to mem
 
+# ===============================================
 # -- ubuntu-lts
+# ===============================================
 help_linux[ubuntu-lts]="Display Ubuntu LTS version"
 ubuntu-lts () {
     lts_data=$(curl -s https://changelogs.ubuntu.com/meta-release-lts)
@@ -319,7 +326,9 @@ ubuntu-lts () {
     echo "$combined"
 }
 
+# ===============================================
 # -- Screen sessions
+# ===============================================
 help_linux[screen-sessions]="Display screen sessions"
 screen-sessions () {
 	local SSESSIONS_OUTPUT SSESSIONS
@@ -353,7 +362,9 @@ screen-sessions () {
     fi
 }
 
+# ===============================================
 # -- rename-ext
+# ===============================================
 help_linux[rename-ext]='Rename file extensions'
 rename-ext () {
         if [[ -z $1 ]] || [[ -z $2 ]]; then
@@ -366,11 +377,10 @@ rename-ext () {
         fi
 }
 
-# ====================================
-# -- add-path $PATH
-# -- Add to $PATH
-# $PATH is a colon separated list of directories
-# ====================================
+# ===============================================
+# -- add-path
+# ===============================================
+
 help_linux[add-path]='Add to $PATH'
 add-path () {
 	if [[ -z $1 ]]; then
@@ -381,9 +391,9 @@ add-path () {
 	fi
 }
 
-# ====================================
+# ===============================================
 # -- paths - print out $PATH on new lines
-# ====================================
+# ===============================================
 help_linux[paths]='print out \$PATH on new lines'
 paths () {	
 	_loading "Printing out \$PATH on new lines"
@@ -399,14 +409,19 @@ paths () {
 	_notice "Total paths: $_total_paths"
 }
 
+# ===============================================
 # -- catvet
+# ===============================================
+
 help_linux[catvet]='Print out special formatting characters in a file or via pipe'
 catvet () {
 	echo "To print out the special formatting characters..."
 	echo "echo 'testing\n' | cat -vet"
 }
 
+# ===============================================
 # -- view-std
+# ===============================================
 help_linux[view-std]='View standard output and error'
 view-std () {
 	if [[ -z $1 ]]; then
@@ -417,10 +432,15 @@ view-std () {
 	fi
 }
 
+# ===============================================
+# -- get-os-install-date
+# ===============================================
 help_linux[get-os-install-date]='Get the date the OS was installed'
 alias get-os-install-date="_get_os_install_date"
 
+# ===============================================
 # -- swappiness-set <size> - set swap size
+# ===============================================
 help_linux[swappiness-set]='Set swappiness'
 swappiness-set () {
 	if [[ -z $1 ]]; then
@@ -433,7 +453,9 @@ swappiness-set () {
 	fi
 }
 
+# ===============================================
 # -- Reset Swap
+# ===============================================
 help_linux[swap-reset]='Reset swap'
 swap-reset () {
 	# -- Check if swap is on or off
@@ -613,34 +635,6 @@ function compress () {
 		return 1
 	fi
 }
-
-# =================================================================================================
-# -- geekbench-run
-# =================================================================================================
-help_linux[geekbench-run]='Run geekbench'
-geekbench-run () {
-	# Download geekbench
-	_loading "Downloading geekbench"
-	DOWNLOAD_URL=$(wget -qO- https://www.geekbench.com/download/linux/ | sed -n "s/.*URL=\([^']*\).*/\1/p")
-	wget -O /tmp/Geekbench-6.3.0-Linux.tar.gz "$DOWNLOAD_URL"
-
-	# Extract geekbench
-	_loading "Extracting geekbench"
-	tar -xvf /tmp/Geekbench-6.3.0-Linux.tar.gz -C /tmp
-
-	# Run geekbench
-	_loading "Running geekbench"
-	/tmp/Geekbench-6.3.0-Linux/geekbench_x86_64
-}
-
-# ===============================================
-# -- geekbench-run-oneliner
-# ===============================================
-help_linux[geekbench-install]='Print out oneliner to download, and run geekbench'
-geekbench-install () {
-    echo 'cd /tmp && wget -O Geekbench.tar.gz "$(wget -qO- https://www.geekbench.com/download/linux/ | sed -n "s/.*URL=\([^'\'']*\).*/\1/p")" && tar -xzf Geekbench.tar.gz && ./Geekbench-6.3.0-Linux/geekbench6'
-}
-
 
 # ===============================================
 # -- sstrace - strace a process

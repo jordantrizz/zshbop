@@ -195,3 +195,12 @@ software_eza () {
 	fi
 	nix profile install nixpkgs#eza
 }
+
+# ===============================================
+# -- software_vhwinfo
+# ===============================================
+help_software[vhwinfo]='Temporarily downloads vhwinfo and displays system information.'
+vhwinfo () {
+        echo " -- Downloading vhwinfo.sh via wget and running"
+        wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
+}
