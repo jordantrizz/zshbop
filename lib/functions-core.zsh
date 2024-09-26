@@ -74,47 +74,47 @@ function colors-print () {
 }
 
 # =========================================================
-# -- _require_pkg ($package)
+# -- _require_pkg ($package) ($install)
 # --
 # -- Check to see if command exists and if not install
 # =========================================================
 help_int[_require_pkg]='Check if command exists and if not install using package manager'
 function _require_pkg () {
-    local REQUIRE_PKG=$1
+    local REQUIRE_PKG=$1 CHECK_PKG PKG_MANAGER PKG_INSTALL PACKAGE_INSTALLED INSTALL_PKG="${2:-1}"    
     _debug_all
-    _debug "Running _requires_pkg on $REQUIRE_PKG"    
+    _debugf "Running _requires_pkg on $REQUIRE_PKG"    
 
-    # -- Figure out which package manager to use
-    if [[ $(which apt-get) ]]; then
-        _debug "Using apt-get"
-        PKG_MANAGER="apt-get"
-    elif [[ $(which yum) ]]; then
-        _debug "Using yum"
-        PKG_MANAGER="yum"
-    elif [[ $(which brew) ]]; then
-        _debug "Using brew"
-        PKG_MANAGER="brew"
-    elif [[ $(which ports) ]]; then
-        _debug "Using ports"
-        PKG_MANAGER="ports"
-    else
-        _debug "No package manager found"
-        return 1
-    fi
+    _package_manager
     
-    for PKG in ${REQUIRE_PKG}; do
-        _debug "Processing PKG: ${PKG} - ${PKG_MANAGER}"
+    for PKG in ${REQUIRE_PKG[@]}; do
+        _debugf "Processing PKG: ${PKG} - ${PKG_MANAGER}"
         if [[ -x $(command -v $PKG) ]]; then
-            _debug "$PKG is installed";
-            REQUIRES_PKG=0
-            return 0
-        else
-            _debug "$PKG not installed";        
-            echo "$PKG not installed, installing"
-            sudo $PKG_MANAGER install $PKG
-            REQUIRES_PKG=1            
+            _debugf "$PKG is installed as command";            
+            continue
         fi
+        PACKAGE_INSTALLED=$(eval $PKG_INSTALLED_CHECK $PKG 2> /dev/null)        
+        if [[ $? == "0" ]]; then
+            _debugf "$PKG is installed as package";            
+            continue
+        fi
+
+        _debugf "$PKG not installed";                    
+        PKG_INSTALL=($PKG)
     done
+
+    if [[ -z $PKG_INSTALL ]]; then
+        _debugf "All packages installed already"
+        return 0
+    fi
+
+    if [[ $INSTALL_PKG == "1" ]]; then
+        CMD_RUN="sudo $PKG_MANAGER $PKG_INSTALL"
+        _debugf "Running - $CMD_RUN"
+        eval $CMD_RUN
+    else
+        _debugf "Instructed not to install packages"
+        echo "$PKG_INSTALL"
+    fi
 }
 
 # =========================================================
@@ -125,24 +125,83 @@ function _require_pkg () {
 help_int[_requires_cmd]='Check to see if $command is installed'
 _requires_cmd () {
     _debug_all
-    _debug "Running _requires on $1"
-    _debug "array: ${(P)${array_name}}"
+    _debugf "Running _requires on $1"
+    _debugf "array: ${(P)${array_name}}"
 
     local array_name=$1
     CMD=""
 
     for CMD in ${(P)${array_name}}; do
         if (( $+commands[$CMD] )); then
-        _debug $(which $CMD)
-            _debug "$CMD is installed";
+        _debugf $(which $CMD)
+            _debugf "$CMD is installed";
             REQUIRES_CMD=0
             return 0
         else
-            _debug "$CMD not installed";
+            _debugf "$CMD not installed";
             REQUIRES_CMD=1
             return 1
         fi
     done
+}
+
+# =========================================================
+# -- _package_manager
+# =========================================================
+help_int[_package_manager]='Get package manager'
+function _package_manager () {
+    if [[ $(which apt-get) ]]; then
+        _debugf "Using apt-get"
+        PKG_MANAGER="apt-get install -y --no-install-recommends"
+        PKG_INSTALLED_CHECK="dpkg-query -l"
+        PKG_INSTALLABLE_CHECK="apt-cache show"
+    elif [[ $(which yum) ]]; then
+        _debugf "Using yum"
+        PKG_MANAGER="yum"
+    elif [[ $(which brew) ]]; then
+        _debugf "Using brew"
+        PKG_MANAGER="brew"
+    elif [[ $(which ports) ]]; then
+        _debugf "Using ports"
+        PKG_MANAGER="ports"
+    else
+        _debugf "No package manager found"
+        return 1
+    fi    
+}
+
+# =========================================================
+# -- _package_installable
+# =========================================================
+help_int[_package_installable]='Check if package is installable'
+function _package_installable () {
+    local PACKAGE=$1
+    _debug_all
+    _debugf "Checking if $PACKAGE is installable"
+    if apt-cache show $PACKAGE >> /dev/null; then
+        _debugf "$PACKAGE is installable"
+        return 0
+    else
+        _debugf "$PACKAGE not installable"
+        return 1
+    fi
+}
+
+# =========================================================
+# -- _package_installed
+# =========================================================
+help_int[_package_installed]='Check if package is installed'
+function _package_installed () {
+    local PACKAGE=$1
+    _debug_all
+    _debugf "Checking if $PACKAGE is installed"
+    if dpkg-query -l $PACKAGE >> /dev/null; then
+        _debugf "$PACKAGE is installed"
+        return 0
+    else
+        _debugf "$PACKAGE not installed"
+        return 1
+    fi
 }
 
 # =========================================================
@@ -157,10 +216,10 @@ function _cmd_exists () {
 
     # Check if command exists
     if command -v ${CMD} >> /dev/null; then
-        _debug "$CMD is installed";
+        _debugf "$CMD is installed";
         CMD_EXISTS="0"
     else
-        _debug "$CMD not installed";    
+        _debugf "$CMD not installed";    
         CMD_EXISTS="1"
     fi
 
@@ -180,7 +239,7 @@ _checkroot () {
         zb_logger "WARNING" 0 "Requires root...exiting - $funcstack"
         return 1
     else
-        _debug "Running as root"
+        _debugf "Running as root"
         return 0
     fi
 }
@@ -194,17 +253,17 @@ help_int[_if_marray]="Check if value is in array"
 _if_marray () {
     local NEEDLE=$1 HAYSTACK=$2
     MARRAY_VALID=1
-    _debug "$funcstack[1] - find value = $NEEDLE in array = $HAYSTACK"
+    _debugf "$funcstack[1] - find value = $NEEDLE in array = $HAYSTACK"
     for value in ${(k)${(P)HAYSTACK[@]}}; do
-            _debug "$funcstack[2] - array=$HAYSTACK \$value = $value"
+            _debugf "$funcstack[2] - array=$HAYSTACK \$value = $value"
             if [[ $value == "$NEEDLE" ]]; then
-                    _debug "$funcstack[1] - array $HAYSTACK does contain $VALUE"
+                    _debugf "$funcstack[1] - array $HAYSTACK does contain $VALUE"
                     MARRAY_VALID="0"
             else
-                    _debug "$funcstack[1] - array $HAYSTACK doesn't contain $VALUE"
+                    _debugf "$funcstack[1] - array $HAYSTACK doesn't contain $VALUE"
             fi
     done
-    _debug "MARRAY_VALID = $MARRAY_VALID"
+    _debugf "MARRAY_VALID = $MARRAY_VALID"
     if [[ MARRAY_VALID == "1" ]] &&  return 1 || return 0
 }
 

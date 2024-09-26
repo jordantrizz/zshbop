@@ -702,7 +702,7 @@ sstrace () {
 		_loading "Stracing process $PROCESS_NAME with PID's $PIDS_SAME_LINE"
 		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))
 		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"	
-		eval "$(strace -f -s 40000 -o $FILE ${STRACE_ARG[@]})"
+		eval "$(strace -f -s 40000 -o ${FILE} ${STRACE_ARG[@]})"
 	elif [[ -n $PID ]]; then
 		[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
 		[[ $OUTPUT == "file" ]] && STRACE_OUTPUT="-o $FILE"

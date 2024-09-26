@@ -73,19 +73,21 @@ GIT_CONFIG="${ZSHBOP_HOME}/.gitconfig"
 export bgnotify_threshold='6' # https://github.com/robbyrussell/oh-my-zsh/tree/master/plugins/bgnotify # -- ohmyzsh specific environment variables
 
 # -- Required Software
-REQUIRED_SOFTWARE=('git' 'zsh' 'wget' 'curl' 'sudo')
+ZB_REQUIRED_PACKAGES=('git' 'zsh' 'wget' 'curl' 'sudo' 'jq')
 
 # -- Optional Software
-OPTIONAL_SOFTWARE=('jq' 'curl' 'zsh' 'git' 'sudo' 'screen' 'wget' 'joe')
-OPTIONAL_SOFTWARE+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
-OPTIONAL_SOFTWARE+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'lynx' 'ncdu')
-OPTIONAL_SOFTWARE+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'md5sum')
-OPTIONAL_SOFTWARE+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
+ZB_OPTIONAL_PACKAGES=('sudo' 'screen' 'wget' 'joe')
+ZB_OPTIONAL_PACKAGES+=('dnsutils' 'net-tools' 'dmidecode' 'virt-what' 'wget')
+ZB_OPTIONAL_PACKAGES+=('unzip' 'zip' 'bc' 'whois' 'telnet' 'lynx' 'ncdu')
+ZB_OPTIONAL_PACKAGES+=('traceroute' 'tree' 'mtr' 'ncdu' 'fpart' 'md5sum')
+ZB_OPTIONAL_PACKAGES+=('pwgen' 'tree' 'htop' 'iftop' 'iotop' 'lsof')
 
 # -- Extra Software
-EXTRA_SOFTWARE=('fzf' 'shellcheck' 'npm' 'golang-go' 'aspell-en' 'ngxtop')
-EXTRA_SOFTWARE+=('apt-select' 'semgrep' 'mosh' 'keychain' 'gh' 'pwgen')
-EXTRA_SOFTWARE+=('python3' 'python3-pip' 'php-cli')
+ZB_EXTRA_PACKAGES=('fzf' 'shellcheck' 'npm' 'golang-go' 'aspell-en')
+ZB_EXTRA_PACKAGES+=('mosh' 'keychain' 'gh' 'pwgen' 'python3' 'python3-pip')
+ZB_EXTRA_PACKAGES+=('php-cli' 'libssl-dev')
+
+ZB_BINARIES=('ngxtop' 'apt-select' 'semgrep' 'doge' 'cargo')
 
 # -- Take $EDITOR run it through alias and strip it down
 EDITOR_RUN=${${$(alias $EDITOR)#joe=\'}%\'}

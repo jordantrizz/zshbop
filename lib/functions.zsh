@@ -167,7 +167,7 @@ zshbop_branch  () {
 		if [[ -n $2 ]]; then
 	        _loading "Switching to $2 branch"
     		GIT_CHECKOUT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2)
-            _debug "GIT_CHECKOUT: $GIT_CHECKOUT"
+            _debugf "GIT_CHECKOUT: $GIT_CHECKOUT"
             if [[ $? -eq "0" ]]; then
                 _success " --Switched to $2 branch, pulling latest changes"
                 git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
@@ -259,7 +259,7 @@ zshbop_update () {
     # -- Pull zshbop down from git using current branch
     _loading2 "Pulling zshbop updates"
     if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
-    	_debug "Detected old branch name develop"
+    	_debugf "Detected old branch name develop"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
         [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
@@ -287,9 +287,9 @@ zshbop_update () {
     # -- Update $ZSHBOP_UPDATE_GIT git repositories from custom config.
     _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
     if [[ $ZSHBOP_UPDATE_GIT ]]; then
-        _debug "Found \$ZSHBOP_UPDATE_GIT which continas $ZSH_UPDATE_GIT"
+        _debugf "Found \$ZSHBOP_UPDATE_GIT which continas $ZSH_UPDATE_GIT"
         for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
-            _debug "Checking $GIT"
+            _debugf "Checking $GIT"
             [[ -d "$HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             [[ -d "$GIT_HOME/$GIT" ]] && ZUG="$HOME/$GIT"
             [[ -d $GIT ]] && ZUG="$GIT"
@@ -317,22 +317,22 @@ zshbop_version () {
 }
 
 # =========================================================
-# -- zshbop_debug ()
+# -- zshbop_debugf ()
 # =========================================================
 help_zshbop[debug]='Turn debug on and off'
 alias debug=zshbop_debug
-zshbop_debug () {
+zshbop_debugf () {
     _debug_all
     echo "test $@"
     if [[ $1 == "on" ]] || [[ $2 == "on" ]]; then
             echo "Turning debug on"
-            _debug "Turning debug on"
+            _debugf "Turning debug on"
             touch $ZSHBOP_ROOT/.debug
             echo "Reloading to enable debug"
             zshbop_reload
     elif [[ $1 == "off" ]] || [[ $2 == "off" ]]; then
             echo "Turning debug off"
-            _debug "Turning debug off"
+            _debugf "Turning debug off"
             if [[ -f $ZSHBOP_ROOT/.debug ]]; then
                 rm $ZSHBOP_ROOT/.debug
             else
@@ -348,7 +348,7 @@ zshbop_debug () {
             zshbop_reload
     elif [[ $1 == "verbose" ]] || [[ $2 == "verbose" ]]; then
             echo "Turning debug verbose on"
-            _debug "Turning debug verbose on"
+            _debugf "Turning debug verbose on"
             touch $ZSHBOP_ROOT/.verbose
             touch $ZSHBOP_ROOT/.debug
             echo "Reloading to enable debug verbose"
@@ -539,25 +539,25 @@ function zshbop_check-system () {
 	_debug_all
 
     # -- CPU
-    _debug "Checking CPU"
+    _debugf "Checking CPU"
     [[ $(cpu) == "0" ]] && echo "$(_loading3 $(cpu))"
 
     # -- MEM
-    _debug "Checking memory"
+    _debugf "Checking memory"
     [[ $(mem) == "0" ]] && echo "$(_loading3 $(mem))"
 
     # -- network interfaces
-    _debug "Network interfaces"
+    _debugf "Network interfaces"
     INTERFACES="$(interfaces)"
     _loading3 "Network: $INTERFACES"
 
 	# -- check disk space
-	_debug "Checking disk space on $MACHINE_OS"
+	_debugf "Checking disk space on $MACHINE_OS"
     _loading3 "$(check-diskspace)"
 
     #TODO block devices needs to be compacted.
 	# -- check block devices
-    #_debug "Checking block devices"
+    #_debugf "Checking block devices"
     #_loading3 "Block Devices: $(check_blockdevices)"
     
 }
@@ -605,44 +605,91 @@ function zshbop_check () {
 # =========================================================
 # -- zshbop_install-env
 # =========================================================
-help_zshbop[install-env]='Install environment tools'
+help_zshbop[install-env]='Install Recommended Tools and Software'
 fucntion zshbop_install-env () {
     _log "${funcstack[1]}:start"
-    _loading "Installing environment"
-    _loading3 "Required tools - ${REQUIRED_SOFTWARE[@]}"
-    _loading3 "Generating list of required tools that need to be installed"
-    
-    # -- install required tools
-    for i in ${REQUIRED_SOFTWARE[@]}; do
-        _cmd_exists $i
-        if [[ $? == "1" ]]; then
-            _debug "Adding $i to list of tools to install"
-            PKG_TO_INSTALL+=("$i")
+    _zshbop_install-env-collect () {
+        local PKG_TYPE="$1" PACKAGES=()
+        for i in ${(P)PKG_TYPE}; do            
+            _require_pkg $i 0
+            [[ $? -ge 1 ]] && PACKAGES+=("$i")
+        done
+        echo "$PACKAGES"
+    }
+
+    local PKG_TO_INSTALL=()
+    _loading2 "Required tools and software"
+    RS_INSTALL=($(_zshbop_install-env-collect ZB_REQUIRED_PACKAGES))
+    if [[ -n $RS_INSTALL ]]; then
+        _loading3 "Required Packages to install - $RS_INSTALL"
+        read -q "RS_REPLY?Proceed with required packages install? [y/n] "
+        echo ""
+        if [[ $RS_REPLY =~ ^[Yy]$ ]]; then
+            PKG_TO_INSTALL=("$RS_INSTALL")
         fi
-    done
+    else
+        _success "No required packages to install"        
+    fi    
+    echo ""
+
+    _loading2 "Optional tools and software"
+    OS_INSTALL=($(_zshbop_install-env-collect ZB_OPTIONAL_PACKAGES))
+    if [[ -n $OS_INSTALL ]]; then
+        _loading3 "Optional Packages to install - $OS_INSTALL"
+        read -q "OS_REPLY?Proceed with optional packages install? [y/n] "
+        echo ""
+        if [[ $OS_REPLY =~ ^[Yy]$ ]]; then
+            PKG_TO_INSTALL=("$OS_INSTALL")
+        fi
+    else
+        _success "No optional packages to install"
+    fi
+    echo ""
+
+    _loading2 "Extra tools and software"
+    ES_INSTALL=($(_zshbop_install-env-collect ZB_EXTRA_PACKAGES))
+    if [[ -n $ES_INSTALL ]]; then
+        _loading3 "Extra Packages to install - $ES_INSTALL"
+        read -q "ES_REPLY?Proceed with extra packages install? [y/n] "
+        echo ""
+        if [[ $ES_REPLY =~ ^[Yy]$ ]]; then
+            PKG_TO_INSTALL=("$ES_INSTALL")
+        fi
+    else
+        _success "No extra packages to install"
+    fi
+
+    if [[ -n $PKG_TO_INSTALL ]]; then
+        _loading "List of packages to install"
+        echo "${PKG_TO_INSTALL[@]}"
+        echo ""
+        read -q "REPLY?Proceed with install? [y/n] "
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            _loading3 "Installing - $PKG_TO_INSTALL"
+            _require_pkg $PKG_TO_INSTALL
+        else
+            _loading3 "Not installing - $PKG_TO_INSTALL"
+        fi
+    else
+        _success "No packages to install"
+    fi
+
     
-    # Check if there are any tools to install
-    if [[ -z $PKG_TO_INSTALL ]]; then
-        _success "No tools to install"
-        return 1
-    else
-        _loading3 "Packages to install - $PKG_TO_INSTALL"
-    fi
+    # Install Binaries
+    _loading "Installing Binaries"
+    echo "Imcomplete, install manually"
+    echo "$ZB_BINARIES"
 
-    read -q "REPLY?Proceed with install? [y/n] "
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        _loading3 "Installing - $PKG_TO_INSTALL"
-        eval $PKG_MANAGER install $PKG_TO_INSTALL
-    else
-        _loading3 "Not installing - $PKG_TO_INSTALL"
-    fi
-
+    
     _log "${funcstack[1]}:stop"
 }
+
+
+
 # =========================================================
 # -- zshbop_cleanup
 # =========================================================
-
 help_zshbop[cleanup]='Cleanup old things'
 function zshbop_cleanup () {
     local QUEIT=${1:=0}
@@ -728,46 +775,6 @@ function zshbop_issue () {
     fi
 }
 
-# -- zshbop_software - Install softare into environment.
-help_zshbop[install-software]='Install software into environment'
-zshbop_install-software () {
-	sudo apt-get update
-    _loading "Installing Software..."
-    echo ""    
-    _loading2 "Installing required software.."
-    echo "REQUIRED_SOFTWARE: $REQUIRED_SOFTWARE"
-    if read -q "Continue? (y/n)"; then
-        sudo apt-get install --no-install-recommends $required_software
-    else
-        echo "Skipping due to press 'n'"
-    fi
-
-    _loading2 "Installing optional software"
-    echo "OPTIONAL_SOFTWARE: $OPTIONAL_SOFTWARE"
-    if read -q "Continue? (y/n)"; then
-        sudo apt-get install --no-install-recommends $OPTIONAL_SOFTWARE
-    else
-        echo "Skipping due to press 'n'"
-    fi
-
-    _loading2 "Installing extra software"
-    echo "EXTRA_SOFTWARE: $EXTRA_SOFTWARE"
-    if read -q "Continue? (y/n)"; then
-        sudo apt-get install --no-install-recommends $OPTIONAL_SOFTWARE
-    else
-        echo "Skipping due to press 'n'"
-    fi
-
-    #TODO FIX
-    echo "---------------------------"
-    echo "Manual installs"
-    echo "---------------------------"
-    echo " mdv       - pip install mdv"
-    echo " gnomon    - via npm"
-    echo " lsd       - https://github.com/Peltoche/lsd"
-    echo ""
-}
-
 # =========================================================
 # -- zshbop_plugins
 # =========================================================
@@ -818,7 +825,7 @@ function zshbop () {
     elif [[ $1 == "help" ]]; then
 		zshbop_help | less
     elif [[ -n $1 ]]; then
-		_debug "-- Running zshbop $1"
+		_debugf "-- Running zshbop $1"
         zshbop_cmd=(zshbop_${1})
         if [[ -n ${functions[$zshbop_cmd]} ]]; then
             $zshbop_cmd $@
