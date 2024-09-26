@@ -678,8 +678,8 @@ sstrace () {
 	[[ -n $ARG_PUSERNAME ]] && PUSERNAME=$ARG_PUSERNAME[2]
 	[[ -n $ARG_OUTPUT ]] && OUTPUT=$ARG_OUTPUT[2] || OUTPUT="file"
 
-	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT="-o $FILE"
-	[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""	
+	[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
+	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT=("-o $FILE")
 
 	_debugf "PID: $PID - PROCESS_NAME: $PROCESS_NAME - PUSERNAME: $PUSERNAME"
 		
@@ -690,16 +690,15 @@ sstrace () {
 		return 1
 	fi
 	
-	[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
-	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT=("-o $FILE")
 
 	if [[ -n $PROCESS_NAME ]]; then
-		_loading "Stracing process $PROCESS_NAME"		
-		PIDS=$(pgrep $PROCESS_NAME)		
+		_loading "Stracing process $PROCESS_NAME"
+		PIDS=$(pgrep $PROCESS_NAME)	
 		if [[ -z $PIDS ]]; then
 			_error "Process $ARGS_PROCESS_NAME not found"
 			return 1
 		fi
+		
 		# Print PIDS without newlines		
 		PIDS_SAME_LINE=($(echo ${PIDS[@]} | tr '\n' ' '))
 		_loading "Stracing process $PROCESS_NAME with PID's $PIDS_SAME_LINE"
@@ -708,7 +707,7 @@ sstrace () {
 		eval "$(strace -f -s 40000 -o ${FILE} ${STRACE_ARG[@]})"
 	elif [[ -n $PID ]]; then
 		_loading "Stracing process with PID: $PID"		
-		PIDS=$(pgrep -P $PID)			
+		PIDS=$(pgrep -P $PID)
 		if [[ -z $PIDS ]]; then
 			_error "Process $ARGS_PROCESS_NAME not found"
 			return 1
@@ -722,8 +721,7 @@ sstrace () {
 		eval "$(strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]})"
 	elif [[ -n $PUSERNAME ]]; then
 		
-		_loading "Stracing process with username $$PUSERNAME"
-		FILE="$FILE_PATH/sstrace-$PUSERNAME-$DATE.log"
+		_loading "Stracing process with username $$PUSERNAME"		
 		PIDS=$(pgrep -u $PUSERNAME)
 		if [[ -z $PIDS ]]; then
 			_error "Process $$PUSERNAME not found"
