@@ -660,9 +660,11 @@ sstrace () {
 		echo $STRACE_PIDS
 	}
 		
-	local STRACE_ARG=()	PID PROCESS_NAME PUSERNAME 
+	local STRACE_ARG=()	
+	local STRACE_OUTPUT=()
+	local PID PROCESS_NAME PUSERNAME 
 	local ARG_PID ARG_PROCESS_NAME ARG_PUSERNAME ARG_OUTPUT
-	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE OUTPUT STRACE_OUTPUT
+	local PIDS FILE FILE_PATH DATE PIDS_SAME_LINE OUTPUT
 	local DATE=$(date +%Y-%m-%d-%H-%M-%S)
 	local FILE_PATH="/tmp"
 	local FILE="$FILE_PATH/sstrace-$PID-$DATE.log"
@@ -687,11 +689,12 @@ sstrace () {
 		_error "strace not installed"
 		return 1
 	fi
+	
+	[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
+	[[ $OUTPUT == "file" ]] && STRACE_OUTPUT=("-o $FILE")
 
 	if [[ -n $PROCESS_NAME ]]; then
-		[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
-		_loading "Stracing process $PROCESS_NAME"
-		FILE="$FILE_PATH/sstrace-$PROCESS_NAME-$DATE.log"
+		_loading "Stracing process $PROCESS_NAME"		
 		PIDS=$(pgrep $PROCESS_NAME)		
 		if [[ -z $PIDS ]]; then
 			_error "Process $ARGS_PROCESS_NAME not found"
@@ -704,8 +707,6 @@ sstrace () {
 		_debugf "strace -f -s 40000 -o $FILE ${STRACE_ARG[@]}"	
 		eval "$(strace -f -s 40000 -o ${FILE} ${STRACE_ARG[@]})"
 	elif [[ -n $PID ]]; then
-		[[ $OUTPUT == "stdout" ]] && STRACE_OUTPUT=""
-		[[ $OUTPUT == "file" ]] && STRACE_OUTPUT="-o $FILE"
 		_loading "Stracing process with PID: $PID"		
 		PIDS=$(pgrep -P $PID)			
 		if [[ -z $PIDS ]]; then
@@ -717,8 +718,8 @@ sstrace () {
 		
 		_loading "Stracing process $PID with PID's $PIDS_SAME_LINE"
 		STRACE_ARG=($(_sstrace_pids ${PIDS_SAME_LINE[@]}))	
-		_debugf "strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]}"
-		eval "$(strace -f -s 40000 ${STRACE_OUTPUT} ${STRACE_ARG[@]})"
+		_debugf "strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]}"
+		eval "$(strace -f -s 40000 ${STRACE_OUTPUT[@]} ${STRACE_ARG[@]})"
 	elif [[ -n $PUSERNAME ]]; then
 		
 		_loading "Stracing process with username $$PUSERNAME"
