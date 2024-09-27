@@ -147,24 +147,46 @@ m365-add-email () {
 # ===============================================
 help_m365[m365-set-primary-email]='Set the primary email for a Microsoft 365 account.'
 m365-set-primary-email () {
-    m365_set_primary_email_usage () {
-        echo "Usage: m365-set-primary-email [-u <username@domain> -e <new-email>|-all <domain>]"
+    _m365-set-primary-email-usage () {
+        echo "Usage: m365-set-primary-email [-e <new-email> -u <username@domain>|-all <domain>] [-count <count>]"
+        echo ""
+        echo "Options:"
+        echo "  -u <username@domain>  The username@domain to set the primary email for."
+        echo "  -e <new-email>        The new email to set as the primary email."
+        echo "  -all <domain>         Set the primary email for all users to the domain."
+        echo "  -count <count>        Stop after setting the primary email for <count> users."
+        echo "  -group-only           Update distribution groups only"
+    }
+    _m365-set-primary-email-proceed () {
+        local MESSAGE=$@
+        _loading "$MESSAGE"
+        read -q "REPLY?Proceed? [y/N] "
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            return 0
+        else
+            return 1
+        fi
     }
 
-    local MODE M365_EMAIL M365_USERNAME DOMAIN CHECK_USER USER_FIRST_PART COUNT
-    zparseopts -D -E e:=ARG_EMAIL u:=ARG_USERNAME all:=ARG_ALL count:=ARG_COUNT
+    local MODE M365_EMAIL M365_USERNAME DOMAIN CHECK_USER USER_FIRST_PART COUNT DO_COUNT
+    zparseopts -D -E e:=ARG_EMAIL u:=ARG_USERNAME all:=ARG_ALL count:=ARG_COUNT groups-only=ARG_GROUP_ONLY
 
-    _debugf "ARG_EMAIL: $ARG_EMAIL ARG_USERNAME: $ARG_USERNAME ARG_ALL: $ARG_ALL ARG_COUNT: $ARG_COUNT"
+    _debugf "ARG_EMAIL: $ARG_EMAIL ARG_USERNAME: $ARG_USERNAME ARG_ALL: $ARG_ALL ARG_COUNT: $ARG_COUNT ARG_GROUP_ONLY: $ARG_GROUP_ONLY"
     if [[ -n $ARG_EMAIL ]]; then
         MODE="email"
         M365_EMAIL=${ARG_EMAIL[2]}
         M365_USERNAME=${ARG_USERNAME[2]}
     elif [[ -n $ARG_ALL ]]; then
-        MODE="all"
         DOMAIN=${ARG_ALL[2]}
+        if [[ -n $ARG_GROUP_ONLY ]]; then
+            MODE="groups-only"
+        else
+            MODE="all"        
+        fi
     else
         _error "You must specify either an email or a domain."
-        m365_set_primary_email_usage
+        _m365-set-primary-email-usage
         return 1
     fi
 
@@ -175,11 +197,13 @@ m365-set-primary-email () {
     fi
 
     if [[ $MODE == "email" ]]; then
-        _loading "Setting primary email to $M365_EMAIL for $M365_USERNAME"
+        _m365-set-primary-email-proceed "Setting primary email to $M365_EMAIL for $M365_USERNAME"
+        [[ $? -ne 0 ]] && return 1
         _loading3 "Running: m365 entra user set --userName $M365_USERNAME --userPrincipalName $M365_EMAIL"
         m365 entra user set --userName $M365_USERNAME --userPrincipalName $M365_EMAIL
     elif [[ $MODE == "all" ]]; then    
-        _loading "Setting primary email to $DOMAIN for all users"
+        _m365-set-primary-email-proceed "Setting primary email to $DOMAIN for all users"
+        [[ $? -ne 0 ]] && return 1
         m365 entra user list --query "[].userPrincipalName" --output text | while read user; do
             _loading2 "Setting $DOMAIN as primary email for $user"
             # Get the user's first part of their email before @ and last part after @
@@ -203,12 +227,19 @@ m365-set-primary-email () {
             fi
         done
         return 1
+    elif [[ $MODE == "groups-only" ]]; then
+        _m365-set-primary-email-proceed "Setting primary email to $DOMAIN for all groups"
+        [[ $? -ne 0 ]] && return 1
+        # Get all groups using powershell
+        
     else
         _error "You must specify either an email or a domain."
-        m365_set_primary_email_usage
+        _m365-set-primary-email-usage
         return 1
     fi
 }
+
+
 
 # ===============================================
 # -- m365-get-user-groups
@@ -464,4 +495,43 @@ m365-remove-license () {
 
     _loading "License removed, getting updated licenses for $M365_USERNAME"
     m365 entra user license list --userName $M365_USERNAME --output text
+}
+
+# ===============================================
+# -- m365-set-group-primary-email
+# ===============================================
+help_m365[m365-set-group-primary-email]='Update the email for all groups in Microsoft 365.'
+m365-set-group-primary-email () {
+    m365_update_group_email_usage () {
+        echo "Usage: m365-update-group-email [-group -email] | [-all -domain <domain>]"
+    }
+
+    local MODE M365_EMAIL M365_GROUP M365_DOMAIN
+    zparseopts -D -E group:=ARG_GROUP email:=ARG_EMAIL all=ARG_ALL domain:=ARG_DOMAIN
+
+    _debugf "ARG_GROUP: $ARG_GROUP ARG_EMAIL: $ARG_EMAIL ARG_ALL: $ARG_ALL ARG_DOMAIN: $ARG_DOMAIN"
+    if [[ -n $ARG_GROUP && -n $ARG_EMAIL ]]; then
+        MODE="group"
+        M365_GROUP=${ARG_GROUP[2]}
+        M365_EMAIL=${ARG_EMAIL[2]}
+    elif [[ -n $ARG_ALL && -n $ARG_DOMAIN ]]; then
+        MODE="all"
+        M365_DOMAIN=${ARG_DOMAIN[2]}
+    else
+        _error "You must specify either a group and email or all and a domain."
+        m365_update_group_email_usage
+        return 1
+    fi
+
+    if [[ $MODE == "group" ]]; then
+        _error "Not completed"
+        return 1
+    elif [[ $MODE == "all" ]]; then
+        _loading "Updating email for all groups to $M365_DOMAIN"
+        pwsh -c $ZBR/powershell/m365-set-group-primary-email.ps1 -newDomain $M365_DOMAIN
+    else
+        _error "You must specify either a group and email or all and a domain."
+        m365_update_group_email_usage
+        return 1
+    fi
 }
