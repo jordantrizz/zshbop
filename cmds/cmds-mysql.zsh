@@ -12,6 +12,7 @@ help_files[mysql]='MySQL related commands'
 # - Init help array
 typeset -gA help_mysql
 
+
 # ===============================================
 # -- mysql-db-size
 # ===============================================
@@ -112,7 +113,9 @@ mysql-msds () {
 	zgrep "INSERT INTO \`$2\`" $1 |  sed "s/),/),\n/g"
 }
 
+# ===============================================
 # - mysql-myisam
+# ===============================================
 help_mysql[mysql-myisam]='Locate myisam tables in MySQL'
 mysql-myisam () {
     _loading "Checking all databases for MyISAM Tables"
@@ -356,7 +359,7 @@ mysql-backup-db () {
 		_loading "Running backup of database: $DATABASE"
 		MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
 		echo "-- Running backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
-		mysqldump $DATABASE > $DATABASE-$MYSQL_BACKUPDB_DATE.sql
+		eval $MYSQL_BIN $DATABASE > $DATABASE-$MYSQL_BACKUPDB_DATE.sql
 		echo " -- Completed backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
 	elif [[ -n $ARG_LIST ]]; then
 		_loading "Listing all databases"
@@ -412,26 +415,42 @@ mysql-ps () {
 	mysql -e 'show full processlist'
 }
 
+# ===============================================
 # -- mysql-myisam2innodb
+# ===============================================
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
 mysql-myisam2innodb () {
-	if [[ -z $1 ]]; then
+	_mysql-myisam2innodb-usage () {
+		echo "Usage: mysql-myisam2innodb <database>"
+	}
+	local DATABASE="$1"
+	if [[ -z $DATABASE ]]; then		
+		_mysql-myisam2innodb-usage
 		_error "Please specify the database"
 		return 1
-	else
-		DB_NAME="$1"
-		echo "Upgrading MyISAM tables to InnoDB in database $DB_NAME..."
-		tables=$(mysql $DB_NAME -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
-
-		echo "$tables" | while read table; do
-    		if [[ $table != "Name" ]]; then
-      			echo "Upgrading table $table to InnoDB..."
-      			mysql $DB_NAME -e "ALTER TABLE $table ENGINE=InnoDB;"
-      			echo "Table $table upgraded to InnoDB successfully."
-    		fi
-  		done
-		echo "All MyISAM tables have been upgraded to InnoDB."
 	fi
+
+	# Backup Database?
+	_loading "Backup database before converting? [y/n]"
+	read REPLY
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		mysql-backup-db -d $DATABASE
+	fi
+	
+	return 1
+
+	echo "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
+	TABLES=$(mysql-wrapper-shim $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
+
+	echo "$TABLES" | while read table; do
+		if [[ $table != "Name" ]]; then
+			echo "Upgrading table $table to InnoDB..."
+			mysql-wrapper-shim $DATABASE -e "ALTER TABLE $table ENGINE=InnoDB;"
+			echo "Table $table upgraded to InnoDB successfully."
+		fi
+	done
+	echo "All MyISAM tables have been upgraded to InnoDB."
+	
 }
 
 # -- mysql-uptime
@@ -440,10 +459,12 @@ mysql-uptime () {
     mysql -e "select TIME_FORMAT(SEC_TO_TIME(VARIABLE_VALUE ),'%Hh %im') as Uptime from performance_schema.global_status where VARIABLE_NAME='Uptime';"
 }
 
+# ===============================================
 # -- mysql-config
+# ===============================================
 help_mysql[mysql-config]='Output MySQL running configuration'
 mysql-config () {
-      mysql --raw -B -N -e 'SHOW VARIABLES;'
+	$MYSQL_BIN --raw -B -N -e 'SHOW VARIABLES;'
 }
 
 # -- mysql-adddb
