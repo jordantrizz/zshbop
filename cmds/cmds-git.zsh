@@ -16,14 +16,17 @@ typeset -gA help_git
 help_git[gc]='Git commit + push'
 function _gc_replace (){
     if _cmd_exists gc; then
-        # Remove alias
-        unalias gc
+        # Check if gc is an alias
+        if [[ $(type gc) == "gc is an alias for git commit --verbose" ]]; then
+            _log "gc is an omz alias, removing"
+            unalias gc
+        fi
+    fi
     function gc () {
         _loading "Committing using git, consider using glc"
         git commit -am "$*"
         git push
-    }
-    fi
+    }    
 }
 INIT_LAST_CORE+=("_gc_replace")
 
