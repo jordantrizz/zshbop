@@ -165,10 +165,10 @@ help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
     _debug_all
     _debugf "args: $@"
-    local MODE=""
+    local MODE REMOTE_BRANCH
 
     # If -r is passed, then remote branch to be pulled and checked out
-    zparseopts -D -E r+=ARG_REMOTE h+=ARG_HELP
+    zparseopts -D -E r:=ARG_REMOTE h+=ARG_HELP
     if [[ -n $ARG_HELP ]]; then
         echo "Usage: zb branch <branch>"
         echo " -r  <branch>    Pull and checkout remote branch"

@@ -2,8 +2,6 @@
 _zshbop() {
     local -a subcommands
     local -a branch_subcommands
-    local -a remote_branches
-    local -a local_branches
 
     # Populate the subcommands array with keys and descriptions from help_core
     for key in ${(k)help_core}; do
@@ -34,11 +32,11 @@ _zshbop() {
     elif (( CURRENT == 4 )); then
         case $words[3] in
             -r)
-                _describe -t commands 'branch subcommands' remote_branches            
-                # Grab remote branches
+                local remote_branches=()
                 git --no-pager -C ${ZSHBOP_ROOT} branch -r | awk '{print $1}' | sed 's/origin\///' | grep -v HEAD | while read -r line; do
-                    remote_branches+=("${line}:(remote)")
+                    remote_branches+=("${line}")
                 done
+                _values 'remote branches' $remote_branches
                 ;;
             *)
                 # Add more cases here for other subcommands if needed
