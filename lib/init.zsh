@@ -726,6 +726,38 @@ function init_software () {
     init_log
 }
 
+# ==============================================
+# -- init_last
+# ==============================================
+function init_last () {
+    _debug_all
+    _log "Running last commands"
+
+    # -- Check if INIT_LAST_CORE array has any commands
+    if [[ -n $INIT_LAST_CORE ]]; then
+        _log "Running \$INIT_LAST_CORE functions"
+        for CMD in $INIT_LAST_CORE; do
+            _debug "Running $CMD"
+            $CMD
+        done
+    else
+        _debug "No \$INIT_LAST_CORE commands"
+    fi
+    
+    # -- Check if INIT_LAST_CUSTOM array has any commands
+    if [[ -n $INIT_LAST_CUSTOM ]]; then
+        _log "Running \$INIT_LAST_CUSTOM functions"
+        for CMD in $INIT_LAST_CUSTOM; do
+            _debug "Running $CMD"
+            $CMD
+        done
+    else
+        _debug "No \$INIT_LAST_CUSTOM commands"
+    fi
+
+    init_log
+}
+
 ###########################################################
 ###########################################################
 # ---- Leave this at the bottom. Do not move above. ------
@@ -834,4 +866,10 @@ function init_zshbop () {
 	# Remove Duplicates in $PATH
 	_debug "Removing duplicates in \$PATH"
 	typeset -U PATH
+
+    # Run last commands if any
+    init_last
+    # -- End init
+    _log "${funcstack[1]}:end"
+    init_log
 }

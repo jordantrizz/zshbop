@@ -66,7 +66,8 @@ typeset -a ZSHBOP_LOAD=()
 export ZSHBOP_TEMP="$HOME/tmp"
 export SSHK="${ZSHBOP_HOME}/.ssh"
 export TMP="${ZSHBOP_HOME}/tmp"
-
+export INIT_LAST_CORE=()
+export INIT_LAST_CUSTOM=()
 
 # -- Software specific
 GIT_CONFIG="${ZSHBOP_HOME}/.gitconfig"
