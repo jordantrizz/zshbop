@@ -9,20 +9,26 @@ typeset -gA help_docker # Init help array.
 # dps
 # ==============================================================================
 help_docker[dps]='Docker PS, either docker ps or dops'
-# Remove omz alias dps
-if alias dops &>/dev/null; then
-    unalias dps
-fi
-function dps () {
-	# Check if dops alias is active
-    if type dops &>/dev/null; then
-        dops $@
-    else
-        docker ps $@
+function _dps_replace () {
+    if _cmd_exists dops; then
+        # Check if dps is an alias
+        if [[ $(type dps) == "dps is an alias for docker ps" ]]; then
+            _log "dps is an omz alias, removing"
+            unalias dps
+            function dps () {                
+                dops $@
+            }
+        else
+            docker ps $@
+        fi
     fi
-}
 
+}
+INIT_LAST_CORE+=("_dps_replace")
+
+# ==============================================================================
 # -- dops
+# ==============================================================================
 help_docker[dops]='Mikescher/better-docker-ps'
 function dops () {
     dops_linux-amd64-static $@
