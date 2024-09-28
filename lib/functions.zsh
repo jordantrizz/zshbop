@@ -162,58 +162,72 @@ zshbop_reload () {
 # -- Change branch of zshbop
 # =========================================================
 help_zshbop[branch]='Run main or dev branch of zshbop'
-zshbop_branch_retired  () {
-        _debug_all
-		if [[ -n $2 ]]; then
-	        _loading "Switching to $2 branch"
-    		GIT_CHECKOUT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout $2)
-            _debugf "GIT_CHECKOUT: $GIT_CHECKOUT"
-            if [[ $? -eq "0" ]]; then
-                _success " --Switched to $2 branch, pulling latest changes"
-                git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
-            else
-                _error " -- Failed to switch to $2 branch"
-            fi
-        elif [[ $? -ge "1" ]]; then
-            _error "Branch doesn't seem to exist"
-        elif [ -z $2 ]; then
-                echo "	-- zshbop: $ZSHBOP_ROOT branch: $ZSHBOP_BRANCH ----"
-                echo "	-- To switch branch type 'zshbop branch dev' or 'zshbop branch main'"
-        else
-        	_error "Unknown $@"
-        fi
-}
 zshbop_branch  () {
     _debug_all
-    local BRANCH=$2
+    _debugf "args: $@"
+    local MODE=""
+
+    # If -r is passed, then remote branch to be pulled and checked out
+    zparseopts -D -E r+=ARG_REMOTE h+=ARG_HELP
+    if [[ -n $ARG_HELP ]]; then
+        echo "Usage: zb branch <branch>"
+        echo " -r  <branch>    Pull and checkout remote branch"
+        return 1
+    fi
+
+    # -- Ensure we have the current branch set, if not set it.
     if [[ -z ${ZSHBOP_BRANCH} ]]; then        
         ZSHBOP_BRANCH=$(git -C $ZSHBOP_ROOT rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
-    if [[ -n $BRANCH ]]; then
-        _loading "Changing zshbop Branch to $BRANCH"
-        # Pull down branches
+    # -- Check if were checking out local or remote
+    if [[ -n $ARG_REMOTE ]]; then
+        MODE="remote"
+    elif [[ -n $2 ]]; then
+        MODE="local"
+    fi
+    
+    _debugf "MODE: $MODE"
+    # Check if -r is set
+    if [[ $MODE == "remote" ]];then
+        local REMOTE_BRANCH=$ARG_REMOTE[2]
+        if [[ -z $REMOTE_BRANCH ]]; then
+            _error "No remote branch specified"
+            return 1
+        fi
+        _loading "Changing zshbop Branch to $REMOTE_BRANCH"
         git --git-dir=${ZSHBOP_ROOT}/.git --work-tree=${ZSHBOP_ROOT} fetch
         git -C ${ZSHBOP_ROOT} rebase origin/$(git -C ${ZSHBOP_ROOT} rev-parse --abbrev-ref HEAD)
-        git -C ${ZSHBOP_ROOT} checkout $BRANCH
-        git -C ${ZSHBOP_ROOT} pull --rebase origin $BRANCH
+        git -C ${ZSHBOP_ROOT} checkout $REMOTE_BRANCH
+        git -C ${ZSHBOP_ROOT} pull --rebase origin $REMOTE_BRANCH
         ZSHBOP_BRANCH=$(git -C $LMT rev-parse --abbrev-ref HEAD 2>/dev/null)
         _loading2 "Current Branch:${RSC} $ZSHBOP_BRANCH"
         _loading2 "Reloading zshbop"
         lmtr
+    elif [[ $MODE == "local" ]]; then
+        local BRANCH=$2
+        if [[ -n $BRANCH ]]; then
+            _loading "Changing zshbop Branch to $BRANCH"
+            # Pull down branches
+            git --git-dir=${ZSHBOP_ROOT}/.git --work-tree=${ZSHBOP_ROOT} fetch
+            git -C ${ZSHBOP_ROOT} rebase origin/$(git -C ${ZSHBOP_ROOT} rev-parse --abbrev-ref HEAD)
+            git -C ${ZSHBOP_ROOT} checkout $BRANCH
+            git -C ${ZSHBOP_ROOT} pull --rebase origin $BRANCH
+            ZSHBOP_BRANCH=$(git -C $LMT rev-parse --abbrev-ref HEAD 2>/dev/null)
+            _loading2 "Current Branch:${RSC} $ZSHBOP_BRANCH"
+            _loading2 "Reloading zshbop"
+            lmtr
+        else
+            _error "No branch specified"
+        fi
     else
         _loading "zshbop Branch"
         _loading2 "Current Branch:${RSC} $ZSHBOP_BRANCH"
         _loading2 "Getting Branches"
         # -- Pull down branches from remote
         git --git-dir=${ZSHBOP_ROOT}/.git --work-tree=${ZSHBOP_ROOT} fetch
-        echo ""
-        _loading3 "Remote Branches"
-        git --no-pager -C ${ZSHBOP_ROOT} branch -r      
-        echo ""
-        _loading3 "Local Branches"
-        git --no-pager -C ${ZSHBOP_ROOT} branch
-        echo ""
+        echo ""        
+        git --no-pager -C ${ZSHBOP_ROOT} branch -a
         echo "To change branch type: zb branch <branch>"
     fi
 }
