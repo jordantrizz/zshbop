@@ -14,16 +14,18 @@ typeset -gA help_git
 
 # -- gc
 help_git[gc]='Git commit + push'
-# Check if gc is already defined
-if _cmd_exists gc; then
-    # Remove alias
-    unalias gc
-fi
-function gc () {
-    _loading "Committing using git, consider using glc"
-    git commit -am "$*"
-    git push
+function _gc_replace (){
+    if _cmd_exists gc; then
+        # Remove alias
+        unalias gc
+    function gc () {
+        _loading "Committing using git, consider using glc"
+        git commit -am "$*"
+        git push
+    }
+    fi
 }
+INIT_LAST_CORE+=("_gc_replace")
 
 # ==============================================================================
 # -- glc
