@@ -835,6 +835,12 @@ function zshbop () {
     fi
 }
 
-
-
-
+# =========================================================
+# -- zshbop_log
+# =========================================================
+help_zshbop[log]='Print out log'
+function zshbop_log () {
+    _log "${funcstack[1]}:start"
+    _loading "Printing out log"
+    cat $ZB_LOG
+}
