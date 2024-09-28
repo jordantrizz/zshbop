@@ -162,7 +162,7 @@ zshbop_reload () {
 # -- Change branch of zshbop
 # =========================================================
 help_zshbop[branch]='Run main or dev branch of zshbop'
-zshbop_branch  () {
+zshbop_branch_retired  () {
         _debug_all
 		if [[ -n $2 ]]; then
 	        _loading "Switching to $2 branch"
@@ -182,6 +182,40 @@ zshbop_branch  () {
         else
         	_error "Unknown $@"
         fi
+}
+zshbop_branch  () {
+    _debug_all
+    local BRANCH=$2
+    if [[ -z ${ZSHBOP_BRANCH} ]]; then        
+        ZSHBOP_BRANCH=$(git -C $ZSHBOP_ROOT rev-parse --abbrev-ref HEAD 2>/dev/null)
+    fi
+
+    if [[ -n $BRANCH ]]; then
+        _loading "Changing zshbop Branch to $BRANCH"
+        # Pull down branches
+        git --git-dir=${ZSHBOP_ROOT}/.git --work-tree=${ZSHBOP_ROOT} fetch
+        git -C ${ZSHBOP_ROOT} rebase origin/$(git -C ${ZSHBOP_ROOT} rev-parse --abbrev-ref HEAD)
+        git -C ${ZSHBOP_ROOT} checkout $BRANCH
+        git -C ${ZSHBOP_ROOT} pull --rebase origin $BRANCH
+        ZSHBOP_BRANCH=$(git -C $LMT rev-parse --abbrev-ref HEAD 2>/dev/null)
+        _loading2 "Current Branch:${RSC} $ZSHBOP_BRANCH"
+        _loading2 "Reloading zshbop"
+        lmtr
+    else
+        _loading "zshbop Branch"
+        _loading2 "Current Branch:${RSC} $ZSHBOP_BRANCH"
+        _loading2 "Getting Branches"
+        # -- Pull down branches from remote
+        git --git-dir=${ZSHBOP_ROOT}/.git --work-tree=${ZSHBOP_ROOT} fetch
+        echo ""
+        _loading3 "Remote Branches"
+        git --no-pager -C ${ZSHBOP_ROOT} branch -r      
+        echo ""
+        _loading3 "Local Branches"
+        git --no-pager -C ${ZSHBOP_ROOT} branch
+        echo ""
+        echo "To change branch type: zb branch <branch>"
+    fi
 }
 
 # =========================================================
@@ -808,6 +842,22 @@ function zshbop_setup () {
     fi
 }
 
+# =========================================================
+# -- zshbop_variables
+# =========================================================
+help_zshbop[variables]='List zshbop internal variables'
+function zshbop_variables () {
+    _loading "ZSHBOP Variables"
+    echo "ZSHBOP_ROOT: $ZSHBOP_ROOT"
+    echo "ZSHBOP_VERSION: $ZSHBOP_VERSION"
+    echo "ZSHBOP_BRANCH: $ZSHBOP_BRANCH"
+    echo "ZSHBOP_COMMIT: $ZSHBOP_COMMIT"
+    echo "ZSHBOP_INSTALL_TYPE: $ZSHBOP_INSTALL_TYPE"
+    echo "ZSHBOP_PLUGIN_MANAGER: $ZSHBOP_PLUGIN_MANAGER"
+    echo "ZSHBOP_UPDATE_GIT: $ZSHBOP_UPDATE_GIT"
+    echo "ZSHBOP_CUSTOM_CFG: $ZSHBOP_CUSTOM_CFG"
+    echo "ZSHBOP_RELOAD: $ZSHBOP_RELOAD"    
+}
 
 # =========================================================
 # =========================================================
