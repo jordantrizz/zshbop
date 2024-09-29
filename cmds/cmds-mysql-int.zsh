@@ -22,7 +22,7 @@ function   () {
 		alias mysql="_mysql_wrapper"
 	fi
 }
-$INIT_LAST_CORE+=('_zb_mysql_wrapper')
+$INIT_LAST_CORE+=(_zb_mysql_wrapper)
 
 # ===============================================
 # -- _zb_mysqldump_wrapper
