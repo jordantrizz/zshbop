@@ -12,7 +12,7 @@ MYSQL_PAGER=
 # -- _zb_mysql_wrapper
 # ===============================================
 help_int_mysql[_zb_mysql_wrapper]='Set mysql wrapper'
-function   () {
+function  _zb_mysql_wrapper () {
 	_log "Setting mysql wrapper"
 	# -- Check if mysql_wrapper is installed
 	_cmd_exists _mysql_wrapper
