@@ -1,9 +1,13 @@
+# ===============================================
 # -- ip
+# ===============================================
 _debug " -- Loading ${(%):-%N}"
 help_files[ip]="IP Address commands"
 typeset -gA help_ip # Init help array.
 
+# ===============================================
 # -- ip-info
+# ===============================================
 help_ip[ip-info]="Get IP information via a few different methods"
 function ip-info() {
     local IP_PROVIDERS=(ipinfo.io) IP=$1
@@ -59,7 +63,9 @@ function ip-info() {
     fi
 }
 
+# ===============================================
 # -- ip-scam
+# ===============================================
 help_ip[ip-scam]="Check if an IP is a known scammer"
 function ip-scam() {
     local IP=$1
