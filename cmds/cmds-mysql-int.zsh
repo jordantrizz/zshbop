@@ -18,9 +18,12 @@ function  _zb_mysql_wrapper () {
 	_cmd_exists _mysql_wrapper
 	if [[ $? == 1 ]]; then
 		_debugf "MySQL wrapper is not installed"
+		function _mysql_wrapper () {
+			mysql "$@"
+		}
 	else
-		_debugf "MySQL wrapper is installed"
-		alias mysql="_mysql_wrapper"
+		_debugf "MySQL wrapper is installed"		
+		export MYSQL_WRAPPER=$(which _mysql_wrapper)
 	fi
 }
 INIT_LAST_CORE+=(_zb_mysql_wrapper)
@@ -34,10 +37,12 @@ function _zb_mysqldump_wrapper () {
 	_cmd_exists _mysqldump_wrapper
 	if [[ $? == 1 ]]; then
 		_debugf "MySQL wrapper is not installed"
-		echo "$(which mysqldump)"
+		function _mysqldump_wrapper () {
+			mysqldump "$@"
+		}
 	else
-		_debugf "MySQL wrapper is installed"
-		echo "_mysqldump_wrapper"
+		_debugf "MySQL wrapper is installed"		
+		export MYSQLDUMP_WRAPPER=$(which _mysqldump_wrapper)
 	fi
 }
-alias mysqldump="$(_zb_mysqldump_wrapper)"
+INIT_LAST_CORE+=(_zb_mysqldump_wrapper)

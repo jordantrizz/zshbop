@@ -26,17 +26,17 @@ function mysql-db-size () {
 		echo "  -l             - List all databases"
 	}
 	local DATABASE=""
-	zparseopts -D -E d:=ARG_DATABASE a:=ARG_ALL l=ARG_LIST
+	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL l=ARG_LIST
 
 	_debugf "ARG_DATABASE: $ARG_DATABASE ARG_ALL: $ARG_ALL ARG_LIST: $ARG_LIST"
 
 	if [[ -n $ARG_DATABASE ]]; then
 		DATABASE=${ARG_DATABASE[2]}
 		_loading "Getting size of database $DATABASE"
-		mysql -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${DATABASE}\" GROUP BY table_schema;"
+		_mysql_wrapper -e "SELECT table_schema AS \"Database\", ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${DATABASE}\" GROUP BY table_schema;"
 	elif [[ -n $ARG_ALL ]]; then
 		_loading "Getting size of all databases"
-		mysql -e "
+		_mysql_wrapper -e "
 		SELECT * FROM (
 			SELECT 
 				table_schema AS 'Database', 
@@ -347,6 +347,7 @@ mysql-backup-all-dbs () {
 # ===============================================
 help_mysql[mysql-backup-db]='Backup a single databases on a server'
 mysql-backup-db () {
+	local BACKUP_DIR="$HOME/backups"
     if [[ -z $1 ]];then
 	    echo "Usage: mysql-backupdb [-d <database>|-l]"
     	return
@@ -356,11 +357,22 @@ mysql-backup-db () {
 
 	if [[ -n $ARG_DATABASE ]]; then
 		DATABASE=${ARG_DATABASE[2]}
+		# Check if backup dir exists
+		if [[ ! -d $BACKUP_DIR ]]; then
+			mkdir -p $BACKUP_DIR
+		fi
+		
 		_loading "Running backup of database: $DATABASE"
-		MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
-		echo "-- Running backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
-		eval $MYSQL_BIN $DATABASE > $DATABASE-$MYSQL_BACKUPDB_DATE.sql
-		echo " -- Completed backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
+		local MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
+		local MYSQL_BACKUP_FILE="$BACKUP_DIR/${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
+		
+		echo "-- Running backup of $DATABASE to MYSQL_BACKUP_FILE"
+		mysqldump $DATABASE > MYSQL_BACKUP_FILE
+		if [[ $? == "1" ]]; then
+			_error " -- Error backing up $DATABASE"
+		else
+			_success " -- Completed backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
+		fi	
 	elif [[ -n $ARG_LIST ]]; then
 		_loading "Listing all databases"
 		mysql -e 'show databases'
