@@ -1,3 +1,24 @@
+- [Enhance](#enhance)
+  - [Common File Locations](#common-file-locations)
+- [Common CLI Commands](#common-cli-commands)
+  - [Control Panel](#control-panel)
+- [MySQL](#mysql)
+- [Docker](#docker)
+  - [Common Commands](#common-commands)
+- [DNS](#dns)
+  - [Opening UFW](#opening-ufw)
+  - [Disabling systemd-resolved](#disabling-systemd-resolved)
+    - [Create /etc/systemd/resolved.conf.d/disable-stub.conf](#create-etcsystemdresolvedconfddisable-stubconf)
+    - [Restart systemd-resolved](#restart-systemd-resolved)
+- [Common Issues](#common-issues)
+  - [New Server Not Showing in Control Panel](#new-server-not-showing-in-control-panel)
+  - [wp-cli as root](#wp-cli-as-root)
+  - [Rotate site error logs](#rotate-site-error-logs)
+  - [Rotate mysql logs if enabled](#rotate-mysql-logs-if-enabled)
+- [Notes](#notes)
+  - [Litespeed lsphp Containers](#litespeed-lsphp-containers)
+
+
 # Enhance
 ## Common File Locations
 * Site Logs: /var/local/enhance/webserver_logs/
@@ -16,6 +37,27 @@
 * Start Docker Container and show output - docker start 01a31fd0ca8e -ai
 * Stop Docker Container - docker stop 01a31fd0ca8e
 
+# DNS
+## Opening UFW
+```
+ufw allow 53/udp
+ufw allow 53/tcp
+```
+
+## Disabling systemd-resolved
+### Create /etc/systemd/resolved.conf.d/disable-stub.conf
+```
+mkdir -p /etc/systemd/resolved.conf.d
+```
+Add the following to /etc/systemd/resolved.conf.d/disable-stub.conf
+```
+[Resolve]
+DNSStubListener=no
+```
+### Restart systemd-resolved
+```
+systemctl restart systemd-resolved
+```
 # Common Issues
 ## New Server Not Showing in Control Panel
 * Check `journalctl -u enhcontrold` for errors
