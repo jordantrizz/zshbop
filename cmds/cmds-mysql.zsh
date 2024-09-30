@@ -367,7 +367,7 @@ mysql-backup-db () {
 		local MYSQL_BACKUP_FILE="$BACKUP_DIR/${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
 		
 		echo "-- Running backup of $DATABASE to MYSQL_BACKUP_FILE"
-		mysqldump $DATABASE > MYSQL_BACKUP_FILE
+		_mysqldump_wrapper $DATABASE > MYSQL_BACKUP_FILE
 		if [[ $? == "1" ]]; then
 			_error " -- Error backing up $DATABASE"
 		else
@@ -375,7 +375,7 @@ mysql-backup-db () {
 		fi	
 	elif [[ -n $ARG_LIST ]]; then
 		_loading "Listing all databases"
-		mysql -e 'show databases'
+		_mysql_wrapper -e 'show databases'
 	else
 		_mysql-backup-db-usage
 		_error "Please specify an option to use, -d or -l"
@@ -452,7 +452,7 @@ mysql-myisam2innodb () {
 	return 1
 
 	echo "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
-	TABLES=$(mysql-wrapper-shim $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
+	TABLES=$(_mysql_wrapper $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
 
 	echo "$TABLES" | while read table; do
 		if [[ $table != "Name" ]]; then
