@@ -119,7 +119,7 @@ mysql-msds () {
 help_mysql[mysql-myisam]='Locate myisam tables in MySQL'
 mysql-myisam () {
     _loading "Checking all databases for MyISAM Tables"
-	mysql_output=$(mysql -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';")
+	mysql_output=$(_mysql_wrapper -e "select table_schema,table_name,engine,table_collation from information_schema.tables where engine='MyISAM';")
     if [[ $mysql_output ]]; then
         _loading2 "Found MyISAM tables"
         echo $mysql_output
