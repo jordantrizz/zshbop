@@ -908,3 +908,15 @@ function zshbop_log () {
     _loading "Printing out log"
     cat $ZB_LOG
 }
+
+# =========================================================
+# -- zshbop_internal
+# =========================================================
+help_zshbop[internal]='List internal functions'
+function zshbop_internal () {
+    _loading "Internal Functions"
+    # Walk help_int
+    for key in ${(kon)help_int}; do
+        printf '%s\n' "  ${(r:25:)key} - ${help_int[$key]}"
+    done
+}

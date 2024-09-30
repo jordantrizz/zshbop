@@ -29,7 +29,7 @@ init_core () {
     export ZSHBOP_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD) # -- current commit
     source ${ZSHBOP_ROOT}/lib/colors.zsh # -- colors first!
     source ${ZSHBOP_ROOT}/lib/function-overrides.zsh # -- variables
-    source ${ZSHBOP_ROOT}/lib/functions-core.zsh # -- core functions
+    source ${ZSHBOP_ROOT}/lib/functions-internal.zsh # -- core functions
     init_log
     
 }
