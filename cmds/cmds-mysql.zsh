@@ -366,12 +366,12 @@ mysql-backup-db () {
 		local MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
 		local MYSQL_BACKUP_FILE="$BACKUP_DIR/${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
 		
-		echo "-- Running backup of $DATABASE to MYSQL_BACKUP_FILE"
-		_mysqldump_wrapper $DATABASE > MYSQL_BACKUP_FILE
+		echo "-- Running backup of $DATABASE to $MYSQL_BACKUP_FILE"
+		_mysqldump_wrapper $DATABASE > $MYSQL_BACKUP_FILE
 		if [[ $? == "1" ]]; then
 			_error " -- Error backing up $DATABASE"
 		else
-			_success " -- Completed backup of $DATABASE to ${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
+			_success " -- Completed backup of $DATABASE to $MYSQL_BACKUP_FILE"
 		fi	
 	elif [[ -n $ARG_LIST ]]; then
 		_loading "Listing all databases"
@@ -448,16 +448,14 @@ mysql-myisam2innodb () {
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
 		mysql-backup-db -d $DATABASE
 	fi
-	
-	return 1
 
 	echo "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
-	TABLES=$(_mysql_wrapper $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" -s | awk '{print $1}')
+	TABLES=$(_mysql_wrapper $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" | awk '{print $1}')
 
 	echo "$TABLES" | while read table; do
 		if [[ $table != "Name" ]]; then
 			echo "Upgrading table $table to InnoDB..."
-			mysql-wrapper-shim $DATABASE -e "ALTER TABLE $table ENGINE=InnoDB;"
+			_mysql_wrapper $DATABASE -e "ALTER TABLE $table ENGINE=InnoDB;"
 			echo "Table $table upgraded to InnoDB successfully."
 		fi
 	done
