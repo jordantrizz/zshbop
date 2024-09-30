@@ -519,7 +519,7 @@ function date-more () {
 # =================================================================================================
 # -- lsof-mem
 # =================================================================================================
-help_linux[lsof-mem]='List memory usage of a process'
+help_linux[lsof-mem]='List open file memory usage of a process'
 lsof-mem () {
 	local PID=$1
 	# Default to human readable unless defined.
@@ -567,12 +567,14 @@ sum-mem () {
 		return 1
 	fi
 	# get pid process name
+	
 	PARENT_NAME=$(cat /proc/${PARENT_PID}/comm)
 	_loading "Getting total memory usage for $PARENT_PID ($PARENT_NAME) and all child processes"
 
 	# Get all child PIDs, get-pids is newlined add to array	
 	_loading2 "Getting all child PIDs for $PARENT_PID"
 	local ALL_PIDS=($(get-pids $PARENT_PID))
+	_debug "All PIDS: $ALL_PIDS"
 	
 	# Iterate over each PID and sum their memory usage
 	for PID in $ALL_PIDS; do
