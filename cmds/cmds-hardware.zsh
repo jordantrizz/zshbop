@@ -46,16 +46,16 @@ function hw-list-disks() {
         echo "If no argument is provided, one of the above will be used"
     }
     
-    _hw-list-disk-detect () {        
-        if _cmd_exists hdparm; then
+    _hw-list-disk-detect () {     
+        if _cmd_exists smartctl; then
+            _debugf "Using smartctl"
+            MODE="smartctl"   
+        elif _cmd_exists hdparm; then
             _debugf "Using hdparm"
             MODE="hdparm"
         elif _cmd_exists lsblk; then
             _debugf "Using lsblk"
             MODE="lsblk"
-        elif _cmd_exists smartctl; then
-            _debugf "Using smartctl"
-            MODE="smartctl"
         else
             _error "No suitable command found to list disks"
             return 1
@@ -78,14 +78,24 @@ function hw-list-disks() {
         MODE=${ARG_TOOL[2]}
     fi
 
+    # Get a list of all disk drive hardware
+    DEVICES=($(lsblk -n -d -o NAME | grep -v "^loop" | grep -v "^sr" | grep -v "^ram" | grep -v "^zram" | grep -v "^zd"))
+    _debugf "DEVICES: $DEVICES"
+
     if [[ $MODE == "hdparm" ]]; then
         _loading "Listing all disks (hdparm)"
         # Grab device names, model number and serial
-        for disk in /dev/sd*; do
-            if [[ -b $disk ]]; then
-                HDPARM_OUTPUT=$(sudo hdparm -I $disk)
-                echo "Device: $disk"
-                echo $HDPARM_OUTPUT | grep -E "Model|Serial|Firmware|Transport"           
+        for disk in ${DEVICES[@]}; do
+            if [[ -b /dev/$disk ]]; then
+                _debugf "Device: $disk"
+                HDPARM_OUTPUT=$(sudo hdparm -I /dev/$disk)
+                echo "Device: /dev/$disk"
+                echo $HDPARM_OUTPUT | grep -E "Model" 
+                echo $HDPARM_OUTPUT | grep -E "Serial"
+                echo $HDPARM_OUTPUT | grep -E "Firmware"
+                echo $HDPARM_OUTPUT | grep -E "Transport:"
+            else
+                _debugf "Device: $disk is not a block device"
             fi
         done
     elif [[ $MODE == "lsblk" ]]; then
@@ -93,10 +103,19 @@ function hw-list-disks() {
         lsblk -o NAME,SIZE,TYPE,MODEL,SERIAL
     elif [[ $MODE == "smartctl" ]]; then
         _loading "Listing all disks (smartctl)"
-        for disk in /dev/sd*; do
-            if [[ -b $disk ]]; then
-                echo "Device: $disk"
-                sudo smartctl -i $disk | grep -E "Model|Serial|Firmware"
+        for disk in ${DEVICES[@]}; do
+            if [[ -b /dev/$disk ]]; then
+                echo "Device: /dev/$disk"
+                SMARTCTL_OUTPUT=$(sudo smartctl -i /dev/$disk)
+                # Print 4 spaces infront of each line
+                echo $SMARTCTL_OUTPUT | grep -E "Model" | sed 's/^/    /'
+                echo $SMARTCTL_OUTPUT | grep -E "Serial" | sed 's/^/    /'
+                echo $SMARTCTL_OUTPUT | grep -E "Firmware" | sed 's/^/    /'
+                echo $SMARTCTL_OUTPUT | grep -E "User Capacity:" | sed 's/^/    /'
+                echo $SMARTCTL_OUTPUT | grep -E "Rotation Rate:" | sed 's/^/    /'
+                echo $SMARTCTL_OUTPUT | grep -E "TRIM Command:" | sed 's/^/    /'
+            else
+                _debugf "Device: $disk is not a block device"
             fi
         done
     fi
