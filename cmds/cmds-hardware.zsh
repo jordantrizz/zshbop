@@ -83,10 +83,9 @@ function hw-list-disks() {
         # Grab device names, model number and serial
         for disk in /dev/sd*; do
             if [[ -b $disk ]]; then
+                HDPARM_OUTPUT=$(sudo hdparm -I $disk)
                 echo "Device: $disk"
-                sudo hdparm -I $disk | grep Model
-                sudo hdparm -I $disk | grep Serial
-                echo
+                echo $HDPARM_OUTPUT | grep -E "Model|Serial|Firmware|Transport"           
             fi
         done
     elif [[ $MODE == "lsblk" ]]; then
@@ -94,6 +93,11 @@ function hw-list-disks() {
         lsblk -o NAME,SIZE,TYPE,MODEL,SERIAL
     elif [[ $MODE == "smartctl" ]]; then
         _loading "Listing all disks (smartctl)"
-        sudo smartctl --scan
+        for disk in /dev/sd*; do
+            if [[ -b $disk ]]; then
+                echo "Device: $disk"
+                sudo smartctl -i $disk | grep -E "Model|Serial|Firmware"
+            fi
+        done
     fi
 }
