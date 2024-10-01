@@ -114,6 +114,7 @@ function hw-list-disks() {
                 echo $SMARTCTL_OUTPUT | grep -E "User Capacity:" | sed 's/^/    /'
                 echo $SMARTCTL_OUTPUT | grep -E "Rotation Rate:" | sed 's/^/    /'
                 echo $SMARTCTL_OUTPUT | grep -E "TRIM Command:" | sed 's/^/    /'
+                echo $SMARTCTL_OUTPUT | grep -E "Size/Capacity:" | sed 's/^/    /'
             else
                 _debugf "Device: $disk is not a block device"
             fi
