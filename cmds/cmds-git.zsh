@@ -157,12 +157,24 @@ function gbd {
     git push origin --delete $1
 }
 
+# ===============================================
 # -- gbl
+# ===============================================
 help_git[gbl]="Git branch list"
-function gbl {
-    _loading "Listing local and remote branches"
-    git --no-pager branch -a
+function _gbl_replace {
+    if _cmd_exists gbl; then
+        # Check if gc is an alias
+        if [[ $(type gbl) == "gbl is an alias for git blame -w" ]]; then
+            _log "gbl is an omz alias, removing"
+            unalias gbl
+        fi
+    fi
+    function gbl () {
+        _loading "Listing local and remote branches"
+        git --no-pager branch -a
+    }
 }
+INIT_LAST_CORE+=("_gbl_replace")
 
 # -- gtpush - Git tag push
 help_git[gtpush]="Git tag push"
