@@ -15,6 +15,12 @@ help_domain[domain-info]='Check a domains name servers and www and a record and 
 # --- dom
 help_domain[dom]='Check a domains availability, www, mx etc'
 function dom () {
+    # Check if dig and whois are present
+    _cmd_exists dig
+    [[ $? -eq 1 ]] && { _error "dig is not installed"; return 1; }
+    _cmd_exists whois
+    [[ $? -eq 1 ]] && { _error "whois is not installed"; return 1; }
+    
     local DOMAIN="$1"
     # Check if email, and strip domain out
     if [[ $DOMAIN == *"@"* ]]; then
