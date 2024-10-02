@@ -134,3 +134,13 @@ function wsl-shortcuts () {
 	fi
 }
 
+# ===============================================
+# -- wsl-font-install
+# ===============================================
+help_wsl[wsl-font-install]='Install Meslo fixed fonts'
+function wsl-font-install () {
+	# Print out command to install fonts on Windows via PowerShell
+	# https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+
+	echo "You can download and install the required font at https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf"
+}

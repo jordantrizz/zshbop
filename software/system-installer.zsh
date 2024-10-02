@@ -150,6 +150,8 @@ _cmd_exists pwsh
 [[ $? -ge "1" ]] && alias pwsh=powershell_download || alias pwsh=pwsh
 
 powershell_download () {
+	_error "Currently broken for Ubuntu 24"
+	return 1
 	if [[ $MACHINE_OS == "mac" ]]; then
 		echo "Installing Powershell on Mac using brew"
 		brew install --cask powershell
