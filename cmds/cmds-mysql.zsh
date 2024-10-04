@@ -69,7 +69,7 @@ function mysql-db-size () {
 }
 
 # ===============================================
-# - mysql-allrowsize
+# - mysql-db-rowsize-all
 # ===============================================
 help_mysql[mysql-db-rowsize-all]='The number of rows of all tables in MySQL'
 mysql-db-rowsize-all () {
@@ -78,7 +78,7 @@ mysql-db-rowsize-all () {
 	else
 		LIMIT=""
 	fi
-	mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE table_schema NOT IN ('performance_schema', 'sys') ORDER BY table_rows DESC ${LIMIT};"
+	_mysql_wrapper -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE table_schema NOT IN ('performance_schema', 'sys') ORDER BY table_rows DESC ${LIMIT};"
 }
 
 # ===============================================
@@ -87,7 +87,7 @@ mysql-db-rowsize-all () {
 help_mysql[mysql-db-rowsize]='Get number of rows in a table'
 mysql-db-rowsize () {
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
+		_mysql_wrapper -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
         echo "Usage: $0 <database name>"
         return 1
@@ -100,7 +100,7 @@ mysql-db-rowsize () {
 help_mysql[mysql-db-table-size]='Get size of all tables in database'
 mysql-db-table-size () {
 	if [[ -n $1 ]]; then
-		mysql -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;"
+		_mysql_wrapper -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;"
 	else
 		echo "Usage: $0 <database name>"
 		return 1
