@@ -68,9 +68,11 @@ function mysql-db-size () {
 	fi
 }
 
+# ===============================================
 # - mysql-allrowsize
-help_mysql[mysql-allrowsize]='The number of rows of all tables in MySQL'
-mysql-allrowsize () {
+# ===============================================
+help_mysql[mysql-db-rowsize-all]='The number of rows of all tables in MySQL'
+mysql-db-rowsize-all () {
 	if [[ $1 ]]; then
 		LIMIT="limit $1"
 	else
@@ -79,9 +81,11 @@ mysql-allrowsize () {
 	mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE table_schema NOT IN ('performance_schema', 'sys') ORDER BY table_rows DESC ${LIMIT};"
 }
 
-# - mysql-dbrowsize
-help_mysql[mysql-dbrowsize]='Get number of rows in a table'
-mysql-dbrowsize () {
+# ===============================================
+# - mysql-db-rowsize
+# ===============================================
+help_mysql[mysql-db-rowsize]='Get number of rows in a table'
+mysql-db-rowsize () {
 	if [[ -n $1 ]]; then
 		mysql -e "SELECT table_schema,table_name,table_rows FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"${1}\" ORDER BY table_rows DESC;"
     else
@@ -90,9 +94,11 @@ mysql-dbrowsize () {
     fi
 }
 
-# - mysql-dbtablesize
-help_mysql[mysql-dbtablesize]='Get size of all tables in database'
-mysql-dbtablesize () {
+# ===============================================
+# - mysql-db-table-size
+# ===============================================
+help_mysql[mysql-db-table-size]='Get size of all tables in database'
+mysql-db-table-size () {
 	if [[ -n $1 ]]; then
 		mysql -e "SELECT table_schema,table_name AS \"Table\", ROUND(((data_length + index_length) / 1024 / 1024), 2) AS \"Size (MB)\" FROM information_schema.TABLES WHERE table_schema = \"${1}\" ORDER BY (data_length + index_length) DESC;"
 	else
@@ -101,7 +107,9 @@ mysql-dbtablesize () {
 	fi
 }
 
+# ===============================================
 # - mysql-datafree
+# ===============================================
 help_mysql[mysql-datafree]='List tables that have white space'
 mysql-datafree () {
 	mysql -e "SELECT TABLE_SCHEMA, ENGINE, TABLE_NAME,Round( DATA_LENGTH/1024/1024) as data_length , round(INDEX_LENGTH/1024/1024) as index_length, round(DATA_FREE/ 1024/1024) as data_free from information_schema.tables where DATA_FREE > 0 ORDER by DATA_FREE DESC;"
