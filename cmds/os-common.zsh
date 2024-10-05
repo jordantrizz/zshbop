@@ -128,8 +128,14 @@ function _detect_ls () {
     os-binary exa
     if [[ $? == "0" ]]; then
         _debugf "exa success, using exa for ls alias"    
-        alias ls="exa -al"
-        return 0
+        EXA_RETURN=$(exa -al)
+        if [[ $? -gt "0" ]]; then
+            _debugf "exa failed, skipping"
+        else
+            _debugf "exa success, using exa for ls alias"
+            alias ls="exa -al"
+            return 0
+        fi
     else
         _debugf "exa failed, skipping"
     fi
