@@ -102,27 +102,40 @@ function _check_grepcidr3 () {
 _check_grepcidr3
 
 # ===============================================
-# -- ls/exa - now replaced with eza
+# -- _detect_ls
 # ===============================================
 DEFAULT_EXA="${EXA_CMD} --long --all --group"
-function _eza_init () {
+function _detect_ls () {
+    local LS_CMD="ls"
+    
     # First check if we have eza
     _debugf "Checking for eza"
     os-binary eza
     if [[ $? == "0" ]]; then
-        _debug "eza success, using eza for ls alias"
-        alias ls="eza -al"
-        return 0
-    else
-        os-binary exa
-        if [[ $? == "0" ]]; then
-            _debug "exa success, using exa for ls alias"    
-            alias ls="exa -al"
-            return 0
+        _debug "eza success, checking if it runs"
+        EZA_RETURN=$(eza -al)
+        if [[ $? -gt "0" ]]; then
+            _debugf "eza failed, skipping"
         else
-            _debug "exa failed, using default ls alias"
-            alias ls="${DEFAULT_LS}"
+            _debugf "eza success, using eza for ls alias"
+            alias ls="eza -al"
+            return 0
         fi
     fi
+
+    # Next check if we have exa
+    _debugf "Checking for exa"
+    os-binary exa
+    if [[ $? == "0" ]]; then
+        _debugf "exa success, using exa for ls alias"    
+        alias ls="exa -al"
+        return 0
+    else
+        _debugf "exa failed, skipping"
+    fi
+
+    # Default to ls
+    _debugf "Defaulting to ls"
+    alias ls="${DEFAULT_LS}"    
 }
-_eza_init
+_detect_ls

@@ -414,17 +414,13 @@ os-binary () {
         _debugf "OS_GENERIC_BINARY: $OS_GENERIC_BINARY"
         _cmd_exists ${OS_GENERIC_BINARY}
         if [[ $? == "1" ]]; then
-            _debugf "$OS_GENERIC_BINARY not installed"
+            _debugf "$OS_GENERIC_BINARY - general binary not installed"
             return 1
-        else 
-            _debugf "Using created alias ${BINARY}_${MACHINE_OS}"
-            eval "function ${BINARY} () { ${OS_GENERIC_BINARY} \$@ }"
-            eval "export ${(U)BINARY}_CMD=$OS_GENERIC_BINARY"
-            return 0
         fi
-
-        _debugf "$OS_BINARY not installed"
-		return 1
+        _debugf "Using created alias ${BINARY}_${MACHINE_OS}"
+        eval "function ${BINARY} () { ${OS_GENERIC_BINARY} \$@ }"
+        eval "export ${(U)BINARY}_CMD=$OS_GENERIC_BINARY"
+        return 0
 	else
 	    _debugf "Using created alias ${BINARY} ${OS_BINARY}"
 	    eval "function ${BINARY} () { ${OS_BINARY} \$@ }"
