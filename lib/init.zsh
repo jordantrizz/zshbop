@@ -56,27 +56,12 @@ init_path () {
     init_add_path $HOME/.local/bin
     init_add_path $HOME/.cargo/bin
     init_add_path $HOME/go/bin
-	#export PATH=$PATH:$HOME/bin:/usr/local/bin:$ZSHBOP_ROOT:$ZSHBOP_ROOT/bin
-	#export PATH=$PATH:$HOME/.local/bin
-	#export PATH=$PATH:$HOME/.cargo/bin
-        
+
 	# Extra software
     init_add_path /usr/local/lsws/bin/
     init_add_path /root/.acme.sh/
     init_add_path /opt/netdata/bin
-    
-	#export PATH=$PATH:$ZSHBOP_ROOT/bin/cloudflare-cli # https://github.com/bAndie91/cloudflare-cli
-	#export PATH=$PATH:$ZSHBOP_ROOT/bin/clustergit # https://github.com/mnagel/clustergit
-	#export PATH=$PATH:$ZSHBOP_ROOT/bin/MySQLTuner-perl # https://github.com/major/MySQLTuner-perl
-	#export PATH=$PATH:$ZSHBOP_ROOT/bin/parsyncfp # https://github.com/hjmangalam/parsyncfp
-	#export PATH=$PATH:$ZSHBOP_ROOT/bin/httpstat # https://github.com/reorx/httpstat
-	#export PATH=$PATH:$HOME/bin/aws-cli # aws-cli https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-	#export PATH=$PATH:$ZSHBOP_ROOT/bin/exa # exa a replacement for ls
-	#export PATH=$PATH:/usr/local/lsws/bin/ # General path for Litespeed/Openlitespeed
-	#export PATH=$PATH:$ZSHBOP_ROOT/bin/btop/bin # btop
-    #export PATH=$PATH:/root/.acme.sh/ # acme.sh
-    #export PATH=$PATH:/opt/netdata/bin # netdata alternative path
-	
+
 	# Repos - Needs to be updated to find repos installed and add them to $PATH @@ISSUE
 	_log "Finding local \$HOME/bin and \$HOME/git and adding to \$PATH"
 	init_add_path_dirs $HOME/bin
@@ -97,14 +82,14 @@ init_add_path_dirs () {
 	DIR="$@"
 	if [[ -d $DIR ]]; then
 		if [ "$(find "$DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
-	    _debug "Adding $DIR to \$PATH"
-	        i=0
-	        for NAME in $DIR/*; do
-	            _debug "$funcstack[1] - found $NAME, adding to \$PATH"
-	                init_add_path $NAME
-	            i=$((i+1))
-	        done
-	        _log " Found $i folders and added them to \$PATH"
+        _debug "Adding $DIR to \$PATH"
+            i=0
+            for NAME in $DIR/*; do
+                _debug "$funcstack[1] - found $NAME, adding to \$PATH"
+                    init_add_path $NAME
+                i=$((i+1))
+            done
+            _log " Found $i folders and added them to \$PATH"
 		fi
 	else
 		_debug "Can't find $DIR"
@@ -732,16 +717,19 @@ function init_software () {
 function init_last () {
     _debug_all
     _log "Running last commands"
+    
+    # Debugging: Print the PATH variable
+    _debugf "Current PATH: $PATH"
 
     # -- Check if INIT_LAST_CORE array has any commands
     if [[ -n $INIT_LAST_CORE ]]; then
         _log "Running \$INIT_LAST_CORE functions"
         for CMD in $INIT_LAST_CORE; do
-            _debug "Running $CMD"
+            _debugf "Running $CMD"
             $CMD
         done
     else
-        _debug "No \$INIT_LAST_CORE commands"
+        _debugf "No \$INIT_LAST_CORE commands"
     fi
     
     # -- Check if INIT_LAST_CUSTOM array has any commands
@@ -792,6 +780,8 @@ init_motd () {
     echo ""
     init_log
 }
+
+
 
 # ==============================================
 # -- init_zshbop -- initialize zshbop
@@ -863,12 +853,9 @@ function init_zshbop () {
         init_motd           # -- Init motd
     fi
 
-	# Remove Duplicates in $PATH
-	_debug "Removing duplicates in \$PATH"
-	typeset -U PATH
-
-    # Run last commands if any
+    # -- Run last commands
     init_last
+
     # -- End init
     _log "${funcstack[1]}:end"
     init_log
