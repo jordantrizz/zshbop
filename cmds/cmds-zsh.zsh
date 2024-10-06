@@ -39,8 +39,8 @@ function debugz() {
 # ===============================================
 help_zsh[zsh-list-comps]='List all zsh completions'
 function zsh-list-comps() {
-  for command completion in ${(kv)_comps:#-*(-|-,*)}
-  do
-      printf "%-32s %s\n" $command $completion
-  done | sort
+  for command in ${(k)_comps}; do
+    completions=${_comps[$command]}
+    printf "%-32s %s\n" $command $completions
+  done
 }
