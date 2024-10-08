@@ -65,6 +65,9 @@ function pk () {
     local SSHKEY_FILE
     local SSHKEY_FILES=$(find ~/.ssh -type f -name "*.pub")
 
+    # sort SSHKEY_FILES
+    SSHKEY_FILES=$(echo $SSHKEY_FILES | tr ' ' '\n' | sort)
+
     # Set list_keys method if fzf is installed
     if _cmd_exists fzf; then
         _loading3 "fzf found, using fzf for selection"
