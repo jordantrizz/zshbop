@@ -358,7 +358,7 @@ screen-sessions () {
 			echo "$(_loading2 Screen Sessions:) $(_loading3b $SSESSIONS_OUTPUT)"
         fi
     else
-        _error "Screen not installed"
+        _warning "Screen not installed"
     fi
 }
 
