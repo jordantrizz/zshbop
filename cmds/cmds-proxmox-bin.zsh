@@ -116,7 +116,7 @@ function proxmox_init () {
         _debugf "Imaging VM"
         _proxmox_check || return 1
         _loading "Imaging Proxmox VM with ID $VM_ID and OS $OS_RELEASE"
-        _proxmox_imagevm
+        _proxmox_imagevm "$@"
     # -- Setup vendor cloudinit.yaml
     elif [[ $1 == "vendorci" ]]; then
         _debugf "Setting up vendor cloudinit.yaml"    
@@ -366,9 +366,12 @@ function _proxmox_generate_ip () {
 # -- _proxmox_imagevm
 # -------------------------------------------------------------------
 function _proxmox_imagevm () {
-    local TEMP_DIR IMAGE_FILE BUILD_IMAGE STORAGE
+    local TEMP_DIR IMAGE_FILE BUILD_IMAGE STORAGE SKIP_SCSI0
     TEMP_DIR="/tmp"
     IMAGE_FILE="${OS_RELEASE}-server-cloudimg-amd64.img"    
+
+    zparseopts -D -E skip-scsi0=SKIP_SCSI0
+    [[ $SKIP_SCSI0 ]] && SKIP_SCSI0="1" || SKIP_SCSI0="0"
 
     _proxmox_get_storage
     STORAGE=$PROXMOX_STORAGE
@@ -393,54 +396,89 @@ function _proxmox_imagevm () {
         return 1
     fi
 
+    # -- Confirm VM is shutdown
+    _loading2 "Checking if VMID $VM_ID is shutdown"
+    if qm status $VM_ID | grep -q "status: stopped"; then
+        _loading3 "VMID $VM_ID is stopped"
+    else
+        _error "VMID $VM_ID is not stopped"
+        return 1
+    fi
+
+    # -- Check if there are unused disks
+    _loading2 "Checking if there are unused disks"
+    if qm config $VM_ID | grep -q 'unused'; then
+        _error "Unused disks found"
+        return 1
+    else
+        _loading3 "No unused disks found"
+    fi
+
+    # -- Check if scsi0 disk exists
+    _loading2 "-- Checking if scsi0 disk exists"
+    if [[ $SKIP_SCSI0 == "0" ]]; then
+        if qm config $VM_ID | grep -q 'scsi0:'; then
+            _loading3 "scsi0 disk exists"
+        else
+            _error "scsi0 disk does not exist, can't re-image VM if no scsi0 disk exists"
+            return 1
+        fi
+    else
+        _loading3 "Skipping scsi0 disk check"
+    fi
+
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
 
+    # -- Create a copy of new image
     _loading2 "Create a copy of new image"
     cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
     BUILD_IMAGE="${TEMP_DIR}/${IMAGE_FILE}.build"
 
+    # -- Insert guest tools into image
     _loading2 "-- Inserting guest tools into image"
     ( set -x; virt-customize -a ${BUILD_IMAGE} --install qemu-guest-agent )
     [[ $? -ne 0 ]] && { _error "Failed to insert guest tools into image";return 1; }
 
-    _loading "-- Importing disk into VM: $VM_ID"
-    ( set -x; qm importdisk ${VM_ID} ${BUILD_IMAGE} ${PROXMOX_STORAGE} )
-    [[ $? -ne 0 ]] && { _error "Failed to import disk into VM";return 1; }
-
-    # -- Check if scsi0 disk exists
-    _loading2 "-- Checking if scsi0 disk exists"
-    if qm config $VM_ID | grep -q 'scsi0'; then
-        _loading3 "scsi0 disk exists"
-    else
-        _error "scsi0 disk does not exist"
-        return 1
-    fi
-
     # -- Get scsi0 disk size
     _loading2 "-- Getting scsi0 disk size"
     # scsi0: local:9000/base-9000-disk-0.raw/100/vm-100-disk-0.qcow2,size=99532M
-    DISK_SIZE=$(qm config $VM_ID | grep 'scsi0:' | awk '{ print $2 }' | awk -F',' '{ print $2 }' | awk -F'=' '{ print $2 }' | awk -F'M' '{ print $1 }')
+    if [[ $SKIP_SCSI0 == "0" ]]; then
+        DISKSIZE=$(qm config $VM_ID | grep 'scsi0:' | awk '{ print $2 }' | awk -F',' '{ print $2 }' | awk -F'=' '{ print $2 }' | awk -F'M' '{ print $1 }')
+        _loading3 "scsi0 disk size is $DISKSIZE"
+    else
+        _loading3 "Skipping scsi0 disk size check, using default 20000M"
+        DISKSIZE="20000"
+    fi
 
     # -- Confirm deletion of scsi0 disk
     _loading2 "-- Confirm deletion of scsi0 disk"
-    _confirm "Are you sure you want to delete scsi0 disk?"
-    [[ $? -ne 0 ]] && { _error "User cancelled";return 1; }
+    read "CONFIRM?Are you sure you want to delete scsi0 disk? [y/N] "
+    if [[ $CONFIRM == "y" ]]; then
+        _loading3 "Deleting scsi0 disk"
+        ( set -x; qm set ${VM_ID} --delete scsi0 )
+        [[ $? -ne 0 ]] && { _error "Failed to delete scsi0 disk";return 1; }
+    else
+        _loading3 "Not deleting scsi0 disk"
+    fi
 
     # -- Remove scsi0 disk
     _loading2 "-- Removing scsi0 disk"
     ( set -x; qm set ${VM_ID} --delete scsi0 )
     [[ $? -ne 0 ]] && { _error "Failed to remove scsi0 disk";return 1; }
 
+    # -- Import disk into VM
     _loading "-- Importing disk into VM: $VM_ID"
     ( set -x; qm importdisk ${VM_ID} ${BUILD_IMAGE} ${PROXMOX_STORAGE} )
     [[ $? -ne 0 ]] && { _error "Failed to import disk into VM";return 1; }
     
+    # -- Assume unused0
     _loading2 "-- Setting VM storage options"
     VM_STORAGE=$(qm config $VM_ID | grep 'unused0' | awk '{ print $2 }')
     ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 "${VM_STORAGE},size=${DISKSIZE}M")
     [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
 
+    # -- Resize disk
     _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
     ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
     [[ $? -ne 0 ]] && { _error "Failed to resize VM disk";return 1; }
