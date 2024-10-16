@@ -54,6 +54,7 @@ function proxmox_init () {
     [[ -z $CLONE_ID ]] && CLONE_ID="9000" || CLONE_ID=$CLONE_ID[2]
     [[ -z $MAC ]] && MAC="" || MAC=$MAC[2]
     [[ -z $GW ]] && GW="" || GW=$GW[2]
+    [[ -z $VM_ID ]] && VM_ID="" || VM_ID=$VM_ID[2]
 
     _debugf "ALL_ARGS: $ALL_ARGS"
     _debugf "DEBUG: $DEBUG"
@@ -110,6 +111,12 @@ function proxmox_init () {
         _debugf "Cloning template"
         _proxmox_check || return 1
         _proxmox_clonetemp
+    # -- Image existing vm
+    elif [[ $1 == "imagevm" ]]; then
+        _debugf "Imaging VM"
+        _proxmox_check || return 1
+        _loading "Imaging Proxmox VM with ID $VM_ID and OS $OS_RELEASE"
+        _proxmox_imagevm
     # -- Setup vendor cloudinit.yaml
     elif [[ $1 == "vendorci" ]]; then
         _debugf "Setting up vendor cloudinit.yaml"    
@@ -138,13 +145,16 @@ function _proxmox_help () {
 "
 Usage: pmox <command> <options>
 
-Commands:
+Main Commands:
   createvm      - Create VM
   createtemp    - Create template
   clonetemp     - Clone template
-  vendorci      - Setup vendor cloudinit.yaml
-  info          - Info about Proxmox instance
-  help          - This help
+  
+Other Commands:  
+  imagevm <id> <os-release>       - Apply image to VM
+  vendorci                        - Setup vendor cloudinit.yaml
+  info                            - Info about Proxmox instance
+  help                            - This help
 
 Global Options:
   -d            - Debug mode
@@ -257,28 +267,33 @@ function _proxmox_getid () {
 function _proxmox_get_storage () {
     # -- Get Proxmox storage
     _loading2 "Getting Proxmox storage"
-    local PROXMOX_STORAGE_API=$(pvesh get /storage --output-format json)
+    local PROXMOX_STORAGE_API
+    PROXMOX_STORAGE_API=$(pvesh get /storage --output-format json)
+    _debugf "PROXMOX_STORAGE_API: $PROXMOX_STORAGE_API"
     PROXMOX_STORAGE=($(echo "$PROXMOX_STORAGE_API" | jq -r '.[] | select(.content | contains("images")) | .storage'))
+    _debugf "PROXMOX_STORAGE: $PROXMOX_STORAGE"
 
     # Count number of storage
-    PROXMOX_STORAGE_COUNT=$(echo "$PROXMOX_STORAGE" | wc -l)
+    PROXMOX_STORAGE_COUNT="$(echo "$PROXMOX_STORAGE" | wc -l)"
+    _debugf "PROXMOX_STORAGE_COUNT: $PROXMOX_STORAGE_COUNT"
     if [[ $PROXMOX_STORAGE_COUNT -gt 1 ]]; then
         _error "Multiple storage found, you need to specify storage"        
     fi
 
-    if [[ -z $STORAGE ]]; then
+    if [[ -z $PROXMOX_STORAGE ]]; then
         _error "No storage set"
         return 1
     else
-        _loading3 "Storage set to $PROXMOX_STORAGE"   
-        
+        _loading3 "Storage set to $PROXMOX_STORAGE"        
     fi
 }
 
 # -------------------------------------------------------------------
-# -- _proxmox_download_cloudimage
+# -- _proxmox_download_cloudimage $OS_RELEASE
 # -------------------------------------------------------------------
 function _proxmox_download_cloudimage () {
+    local OS_RELEASE
+    OS_RELEASE=$1
     # -- Check if $OS_RELEASE is valid
     _loading2 "Checking if $OS_RELEASE is a valid OS"
     AVAIL_OS=("focal" "bionic" "jammy")
@@ -348,14 +363,97 @@ function _proxmox_generate_ip () {
 }
 
 # -------------------------------------------------------------------
+# -- _proxmox_imagevm
+# -------------------------------------------------------------------
+function _proxmox_imagevm () {
+    local TEMP_DIR IMAGE_FILE BUILD_IMAGE STORAGE
+    TEMP_DIR="/tmp"
+    IMAGE_FILE="${OS_RELEASE}-server-cloudimg-amd64.img"    
+
+    _proxmox_get_storage
+    STORAGE=$PROXMOX_STORAGE
+
+    # -- Check if $VM_ID is set
+    _loading2 "Checking if VMID is set and creater than 0"
+    if [[ -z $VM_ID ]]; then    
+        _error "VMID is not set"
+        return 1
+    else
+        _loading3 "VMID is set to $VM_ID"
+    fi
+
+    # -- Checkif $VMID exists
+    _loading2 "Checking if VMID $VM_ID exists"
+    QM_LIST=$(qm list | awk '{print $1}' | grep -v 'VMID')
+    _debugf "QM_LIST: $QM_LIST VM_ID: $VM_ID"
+    if echo "$QM_LIST" | grep -q "$VM_ID"; then
+        _loading3 "VMID $VM_ID exists."
+    else
+        _error "VMID $VM_ID does not exist."
+        return 1
+    fi
+
+    # -- Download cloudimage
+    _proxmox_download_cloudimage $OS_RELEASE
+
+    _loading2 "Create a copy of new image"
+    cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
+    BUILD_IMAGE="${TEMP_DIR}/${IMAGE_FILE}.build"
+
+    _loading2 "-- Inserting guest tools into image"
+    ( set -x; virt-customize -a ${BUILD_IMAGE} --install qemu-guest-agent )
+    [[ $? -ne 0 ]] && { _error "Failed to insert guest tools into image";return 1; }
+
+    _loading "-- Importing disk into VM: $VM_ID"
+    ( set -x; qm importdisk ${VM_ID} ${BUILD_IMAGE} ${PROXMOX_STORAGE} )
+    [[ $? -ne 0 ]] && { _error "Failed to import disk into VM";return 1; }
+
+    # -- Check if scsi0 disk exists
+    _loading2 "-- Checking if scsi0 disk exists"
+    if qm config $VM_ID | grep -q 'scsi0'; then
+        _loading3 "scsi0 disk exists"
+    else
+        _error "scsi0 disk does not exist"
+        return 1
+    fi
+
+    # -- Get scsi0 disk size
+    _loading2 "-- Getting scsi0 disk size"
+    # scsi0: local:9000/base-9000-disk-0.raw/100/vm-100-disk-0.qcow2,size=99532M
+    DISK_SIZE=$(qm config $VM_ID | grep 'scsi0:' | awk '{ print $2 }' | awk -F',' '{ print $2 }' | awk -F'=' '{ print $2 }' | awk -F'M' '{ print $1 }')
+
+    # -- Confirm deletion of scsi0 disk
+    _loading2 "-- Confirm deletion of scsi0 disk"
+    _confirm "Are you sure you want to delete scsi0 disk?"
+    [[ $? -ne 0 ]] && { _error "User cancelled";return 1; }
+
+    # -- Remove scsi0 disk
+    _loading2 "-- Removing scsi0 disk"
+    ( set -x; qm set ${VM_ID} --delete scsi0 )
+    [[ $? -ne 0 ]] && { _error "Failed to remove scsi0 disk";return 1; }
+
+    _loading "-- Importing disk into VM: $VM_ID"
+    ( set -x; qm importdisk ${VM_ID} ${BUILD_IMAGE} ${PROXMOX_STORAGE} )
+    [[ $? -ne 0 ]] && { _error "Failed to import disk into VM";return 1; }
+    
+    _loading2 "-- Setting VM storage options"
+    VM_STORAGE=$(qm config $VM_ID | grep 'unused0' | awk '{ print $2 }')
+    ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 "${VM_STORAGE},size=${DISKSIZE}M")
+    [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
+
+    _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
+    ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
+    [[ $? -ne 0 ]] && { _error "Failed to resize VM disk";return 1; }
+}
+
+# -------------------------------------------------------------------
 # -- _proxmox_createvm
 # -------------------------------------------------------------------
 function _proxmox_createvm () {
-    
+    local STORAGE    
     # -- Check if storage exists
-    _proxmox_get_storage
-    local STORAGE=$PROXMOX_STORAGE
-
+    STORAGE="$(_proxmox_get_storage)"
+    
     # -- Check if $VM_ID is set
     _loading2 "Checking if VMID is set and creater than 0"
     if [[ -z $VM_ID ]]; then    
@@ -379,7 +477,7 @@ function _proxmox_createvm () {
     fi
 
     # -- Download cloudimage
-    _proxmox_download_cloudimage
+    _proxmox_download_cloudimage $OS_RELEASE
 
     # -- Run QM Command
     _loading2 "Creating VM with ID:$VM_ID"
@@ -433,6 +531,9 @@ function _proxmox_createvm () {
         _loading3 "No DHCP network set, skipping"
     fi
 
+        # -- Download cloudimage
+    _proxmox_download_cloudimage $OS_RELEASE
+
     _loading2 "Create a copy of new image"
     cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
     BUILD_IMAGE="${TEMP_DIR}/${IMAGE_FILE}.build"
@@ -441,9 +542,9 @@ function _proxmox_createvm () {
     ( set -x; virt-customize -a ${BUILD_IMAGE} --install qemu-guest-agent )
     [[ $? -ne 0 ]] && { _error "Failed to insert guest tools into image";return 1; }
 
-    _loading2 "-- Importing OS_FILE:${BUILD_IMAGE} into VM_ID:$VM_ID"
-    ( set -x;qm importdisk $VM_ID ${BUILD_IMAGE} ${STORAGE} )
-    [[ $? -ne 0 ]] && { return 1; _error "Failed to import OS image"; }
+    _loading "-- Importing disk into VM: $VM_ID"
+    ( set -x; qm importdisk ${VM_ID} ${BUILD_IMAGE} ${STORAGE} )
+    [[ $? -ne 0 ]] && { _error "Failed to import disk into VM";return 1; }
     
     _loading2 "-- Setting VM storage options"
     VM_STORAGE=$(qm config $VM_ID | grep 'unused0' | awk '{ print $2 }')
@@ -477,7 +578,7 @@ function _proxmox_createtemp () {
     _debugf "\$OS_RELEASE:$OS_RELEASE \$BRIDGE:$BRIDGE \$STORAGE:$STORAGE \$VM_ID:$VM_ID"
 
     # -- Download cloudimage
-    _proxmox_download_cloudimage
+    _proxmox_download_cloudimage $OS_RELEASE
 
     # -- Check if VM_ID is taken
     _loading2 "Checking if VMID $VM_ID is taken"
