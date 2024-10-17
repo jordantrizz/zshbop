@@ -441,34 +441,78 @@ mysql-ps () {
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
 mysql-myisam2innodb () {
 	_mysql-myisam2innodb-usage () {
-		echo "Usage: mysql-myisam2innodb <database>"
+		echo "Usage: mysql-myisam2innodb -d<database>|-a"
 	}
-	local DATABASE="$1"
-	if [[ -z $DATABASE ]]; then		
+
+	_mysql-myisam2innodb-get-tables () {
+		local DATABASES
+		# Find all databases that have myisam tables
+		DATABASES=$(_mysql_wrapper -e "SHOW DATABASES;" | awk '{print $1}')
+		echo "$DATABASES" | while read database; do
+			if [[ $database != "Database" ]]; then
+				TABLES=$(_mysql_wrapper $database -e "SHOW TABLE STATUS
+				WHERE Engine = 'MyISAM';" | awk '{print $1}')
+				if [[ -n $TABLES ]]; then
+					echo "$database"				
+				fi
+			fi
+		done		
+	}
+
+	_mysql-myisam2innodb-convert () {
+		DATABASE=$1
+		# Backup Database?
+		_loading "Backup database before converting? [y/n]"
+		read REPLY
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			mysql-backup-db -d $DATABASE
+		fi
+
+		echo "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
+		TABLES=$(_mysql_wrapper $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" | awk '{print $1}')
+
+		echo "$TABLES" | while read table; do
+			if [[ $table != "Name" ]]; then
+				echo "Upgrading table $table to InnoDB..."
+				_mysql_wrapper $DATABASE -e "ALTER TABLE $table ENGINE=InnoDB;"
+				echo "Table $table upgraded to InnoDB successfully."
+			fi
+		done
+		echo "All MyISAM tables have been upgraded to InnoDB."
+	}
+
+	local DATABASE MODE
+	local MYISAM_DATABASES=()
+	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL
+
+	if [[ -z $ARG_DATABASE ]] && [[ -z $ARG_ALL ]]; then
 		_mysql-myisam2innodb-usage
-		_error "Please specify the database"
 		return 1
 	fi
 
-	# Backup Database?
-	_loading "Backup database before converting? [y/n]"
-	read REPLY
-	if [[ $REPLY =~ ^[Yy]$ ]]; then
-		mysql-backup-db -d $DATABASE
-	fi
-
-	echo "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
-	TABLES=$(_mysql_wrapper $DATABASE -e "SHOW TABLE STATUS WHERE Engine = 'MyISAM';" | awk '{print $1}')
-
-	echo "$TABLES" | while read table; do
-		if [[ $table != "Name" ]]; then
-			echo "Upgrading table $table to InnoDB..."
-			_mysql_wrapper $DATABASE -e "ALTER TABLE $table ENGINE=InnoDB;"
-			echo "Table $table upgraded to InnoDB successfully."
+	if [[ -n $ARG_DATABASE ]]; then
+		DATABASE=${ARG_DATABASE[2]}
+		_mysql-myisam2innodb-convert $DATABASE
+	elif [[ -n $ARG_ALL ]]; then
+		_loading "Upgrading all MyISAM tables to InnoDB..."
+		MYISAM_DATABASES=($(_mysql-myisam2innodb-get-tables))
+		
+		if [[ -z $MYISAM_DATABASES ]]; then
+			_success "No MyISAM tables found"
+			return 1
 		fi
-	done
-	echo "All MyISAM tables have been upgraded to InnoDB."
-	
+
+		echo "$DATABASES" | while read database; do
+			if [[ $database != "Database" ]]; then
+				_mysql-myisam2innodb-convert $database
+			fi
+		done
+		echo "All MyISAM tables in all databases have been upgraded to InnoDB."
+	else
+		_mysql-myisam2innodb-usage
+		_error "Please specify an option to use, -d or -a"
+		return 1
+	fi
 }
 
 # -- mysql-uptime
