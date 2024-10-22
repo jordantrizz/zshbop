@@ -565,8 +565,7 @@ function _proxmox_createvm () {
         --onboot 1
         --cpu host
         --agent enabled=1,fstrim_cloned_disks=1
-        --cicustom vendor=local:snippets/vendor.yaml
-        "$NETWORK_CI_CLI"
+        --cicustom vendor=local:snippets/vendor.yaml $NETWORK_CI_CLI
     )
 
     (set -x; $BUILD_VM_OPTS)
