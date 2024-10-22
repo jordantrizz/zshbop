@@ -552,20 +552,20 @@ function _proxmox_createvm () {
 
     # Build VM
     BUILD_VM_OPTS=(qm create $VM_ID
-        "--name $NAME"
-        "--cores ${CPU}"
-        "--sockets 1"
-        "--memory $MEM"
-        "--bootdisk scsi0"
-        "--scsihw virtio-scsi-pci"
-        "--ide2 media=cdrom,file=none"
-        "--ide0 ${STORAGE}:cloudinit,size=4M"
-        "--boot cdn"
-        "--ostype l26"
-        "--onboot 1"
-        "--cpu host"
-        "--agent enabled=1,fstrim_cloned_disks=1"
-        "--cicustom vendor=local:snippets/vendor.yaml"
+        --name $NAME
+        --cores ${CPU}
+        --sockets 1
+        --memory $MEM
+        --bootdisk scsi0
+        --scsihw virtio-scsi-pci
+        --ide2 media=cdrom,file=none
+        --ide0 ${STORAGE}:cloudinit,size=4M
+        --boot cdn
+        --ostype l26
+        --onboot 1
+        --cpu host
+        --agent enabled=1,fstrim_cloned_disks=1
+        --cicustom vendor=local:snippets/vendor.yaml
         $NETWORK_CI_CLI
     )
 
