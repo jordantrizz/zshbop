@@ -85,7 +85,8 @@ function proxmox_init () {
     if [[ $1 == "createvm" ]]; then
         # -- Check required options
         if [[ -z $NAME ]]; then
-            _error "Name is required"
+            _proxmox_help
+            _error "Name is required"            
             return 1
         fi
         _debugf "Creating VM"
