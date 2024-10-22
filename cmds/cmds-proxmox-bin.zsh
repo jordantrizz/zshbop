@@ -606,6 +606,9 @@ function _proxmox_createvm () {
         _proxmox_create_customci_private $IP $GW $ADDITIONAL_IP $VM_MAC
         [[ $? -ne 0 ]] && { _error "Failed to create customci private";return 1; }
         _loading3 "Created customci network for private networking using $IP and $GW and $ADDITIONAL_IP and $VM_MAC"
+    else
+        _error "NETWORK_CI is not valid must be private or auto"
+        return 1
     fi
     
     # -- Enable internal nic with DHCP
