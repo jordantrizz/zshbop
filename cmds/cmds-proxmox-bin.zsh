@@ -544,7 +544,7 @@ function _proxmox_createvm () {
     elif [[ $NETWORK_CI == "private" ]]; then
         _loading2 "Network cloud-init is set to private adding --cicustom network=snippets/network-$VM_ID.yaml to build"
         _proxmox_create_customci_private
-        NETWORK_CI_CLI="--cicustom network=snippets/network-$VM_ID.yaml"
+        NETWORK_CI_CLI=(--cicustom network=snippets/network-$VM_ID.yaml)
     else
         _error "NETWORK_CI is not valid must be private or auto"
         return 1
@@ -566,8 +566,8 @@ function _proxmox_createvm () {
         --cpu host
         --agent enabled=1,fstrim_cloned_disks=1
         --cicustom vendor=local:snippets/vendor.yaml
+        $NETWORK_CI_CLI
     )
-    BUILD_VM_OPTS+=($NETWORK_CI_CLI)
 
     (set -x; $BUILD_VM_OPTS)
 
