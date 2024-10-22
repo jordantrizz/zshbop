@@ -495,7 +495,7 @@ function _proxmox_imagevm () {
 # -- _proxmox_createvm
 # -------------------------------------------------------------------
 function _proxmox_createvm () {
-    local STORAGE    
+    local STORAGE VM_MAC NETWORK_CI_CLI BUILD_VM_OPTS
     # -- Check if storage exists
     STORAGE="$(_proxmox_get_storage)"
     [[ $? -ne 0 ]] && { echo "Failed to get storage";return 1; }
@@ -542,8 +542,7 @@ function _proxmox_createvm () {
         _loading2 "Network cloud-init is set to auto"
         NETWORK_CI_CLI=""
     elif [[ $NETWORK_CI == "private" ]]; then
-        _loading2 "Network cloud-init is set to private adding --cicustom network=snippets/network-$VM_ID.yaml to build"
-        _proxmox_create_customci_private
+        _loading2 "Network cloud-init is set to private adding --cicustom network=snippets/network-$VM_ID.yaml to build"        
         NETWORK_CI_CLI=(--cicustom network=local:snippets/network-$VM_ID.yaml)
     else
         _error "NETWORK_CI is not valid must be private or auto"
@@ -596,9 +595,15 @@ function _proxmox_createvm () {
         (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
         [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
         
+        # Get mac address
+        # net0: virtio=BC:24:11:7F:72:04,bridge=vmrb0
+        VM_MAC=$(qm config $VM_ID | grep 'net0' | awk '{ print $2 }' | awk -F',' '{ print $1 }' | awk -F'=' '{ print $2 }')
+
         _loading3 "Setting IP and GW on ipconfig0"
         _proxmox_generate_ip ipconfig0
         [[ $? -ne 0 ]] && { _error "Failed to set IP and GW on ipconfig0";return 1; }
+        
+        _proxmox_create_customci_private $IP $GW $ADDITIONAL_IP $VM_MAC
     fi
     
     # -- Enable internal nic with DHCP
@@ -900,9 +905,14 @@ function _proxmox_memorygb () {
 }
 
 # ===============================================
-# -- _proxmox_create_customci_private $IP $GW $ADDITIONAL_IP
+# -- _proxmox_create_customci_private $IP $GW $ADDITIONAL_IP $VM_MAC
 # ===============================================
 function _proxmox_create_customci_private () {
+    local IP GW ADDITIONAL_IP MAC
+    IP=$1
+    GW=$2
+    ADDITIONAL_IP=$3
+    MAC=$4
     _loading2 "Creating custom cloud-init network file"
     cat <<EOF > /var/lib/vz/snippets/network-$VM_ID.yaml
 network:
