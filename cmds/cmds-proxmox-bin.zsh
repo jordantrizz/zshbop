@@ -187,10 +187,10 @@ Command Options:
         -vmid [vmid]              VM ID to use, (Default: random)
         -cloneid [vmid]           VM ID to clone, (Default: 9000)
         -mac [mac]                MAC address to use, optional.
-        -ip [ip]                  IP address to use, optional. (Default: dhcp)
-        -additional-ip [ip]       IP address for customci private, real IP address.
+        -ip [ip]                  IP address to use, optional. (Default: dhcp)        
         -gw [gw]                  Gateway to use, optional.
         -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)        
+        -additional-ip [ip]       IP address for customci private, real IP address.
 
 	
 	Example: createvm -name server -memory 2048 -network vmbr0 -storage local -disksize 80 -os focal
@@ -569,7 +569,7 @@ function _proxmox_createvm () {
         $NETWORK_CI_CLI
     )
 
-    (set -x;qm create $VM_ID $BUILD_VM_OPTS $NETWORK_CI)
+    (set -x;qm create $VM_ID "$BUILD_VM_OPTS")
 
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
