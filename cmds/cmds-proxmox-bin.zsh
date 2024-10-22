@@ -572,8 +572,8 @@ function _proxmox_createvm () {
 
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
-    if [[ $NETWORK_CI=="auto" ]]; then
-        _loading2 "Cloud-init Config is automatic"
+    if [[ $NETWORK_CI == "auto" ]]; then
+        _loading2 "Cloud-init Config is $NETWORK_CI"
         _loading3 "Creating net0 interface on ${BRIDGE}"
         (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
         [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
@@ -588,9 +588,9 @@ function _proxmox_createvm () {
         else
             _loading3 "No MAC address set, setting to random"    
         fi
-    elif [[ $NETWORK_CI=="private" ]]; then
+    elif [[ $NETWORK_CI == "private" ]]; then
         # Create net0 interface on bridge
-        _loading2 "Cloud-init Config is private"
+        _loading2 "Cloud-init Config is $NETWORK_CI"
         _loading3 "Creating net0 interface on ${BRIDGE}"
         (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
         [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
