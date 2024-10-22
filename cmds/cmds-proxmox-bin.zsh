@@ -551,7 +551,7 @@ function _proxmox_createvm () {
     fi
 
     # Build VM
-    BUILD_VM_OPTS=(
+    BUILD_VM_OPTS=(qm create $VM_ID
         "--name $NAME"
         "--cores ${CPU}"
         "--sockets 1"
@@ -569,7 +569,7 @@ function _proxmox_createvm () {
         $NETWORK_CI_CLI
     )
 
-    (set -x;qm create $VM_ID "$BUILD_VM_OPTS")
+    (set -x; ${BUILD_VM_OPTS[@]})
 
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
