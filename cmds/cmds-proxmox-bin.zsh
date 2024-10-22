@@ -598,6 +598,10 @@ function _proxmox_createvm () {
         # Get mac address
         # net0: virtio=BC:24:11:7F:72:04,bridge=vmrb0
         VM_MAC=$(qm config $VM_ID | grep 'net0' | awk '{ print $2 }' | awk -F',' '{ print $1 }' | awk -F'=' '{ print $2 }')
+        # Convert VM_MAC to lower case
+        VM_MAC=${VM_MAC:l}
+        
+
 
         _loading3 "Setting IP and GW on ipconfig0 with $IP and $GW and $ADDITIONAL_IP and $VM_MAC"
         _proxmox_generate_ip ipconfig0
