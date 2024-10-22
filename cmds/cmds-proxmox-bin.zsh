@@ -925,7 +925,7 @@ network:
     ethernets:
         eth0:        
             addresses:
-            - ${IP}/24
+            - ${IP}
             - ${ADDITIONAL_IP}/32
             match:
                 macaddress: ${MAC}
