@@ -599,11 +599,13 @@ function _proxmox_createvm () {
         # net0: virtio=BC:24:11:7F:72:04,bridge=vmrb0
         VM_MAC=$(qm config $VM_ID | grep 'net0' | awk '{ print $2 }' | awk -F',' '{ print $1 }' | awk -F'=' '{ print $2 }')
 
-        _loading3 "Setting IP and GW on ipconfig0"
+        _loading3 "Setting IP and GW on ipconfig0 with $IP and $GW and $ADDITIONAL_IP and $VM_MAC"
         _proxmox_generate_ip ipconfig0
         [[ $? -ne 0 ]] && { _error "Failed to set IP and GW on ipconfig0";return 1; }
         
         _proxmox_create_customci_private $IP $GW $ADDITIONAL_IP $VM_MAC
+        [[ $? -ne 0 ]] && { _error "Failed to create customci private";return 1; }
+        _loading3 "Created customci network for private networking using $IP and $GW and $ADDITIONAL_IP and $VM_MAC"
     fi
     
     # -- Enable internal nic with DHCP
