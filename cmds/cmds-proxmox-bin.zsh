@@ -26,7 +26,9 @@ function proxmox_init () {
     # -- debug
     _debug_all
     ALL_ARGS="$@"
-    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE cloneid:=CLONE_ID mac:=MAC gw:=GW cpu:=CPU
+    zparseopts -D -E d=DEBUG dr=DRYRUN name:=NAME memory:=MEM network:=NET storage:=STORAGE disksize:=DISKSIZE \
+    os:=OS_RELEASE dhcpnet:=DHCP_NET tempdir:=TEMP_DIR sshkey:=SSH_KEY vmid:=VM_ID ip:=IP bridge:=BRIDGE  \
+    cloneid:=CLONE_ID mac:=MAC gw:=GW cpu:=CPU network-ci:=NETWORK_CI additional-ip:=ADDITIONAL_IP
     [[ $DEBUG ]] && DEBUGF="1" || DEBUGF="0"
 
     _loading "Starting Proxmox Helper"
@@ -42,6 +44,7 @@ function proxmox_init () {
     fi
 
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
+    [[ -z $NETWORK_CI ]] && NETWORK_CI="auto" || NETWORK_CI=$NETWORK_CI[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20000" || DISKSIZE=$DISKSIZE[2]
     [[ -z $OS_RELEASE ]] && OS_RELEASE="jammy" || OS_RELEASE=$OS_RELEASE[2]
@@ -50,6 +53,7 @@ function proxmox_init () {
     [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]    
     [[ -z $NAME ]] || NAME=$NAME[2]
     [[ -z $IP ]] && IP="dhcp" || IP=$IP[2]
+    [[ -z $ADDITIONAL_IP ]] && ADDITIONAL_IP="" || ADDITIONAL_IP=$ADDITIONAL_IP[2]
     [[ -z $BRIDGE ]] && BRIDGE="vmbr0" || BRIDGE=$BRIDGE[2]
     [[ -z $CLONE_ID ]] && CLONE_ID="9000" || CLONE_ID=$CLONE_ID[2]
     [[ -z $MAC ]] && MAC="" || MAC=$MAC[2]
@@ -64,6 +68,7 @@ function proxmox_init () {
     _debugf "CPU: $CPU"
     _debugf "MEM: $MEM"
     _debugf "NET: $NET"
+    _debugf "NETWORK_CI: $NETWORK_CI"
     _debugf "STORAGE: $STORAGE"
     _debugf "DISKSIZE: $DISKSIZE"
     _debugf "OS_RELEASE: $OS_RELEASE"
@@ -79,7 +84,7 @@ function proxmox_init () {
 
     REQUIRED_PKG=('curl' 'libguestfs-tools')
     _debugf $REQUIRED_PKG
-	_require_pkg $REQUIRED_PKG
+	_require_pkg $REQUIRED_PKG    
 
     # -- Check command
     if [[ $1 == "createvm" ]]; then
@@ -172,6 +177,7 @@ Command Options:
         -cpu <count>              Number of CPU cores (Default: 1)
         -memory <memory>          Memory of VM in MB (Default: 2048) Ex. 512, 1024, 2048, 4096, 8192
         -network <network>        Network bridge to use (Default: vmbr0)
+        -network-ci <type>        Network type for cloud-init (Default: auto) Options private,auto
         -storage <storage>        Storage location (Autodetect)
         -disksize <disksize>      Disk size in MB (Default: 20000MB)
         -os <os>                  bionic,focal,jammy (Default: jammy)
@@ -182,8 +188,9 @@ Command Options:
         -cloneid [vmid]           VM ID to clone, (Default: 9000)
         -mac [mac]                MAC address to use, optional.
         -ip [ip]                  IP address to use, optional. (Default: dhcp)
+        -additional-ip [ip]       IP address for customci private, real IP address.
         -gw [gw]                  Gateway to use, optional.
-        -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)
+        -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)        
 
 	
 	Example: createvm -name server -memory 2048 -network vmbr0 -storage local -disksize 80 -os focal
@@ -529,37 +536,71 @@ function _proxmox_createvm () {
     [[ -z $NET ]] && { _error "Network is missing";return 1; }
     [[ -z $OS_RELEASE ]] && { _error "OS Release is missing";return 1; }
 
-    (set -x;qm create $VM_ID --name $NAME \
-    --cores ${CPU} --sockets 1 \
-    --memory $MEM \
-    --bootdisk scsi0 \
-    --scsihw virtio-scsi-pci \
-    --ide2 media=cdrom,file=none \
-    --ide0 ${STORAGE}:cloudinit,size=4M \
-    --boot cdn \
-    --ostype l26 \
-    --onboot 1 \
-    --cpu host \
-    --agent enabled=1,fstrim_cloned_disks=1 \
-    --cicustom "vendor=local:snippets/vendor.yaml"
-    )
-    [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
-
-    _loading2 "Creating net0 interface"
-    (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
-    [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
-
-    _loading2 "Setting IP and GW on ipconfig0"    
-    _proxmox_generate_ip ipconfig0
-
-    _loading2 "Setting MAC address for net0 interface"
-    if [[ -n $MAC ]]; then
-        _loading3 "Setting MAC address to ${MAC}"
-        (set -x; qm set ${VM_ID} --net0 virtio,macaddr=${MAC},bridge=${BRIDGE},firewall=1)
+    # -- Check if NETWORK_CI is valid
+    NETWORK_CI_OPTIONS=("private" "auto")
+    if [[ $NETWORK_CI == "auto" ]]; then
+        _loading2 "Network cloud-init is set to auto"
+        NETWORK_CI_CLI=""
+    elif [[ $NETWORK_CI == "private" ]]; then
+        _loading2 "Network cloud-init is set to private adding --cicustom network=snippets/network-$VM_ID.yaml to build"
+        _proxmox_create_customci_private
+        NETWORK_CI_CLI="--cicustom network=snippets/network-$VM_ID.yaml"
     else
-        _loading3 "No MAC address set, setting to random"    
+        _error "NETWORK_CI is not valid must be private or auto"
+        return 1
     fi
 
+    # Build VM
+    BUILD_VM_OPTS=(
+        "--name $NAME"
+        "--cores ${CPU}"
+        "--sockets 1"
+        "--memory $MEM"
+        "--bootdisk scsi0"
+        "--scsihw virtio-scsi-pci"
+        "--ide2 media=cdrom,file=none"
+        "--ide0 ${STORAGE}:cloudinit,size=4M"
+        "--boot cdn"
+        "--ostype l26"
+        "--onboot 1"
+        "--cpu host"
+        "--agent enabled=1,fstrim_cloned_disks=1"
+        "--cicustom vendor=local:snippets/vendor.yaml"
+        $NETWORK_CI_CLI
+    )
+
+    (set -x;qm create $VM_ID $BUILD_VM_OPTS $NETWORK_CI)
+
+    [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
+
+    if [[ $NETWORK_CI=="auto" ]]; then
+        _loading2 "Cloud-init Config is automatic"
+        _loading3 "Creating net0 interface on ${BRIDGE}"
+        (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
+        [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
+        
+        _loading3 "Setting IP and GW on ipconfig0"
+        _proxmox_generate_ip ipconfig0
+        [[ $? -ne 0 ]] && { _error "Failed to set IP and GW on ipconfig0";return 1; }
+
+        if [[ -n $MAC ]]; then
+            _loading3 "Setting MAC address to ${MAC}"
+            (set -x; qm set ${VM_ID} --net0 virtio,macaddr=${MAC},bridge=${BRIDGE},firewall=1)
+        else
+            _loading3 "No MAC address set, setting to random"    
+        fi
+    elif [[ $NETWORK_CI=="private" ]]; then
+        # Create net0 interface on bridge
+        _loading2 "Cloud-init Config is private"
+        _loading3 "Creating net0 interface on ${BRIDGE}"
+        (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
+        [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
+        
+        _loading3 "Setting IP and GW on ipconfig0"
+        _proxmox_generate_ip ipconfig0
+        [[ $? -ne 0 ]] && { _error "Failed to set IP and GW on ipconfig0";return 1; }
+    fi
+    
     # -- Enable internal nic with DHCP
     _loading2 "Checking if DHCP network is set"
     if [[ -n $DHCP_NET ]]; then
@@ -856,4 +897,24 @@ function _proxmox_memorygb () {
             return 1
         fi
     fi
+}
+
+# ===============================================
+# -- _proxmox_create_customci_private $IP $GW $ADDITIONAL_IP
+# ===============================================
+function _proxmox_create_customci_private () {
+    _loading2 "Creating custom cloud-init network file"
+    cat <<EOF > /var/lib/vz/snippets/network-$VM_ID.yaml
+network:
+  version: 2
+  ethernets:
+    eth0:
+      addresses:
+        - ${IP}/24
+        - ${ADDITIONAL_IP}/32
+      routes:
+        - to:
+          via: ${GW}
+          from: ${ADDITIONAL_IP}
+EOF
 }
