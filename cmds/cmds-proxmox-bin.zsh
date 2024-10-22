@@ -569,7 +569,7 @@ function _proxmox_createvm () {
         $NETWORK_CI_CLI
     )
 
-    (set -x; ${BUILD_VM_OPTS[@]})
+    (set -x; $BUILD_VM_OPTS)
 
     [[ $? -ne 0 ]] && { _error "Failed to create VM";return 1; }
 
