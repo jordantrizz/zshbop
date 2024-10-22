@@ -273,8 +273,7 @@ function _proxmox_getid () {
 # -- Get Proxmox storage
 # ===================================================================
 function _proxmox_get_storage () {
-    # -- Get Proxmox storage
-    _loading2 "Getting Proxmox storage"
+    # -- Get Proxmox storage    
     local PROXMOX_STORAGE_API
     PROXMOX_STORAGE_API=$(pvesh get /storage --output-format json)
     _debugf "PROXMOX_STORAGE_API: $PROXMOX_STORAGE_API"
@@ -292,7 +291,7 @@ function _proxmox_get_storage () {
         _error "No storage set"
         return 1
     else
-        _loading3 "Storage set to $PROXMOX_STORAGE"        
+        echo $PROXMOX_STORAGE
     fi
 }
 
@@ -499,6 +498,7 @@ function _proxmox_createvm () {
     local STORAGE    
     # -- Check if storage exists
     STORAGE="$(_proxmox_get_storage)"
+    [[ $? -ne 0 ]] && { echo "Failed to get storage";return 1; }
     
     # -- Check if $VM_ID is set
     _loading2 "Checking if VMID is set and creater than 0"
