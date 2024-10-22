@@ -906,15 +906,22 @@ function _proxmox_create_customci_private () {
     _loading2 "Creating custom cloud-init network file"
     cat <<EOF > /var/lib/vz/snippets/network-$VM_ID.yaml
 network:
-  version: 2
-  ethernets:
-    eth0:
-      addresses:
-        - ${IP}/24
-        - ${ADDITIONAL_IP}/32
-      routes:
-        - to:
-          via: ${GW}
-          from: ${ADDITIONAL_IP}
+    version: 2
+    ethernets:
+        eth0:        
+            addresses:
+            - ${IP}/24
+            - ${ADDITIONAL_IP}/32
+            match:
+                macaddress: ${MAC}
+            nameservers:
+                addresses:
+                - 8.8.8.8
+                - 1.1.1.1
+            routes:
+            -    to: default
+                 via: ${GW}
+                 from: ${ADDITIONAL_IP}
+            set-name: eth0
 EOF
 }
