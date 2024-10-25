@@ -18,3 +18,7 @@ tail -f /root/root-emails
 ```
 csf --lfd restart
 ```
+
+# Notes
+## Allow Cloudflare Tunnels
+* Allow TCP out 7844
