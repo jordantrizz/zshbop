@@ -11,6 +11,7 @@
     - [Create /etc/systemd/resolved.conf.d/disable-stub.conf](#create-etcsystemdresolvedconfddisable-stubconf)
     - [Restart systemd-resolved](#restart-systemd-resolved)
 - [Common Issues](#common-issues)
+  - [PHP-FPM Errors on Nginx](#php-fpm-errors-on-nginx)
   - [New Server Not Showing in Control Panel](#new-server-not-showing-in-control-panel)
   - [wp-cli as root](#wp-cli-as-root)
   - [Rotate site error logs](#rotate-site-error-logs)
@@ -59,6 +60,11 @@ DNSStubListener=no
 systemctl restart systemd-resolved
 ```
 # Common Issues
+## PHP-FPM Errors on Nginx
+Ensure you log all PHP errors, as such you need to set the follow PHP-FPM configuration variable to true.
+```
+catch_workers_output
+```
 ## New Server Not Showing in Control Panel
 * Check `journalctl -u enhcontrold` for errors
 * Try running /var/local/enhance/controld/enhcontrold
