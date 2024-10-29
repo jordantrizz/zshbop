@@ -156,15 +156,18 @@ alias wp-skip="wp --skip-themes --skip-plugins"
 # -- wp-backupsite
 help_wordpress[wp-backupsite]="Backup WordPress site on server to ~/backups"
 function wp-backupsite () {
-	local SITE=${1} ACTION=${2}	
-	local CURR_DIR=$(pwd)
-	local DRYRUN=${3:=0}
+	local DIR ACTION CURR_DIR DRYRUN SITE WP_CLI_SITE
+	DIR=${1}
+	ACTION=${2}
+	DRYRUN=${3=0}
+	CURR_DIR=$(pwd)
+
 	_wp_backupsite_usge () {
-		echo "Usage: wp-backupsite <domain> <action> <dryrun>"
+		echo "Usage: wp-backupsite <dir> <action> <dryrun>"
 		echo "  Make sure you're in the wordpress directory, and have wp-cli installed"
 		echo ""
 		echo "  Options:"
-		echo "	domain <site.com>      - domain name of the site"
+		echo "	directory <div>      - domain name of the site"
 		echo "	action <db|files|all>  - db, files, all (optional)"
 		echo "	dryrun <1>             - dryrun mode (optional)"
 		echo ""
@@ -172,9 +175,9 @@ function wp-backupsite () {
 	}
 
 	# -- Check if site is defined
-    if [[ -z $SITE ]]; then
-		_wp_backupsite_usge
-		return 1
+    if [[ -z $DIR ]]; then
+		# Set to Current Directory
+		DIR=$CURR_DIR
 	fi
 	
 	# -- Check if action is defined
@@ -187,7 +190,7 @@ function wp-backupsite () {
 	fi
 	
 
-	_loading "Backing up $ACTION for $SITE to $HOME/backups"
+	_loading "Backing up $ACTION for $DIR to $HOME/backups"
 	[[ $DRYRUN == "1" ]] && _loading3 "Dryrun mode enabled"
 	
 	# -- check if wp-cli is installed
@@ -200,15 +203,18 @@ function wp-backupsite () {
 		_loading3 "wp-cli is installed"
 	fi
 
-	_loading3 "Checking if WordPress is installed in the current directory $CURR_DIR"
+	_loading3 "Checking if WordPress is installed in the current directory $DIR"
     WP_CHECK=$(wp --allow-root core is-installed)	
     if [[ $? == "1" ]]; then
-        _error "WordPress is not installed in $CURR_DIR"
-		echo "$WP_CHECK"
-		[[ $DRYRUN == "0" ]] && return 1
+        _error "WordPress is not installed in $DIR"
+        echo "$WP_CHECK"
+        [[ $DRYRUN == "0" ]] && return 1
     else
-		_loading3 "WordPress is installed in $CURR_DIR"
-	fi
+        WP_CLI_SITE=$(wp --skip-plugins --skip-themes --allow-root option get siteurl)
+        # Remove http and https
+        SITE=$(echo $WP_CLI_SITE | sed 's/https\?:\/\///')
+        _success "WordPress is installed in $DIR with domain $SITE"
+    fi
 
     if [[ ! -d $HOME/backups ]]; then
         echo "$HOME/backups directory doesn't exist...creating..."
