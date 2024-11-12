@@ -304,6 +304,10 @@ zshbop_update () {
 	_debug_all
     _loading "Updating zshbop - $(zshbop_version)"
 
+    # -- Fetch first
+    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch
+    [[ $? -ge "1" ]] && { _error "Failed to fetch latest changes"; return 1 }
+
     # -- Pull zshbop down from git using current branch
     _loading2 "Pulling zshbop updates"
     if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
@@ -313,6 +317,13 @@ zshbop_update () {
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
         [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
     else
+        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch
+        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT merge --no-commit --no-ff origin/$ZSHBOP_BRANCH
+        if [[ $? -ge "1" ]]; then
+            _error "Merge conflict detected"
+            git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT merge --abort            
+            return 1
+        fi
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
         [[ $? -ge "1" ]] && { _error "Failed to pull latest changes" }
     fi
