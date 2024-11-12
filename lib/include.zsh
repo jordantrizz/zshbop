@@ -161,7 +161,8 @@ DEBUGF_MSG=""
 [[ -f $ZSHBOP_ROOT/.debugf_log ]] && export DEBUGF_LOG=1 || export DEBUGF_LOG=0 # -- zshbop debugging log
 
 _debug () { 
-    DEBUG_MSG="\033[36m** [DEBUG]: $@\033[0m";
+    local funcstack="${funcstack[1]}"
+    DEBUG_MSG="\033[36m** [DEBUG]: $funcstack -- $@\033[0m";
     # Log to screen
     [[ $ZSH_DEBUG == 1 ]] && echo $DEBUG_MSG
     # Log to file.
