@@ -168,7 +168,9 @@ _debug () {
     [[ $ZSH_DEBUG_LOG == 1 ]] && zb_logger "DEBUG" 0 "$@"; 
 }
 _debugf () { 
-    DEBUGF_MSG="\033[36m** [DEBUGF]: $@\033[0m";
+    # Get previous function calling _debugf
+    local funcstack="${funcstack[1]}"
+    DEBUGF_MSG="\033[36m** [DEBUGF]: $funcstack -- $@\033[0m";
     # Echo to screen.
     [[ $DEBUGF == 1 ]] && echo $DEBUGF_MSG
     # Log to file.
