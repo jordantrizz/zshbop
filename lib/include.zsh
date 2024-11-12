@@ -170,7 +170,8 @@ _debug () {
 }
 _debugf () { 
     # Get previous function calling _debugf
-    local funcstack="${funcstack[1]}"
+    local funcstack="${funcstack[2]}"
+    [[ -z $funcstack ]] && funcstack="${funcstack[1]}"
     DEBUGF_MSG="\033[36m** [DEBUGF]: $funcstack -- $@\033[0m";
     # Echo to screen.
     [[ $DEBUGF == 1 ]] && echo $DEBUGF_MSG
