@@ -240,30 +240,31 @@ ak () {
 }
 
 # ==================================================================
-# -- ssho
+# -- ssh-key
 # -- Login with -o "IdentitiesOnly yes" when too may keys in keychain
 # ==================================================================
-help_ssh[ssho]='Login with -o "IdentitiesOnly yes" and select ssh key to use'
-function ssho () {
+help_ssh[ssh-key]='Login with -o "IdentitiesOnly yes" and select ssh key to use'
+function ssh-key () {
     local SSH_KEY_SELECTED
     local SSH_CMD=($@)
-    local SSHKEY_FILES=$(find ~/.ssh -type f -name "*.pub")    
+    local SSHKEY_FILES=$(find ~/.ssh -type f -name "*.pub")
     local SSHKEY_FILES_STR=$(echo $SSHKEY_FILES | sed 's/.pub//g') # Remove .pub from keys
-    local SSHKEY_FILES=$SSHKEY_FILES_STR
+    # Sort SSHKEY_FILES by name
+    SSHKEY_FILES=$(echo $SSHKEY_FILES_STR | tr ' ' '\n' | sort)
 
-    _ssho_usage() {
-        echo "Usage: ssho <ssh-command>"
+    _ssh-key_usage() {
+        echo "Usage: ssh-key <ssh-command>"
         echo "   -h : help"
         echo "   -e : echo mode"
         echo "   -f : fzf mode"
         echo "   Examples:"        
-        echo "      ssho user@host"
-        echo "      ssho -e user@host"
-        echo "      ssho -f user@host"
+        echo "      ssh-key user@host"
+        echo "      ssh-key -e user@host"
+        echo "      ssh-key -f user@host"
         return
     }
 
-    _ssho_echo () {
+    _ssh-key_echo () {
         SSHKEY_FILES_ARRAY=("${(@f)${SSHKEY_FILES}}")
         _pk_select_sshkeys_echo $SSHKEY_FILES_ARRAY
         read "?Enter number: " SSH_KEY_SELECTED_READ
@@ -277,7 +278,7 @@ function ssho () {
         fi
     }
 
-    _ssho_fzf () {
+    _ssh-key_fzf () {
         SSH_KEY_SELECTED=$(_pk_select_sshkeys_fzf $SSHKEY_FILES)
         if [[ $SSH_KEY_SELECTED == "No file selected." ]]; then            
             _error "No file selected."
@@ -293,7 +294,7 @@ function ssho () {
         return
     elif [[ -z $SSH_CMD ]]; then
         _error "Missing <ssh-command>"
-        _ssho_usage
+        _ssh-key_usage
     fi
 
     # -- Check if -e or -f in args
@@ -315,15 +316,15 @@ function ssho () {
     
     # -- Help
     if [[ $1 == "-h" ]]; then
-        _ssho_usage
+        _ssh-key_usage
         return
     fi
         
     # Set list_keys method if fzf is installed
     if [[ $SSH_KEY_SELECT == "fzf" ]]; then
-        _ssho_fzf
+        _ssh-key_fzf
     elif [[ $SSH_KEY_SELECT == "echo" ]]; then
-        _ssho_echo        
+        _ssh-key_echo        
     fi
 }
 
