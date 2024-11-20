@@ -5,6 +5,11 @@
 * Restart Proxmox ```systemctl restart pve-cluster```
 
 # Common Tasks
+## Setting up Think LVM
+```
+lvcreate -L 100G -n data pve
+lvconvert --type thin-pool pve/data
+``
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
 ```
