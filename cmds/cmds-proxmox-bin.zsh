@@ -213,6 +213,7 @@ Command Options:
 # -- check if proxmox is installed and other checks
 # ===================================================================
 function _proxmox_check () {
+    INSTALL_PKG=()
     # -- check for pvesh
     _loading "Pre-flight checks"
     if [[ $DRYRUN == "1" ]]; then
@@ -221,10 +222,10 @@ function _proxmox_check () {
         # Define associative array with commands and error messages
         typeset -A PROXMOX_REQUIRED_COMMANDS
         PROXMOX_REQUIRED_COMMANDS=(
-            pvesh "No pvesh present, not running proxmox or other issue."
-            lshw "No lshw present, required."
-            virt-customize "No virt-customize present, required. Try 'apt-get install libguestfs-tools'"
-            jq "No jq present, required."
+            pvesh "pvesh"
+            lshw "lshw"
+            virt-customize "libguestfs-tools"
+            jq "jq"
         )
 
         # Iterate over the associative array
@@ -232,13 +233,15 @@ function _proxmox_check () {
             if command -v $cmd &>/dev/null; then
                 _success "$cmd is installed"
             else
-                _error "${PROXMOX_REQUIRED_COMMANDS[$cmd]}"
-                return 1
+                # Add to array
+                INSTALL_PKG+=("${PROXMOX_REQUIRED_COMMANDS[$cmd]}")
             fi
         done
-        #[[ -x $(command -v pvesh) ]] && _success "Proxmox is installed" || { _error "No pvesh present, not running proxmox or other issue."; return 1 }
-        #[[ -x $(command -v lshw) ]] && _success "lshw is installed" || { _error "No lshw present, required."; return 1 }
-        #[[ -x $(command -v virt-customize) ]] && _success "virt-customize is installed" || { _error "No virt-customize present, required. Try 'apt-get install libguestfs-tools'"; return 1 }        
+        # Check if INSTALL_PKG is empty
+        if [[ -n $INSTALL_PKG ]]; then
+            _loading3 "Installing required packages $INSTALL_PKG"
+            apt-get install -y --no-install-recommends $INSTALL_PKG
+        fi
     fi
 
     # -- Get Proxmox node name
