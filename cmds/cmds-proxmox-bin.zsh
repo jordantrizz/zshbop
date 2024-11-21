@@ -270,7 +270,6 @@ function _proxmox_getid () {
 # ===================================================================
 function _proxmox_get_storage () {
     # -- Get Proxmox storage
-    _loading2 "Getting Proxmox storage"
     local PROXMOX_STORAGE_API
     PROXMOX_STORAGE_API=$(pvesh get /storage --output-format json)
     _debugf "PROXMOX_STORAGE_API: $PROXMOX_STORAGE_API"
@@ -281,14 +280,15 @@ function _proxmox_get_storage () {
     PROXMOX_STORAGE_COUNT="$(echo "$PROXMOX_STORAGE" | wc -l)"
     _debugf "PROXMOX_STORAGE_COUNT: $PROXMOX_STORAGE_COUNT"
     if [[ $PROXMOX_STORAGE_COUNT -gt 1 ]]; then
-        _error "Multiple storage found, you need to specify storage"        
+        _error "Multiple storage found, you need to specify storage"
+        return 1
     fi
 
     if [[ -z $PROXMOX_STORAGE ]]; then
         _error "No storage set"
         return 1
     else
-        _loading3 "Storage set to $PROXMOX_STORAGE"        
+        echo "$PROXMOX_STORAGE"
     fi
 }
 
@@ -377,8 +377,11 @@ function _proxmox_imagevm () {
     zparseopts -D -E skip-scsi0=SKIP_SCSI0
     [[ $SKIP_SCSI0 ]] && SKIP_SCSI0="1" || SKIP_SCSI0="0"
 
-    _proxmox_get_storage
-    STORAGE=$PROXMOX_STORAGE
+    STORAGE=$(_proxmox_get_storage)
+    if [[ $? -ne 0 ]]; then
+        _error "Failed to get storage - $STORAGE"
+        return 1
+    fi
 
     # -- Check if $VM_ID is set
     _loading2 "Checking if VMID is set and creater than 0"
@@ -495,7 +498,11 @@ function _proxmox_createvm () {
     local STORAGE    
     # -- Check if storage exists
     STORAGE="$(_proxmox_get_storage)"
-    
+    if [[ $? -ne 0 ]]; then
+        _error "Failed to get storage - $STORAGE"
+        return 1
+    fi
+
     # -- Check if $VM_ID is set
     _loading2 "Checking if VMID is set and creater than 0"
     if [[ -z $VM_ID ]]; then    
@@ -800,6 +807,11 @@ function _proxmox_info () {
     _loading "Storage API:"
     # List all storage configurations
     _proxmox_get_storage
+    if [[ $? -ne 0 ]]; then
+        _error "Failed to get storage - $STORAGE"        
+    else
+        echo "$STORAGE"
+    fi
     echo "============================"
     echo ""
 
