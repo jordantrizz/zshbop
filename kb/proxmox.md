@@ -42,7 +42,15 @@ smtp_header_checks = pcre:/etc/postfix/smtp_header_checks
 
 ## Forward 443 to 8006
 * Ensure you put in your interface for management otherwise all traffic will be redirected for all IP's
-```/sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.1.1 --dport 443 -j REDIRECT --to-ports 8006```
+```
+/sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.1.1 --dport 443 -j REDIRECT --to-ports 8006
+```
+
+* Add to /etc/network/interfaces
+```
+    post-up /sbin/iptables -t nat -A PREROUTING -p tcp -d 192.168.80.52 --dport 443 -j REDIRECT --to-ports 8006
+    post-down /sbin/iptables -t nat -D PREROUTING -p tcp -d 192.168.80.52 --dport 443 -j REDIRECT --to-ports 8006
+```
 
 ## Block 8006 and Forward to CF Host
 * Create /etc/systemd/system/netcat-redirect.service
@@ -200,3 +208,34 @@ Select en_US.UTF8
 
 ## Connection error - server offline? (Behind Cloudflare)
 I enabled "Disable Chunked Encoding" under Cloudflare Zero Trust > Access > Tunnels > (my tunnel) > Public hostnames > (hostname for pve) > Additional Application Settings > HTTP Settings > Disable Chunked Encoding
+
+# Proxmox VE Helper
+* Kernel Clean - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/kernel-clean.sh)"`
+* Post Install - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)"`
+* Microcode Update - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/microcode.sh)"`
+## Monitor-all
+bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/monitor-all.sh)"
+```
+🛈 Virtual machines without the QEMU guest agent installed must be excluded.
+🛈 Prior to generating any new CT/VM not found in this repository, it's necessary to halt Proxmox VE Monitor-All by running systemctl stop ping-instances.
+All commands are run from the Proxmox VE shell..
+
+To add or remove Monitor-All in Proxmox VE:
+
+Copy
+bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/monitor-all.sh)"
+
+
+To make setup changes, first stop the service: systemctl stop ping-instances
+To edit pause time:
+
+Copy
+nano /usr/local/bin/ping-instances.sh
+To add excluded instances:
+
+Copy
+nano /etc/systemd/system/ping-instances.service
+After changes have been saved, systemctl daemon-reload and start the service: systemctl start ping-instances
+
+Monitor-All logs : cat /var/log/ping-instances.log
+```
