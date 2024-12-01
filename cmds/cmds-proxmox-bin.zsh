@@ -32,8 +32,8 @@ function proxmox_init () {
     _loading "Starting Proxmox Helper"
 
     # -- Set defaults
-    [[ -z $CPU ]] && CPU="1" || CPU=${CPU[2]}
-    [[ -z $MEM ]] && MEM="2048" || { _proxmox_memorygb $MEM; _debug "MEM: $MEM" }
+    [[ -z $CPU ]] && CPU="1" || CPU=$CPU[2]
+    [[ -z $MEM ]] && MEM="2048" || MEM=$MEM[2]
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20000" || DISKSIZE=$DISKSIZE[2]
@@ -488,7 +488,17 @@ function _proxmox_imagevm () {
 # -- _proxmox_createvm
 # -------------------------------------------------------------------
 function _proxmox_createvm () {
-    local STORAGE    
+    local STORAGE
+    
+    # Check if memory is set and a number
+    _loading2 "Checking if memory is set and a number"
+    if [[ ! $MEM =~ ^[0-9]+$ ]]; then
+        _error "Memory is not a number"
+        return 1
+    else
+        _loading3 "Memory is set to $MEM"
+    fi
+    
     # -- Check if storage exists
     STORAGE="$(_proxmox_get_storage)"
     _debug "STORAGE: $STORAGE"
