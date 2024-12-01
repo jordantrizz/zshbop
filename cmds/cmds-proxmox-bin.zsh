@@ -33,14 +33,7 @@ function proxmox_init () {
 
     # -- Set defaults
     [[ -z $CPU ]] && CPU="1" || CPU=${CPU[2]}
-    if [[ -z $MEM ]]; then
-        MEM="2048"
-    else 
-        MEM=${MEM[2]}
-        _proxmox_memorygb $MEM
-        _loading3 "Memory set to $MEM"
-    fi
-
+    [[ -z $MEM ]] && MEM="2048" || { _proxmox_memorygb $MEM; _debug "MEM: $MEM" }
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20000" || DISKSIZE=$DISKSIZE[2]
@@ -215,7 +208,7 @@ Command Options:
 function _proxmox_check () {
     INSTALL_PKG=()
     # -- check for pvesh
-    _loading "Pre-flight checks"
+    _loading2 "Pre-flight checks"
     if [[ $DRYRUN == "1" ]]; then
         _loading3 "Doing a dryrun"
 	else
@@ -276,12 +269,12 @@ function _proxmox_get_storage () {
     PROXMOX_STORAGE=($(echo "$PROXMOX_STORAGE_API" | jq -r '.[] | select(.content | contains("images")) | .storage'))
     _debugf "PROXMOX_STORAGE: $PROXMOX_STORAGE"
 
-    # Count number of storage
-    PROXMOX_STORAGE_COUNT="$(echo "$PROXMOX_STORAGE" | wc -l)"
+    # Count number of storage items, all on same line with a space.
+    PROXMOX_STORAGE_COUNT=$(echo "$PROXMOX_STORAGE" | wc -w)
     _debugf "PROXMOX_STORAGE_COUNT: $PROXMOX_STORAGE_COUNT"
     if [[ $PROXMOX_STORAGE_COUNT -gt 1 ]]; then
-        _error "Multiple storage found, you need to specify storage"
-        return 1
+        _loading3 "Multiple storage locations found, using first one"
+        PROXMOX_STORAGE=$(echo "$PROXMOX_STORAGE" | awk '{ print $1 }')
     fi
 
     if [[ -z $PROXMOX_STORAGE ]]; then
@@ -498,6 +491,7 @@ function _proxmox_createvm () {
     local STORAGE    
     # -- Check if storage exists
     STORAGE="$(_proxmox_get_storage)"
+    _debug "STORAGE: $STORAGE"
     if [[ $? -ne 0 ]]; then
         _error "Failed to get storage - $STORAGE"
         return 1
@@ -524,6 +518,7 @@ function _proxmox_createvm () {
     else
         _loading3 "VMID $VM_ID is available."
     fi
+    echo
 
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
