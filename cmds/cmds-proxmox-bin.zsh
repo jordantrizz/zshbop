@@ -40,7 +40,7 @@ function proxmox_init () {
     [[ -z $OS_RELEASE ]] && OS_RELEASE="jammy" || OS_RELEASE=$OS_RELEASE[2]
     [[ -z $DHCP_NET ]] || DHCP_NET=$DHCP_NET[2]
     [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
-    [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]    
+    [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]
     [[ -z $NAME ]] || NAME=$NAME[2]
     [[ -z $IP ]] && IP="dhcp" || IP=$IP[2]
     [[ -z $BRIDGE ]] && BRIDGE="vmbr0" || BRIDGE=$BRIDGE[2]
@@ -79,7 +79,7 @@ function proxmox_init () {
         # -- Check required options
         if [[ -z $NAME ]]; then
             _proxmox_help
-            _error "Name is required"            
+            _error "Name is required"
             return 1
         fi
         _debugf "Creating VM"
@@ -113,7 +113,7 @@ function proxmox_init () {
         _proxmox_imagevm "$@"
     # -- Setup vendor cloudinit.yaml
     elif [[ $1 == "vendorci" ]]; then
-        _debugf "Setting up vendor cloudinit.yaml"    
+        _debugf "Setting up vendor cloudinit.yaml"
         _proxmox_vendorci
     elif [[ $1 == "info" ]]; then
         _debugf "Getting info"
@@ -123,7 +123,7 @@ function proxmox_init () {
         _debugf "Getting help"
         _proxmox_help
     else
-        _debugf "Unknown command $1"        
+        _debugf "Unknown command $1"
         _proxmox_help
         _error "Unknown command $1"
     fi
@@ -143,8 +143,8 @@ Main Commands:
   createvm      - Create VM
   createtemp    - Create template
   clonetemp     - Clone template
-  
-Other Commands:  
+
+Other Commands:
   imagevm <id> <os-release>       - Apply image to VM
   vendorci                        - Setup vendor cloudinit.yaml
   info                            - Info about Proxmox instance
@@ -160,7 +160,7 @@ Command Options:
   ------------------
     Required:
         -name <name>              Name of the VM
-    
+
     Optional:
         -cpu <count>              Number of CPU cores (Default: 1)
         -memory <memory>          Memory of VM in MB (Default: 2048) Ex. 512, 1024, 2048, 4096, 8192
@@ -178,9 +178,9 @@ Command Options:
         -gw [gw]                  Gateway to use, optional.
         -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)
 
-	
+
 	Example: createvm -name server -memory 2048 -network vmbr0 -storage local -disksize 80 -os focal
-  
+
   createtemp <options>
   --------------------
     -os <os>                  bionic,focal,jammy, default jammy
@@ -302,7 +302,7 @@ function _proxmox_download_cloudimage () {
         _loading3 "OS: $OS_RELEASE is valid"
     fi
     echo ""
-    
+
     # -- Generate OS download URL and path
     IMAGE_FILE="${OS_RELEASE}-server-cloudimg-amd64.img"
     IMAGE_URL="https://cloud-images.ubuntu.com/${OS_RELEASE}/current/${IMAGE_FILE}"
@@ -313,7 +313,7 @@ function _proxmox_download_cloudimage () {
     _loading4 "Checking if $IMAGE_FILE exists in $TEMP_DIR"
     if [[ -f ${IMAGE_FILE_PATH} ]]; then
         _loading4 "Found $IMAGE_FILE_PATH"
-        
+
         # -- Check if $IMAGE_FILE has a valid MD5SUM hash
         _loading4 "Checking MD5"
         IMAGE_URL_MD5=$(curl -s https://cloud-images.ubuntu.com/$OS_RELEASE/current/MD5SUMS | grep "$OS_RELEASE-server-cloudimg-amd64.img" | awk {' print $1 '})
@@ -342,7 +342,7 @@ function _proxmox_download_cloudimage () {
 # -------------------------------------------------------------------
 function _proxmox_generate_ip () {
     IPCONFIG=$1
-    # Checking if IP and GW is set    
+    # Checking if IP and GW is set
     if [[ -n $IP ]] && [[ -n $GW ]]; then
         _loading3 "IP and GW set"
         # -- Make sure IP has CIDR
@@ -365,7 +365,7 @@ function _proxmox_generate_ip () {
 function _proxmox_imagevm () {
     local TEMP_DIR IMAGE_FILE BUILD_IMAGE STORAGE SKIP_SCSI0
     TEMP_DIR="/tmp"
-    IMAGE_FILE="${OS_RELEASE}-server-cloudimg-amd64.img"    
+    IMAGE_FILE="${OS_RELEASE}-server-cloudimg-amd64.img"
 
     zparseopts -D -E skip-scsi0=SKIP_SCSI0
     [[ $SKIP_SCSI0 ]] && SKIP_SCSI0="1" || SKIP_SCSI0="0"
@@ -378,7 +378,7 @@ function _proxmox_imagevm () {
 
     # -- Check if $VM_ID is set
     _loading2 "Checking if VMID is set and creater than 0"
-    if [[ -z $VM_ID ]]; then    
+    if [[ -z $VM_ID ]]; then
         _error "VMID is not set"
         return 1
     else
@@ -471,7 +471,7 @@ function _proxmox_imagevm () {
     _loading "-- Importing disk into VM: $VM_ID"
     ( set -x; qm importdisk ${VM_ID} ${BUILD_IMAGE} ${PROXMOX_STORAGE} )
     [[ $? -ne 0 ]] && { _error "Failed to import disk into VM";return 1; }
-    
+
     # -- Assume unused0
     _loading2 "-- Setting VM storage options"
     VM_STORAGE=$(qm config $VM_ID | grep 'unused0' | awk '{ print $2 }')
@@ -479,7 +479,7 @@ function _proxmox_imagevm () {
     [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
 
     # -- Resize disk
-    _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
+    _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"
     ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
     [[ $? -ne 0 ]] && { _error "Failed to resize VM disk";return 1; }
 }
@@ -489,7 +489,7 @@ function _proxmox_imagevm () {
 # -------------------------------------------------------------------
 function _proxmox_createvm () {
     local STORAGE
-    
+
     # Check if memory is set and a number
     _loading2 "Checking if memory is set and a number"
     if [[ ! $MEM =~ ^[0-9]+$ ]]; then
@@ -498,18 +498,19 @@ function _proxmox_createvm () {
     else
         _loading3 "Memory is set to $MEM"
     fi
-    
+    echo
+
     # -- Check if storage exists
     STORAGE="$(_proxmox_get_storage)"
-    _debug "STORAGE: $STORAGE"
     if [[ $? -ne 0 ]]; then
         _error "Failed to get storage - $STORAGE"
         return 1
     fi
+    _debug "STORAGE: $STORAGE"
 
     # -- Check if $VM_ID is set
     _loading2 "Checking if VMID is set and creater than 0"
-    if [[ -z $VM_ID ]]; then    
+    if [[ -z $VM_ID ]]; then
         _error "VMID is not set"
         return 1
     elif [[ $VM_ID -lt 1 ]]; then
@@ -564,7 +565,7 @@ function _proxmox_createvm () {
     (set -x;qm set ${VM_ID} --net0 virtio,bridge=${BRIDGE},firewall=1)
     [[ $? -ne 0 ]] && { _error "Failed to create net0 interface";return 1; }
 
-    _loading2 "Setting IP and GW on ipconfig0"    
+    _loading2 "Setting IP and GW on ipconfig0"
     _proxmox_generate_ip ipconfig0
 
     _loading2 "Setting MAC address for net0 interface"
@@ -572,7 +573,7 @@ function _proxmox_createvm () {
         _loading3 "Setting MAC address to ${MAC}"
         (set -x; qm set ${VM_ID} --net0 virtio,macaddr=${MAC},bridge=${BRIDGE},firewall=1)
     else
-        _loading3 "No MAC address set, setting to random"    
+        _loading3 "No MAC address set, setting to random"
     fi
 
     # -- Enable internal nic with DHCP
@@ -599,22 +600,22 @@ function _proxmox_createvm () {
     _loading "-- Importing disk into VM: $VM_ID"
     ( set -x; qm importdisk ${VM_ID} ${BUILD_IMAGE} ${STORAGE} )
     [[ $? -ne 0 ]] && { _error "Failed to import disk into VM";return 1; }
-    
+
     _loading2 "-- Setting VM storage options"
     VM_STORAGE=$(qm config $VM_ID | grep 'unused0' | awk '{ print $2 }')
     ( set -x;qm set ${VM_ID} --scsihw virtio-scsi-pci --scsi0 "${VM_STORAGE},size=${DISKSIZE}M")
     [[ $? -ne 0 ]] && { _error "Failed to set VM storage options";return 1; }
-    
-    _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"    
+
+    _loading2 "-- Resizing VM_ID:$VM_ID disk to ${DISKSIZE}M"
     ( set -x; qm resize ${VM_ID} scsi0 ${DISKSIZE}M )
     [[ $? -ne 0 ]] && { _error "Failed to resize VM disk";return 1; }
-    
+
     _loading2 "-- Setting SSH Key on VM_ID:$VM_ID with SSH_KEY:$SSH_KEY"
     ( set -x;qm set ${VM_ID} --sshkey ${SSH_KEY} )
     [[ $? -ne 0 ]] && { _error "Failed to set SSH Key";return 1; }
-    
-    _notice "Completed creation of VM with ID of $VM_ID"    
-    _notice "To start the VM run: qm start $VM_ID" 
+
+    _notice "Completed creation of VM with ID of $VM_ID"
+    _notice "To start the VM run: qm start $VM_ID"
 }
 
 # -------------------------------------------------------------------
@@ -666,7 +667,7 @@ function _proxmox_createtemp () {
     _loading3 "Setting VM cloud-init"
     _debugf "qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit"
     qm set ${VM_ID} --ide2 ${STORAGE}:cloudinit
-    
+
     # -- Setting up vendor.yaml if exists
     _debugf "qm set ${VM_ID} --cicustom 'vendor=local:snippets/vendor.yaml'"
     if [[ -f /var/lib/vz/snippets/vendor.yaml ]]; then
@@ -677,7 +678,7 @@ function _proxmox_createtemp () {
             _error "Setting VM cloud-init vendor.yaml failed"
             return 1
         fi
-        
+
     fi
 
     # -- Set VM boot options
@@ -715,7 +716,7 @@ function _proxmox_createtemp () {
 # -- _proxmox_clonetemp
 # -------------------------------------------------------------------
 function _proxmox_clonetemp () {
-    # -- Confirm template exists        
+    # -- Confirm template exists
     _loading2 "Checking if template ${CLONE_ID} exists"
     _debugf "qm list | grep ${CLONE_ID} | awk {'print \$1 '}"
     CID=$(qm list | grep ${CLONE_ID} | awk {'print $1 '})
@@ -723,7 +724,7 @@ function _proxmox_clonetemp () {
 
     # -- Clone template
     _loading2 "Cloning template ${CLONE_ID} to ${VM_ID}"
-    
+
     # -- Check if VM_ID is taken
     _loading3 "Checking if VMID $VM_ID is taken"
     QM_LIST=$(qm list | awk '{print $1}')
@@ -798,13 +799,13 @@ function _proxmox_clonetemp () {
 # -------------------------------------------------------------------
 function _proxmox_info () {
     _debug_all
-    
-    _loading "Proxmox instance infornation"    
+
+    _loading "Proxmox instance infornation"
     echo "Version: $(pveversion)"
     echo "============================"
     echo ""
 
-    _loading "Storage:"    
+    _loading "Storage:"
     pvesm status -content images | awk {'if (NR!=1) print $1 '}
     echo "============================"
     echo ""
@@ -813,7 +814,7 @@ function _proxmox_info () {
     # List all storage configurations
     _proxmox_get_storage
     if [[ $? -ne 0 ]]; then
-        _error "Failed to get storage - $STORAGE"        
+        _error "Failed to get storage - $STORAGE"
     else
         echo "$STORAGE"
     fi
@@ -867,8 +868,8 @@ function _proxmox_memorygb () {
             MEM=$((MEM*1024))
         fi
     else
-        # -- Check if MEM is not a number between 512 and 100000        
-        if ! [[ $MEM =~ ^[0-9]+$ ]]; then        
+        # -- Check if MEM is not a number between 512 and 100000
+        if ! [[ $MEM =~ ^[0-9]+$ ]]; then
             _error "MEM is not a number"
             return 1
         elif [[ $MEM -lt 512 ]]; then
