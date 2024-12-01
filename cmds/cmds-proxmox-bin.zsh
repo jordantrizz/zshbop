@@ -1,7 +1,7 @@
 # --
 # Proxmox helper commands
 # --
-_debug " -- Loading ${(%):-%N}"
+_debugf " -- Loading ${(%):-%N}"
 
 #####################################################################
 #####################################################################
@@ -273,7 +273,7 @@ function _proxmox_get_storage () {
     PROXMOX_STORAGE_COUNT=$(echo "$PROXMOX_STORAGE" | wc -w)
     _debugf "PROXMOX_STORAGE_COUNT: $PROXMOX_STORAGE_COUNT"
     if [[ $PROXMOX_STORAGE_COUNT -gt 1 ]]; then
-        _loading3 "Multiple storage locations found, using first one"
+        _debugf "Multiple storage locations found, using first one"
         PROXMOX_STORAGE=$(echo "$PROXMOX_STORAGE" | awk '{ print $1 }')
     fi
 
@@ -506,7 +506,7 @@ function _proxmox_createvm () {
         _error "Failed to get storage - $STORAGE"
         return 1
     fi
-    _debug "STORAGE: $STORAGE"
+    _debugf "STORAGE: $STORAGE"
 
     # -- Check if $VM_ID is set
     _loading2 "Checking if VMID is set and creater than 0"
