@@ -50,3 +50,9 @@ mkswap /swapfile
 swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
+
+# Single User Mode
+1. Boot server and select Ubuntu and hit 'e'
+2. In the editor, search for the line that starts with “linux” and has parameters like root=/dev/disk-device
+3. Remove ro and add rw init=/bin/bash at the end of the line
+4. Hit 'F10' to boot into single user mode.
