@@ -167,7 +167,7 @@ Command Options:
         -network <network>        Network bridge to use (Default: vmbr0)
         -storage <storage>        Storage location (Autodetect)
         -disksize <disksize>      Disk size in MB (Default: 20000MB)
-        -os <os>                  bionic,focal,jammy (Default: jammy)
+        -os <os>                  bionic,focal,jammy, noble (Default: jammy)
         -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
         -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
         -sshkey [sshkey]          SSH key to add to VM, optional. (Default: ~/.ssh/id_rsa.pub)
@@ -183,7 +183,7 @@ Command Options:
 
   createtemp <options>
   --------------------
-    -os <os>                  bionic,focal,jammy, default jammy
+    -os <os>                  bionic,focal,jammy,noble default jammy
     -bridge <bridge>          Network bridge to use, default vmbr0
     -storage <storage>        Storage location, default local-lvm
     -vmid <vmid>              VM ID to use, default 9000
@@ -195,6 +195,7 @@ Command Options:
     -ip [ip]                  IP address to use (Default: dhcp)
 
   OS:
+    Ubuntu 24.04 LTS = noble
     Ubuntu 22.04 LTS = jammy
     Ubuntu 20.04.4 LTS = focal
     Ubuntu 18.04.6 LTS = bionic
@@ -293,7 +294,7 @@ function _proxmox_download_cloudimage () {
     OS_RELEASE=$1
     # -- Check if $OS_RELEASE is valid
     _loading2 "Checking if $OS_RELEASE is a valid OS"
-    AVAIL_OS=("focal" "bionic" "jammy")
+    AVAIL_OS=("focal" "bionic" "jammy" "noble")
     _if_marray "$OS_RELEASE" AVAIL_OS
     if [[ $MARRAY_VALID == "1" ]]; then
         _error "Couldn't get Ubuntu Image for $OS_RELEASE"
