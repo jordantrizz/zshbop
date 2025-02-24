@@ -10,6 +10,27 @@
 lvcreate -L 100G -n data pve
 lvconvert --type thin-pool pve/data
 ```
+## Converting OVH LVM to LVM Thin
+* Unmount, reduce and convert
+```
+unmount /dev/vg/data
+lvreduce -L -5G /dev/vg/data
+lvconvert --type thin-pool /dev/vg/data
+```
+* Confirm
+```
+lvs -a
+```
+* Rename
+```
+lvchange -an vg/data
+lvrename vg data host-data
+```
+* Add to proxmox
+```
+pvesm add lvmthin host-data --thinpool host-data  --vgname vg
+```
+
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
 ```
