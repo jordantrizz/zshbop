@@ -9,7 +9,7 @@
 ```
 lvcreate -L 100G -n data pve
 lvconvert --type thin-pool pve/data
-``
+```
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
 ```
@@ -87,6 +87,9 @@ systemctl restart corosync.service pvedaemon.service pve-firewall.service pve-ha
 ```
 
 # Troubleshooting
+## unable to create VM 100 - no such logical volume vg/data
+* If you change the storage type from LVM to LVM-then and the name of the storage you need to up date /etc/pve/storage.cfg
+
 ## Backup Stuck
 * Unmount storage that is affected with unmount -f or -l
 * Kill vzdump process with kill -9
