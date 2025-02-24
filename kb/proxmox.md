@@ -30,6 +30,10 @@ lvrename vg data host-data
 ```
 pvesm add lvmthin host-data --thinpool host-data  --vgname vg
 ```
+* Extend to max
+```
+lvextend -l +100%FREE /dev/vg/host-data
+```
 
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
