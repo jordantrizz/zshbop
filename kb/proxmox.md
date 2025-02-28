@@ -34,6 +34,10 @@ pvesm add lvmthin host-data --thinpool host-data  --vgname vg
 ```
 lvextend -l +100%FREE /dev/vg/host-data
 ```
+* Set as default
+```
+pvesm set defaultstorage host-data
+```
 
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
