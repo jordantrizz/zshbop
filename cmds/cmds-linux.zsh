@@ -778,3 +778,35 @@ smartctl-all-disks () {
 		_smartctl-all-disks-usage
 	fi
 }
+
+# =====================================
+# -- whatprovides - find what package provides a command
+# =====================================
+help_sys[whatprovides]='Find what package provides a specific command'
+function whatprovides() {
+    if [[ -z $1 ]]; then
+        _error "Usage: whatprovides <command>"
+        return 1
+    fi
+
+    local command_name=$1
+    
+    # First check if the command is already installed
+    local command_path=$(which "$command_name" 2>/dev/null)
+    if [[ -n "$command_path" ]]; then
+        _loading "Command '$command_name' is installed at $command_path"
+        _loading "Checking which package provides it..."
+        dpkg -S "$command_path" 2>/dev/null
+        return $?
+    fi
+
+    # If command is not installed, we need apt-file
+    if ! command -v apt-file &>/dev/null; then
+        _loading "Installing apt-file to search for packages..."
+        sudo apt-get install -y apt-file
+        sudo apt-file update
+    fi
+
+    _loading "Searching for packages that provide '$command_name'..."
+    apt-file search -x "/bin/$command_name$|/sbin/$command_name$|/usr/bin/$command_name$|/usr/sbin/$command_name$"
+}
