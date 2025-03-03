@@ -317,16 +317,15 @@ zshbop_update () {
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
         [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
     else
+        _loading3 "Fetching $ZSHBOP_BRANCH"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch
-        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT merge --no-commit --no-ff origin/$ZSHBOP_BRANCH
-        if [[ $? -ge "1" ]]; then
-            _error "Merge conflict detected"
-            git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT merge --abort            
-            return 1
-        fi
+        [[ $? -ge "1" ]] && { _error "Failed to fetch latest changes"; return 1 }
+
+        _loading3 "Pulling down $ZSHBOP_BRANCH"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
-        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes" }
-    fi
+        # -- Check if pull was successful
+        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
+   fi
     echo ""
 
     # Update repos    
