@@ -185,3 +185,24 @@ function file-count() {
         echo "The number of files in $dir is $COUNT"
     fi
 }
+
+# =====================================
+# -- strip-comments
+# =====================================
+help_file[strip-comments]="Strip comments from a file"
+function strip-comments() {
+    if [[ -z $1 ]]; then
+        echo "Usage: strip-comments <file>"
+        return 1
+    fi
+
+    local FILE=$1
+
+    if [[ ! -f $FILE ]]; then
+        echo "The file $FILE does not exist"
+        return 1
+    fi
+
+    # Strip comment lines and blank lines
+    sed '/^\s*#/d;/^\s*$/d' $FILE
+}
