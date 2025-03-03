@@ -44,10 +44,15 @@ redis-info () {
 	function _redis_info_usage() {
 		_notice "Usage: redis-info -f"
 		_notice "Options:"
-		_notice "  -f  Full output"
+		_notice "  -p  port (Default: 6379)"
+		_notice "  -a  password"
+		_notice "  -s  socket (Default: /var/run/redis/redis.sock)"
 		_notice "Description: Grab redis maxmemory, configuration and statistics"
 	}
 	_loading "Collecting Redis Information"
+
+	# -- parse arguments
+	zparseopts -D -E -p port -a password -s socket
 	
 	# -- Check if redis is running
 	_loading2 "Checking if redis is running"
@@ -56,12 +61,62 @@ redis-info () {
 		return
 	fi
 
+	# -- Check if port or socket is provided
+	if [[ -n $port ]]; then
+		_redis_full_info -p $port
+	elif [[ -n $socket ]]; then
+		_redis_full_info -s $socket
+	fi
+
+	# -- Check if there is more than one process
+	if [[ $(pgrep -c redis-server) -gt 1 ]]; then
+		local REDIS_PIDS=($(pgrep redis-server))
+		_notice "More than one redis-server process running"	
+		for PID in $REDIS_PIDS; do
+			_notice "Redis server (PID: $PID):"
+			
+			# Get command line to show config
+			local CMDLINE=$(\ps -p $PID -o args=)
+			echo "  Command: $CMDLINE"
+			
+			# Find Unix sockets
+			local UNIX_SOCKETS=$(ss -pxl | grep $PID | awk {' print $5 '})
+			echo "  Unix Sockets: $UNIX_SOCKETS"
+			
+			# Find TCP ports
+			local TCP_PORTS=$(ss -tpl | grep $PID)
+			echo "  TCP Ports:"
+			echo "$TCP_PORTS"
+		done
+		return
+	else
+		_success "One redis-server process running"
+		_redis-info-full
+	fi
+}
+
+# =================================================================================================
+# -- _redis-info-full -p $port -s $socket
+# =================================================================================================
+_redis-info-full () {
+	# -- Check if port or socket is set
+	zparseopts -D -E -p port -s socket
+
+	if [[ -n $port ]]; then
+		REDIS_CMD="redis-cli -p $port"
+	elif [[ -n $socket ]]; then
+		REDIS_CMD="redis-cli -s $socket"
+	else
+		REDIS_CMD="redis-cli"
+	fi
+		
+
 	# -- Check if redis needs auth
 	_loading2 "Checking if redis needs auth"
 	if [[ -n $(redis-pass) ]]; then
-		REDIS_CMD="redis-cli -a $(redis-pass)"
+		REDIS_CMD="$REDIS_CMD -a $(redis-pass)"
 	else
-		REDIS_CMD="redis-cli"
+		REDIS_CMD="$REDIS_CMD redis-cli"
 	fi
 
 	REDIS_INFO=$(eval ${REDIS_CMD} info 2> /dev/null)

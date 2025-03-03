@@ -789,24 +789,73 @@ function whatprovides() {
         return 1
     fi
 
-    local command_name=$1
+	local COMMAND_NAME=$1
+	_loading "Searching for packages that provide '$COMMAND_NAME'..."
     
     # First check if the command is already installed
-    local command_path=$(which "$command_name" 2>/dev/null)
-    if [[ -n "$command_path" ]]; then
-        _loading "Command '$command_name' is installed at $command_path"
-        _loading "Checking which package provides it..."
-        dpkg -S "$command_path" 2>/dev/null
-        return $?
-    fi
+	_cmd_exists $COMMAND_NAME
+	if [[ $? == "0" ]]; then
+		_success "Command $COMMAND_NAME is already installed"
+		return 0
+	else
+		_error "Command $COMMAND_NAME is not installed"
+	fi
 
     # If command is not installed, we need apt-file
-    if ! command -v apt-file &>/dev/null; then
-        _loading "Installing apt-file to search for packages..."
-        sudo apt-get install -y apt-file
-        sudo apt-file update
-    fi
+	_cmd_exists apt-file
+	if [[ $? == "1" ]]; then
+		_error "apt-file is not installed"
+		_loading2 "Installing apt-file..."3
+		sudo apt-get install apt-file
+		if [[ $? == "0" ]]; then
+			_success "apt-file installed"
+			_loading2 "Updating apt-file..."
+			sudo apt-file update
+		else
+			_error "apt-file failed to install"
+			return 1
+		fi
+	fi
 
-    _loading "Searching for packages that provide '$command_name'..."
+	# Try whatprovides-db first
+	whatprovides-db $COMMAND_NAME
+	if [[ $? == "0" ]]; then
+		return 0
+	else
+		_error "Command $COMMAND_NAME not found in database, trying apt-file"
+	fi
+    
+	_loading "Searching for packages that provide '$command_name'..."
     apt-file search -x "/bin/$command_name$|/sbin/$command_name$|/usr/bin/$command_name$|/usr/sbin/$command_name$"
+}
+
+# =====================================
+# -- whatprovides-db - A database of whatprovides for quicker lookups
+# =====================================
+help_linux[whatprovides-db]='A database of whatprovides for quicker lookups'
+function whatprovides-db () {
+	# Database of common commands and their packages
+	typeset -gA whatprovides_db
+	# Add commands to the database
+	whatprovides_db[netstat]="net-tools"
+	whatprovides_db[ss]="iproute2"
+	whatprovides_db[ifconfig]="net-tools"
+	whatprovides_db[traceroute]="traceroute"
+
+	if [[ -z $1 ]]; then
+		_error "Usage: whatprovides-db <command>"
+		return 1
+	fi
+
+	local COMMAND_NAME=$1
+	_loading "Searching for packages that provide '$COMMAND_NAME'..."
+
+	# Check if the command is in the database
+	if [[ -n $whatprovides_db[$COMMAND_NAME] ]]; then
+		_loading2 "Command $COMMAND_NAME is in the database"
+		_loading3 "Package: $whatprovides_db[$COMMAND_NAME]"
+	else
+		_loading2 "Command $COMMAND_NAME is not in the database"
+	fi
+	
 }
