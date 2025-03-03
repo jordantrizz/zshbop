@@ -558,3 +558,39 @@ function _seconds_to_human () {
     
     echo $HR_TIME
 }
+
+# =====================================
+# -- _stderr - send message to stderr
+# =====================================
+help_int[_stderr]='Send message to stderr'
+function _stderr () {
+    echo "$@" >&2
+}
+
+# =====================================
+# -- _validate_ip
+# =====================================
+help_int[_validate_ip]='Validate IP address'
+function _validate_ip () {
+    local IP=$1
+    
+    # Split the IP by dots
+    local -a octets
+    octets=(${(s:.:)IP})
+    
+    # Check if there are exactly 4 octets
+    if [[ ${#octets} -ne 4 ]]; then
+        _stderr "IP address must have exactly 4 octets"
+        return 1
+    fi
+
+    # Check if each octet is a number between 0 and 255
+    for octet in ${octets[@]}; do
+        if ! [[ "$octet" =~ ^[0-9]+$ ]] || (( octet < 0 || octet > 255 )); then
+            _stderr "Each octet must be a number between 0 and 254 - $octet"
+            return 1
+        fi
+    done
+
+    return 0
+}
