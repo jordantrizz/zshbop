@@ -782,7 +782,7 @@ smartctl-all-disks () {
 # =====================================
 # -- whatprovides - find what package provides a command
 # =====================================
-help_sys[whatprovides]='Find what package provides a specific command'
+help_linux[whatprovides]='Find what package provides a specific command'
 function whatprovides() {
     if [[ -z $1 ]]; then
         _error "Usage: whatprovides <command>"
