@@ -209,6 +209,11 @@ MySQL slow query log output can be viewed in the following log: /var/log/mysql/s
 * Clear single site cache ```gp fix cache site.com```
 * Clear all sites on server cache ``` gp fix cache```
 
+
+# Redis
+## Redus Auth
+To be able to interact with GridPane's redis instance, you need to auth due to protected-mode being enabled. The password is stored in /opt/gridpane/object.auth
+
 # Caching
 ## Redis Page Cache
 ### Enable Redis Page Cache
