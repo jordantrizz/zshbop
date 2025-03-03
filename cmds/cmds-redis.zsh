@@ -44,15 +44,16 @@ redis-info () {
 	function _redis_info_usage() {
 		_notice "Usage: redis-info -f"
 		_notice "Options:"
-		_notice "  -p  port (Default: 6379)"
-		_notice "  -a  password"
+		_notice "  -p  port (Default: 6379)"		
 		_notice "  -s  socket (Default: /var/run/redis/redis.sock)"
 		_notice "Description: Grab redis maxmemory, configuration and statistics"
 	}
 	_loading "Collecting Redis Information"
-
 	# -- parse arguments
-	zparseopts -D -E -p port -a password -s socket
+	_debugf "args: $@"
+	local -a PORT SOCKET
+	zparseopts -D -E p:=PORT s:=SOCKET
+	_debugf "PORT: $PORT SOCKET: $SOCKET"
 	
 	# -- Check if redis is running
 	_loading2 "Checking if redis is running"
@@ -62,12 +63,14 @@ redis-info () {
 	fi
 
 	# -- Check if port or socket is provided
-	if [[ -n $port ]]; then
-		_redis_full_info -p $port
-	elif [[ -n $socket ]]; then
-		_redis_full_info -s $socket
+	if [[ -n $PORT ]]; then
+		REDIS_CMD="_redis-info-full -p $PORT[2]"
+	elif [[ -n $SOCKET ]]; then
+		REDIS_CMD="_redis-info-full -s $SOCKET[2]"
+	else
+		REDIS_CMD="_redis-info-full"
 	fi
-
+	
 	# -- Check if there is more than one process
 	if [[ $(pgrep -c redis-server) -gt 1 ]]; then
 		local REDIS_PIDS=($(pgrep redis-server))
@@ -100,24 +103,37 @@ redis-info () {
 # =================================================================================================
 _redis-info-full () {
 	# -- Check if port or socket is set
-	zparseopts -D -E -p port -s socket
-
-	if [[ -n $port ]]; then
-		REDIS_CMD="redis-cli -p $port"
-	elif [[ -n $socket ]]; then
-		REDIS_CMD="redis-cli -s $socket"
+	local PORT SOCKET
+	_degubf "args: $@"
+	zparseopts -D -E p:=ARG_PORT s:=ARG_SOCKET
+	_debugf "PORT: $ARG_PORT SOCKET: $ARG_SOCKET"
+	[[ -n $ARG_PORT ]] && { PORT=$ARG_PORT[2]; }
+	[[ -n $ARG_SOCKET ]] && { SOCKET=$ARG_SOCKET[2]; }
+	
+	# -- Check if port or socket is provided
+	if [[ -n $PORT ]]; then		
+		MESSAGE="Port: $PORT"		
+		REDIS_CMD="redis-cli -p $PORT"
+	elif [[ -n $SOCKET ]]; then
+		MESSAGE="Socket: $SOCKET"
+		REDIS_CMD="redis-cli -s $SOCKET"
 	else
+		MESSAGE="Default Port: 6379"
 		REDIS_CMD="redis-cli"
 	fi
-		
+	
+	_loading "Collecting Redis Information from $MESSAGE"
 
 	# -- Check if redis needs auth
 	_loading2 "Checking if redis needs auth"
+
 	if [[ -n $(redis-pass) ]]; then
 		REDIS_CMD="$REDIS_CMD -a $(redis-pass)"
 	else
 		REDIS_CMD="$REDIS_CMD redis-cli"
 	fi
+
+	_debugf "REDIS_CMD: $REDIS_CMD"
 
 	REDIS_INFO=$(eval ${REDIS_CMD} info 2> /dev/null)
 	REDIS_MEMORY=$(eval ${REDIS_CMD} info memory 2> /dev/null)
