@@ -2,6 +2,11 @@
   - [Common File Locations](#common-file-locations)
 - [Common CLI Commands](#common-cli-commands)
   - [Control Panel](#control-panel)
+- [Backup Enhance Control Panel](#backup-enhance-control-panel)
+  - [Databases](#databases)
+  - [Files](#files)
+- [copy control panel assets](#copy-control-panel-assets)
+- [copy cloudflare key (if in use)](#copy-cloudflare-key-if-in-use)
 - [MySQL](#mysql)
 - [Docker](#docker)
   - [Common Commands](#common-commands)
@@ -29,7 +34,25 @@
 # Common CLI Commands
 ## Control Panel
 * appcd-cli change-webserver lite-speed - Change webserver to LiteSpeed, rebuilds docker container.
-* 
+
+# Backup Enhance Control Panel
+## Databases
+* sudo -u orchd pg_dump -O -d orchd > /var/orchd/orchd.sql
+* sudo -u orchd pg_dump -O -d authd > /var/orchd/authd.sql
+## Files
+* /etc/ssl/certs/enhance
+* /etc/ssl/private/enhance
+* /var/local/enhance/orchd/private
+* /var/local/enhance/rca.pw
+
+# copy control panel assets
+
+scp -r /var/www/control-panel/assets root@9.9.9.9:/var/www/control-panel/
+
+# copy cloudflare key (if in use)
+
+scp /var/local/enhance/orchd/cloudflare.key root@9.9.9.9:/var/local/enhance/orchd/cloudflare.key
+
 # MySQL
 * Configuration: /var/local/enhance/mysql/conf.d/enhance.cnf
 
