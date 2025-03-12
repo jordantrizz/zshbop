@@ -27,6 +27,7 @@
 
 # Enhance
 ## Common File Locations
+* Enhance Directory:  /var/local/enhance
 * Site Logs: /var/local/enhance/webserver_logs/
 * Litespeed Error Log: /var/local/enhance/litespeedlogs/error.log
 * Litespeed Configuration: /var/local/enhance/litespeed
