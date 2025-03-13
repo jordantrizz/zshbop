@@ -328,7 +328,9 @@ function ssh-key () {
     fi
 }
 
+# ==================================================================
 # -- ssh-clear-known-host
+# ==================================================================
 help_ssh[ssh-remove-kh]='Clear known_hosts file of specific line number'
 ssh-remove-kh () {
     local LINE=$1
