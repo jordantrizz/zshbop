@@ -397,6 +397,7 @@ function init_os () {
 # -- Load default SSH keys into keychain
 # ==============================================
 function init_sshkeys () {
+    _loading2 "Loading SSH keys"
     _debug_all
 
     # -- Load SSH keys into keychain
@@ -422,6 +423,9 @@ function init_sshkeys () {
                 if [[ -f $SSH_KEY ]]; then
                     _dlog "-- Loading -- $SSH_KEY"
                     eval `keychain -q --eval --agents ssh $SSH_KEY`
+                    if [[ $? -ne 0 ]]; then
+                        _error "-- Can't load $SSH_KEY"
+                    fi
                 else
                     _error "-- Can't find $SSH_KEY, please check your CUSTOM_SSH_KEY array in .zshbop.conf" 0
                 fi
