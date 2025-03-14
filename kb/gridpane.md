@@ -251,6 +251,11 @@ gp stack redis -max-memory 300
 ## PHP FPM pm.max-requests
 * gp stack php site-pm-max-requests 5000 site.url
 
+## PHP: Changing CLI PHP Version
+* System Wide - `update-alternatives --config php`
+* Per User Ubuntu 24 chroot) - cp /usr/local/bin
+* Per User (Ubuntu 24 chroot Litespeed) - `cp /usr/bin/php8.1 /opt/gridpane/chroot/bin/php`
+
 # Cache
 ## Commands
 * wp nginx-helper purge-all
