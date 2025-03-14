@@ -38,6 +38,7 @@ function _zb_mysqldump_wrapper () {
 	if [[ $? == 1 ]]; then
 		_debugf "MySQL wrapper is not installed"
 		function _mysqldump_wrapper () {
+			_debugf "mysqldump --max_allowed_packet=512M $@"
 			mysqldump --max_allowed_packet=512M "$@"
 		}
 	else
