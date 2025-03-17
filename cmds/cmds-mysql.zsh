@@ -374,7 +374,9 @@ mysql-backup-db () {
 		local MYSQL_BACKUPDB_DATE=`date +%m-%d-%Y-%H_%M_%S`
 		local MYSQL_BACKUP_FILE="$BACKUP_DIR/${DATABASE}-${MYSQL_BACKUPDB_DATE}.sql"
 		
-		echo "-- Running backup of $DATABASE to $MYSQL_BACKUP_FILE"
+		_loading2 "-- Running backup of $DATABASE to $MYSQL_BACKUP_FILE"
+		_loading3 "_mysqldump_wrapper $DATABASE > $MYSQL_BACKUP_FILE"
+
 		_mysqldump_wrapper $DATABASE > $MYSQL_BACKUP_FILE
 		if [[ $? == "1" ]]; then
 			_error " -- Error backing up $DATABASE"
