@@ -464,7 +464,7 @@ function mysql-myisam2innodb () {
 	_mysql-myisam2innodb-convert () {
 		DATABASE=$1
 		# Backup Database?
-		_loading "Backup database before converting? [y/n]"
+		_loading2 "Backup database (${DATABASE}) before converting? [y/n]"
 		read REPLY
 		if [[ $REPLY =~ ^[Yy]$ ]]; then
 			mysql-backup-db -d $DATABASE
@@ -486,16 +486,18 @@ function mysql-myisam2innodb () {
 	local DATABASE MODE
 	local MYISAM_DATABASES=()
 	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL
+	[[ $ARG_DATABASE  ]] && DATABASE=${ARG_DATABASE[2]}
+	[[ $ARG_ALL ]] && MODE="all" || MODE="single"
 
-	if [[ -z $ARG_DATABASE ]] && [[ -z $ARG_ALL ]]; then
+	if [[ -z $DATABASE ]] && [[ -z $MODE ]]; then
 		_mysql-myisam2innodb-usage
 		return 1
 	fi
 
-	if [[ -n $ARG_DATABASE ]]; then
-		DATABASE=${ARG_DATABASE[2]}
+	if [[ $MODE == "single" ]]; then
+		_loading "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
 		_mysql-myisam2innodb-convert $DATABASE
-	elif [[ -n $ARG_ALL ]]; then
+	elif [[ $MODE == "all" ]]; then
 		_loading "Upgrading all MyISAM tables to InnoDB..."
 		MYISAM_DATABASES=($(_mysql-myisam2innodb-get-tables))
 		
@@ -506,12 +508,11 @@ function mysql-myisam2innodb () {
 			_success "Found MyISAM tables in the following databases: ${MYISAM_DATABASES[@]}"
 		fi
 
-		echo "$DATABASES" | while read database; do
-			if [[ $database != "Database" ]]; then
-				_loading2 "Upgrading MyISAM tables to InnoDB in database $database..."
-				_mysql-myisam2innodb-convert $database
-			fi
+		for DATABASE in "${MYISAM_DATABASES[@]}"; do
+			_loading3 "Processing database $DATABASE..."
+			_mysql-myisam2innodb-convert $DATABASE
 		done
+		_success "All MyISAM tables in all databases have been upgraded to InnoDB."
 		echo "All MyISAM tables in all databases have been upgraded to InnoDB."
 	else
 		_mysql-myisam2innodb-usage
