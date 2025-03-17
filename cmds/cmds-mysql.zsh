@@ -441,7 +441,7 @@ mysql-ps () {
 # -- mysql-myisam2innodb
 # ===============================================
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
-mysql-myisam2innodb () {
+function mysql-myisam2innodb () {
 	_mysql-myisam2innodb-usage () {
 		echo "Usage: mysql-myisam2innodb -d<database>|-a"
 	}
@@ -502,10 +502,13 @@ mysql-myisam2innodb () {
 		if [[ -z $MYISAM_DATABASES ]]; then
 			_success "No MyISAM tables found"
 			return 1
+		else
+			_success "Found MyISAM tables in the following databases: ${MYISAM_DATABASES[@]}"
 		fi
 
 		echo "$DATABASES" | while read database; do
 			if [[ $database != "Database" ]]; then
+				_loading2 "Upgrading MyISAM tables to InnoDB in database $database..."
 				_mysql-myisam2innodb-convert $database
 			fi
 		done
