@@ -86,12 +86,19 @@ CONFIG_db_exclude_pattern=()
 CONFIG_do_monthly="01"
 CONFIG_do_weekly="5"
 CONFIG_rotation_daily=7
+CONFIG_mysql_dump_latest='yes'
 CONFIG_mysql_dump_max_allowed_packet='512M'
 CONFIG_mysql_dump_username='automysqlbackup'
 CONFIG_mysql_dump_password='secure-password'
 CONFIG_mysql_dump_host='localhost'
 CONFIG_mysql_dump_port=3306
 CONFIG_mysql_dump_socket=''
+```
+
+#### Cron
+```
+# Runs at 00:00 every day
+0 0 * * * /usr/local/bin/automysqlbackup
 ```
 
 # Notes
