@@ -65,9 +65,12 @@ https://github.com/major/MySQLTuner-perl
 https://sourceforge.net/projects/automysqlbackup/
 
 #### Backup user.
+Sometimes you have to do both localhost and 127.0.0.1 depending.
 ```
 CREATE USER 'automysqlbackup'@'localhost' IDENTIFIED BY 'secure-password';
+CREATE USER 'automysqlbackup'@'127.0.0.1' IDENTIFIED BY 'secure-password';
 GRANT SELECT, SHOW VIEW, LOCK TABLES, EVENT ON *.* TO 'automysqlbackup'@'localhost';
+GRANT SELECT, SHOW VIEW, LOCK TABLES, EVENT ON *.* TO 'automysqlbackup'@'127.0.0.1'
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -83,6 +86,9 @@ CONFIG_rotation_daily=7
 CONFIG_mysql_dump_max_allowed_packet='512'
 CONFIG_mysql_dump_username='automysqlbackup'
 CONFIG_mysql_dump_password='secure-password'
+CONFIG_mysql_dump_host='localhost'
+CONFIG_mysql_dump_port=3306
+CONFIG_mysql_dump_socket=''
 ```
 
 # Notes
