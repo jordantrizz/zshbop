@@ -72,6 +72,9 @@ function pk () {
     if _cmd_exists fzf; then
         _loading3 "fzf found, using fzf for selection"
         SELECT_METHOD="fzf"
+    else
+        _loading3 "fzf not found, using echo for selection"
+        SELECT_METHOD="echo"
     fi
 
     function _pk_usage() {
