@@ -23,59 +23,59 @@ upgrade_config_file () {
     temp=$(mktemp /tmp/tmp.XXXXXX)
     (( $? != 0 )) && return 1
     activateIO "$temp"
-    echo "#version=3.0_rc2"
+    echo "#version=1.0"
     echo "# Uncomment to change the default values (shown after =)"
     echo "# WARNING:"
     echo "# This is not true for UMASK, CONFIG_prebackup and CONFIG_postbackup!!!"
     echo "#"
     echo "# Default values are stored in the script itself. Declarations in"
-    echo "# /etc/automysqlbackup/automysqlbackup.conf will overwrite them. The"
+    echo "# /etc/automariadbbackup/automariadbbackup.conf will overwrite them. The"
     echo "# declarations in here will supersede all other."
     echo ""
-    echo "# Edit \$PATH if mysql and mysqldump are not located in /usr/local/bin:/usr/bin:/bin:/usr/local/mysql/bin"
-    echo "#PATH=\${PATH}:FULL_PATH_TO_YOUR_DIR_CONTAINING_MYSQL:FULL_PATH_TO_YOUR_DIR_CONTAINING_MYSQLDUMP"
+    echo "# Edit \$PATH if mariadb and mariadbdump are not located in /usr/local/bin:/usr/bin:/bin:/usr/local/mariadb/bin"
+    echo "#PATH=\${PATH}:FULL_PATH_TO_YOUR_DIR_CONTAINING_MARIADB:FULL_PATH_TO_YOUR_DIR_CONTAINING_MARIADBDUMP"
     echo ""
     echo "# Basic Settings"
     echo ""
-	echo "# since mysql 5.6.x connections can be stored securely"
+	echo "# since mariadb 5.6.x connections can be stored securely"
 	echo "# add your connection with"
-	echo "# mysql_config_editor set --login-path=automysqldump --host=localhost --user=root --password"
-	echo "# automysqldump is using the login-path "automysqldump" as default"
+	echo "# mariadb_config_editor set --login-path=automariadbdump --host=localhost --user=root --password"
+	echo "# automariadbdump is using the login-path "automariadbdump" as default"
     echo ""
-    echo "# Username to access the MySQL server e.g. dbuser"
+    echo "# Username to access the MariaDB server e.g. dbuser"
     if isSet USERNAME; then
-      printf '%s=%q\n' CONFIG_mysql_dump_username "${USERNAME-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_username "${USERNAME-}"
     else
-      echo "#CONFIG_mysql_dump_username='root'"
+      echo "#CONFIG_mariadb_dump_username='root'"
     fi
     echo ""
-    echo "# Password to access the MySQL server e.g. password"
+    echo "# Password to access the MariaDB server e.g. password"
     if isSet PASSWORD; then
-      printf '%s=%q\n' CONFIG_mysql_dump_password "${PASSWORD-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_password "${PASSWORD-}"
     else
-      echo "#CONFIG_mysql_dump_password=''"
+      echo "#CONFIG_mariadb_dump_password=''"
     fi
     echo ""
-    echo "# Host name (or IP address) of MySQL server e.g localhost"
+    echo "# Host name (or IP address) of MariaDB server e.g localhost"
     if isSet DBHOST; then
-      printf '%s=%q\n' CONFIG_mysql_dump_host "${DBHOST-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_host "${DBHOST-}"
     else
-      echo "#CONFIG_mysql_dump_host='localhost'"
+      echo "#CONFIG_mariadb_dump_host='localhost'"
     fi
     echo ""
-    echo "# \"Friendly\" host name of MySQL server to be used in email log"
-    echo "# if unset or empty (default) will use CONFIG_mysql_dump_host instead"
-    if isSet CONFIG_mysql_dump_host_friendly; then
-      printf '%s=%q\n' CONFIG_mysql_dump_host_friendly "${CONFIG_mysql_dump_host_friendly-}"
+    echo "# \"Friendly\" host name of MariaDB server to be used in email log"
+    echo "# if unset or empty (default) will use CONFIG_mariadb_dump_host instead"
+    if isSet CONFIG_mariadb_dump_host_friendly; then
+      printf '%s=%q\n' CONFIG_mariadb_dump_host_friendly "${CONFIG_mariadb_dump_host_friendly-}"
     else
-      echo "#CONFIG_mysql_dump_host_friendly=''"
+      echo "#CONFIG_mariadb_dump_host_friendly=''"
     fi
     echo ""
     echo "# Backup directory location e.g /backups"
     if isSet BACKUPDIR; then
       printf '%s=%q\n' CONFIG_backup_dir "${BACKUPDIR-}"
     else
-      echo "#CONFIG_backup_dir='/var/backup/db'"
+      echo "#CONFIG_backup_dir='/var/backups/db'"
     fi
     echo ""
     echo "# This is practically a moot point, since there is a fallback to the compression"
@@ -178,31 +178,31 @@ upgrade_config_file () {
     echo ""
     echo "# Server Connection Settings"
     echo ""
-    echo "# Set the port for the mysql connection"
-    echo "#CONFIG_mysql_dump_port=3306"
+    echo "# Set the port for the mariadb connection"
+    echo "#CONFIG_mariadb_dump_port=3306"
     echo ""
-    echo "# Compress communications between backup server and MySQL server?"
+    echo "# Compress communications between backup server and MariaDB server?"
     if isSet COMMCOMP; then
-      printf '%s=%q\n' CONFIG_mysql_dump_commcomp "${COMMCOMP-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_commcomp "${COMMCOMP-}"
     else
-      echo "#CONFIG_mysql_dump_commcomp='no'"
+      echo "#CONFIG_mariadb_dump_commcomp='no'"
     fi
     echo ""
-    echo "# Use ssl encryption with mysqldump?"
-    echo "#CONFIG_mysql_dump_usessl='yes'"
+    echo "# Use ssl encryption with mariadbdump?"
+    echo "#CONFIG_mariadb_dump_usessl='yes'"
     echo ""
     echo "# For connections to localhost. Sometimes the Unix socket file must be specified."
     if isSet SOCKET; then
-      printf '%s=%q\n' CONFIG_mysql_dump_socket "${SOCKET-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_socket "${SOCKET-}"
     else
-      echo "#CONFIG_mysql_dump_socket=''"
+      echo "#CONFIG_mariadb_dump_socket=''"
     fi
     echo ""
     echo "# The maximum size of the buffer for client/server communication. e.g. 16MB (maximum is 1GB)"
     if isSet MAX_ALLOWED_PACKET; then
-      printf '%s=%q\n' CONFIG_mysql_dump_max_allowed_packet "${MAX_ALLOWED_PACKET-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_max_allowed_packet "${MAX_ALLOWED_PACKET-}"
     else
-      echo "#CONFIG_mysql_dump_max_allowed_packet=''"
+      echo "#CONFIG_mariadb_dump_max_allowed_packet=''"
     fi
     echo ""
     echo "# This option sends a START TRANSACTION SQL statement to the server before dumping data. It is useful only with"
@@ -215,11 +215,11 @@ upgrade_config_file () {
     echo "# While a --single-transaction dump is in process, to ensure a valid dump file (correct table contents and"
     echo "# binary log coordinates), no other connection should use the following statements: ALTER TABLE, CREATE TABLE,"
     echo "# DROP TABLE, RENAME TABLE, TRUNCATE TABLE. A consistent read is not isolated from those statements, so use of"
-    echo "# them on a table to be dumped can cause the SELECT that is performed by mysqldump to retrieve the table"
+    echo "# them on a table to be dumped can cause the SELECT that is performed by mariadbdump to retrieve the table"
     echo "# contents to obtain incorrect contents or fail."
-    echo "#CONFIG_mysql_dump_single_transaction='no'"
+    echo "#CONFIG_mariadb_dump_single_transaction='no'"
     echo ""
-    echo "# http://dev.mysql.com/doc/refman/5.0/en/mysqldump.html#option_mysqldump_master-data"
+    echo "# https://mariadb.com/kb/en/mariadb-dumpmysqldump/"
     echo "# --master-data[=value] "
     echo "# Use this option to dump a master replication server to produce a dump file that can be used to set up another"
     echo "# server as a slave of the master. It causes the dump output to include a CHANGE MASTER TO statement that indicates"
@@ -237,63 +237,63 @@ upgrade_config_file () {
     echo "# beginning of the dump (see the description for --single-transaction). In all cases, any action on logs happens at"
     echo "# the exact moment of the dump."
     echo "# =================================================================================================================="
-    echo "# possible values are 1 and 2, which correspond with the values from mysqldump"
+    echo "# possible values are 1 and 2, which correspond with the values from mariadbdump"
     echo "# VARIABLE=    , i.e. no value, turns it off (default)"
     echo "#"
-    echo "#CONFIG_mysql_dump_master_data="
+    echo "#CONFIG_mariadb_dump_master_data="
     echo ""
     echo "# Included stored routines (procedures and functions) for the dumped databases in the output. Use of this option"
-    echo "# requires the SELECT privilege for the mysql.proc table. The output generated by using --routines contains"
+    echo "# requires the SELECT privilege for the mariadb.proc table. The output generated by using --routines contains"
     echo "# CREATE PROCEDURE and CREATE FUNCTION statements to re-create the routines. However, these statements do not"
     echo "# include attributes such as the routine creation and modification timestamps. This means that when the routines"
     echo "# are reloaded, they will be created with the timestamps equal to the reload time."
     echo "#"
     echo "# If you require routines to be re-created with their original timestamp attributes, do not use --routines. Instead,"
-    echo "# dump and reload the contents of the mysql.proc table directly, using a MySQL account that has appropriate privileges"
-    echo "# for the mysql database. "
+    echo "# dump and reload the contents of the mariadb.proc table directly, using a MariaDB account that has appropriate privileges"
+    echo "# for the mariadb database. "
     echo "#"
     echo "# This option was added in MySQL 5.0.13. Before that, stored routines are not dumped. Routine DEFINER values are not"
-    echo "# dumped until MySQL 5.0.20. This means that before 5.0.20, when routines are reloaded, they will be created with the"
+    echo "# dumped until MySQL 5.0.20. This means that before MySQL 5.0.20, when routines are reloaded, they will be created with the"
     echo "# definer set to the reloading user. If you require routines to be re-created with their original definer, dump and"
-    echo "# load the contents of the mysql.proc table directly as described earlier."
+    echo "# load the contents of the mariadb.proc table directly as described earlier."
     echo "#"
-    echo "#CONFIG_mysql_dump_full_schema='yes'"
+    echo "#CONFIG_mariadb_dump_full_schema='yes'"
     echo ""
     echo "# Backup dump settings"
     echo ""
     echo "# Include CREATE DATABASE in backup?"
     if isSet CREATE_DATABASE; then
-      printf '%s=%q\n' CONFIG_mysql_dump_create_database "${CREATE_DATABASE-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_create_database "${CREATE_DATABASE-}"
     else
-      echo "#CONFIG_mysql_dump_create_database='no'"
+      echo "#CONFIG_mariadb_dump_create_database='no'"
     fi
     echo ""
     echo "# Separate backup directory and file for each DB? (yes or no)"
     if isSet SEPDIR; then
-      printf '%s=%q\n' CONFIG_mysql_dump_use_separate_dirs "${SEPDIR-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_use_separate_dirs "${SEPDIR-}"
     else
-      echo "#CONFIG_mysql_dump_use_separate_dirs='yes'"
+      echo "#CONFIG_mariadb_dump_use_separate_dirs='yes'"
     fi
     echo ""
     echo "# Choose Compression type. (gzip or bzip2)"
     if isSet COMP; then
-      printf '%s=%q\n' CONFIG_mysql_dump_compression "${COMP-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_compression "${COMP-}"
     else
-      echo "#CONFIG_mysql_dump_compression='gzip'"
+      echo "#CONFIG_mariadb_dump_compression='gzip'"
     fi
     echo ""
     echo "# Store an additional copy of the latest backup to a standard"
     echo "# location so it can be downloaded by third party scripts."
     if isSet LATEST; then
-      printf '%s=%q\n' CONFIG_mysql_dump_latest "${LATEST-}"
+      printf '%s=%q\n' CONFIG_mariadb_dump_latest "${LATEST-}"
     else
-      echo "#CONFIG_mysql_dump_latest='no'"
+      echo "#CONFIG_mariadb_dump_latest='no'"
     fi
     echo ""
     echo "# Remove all date and time information from the filenames in the latest folder."
     echo "# Runs, if activated, once after the backups are completed. Practically it just finds all files in the latest folder"
     echo "# and removes the date and time information from the filenames (if present)."
-    echo "#CONFIG_mysql_dump_latest_clean_filenames='no'"
+    echo "#CONFIG_mariadb_dump_latest_clean_filenames='no'"
     echo ""
     echo "# Notification setup"
     echo ""
@@ -334,7 +334,7 @@ upgrade_config_file () {
 	echo "#"
 	echo '# To ensure that master backups are kept long enough, the value of $CONFIG_rotation_daily is set to a minimum of 21 days.'
 	echo "#"
-	echo "#CONFIG_mysql_dump_differential='no'"
+	echo "#CONFIG_mariadb_dump_differential='no'"
     echo ""
     echo "# Encryption"
     echo ""
@@ -342,12 +342,12 @@ upgrade_config_file () {
     echo "#CONFIG_encrypt='no'"
     echo ""
     echo "# Choose a password to encrypt the backups."
-    echo "#CONFIG_encrypt_password='password0123'"
+    echo "#CONFIG_encrypt_password='randpass0123'"
     echo ""
     echo "# Other"
     echo ""
-    echo "# Backup local files, i.e. maybe you would like to backup your my.cnf (mysql server configuration), etc."
-    echo "# These files will be tar'ed, depending on your compression option CONFIG_mysql_dump_compression compressed and"
+    echo "# Backup local files, i.e. maybe you would like to backup your my.cnf (mariadb server configuration), etc."
+    echo "# These files will be tar'ed, depending on your compression option CONFIG_mariadb_dump_compression compressed and"
     echo "# depending on the option CONFIG_encrypt encrypted."
     echo "#"
     echo "# Note: This could also have been accomplished with CONFIG_prebackup or CONFIG_postbackup."
@@ -357,14 +357,14 @@ upgrade_config_file () {
     if isSet PREBACKUP; then
       printf '%s=%q\n' CONFIG_prebackup "${PREBACKUP-}"
     else
-      echo "#CONFIG_prebackup=\"/etc/mysql-backup-pre\""
+      echo "#CONFIG_prebackup=\"/etc/mariadb-backup-pre\""
     fi
     echo ""
     echo "# Command run after backups (uncomment to use)"
     if isSet POSTBACKUP; then
       printf '%s=%q\n' CONFIG_postbackup "${POSTBACKUP-}"
     else
-      echo "#CONFIG_postbackup=\"/etc/mysql-backup-post\""
+      echo "#CONFIG_postbackup=\"/etc/mariadb-backup-post\""
     fi
     echo ""
     echo "# Uncomment to activate! This will give folders rwx------"
@@ -386,13 +386,13 @@ parse_config_file () {
   printf 'Found config file %s. ' "$1"
   if head -n1 "$1" | egrep -o 'version=.*' >& /dev/null; then
     version=`head -n1 "$1" | egrep -o 'version=.*' | awk -F"=" '{print $2}'`
-    if [[ "$version" =~ 3.* ]]; then
-      printf 'Version 3.* determined. No conversion necessary.\n'
+    if [[ "$version" =~ 1.* ]]; then
+      printf 'Version 1.* determined. No conversion necessary.\n'
     else
       printf 'Unknown version. Can not convert it. You have to convert it manually.\n'
     fi
   else
-    printf 'No version information on first line of config file. Assuming the version is <3.\n'
+    printf 'No version information on first line of config file. Assuming the version is <1.\n'
     while true; do
 	read -p "Convert? [Y/n] " yn
 	[[ "x$yn" = "x" ]] && { upgrade_config_file "$1" || echo "Failed to convert."; break; }
@@ -409,10 +409,10 @@ parse_config_file () {
 echo "### Checking archive files for existence, readability and integrity."
 echo
 
-printf 'Select the global configuration directory [/etc/automysqlbackup]: '
+printf 'Select the global configuration directory [/etc/automariadbbackup]: '
 read configdir
 configdir="${configdir%/}" # strip trailing slash if there
-[[ "x$configdir" = "x" ]] && configdir='/etc/automysqlbackup'
+[[ "x$configdir" = "x" ]] && configdir='/etc/automariadbbackup'
 printf 'Select directory for the executable [/usr/local/bin]: '
 read bindir
 bindir="${bindir%/}" # strip trailing slash if there
@@ -424,7 +424,7 @@ echo
 if [ -d "${configdir}" ]; then
   echo "exists already ... searching for config files:"
   for i in "${configdir}"/*.conf; do
-    [[ "x$(basename $i)" = "xautomysqlbackup.conf" ]] && continue
+    [[ "x$(basename $i)" = "xautomariadbbackup.conf" ]] && continue
     parse_config_file "$i"
   done
 else
@@ -449,16 +449,16 @@ echo
 #copying files
 echo "### Copying files."
 echo
-cp -i automysqlbackup.conf LICENSE README "${configdir}"/
-cp -i automysqlbackup.conf "${configdir}"/myserver.conf
-cp -i automysqlbackup "${bindir}"/
-[[ -f "${bindir}"/automysqlbackup ]] && [[ -x "${bindir}"/automysqlbackup ]] || chmod +x "${bindir}"/automysqlbackup || echo " failed - make sure you make the program executable, i.e. run 'chmod +x ${bindir}/automysqlbackup'"
+cp -i automariadbbackup.conf LICENSE README "${configdir}"/
+cp -i automariadbbackup.conf "${configdir}"/myserver.conf
+cp -i automariadbbackup "${bindir}"/
+[[ -f "${bindir}"/automariadbbackup ]] && [[ -x "${bindir}"/automariadbbackup ]] || chmod +x "${bindir}"/automariadbbackup || echo " failed - make sure you make the program executable, i.e. run 'chmod +x ${bindir}/automariadbbackup'"
 echo
 
 if echo $PATH | grep "${bindir}" >/dev/null 2>&1; then
-  printf "if you are running automysqlbackup under the same user as you run this install script,\nyou should be able to access it by running 'automysqlbackup' from the command line.\n"
+  printf "if you are running automariadbbackup under the same user as you run this install script,\nyou should be able to access it by running 'automariadbbackup' from the command line.\n"
   printf "if not, you have to check if 'echo \$PATH' has ${bindir} in it\n"
 else
-  printf "if running under the current user, you have to use the full path ${bindir}/automysqlbackup since /usr/local/bin is not in 'echo \$PATH'\n"
+  printf "if running under the current user, you have to use the full path ${bindir}/automariadbbackup since /usr/local/bin is not in 'echo \$PATH'\n"
 fi
 printf "\nSetup Complete!\n"

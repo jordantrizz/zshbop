@@ -66,7 +66,7 @@ let "N_backup_local_nofiles=0x20"
 # @info:	Default configuration options.
 # @deps:	(none)
 load_default_config() {
-  CONFIG_configfile="/etc/automysqlbackup/automysqlbackup.conf"
+  CONFIG_configfile="/etc/automariadbbackup/automariadbbackup.conf"
   CONFIG_backup_dir='/var/backups/db'
   CONFIG_multicore='yes'
   CONFIG_multicore_threads=2
@@ -75,31 +75,31 @@ load_default_config() {
   CONFIG_rotation_daily=6
   CONFIG_rotation_weekly=35
   CONFIG_rotation_monthly=150
-  CONFIG_mysql_dump_port=3306
-  CONFIG_mysql_dump_usessl='no'
-  CONFIG_mysql_dump_username='root'
-  CONFIG_mysql_dump_password=''
-  CONFIG_mysql_dump_host='localhost'
-  CONFIG_mysql_dump_host_friendly=''
-  CONFIG_mysql_dump_socket=''
-  CONFIG_mysql_dump_create_database='no'
-  CONFIG_mysql_dump_add_drop_database='no'
-  CONFIG_mysql_dump_create_event='yes'
-  CONFIG_mysql_dump_use_separate_dirs='yes'
-  CONFIG_mysql_dump_compression='gzip'
-  CONFIG_mysql_dump_commcomp='no'
-  CONFIG_mysql_dump_hex_blob='no'
-  CONFIG_mysql_dump_latest='no'
-  CONFIG_mysql_dump_latest_clean_filenames='no'
-  CONFIG_mysql_dump_max_allowed_packet=''
-  CONFIG_mysql_dump_single_transaction='no'
-  CONFIG_mysql_dump_master_data=
-  CONFIG_mysql_dump_full_schema='yes'
-  CONFIG_mysql_dump_dbstatus='yes'
-  CONFIG_mysql_dump_differential='no'
-  CONFIG_mysql_dump_login_path='automysqldump'
-  CONFIG_mysql_dump_login_path_file=''
-  CONFIG_mysql_dump_encrypted_login='no'
+  CONFIG_mariadb_dump_port=3306
+  CONFIG_mariadb_dump_usessl='no'
+  CONFIG_mariadb_dump_username='root'
+  CONFIG_mariadb_dump_password=''
+  CONFIG_mariadb_dump_host='localhost'
+  CONFIG_mariadb_dump_host_friendly=''
+  CONFIG_mariadb_dump_socket=''
+  CONFIG_mariadb_dump_create_database='no'
+  CONFIG_mariadb_dump_add_drop_database='no'
+  CONFIG_mariadb_dump_create_event='yes'
+  CONFIG_mariadb_dump_use_separate_dirs='yes'
+  CONFIG_mariadb_dump_compression='gzip'
+  CONFIG_mariadb_dump_commcomp='no'
+  CONFIG_mariadb_dump_hex_blob='no'
+  CONFIG_mariadb_dump_latest='no'
+  CONFIG_mariadb_dump_latest_clean_filenames='no'
+  CONFIG_mariadb_dump_max_allowed_packet=''
+  CONFIG_mariadb_dump_single_transaction='no'
+  CONFIG_mariadb_dump_master_data=
+  CONFIG_mariadb_dump_full_schema='yes'
+  CONFIG_mariadb_dump_dbstatus='yes'
+  CONFIG_mariadb_dump_differential='no'
+  CONFIG_mariadb_dump_login_path='automariadbdump'
+  CONFIG_mariadb_dump_login_path_file=''
+  CONFIG_mariadb_dump_encrypted_login='no'
   CONFIG_backup_local_files=()
   CONFIG_db_names=()
   CONFIG_db_month_names=()
@@ -112,23 +112,23 @@ load_default_config() {
   CONFIG_mail_use_uuencoded_attachments='no'
   CONFIG_mail_address='root'
   CONFIG_encrypt='no'
-  CONFIG_encrypt_password='randpass0123'
+  CONFIG_encrypt_password='password0123'
 }
 
-mysql_commands() {
-  VERSION=`mysql -V | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -1`
+mariadb_commands() {
+  VERSION=`mariadb -V | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -1`
   NODOT_VER=`echo $VERSION | sed -${sed_Regex} 's/\.//g'`
-  if [ "${CONFIG_mysql_dump_encrypted_login}" = "yes" ]; then
-    export MYSQLDUMP="mysqldump --login-path=$CONFIG_mysql_dump_login_path"
-    export MYSQLSHOW="mysqlshow --login-path=$CONFIG_mysql_dump_login_path"
-    export MYSQL="mysql --login-path=$CONFIG_mysql_dump_login_path"
-    if [ -n "${CONFIG_mysql_dump_login_path_file}" ]; then
-      export MYSQL_TEST_LOGIN_FILE=$CONFIG_mysql_dump_login_path_file
+  if [ "${CONFIG_mariadb_dump_encrypted_login}" = "yes" ]; then
+    export MARIADBDUMP="mariadb-dump --login-path=$CONFIG_mariadb_dump_login_path"
+    export MARIADBSHOW="mariadb-show --login-path=$CONFIG_mariadb_dump_login_path"
+    export MARIADB="mariadb --login-path=$CONFIG_mariadb_dump_login_path"
+    if [ -n "${CONFIG_mariadb_dump_login_path_file}" ]; then
+      export MARIADB_TEST_LOGIN_FILE=$CONFIG_mariadb_dump_login_path_file
     fi
   else
-    export MYSQLDUMP="mysqldump --user=${CONFIG_mysql_dump_username} --password=${CONFIG_mysql_dump_password} --host=${CONFIG_mysql_dump_host}";
-    export MYSQLSHOW="mysqlshow --user=${CONFIG_mysql_dump_username} --password=${CONFIG_mysql_dump_password} --host=${CONFIG_mysql_dump_host}";
-    export MYSQL="mysql --user=${CONFIG_mysql_dump_username} --password=${CONFIG_mysql_dump_password} --host=${CONFIG_mysql_dump_host}";
+    export MARIADBDUMP="mariadb-dump --user=${CONFIG_mariadb_dump_username} --password=${CONFIG_mariadb_dump_password} --host=${CONFIG_mariadb_dump_host}";
+    export MARIADBSHOW="mariadb-show --user=${CONFIG_mariadb_dump_username} --password=${CONFIG_mariadb_dump_password} --host=${CONFIG_mariadb_dump_host}";
+    export MARIADB="mariadb --user=${CONFIG_mariadb_dump_username} --password=${CONFIG_mariadb_dump_password} --host=${CONFIG_mariadb_dump_host}";
   fi
 }
 
@@ -169,9 +169,9 @@ mail_cleanup () {
 					  for j in "${backupfiles[@]}"; do
 						uuencode "$j" "$j" >> "$temp"
 					  done
-					  mail -s "${errornote} MySQL Backup Log and SQL Files for ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" ${CONFIG_mail_address} < "$temp"
+					  mail -s "${errornote} MariaDB Backup Log and SQL Files for ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" ${CONFIG_mail_address} < "$temp"
 					else
-					  mutt -s "${errornote} MySQL Backup Log and SQL Files for ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" -a "${backupfiles[@]}" -- ${CONFIG_mail_address} < "$log_file"
+					  mutt -s "${errornote} MariaDB Backup Log and SQL Files for ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" -a "${backupfiles[@]}" -- ${CONFIG_mail_address} < "$log_file"
 					fi
 			    elif (( ${CONFIG_mail_maxattsize} <= ${attsize} )) && [[ "x$CONFIG_mail_splitandtar" = "xyes" ]]; then
 					if sPWD="$PWD"; cd "$CONFIG_backup_dir"/tmp && pax -wv "${backupfiles[@]}" | bzip2_compression | split -b $((CONFIG_mail_maxattsize*1000)) - mail_attachment_${datetimestamp}_ && cd "$sPWD"; then
@@ -186,32 +186,32 @@ mail_cleanup () {
 						  else
 							uuencode "$j" "$j" > "$temp"
 						  fi
-						  mail -s "${errornote} MySQL Backup Log and SQL Files for ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" ${CONFIG_mail_address} < "$temp"
+						  mail -s "${errornote} MariaDB Backup Log and SQL Files for ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" ${CONFIG_mail_address} < "$temp"
 						else
-						  mutt -s "${errornote} MySQL Backup Log and SQL Files for ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}; Part $((j+1))/${#files[@]}" -a "${files[j]}" -- ${CONFIG_mail_address} < "$log_file"
+						  mutt -s "${errornote} MariaDB Backup Log and SQL Files for ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}; Part $((j+1))/${#files[@]}" -a "${files[j]}" -- ${CONFIG_mail_address} < "$log_file"
 						fi
 					  done
 					else
-					  cat "$log_file" | mail -s "WARNING! - MySQL Backup exceeds set maximum attachment size on ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
+					  cat "$log_file" | mail -s "WARNING! - MariaDB Backup exceeds set maximum attachment size on ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
 					fi
 				else
-				    cat "$log_file" | mail -s "WARNING! - MySQL Backup exceeds set maximum attachment size on ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
+				    cat "$log_file" | mail -s "WARNING! - MariaDB Backup exceeds set maximum attachment size on ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
 			    fi
 				rm "$temp"
 			    ;;
 	    'log')
-			    cat "$log_file" | mail -s "MySQL Backup Log for ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
-			    [[ -s "$log_errfile" ]] && cat "$log_errfile" | mail -s "ERRORS REPORTED: MySQL Backup error Log for ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
+			    cat "$log_file" | mail -s "MariaDB Backup Log for ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
+			    [[ -s "$log_errfile" ]] && cat "$log_errfile" | mail -s "ERRORS REPORTED: MariaDB Backup error Log for ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
 			    ;;
 	    'quiet')
-			    [[ -s "$log_errfile" ]] && cat "$log_errfile" | mail -s "ERRORS REPORTED: MySQL Backup error Log for ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
+			    [[ -s "$log_errfile" ]] && cat "$log_errfile" | mail -s "ERRORS REPORTED: MariaDB Backup error Log for ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host} - ${datetimestamp}" ${CONFIG_mail_address}
 			    ;;
 	    *)
 			    if [[ -s "$log_errfile" ]]; then
 					    cat "$log_file"
 					    echo
 					    echo "###### WARNING ######"
-					    echo "Errors reported during AutoMySQLBackup execution.. Backup failed"
+					    echo "Errors reported during AutoMariaDBBackup execution.. Backup failed"
 					    echo "Error log below.."
 					    cat "$log_errfile"
 			    else
@@ -365,8 +365,8 @@ files_postprocessing () {
 	}
 	# <- CONFIG_encrypt
 
-	# -> CONFIG_mysql_dump_latest
-	[[ "${CONFIG_mysql_dump_latest}" = "yes" ]] && {
+	# -> CONFIG_mariadb_dump_latest
+	[[ "${CONFIG_mariadb_dump_latest}" = "yes" ]] && {
 	  if (( $flags & $flags_files_postprocessing_success_encrypt )); then
 		if (( $CONFIG_dryrun )); then
 		  printf 'dry-running: cp -al %s.enc %s/latest/\n' "${1}" "${CONFIG_backup_dir}"
@@ -381,7 +381,7 @@ files_postprocessing () {
 		fi
 	  fi
 	}
-	# <- CONFIG_mysql_dump_latest
+	# <- CONFIG_mariadb_dump_latest
 
 	return $flags
 }
@@ -401,13 +401,13 @@ error_handler () {
     [0x10]="The backup_dir ${CONFIG_backup_dir} is not writable AND/OR executable."
     [0x20]='Could not remove the cleartext file after encryption. This error did not cause an abort. Remove it manually and check permissions.'
     [0x40]='Encryption failed. Continuing without encryption.'
-    [0x80]='The mysql server is empty, i.e. no databases found. Check if something is wrong. Exiting.'
+    [0x80]='The mariadb server is empty, i.e. no databases found. Check if something is wrong. Exiting.'
     [0x100]='Failed to create the named pipe (fifo) for reading in all databases. Exiting.'
     [0x200]='Dependency programs are missing. Perhaps they are not in $PATH. Exiting.'
     [0x400]='No basedir found, i.e. '
     [0x800]="${CONFIG_backup_dir} is not writable. Exiting."
-    [0x1000]='Running of mysqlstatus failed.'
-    [0x2000]='Running of mysqldump full schema failed.'
+    [0x1000]='Running of mariadbstatus failed.'
+    [0x2000]='Running of mariadbdump full schema failed.'
   )
 
   notify=(
@@ -464,7 +464,7 @@ error_handler () {
 backup_local_files () {
   if ((! ${#CONFIG_backup_local_files[@]})) ; then
     if (( $CONFIG_dryrun )); then
-      case "${CONFIG_mysql_dump_compression}" in
+      case "${CONFIG_mariadb_dump_compression}" in
 	  'gzip')
 	    echo "tar -czvf ${1}${suffix} ${CONFIG_backup_local_files[@]}";
 	    ;;
@@ -484,7 +484,7 @@ backup_local_files () {
       echo "dry-running: tar -cv ${1} ${CONFIG_backup_local_files[@]}"
       return 0;
     else
-      case "${CONFIG_mysql_dump_compression}" in
+      case "${CONFIG_mariadb_dump_compression}" in
 	  'gzip')
 	    tar -czvf "${1}${suffix}" "${CONFIG_backup_local_files[@]}";
 	    return $?
@@ -517,67 +517,67 @@ backup_local_files () {
 # @args:	(none)
 # @deps:	load_default_config
 parse_configuration () {
-    # OPT string for use with mysqldump ( see man mysqldump )
+    # OPT string for use with mariadbdump ( see man mariadbdump )
     opt=( '--quote-names' '--opt' )
 
-    # OPT string for use with mysql (see man mysql )
-    mysql_opt=()
+    # OPT string for use with mariadb (see man mariadb )
+    mariadb_opt=()
 
-    # OPT string for use with mysqldump fullschema
+    # OPT string for use with mariadbdump fullschema
     opt_fullschema=( '--all-databases' '--routines' '--no-data' )
 
-	# OPT string for use with mysqlstatus
+	# OPT string for use with mariadbstatus
 	opt_dbstatus=( '--status' )
 
 	if [ "$NODOT_VER" -ge 56 ]; then
-		[[ "${CONFIG_mysql_dump_usessl}" = "yes" ]] 		&& {
+		[[ "${CONFIG_mariadb_dump_usessl}" = "yes" ]] 		&& {
 		  opt=( "${opt[@]}" '--ssl-mode=REQUIRED' )
-		  mysql_opt=( "${mysql_opt[@]}" '--ssl-mode=REQUIRED' )
+		  mariadb_opt=( "${mariadb_opt[@]}" '--ssl-mode=REQUIRED' )
 		  opt_fullschema=( "${opt_fullschema[@]}" '--ssl-mode=REQUIRED' )
 		  opt_dbstatus=( "${opt_dbstatus[@]}" '--ssl-mode=REQUIRED' )
 		}
 	else
-		[[ "${CONFIG_mysql_dump_usessl}" = "yes" ]] 		&& {
+		[[ "${CONFIG_mariadb_dump_usessl}" = "yes" ]] 		&& {
 		  opt=( "${opt[@]}" '--ssl' )
-		  mysql_opt=( "${mysql_opt[@]}" '--ssl' )
+		  mariadb_opt=( "${mariadb_opt[@]}" '--ssl' )
 		  opt_fullschema=( "${opt_fullschema[@]}" '--ssl' )
 		  opt_dbstatus=( "${opt_dbstatus[@]}" '--ssl' )
 		}
 	fi
-    [[ "${CONFIG_mysql_dump_master_data}" ]] && (( ${CONFIG_mysql_dump_master_data} == 1 || ${CONFIG_mysql_dump_master_data} == 2 )) && { opt=( "${opt[@]}" "--master-data=${CONFIG_mysql_dump_master_data}" );}
-    [[ "${CONFIG_mysql_dump_single_transaction}" = "yes" ]]	&& {
+    [[ "${CONFIG_mariadb_dump_master_data}" ]] && (( ${CONFIG_mariadb_dump_master_data} == 1 || ${CONFIG_mariadb_dump_master_data} == 2 )) && { opt=( "${opt[@]}" "--master-data=${CONFIG_mariadb_dump_master_data}" );}
+    [[ "${CONFIG_mariadb_dump_single_transaction}" = "yes" ]]	&& {
 	  opt=( "${opt[@]}" '--single-transaction' )
 	  opt_fullschema=( "${opt_fullschema[@]}" '--single-transaction' )
     }
-    [[ "${CONFIG_mysql_dump_commcomp}" = "yes" ]]		&& {
+    [[ "${CONFIG_mariadb_dump_commcomp}" = "yes" ]]		&& {
 	  opt=( "${opt[@]}" '--compress' )
 	  opt_fullschema=( "${opt_fullschema[@]}" '--compress' )
 	  opt_dbstatus=( "${opt_dbstatus[@]}" '--compress' )
     }
-    [[ "${CONFIG_mysql_dump_max_allowed_packet}" ]]		&& {
-	  opt=( "${opt[@]}" "--max_allowed_packet=${CONFIG_mysql_dump_max_allowed_packet}" )
-	  opt_fullschema=( "${opt_fullschema[@]}" "--max_allowed_packet=${CONFIG_mysql_dump_max_allowed_packet}" )
+    [[ "${CONFIG_mariadb_dump_max_allowed_packet}" ]]		&& {
+	  opt=( "${opt[@]}" "--max_allowed_packet=${CONFIG_mariadb_dump_max_allowed_packet}" )
+	  opt_fullschema=( "${opt_fullschema[@]}" "--max_allowed_packet=${CONFIG_mariadb_dump_max_allowed_packet}" )
     }
-    [[ "${CONFIG_mysql_dump_hex_blob}" = "yes" ]]		&& {
+    [[ "${CONFIG_mariadb_dump_hex_blob}" = "yes" ]]		&& {
 	  opt=( "${opt[@]}" '--hex-blob' )
 	  opt_fullschema=( "${opt_fullschema[@]}" '--hex-blob' )
     }
-    [[ "${CONFIG_mysql_dump_socket}" ]]			&& {
-	  opt=( "${opt[@]}" "--socket=${CONFIG_mysql_dump_socket}" )
-	  mysql_opt=( "${mysql_opt[@]}" "--socket=${CONFIG_mysql_dump_socket}" )
-	  opt_fullschema=( "${opt_fullschema[@]}" "--socket=${CONFIG_mysql_dump_socket}" )
-	  opt_dbstatus=( "${opt_dbstatus[@]}" "--socket=${CONFIG_mysql_dump_socket}" )
+    [[ "${CONFIG_mariadb_dump_socket}" ]]			&& {
+	  opt=( "${opt[@]}" "--socket=${CONFIG_mariadb_dump_socket}" )
+	  mariadb_opt=( "${mariadb_opt[@]}" "--socket=${CONFIG_mariadb_dump_socket}" )
+	  opt_fullschema=( "${opt_fullschema[@]}" "--socket=${CONFIG_mariadb_dump_socket}" )
+	  opt_dbstatus=( "${opt_dbstatus[@]}" "--socket=${CONFIG_mariadb_dump_socket}" )
     }
-    [[ "${CONFIG_mysql_dump_port}" ]]			&& {
-	  opt=( "${opt[@]}" "--port=${CONFIG_mysql_dump_port}" )
-	  mysql_opt=( "${mysql_opt[@]}" "--port=${CONFIG_mysql_dump_port}" )
-	  opt_fullschema=( "${opt_fullschema[@]}" "--port=${CONFIG_mysql_dump_port}" )
-	  opt_dbstatus=( "${opt_dbstatus[@]}" "--port=${CONFIG_mysql_dump_port}" )
+    [[ "${CONFIG_mariadb_dump_port}" ]]			&& {
+	  opt=( "${opt[@]}" "--port=${CONFIG_mariadb_dump_port}" )
+	  mariadb_opt=( "${mariadb_opt[@]}" "--port=${CONFIG_mariadb_dump_port}" )
+	  opt_fullschema=( "${opt_fullschema[@]}" "--port=${CONFIG_mariadb_dump_port}" )
+	  opt_dbstatus=( "${opt_dbstatus[@]}" "--port=${CONFIG_mariadb_dump_port}" )
     }
 
     # Check if CREATE DATABASE should be included in Dump
-    if [[ "${CONFIG_mysql_dump_use_separate_dirs}" = "yes" ]]; then
-	    if [[ "${CONFIG_mysql_dump_create_database}" = "no" ]]; then
+    if [[ "${CONFIG_mariadb_dump_use_separate_dirs}" = "yes" ]]; then
+	    if [[ "${CONFIG_mariadb_dump_create_database}" = "no" ]]; then
 		    opt=( "${opt[@]}" '--no-create-db' )
 	    else
 		    opt=( "${opt[@]}" '--databases' )
@@ -586,22 +586,22 @@ parse_configuration () {
 	    opt=( "${opt[@]}" '--databases' )
     fi
 
-    if [[ "${CONFIG_mysql_dump_add_drop_database}" = "yes" ]]; then
+    if [[ "${CONFIG_mariadb_dump_add_drop_database}" = "yes" ]]; then
       opt=( "${opt[@]}" '--add-drop-database' )
     fi
 
-    if [[ "${CONFIG_mysql_dump_create_event}" = "yes" ]]; then
+    if [[ "${CONFIG_mariadb_dump_create_event}" = "yes" ]]; then
       opt=( "${opt[@]}" '--events' )
     fi
 
 	# if differential backup is active and the specified rotation is smaller than 21 days, set it to 21 days to ensure, that
 	# master backups aren't deleted.
-	if [[ "x$CONFIG_mysql_dump_differential" = "xyes" ]] && (( ${CONFIG_rotation_daily} < 21 )); then
+	if [[ "x$CONFIG_mariadb_dump_differential" = "xyes" ]] && (( ${CONFIG_rotation_daily} < 21 )); then
 	  CONFIG_rotation_daily=21
 	fi
 
     # -> determine suffix
-    case "${CONFIG_mysql_dump_compression}" in
+    case "${CONFIG_mariadb_dump_compression}" in
       'gzip')	suffix='.gz';;
       'bzip2')	suffix='.bz2';;
       'xz')	suffix='.xz';;
@@ -618,7 +618,7 @@ parse_configuration () {
 	  db=${i%.*}
 	  table=${i#"$db".}
 	  r='\*'; [[ "$i" =~ $r ]] || { tmp[z++]="$i"; continue; }
-	  while read -r; do tmp[z++]="${db}.${REPLY}"; done < <($MYSQL "${mysql_opt[@]}" --batch --skip-column-names -e "select table_name from information_schema.tables where table_schema='${db}' and table_name like '${table//\*/%}';")
+	  while read -r; do tmp[z++]="${db}.${REPLY}"; done < <($MARIADB "${mariadb_opt[@]}" --batch --skip-column-names -e "select table_name from information_schema.tables where table_schema='${db}' and table_name like '${table//\*/%}';")
 	done
 	for l in "${tmp[@]}"; do echo "exclude $l";done
 	CONFIG_table_exclude=("${tmp[@]}")
@@ -633,48 +633,48 @@ parse_configuration () {
 
 # @info:	Backup database status
 # @args:	archive file without compression suffix, i.e. ending on .txt
-# @return:	true in case of dry-run, otherwise the return value of mysqlshow
+# @return:	true in case of dry-run, otherwise the return value of mariadbshow
 # @deps:	load_default_config, parse_configuration
 dbstatus() {
   if (( $CONFIG_dryrun )); then
-    case "${CONFIG_mysql_dump_compression}" in
+    case "${CONFIG_mariadb_dump_compression}" in
 	'gzip')
-	  echo "dry-running: $MYSQLSHOW ${opt_dbstatus[@]} | gzip_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBSHOW ${opt_dbstatus[@]} | gzip_compression > ${1}${suffix}";
 	  ;;
 	'bzip2')
-	  echo "dry-running: $MYSQLSHOW ${opt_dbstatus[@]} | bzip2_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBSHOW ${opt_dbstatus[@]} | bzip2_compression > ${1}${suffix}";
 	  ;;
 	'xz')
-	  echo "dry-running: $MYSQLSHOW ${opt_dbstatus[@]} | xz_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBSHOW ${opt_dbstatus[@]} | xz_compression > ${1}${suffix}";
 	  ;;
 	'zstd')
-	  echo "dry-running: $MYSQLSHOW ${opt_dbstatus[@]} | zstd_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBSHOW ${opt_dbstatus[@]} | zstd_compression > ${1}${suffix}";
 	  ;;
 	*)
-	  echo "dry-running: $MYSQLSHOW ${opt_dbstatus[@]} > ${1}${suffix}";
+	  echo "dry-running: $MARIADBSHOW ${opt_dbstatus[@]} > ${1}${suffix}";
 	  ;;
     esac
     return 0;
   else
-    case "${CONFIG_mysql_dump_compression}" in
+    case "${CONFIG_mariadb_dump_compression}" in
 	'gzip')
-	  $MYSQLSHOW "${opt_dbstatus[@]}" | gzip_compression > "${1}${suffix}";
+	  $MARIADBSHOW "${opt_dbstatus[@]}" | gzip_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	'bzip2')
-	  $MYSQLSHOW "${opt_dbstatus[@]}" | bzip2_compression > "${1}${suffix}";
+	  $MARIADBSHOW "${opt_dbstatus[@]}" | bzip2_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	'xz')
-	  $MYSQLSHOW "${opt_dbstatus[@]}" | xz_compression > "${1}${suffix}";
+	  $MARIADBSHOW "${opt_dbstatus[@]}" | xz_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	'zstd')
-	  $MYSQLSHOW "${opt_dbstatus[@]}" | zstd_compression > "${1}${suffix}";
+	  $MARIADBSHOW "${opt_dbstatus[@]}" | zstd_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	*)
-	  $MYSQLSHOW "${opt_dbstatus[@]}" > "${1}${suffix}";
+	  $MARIADBSHOW "${opt_dbstatus[@]}" > "${1}${suffix}";
 	  return $?
 	  ;;
     esac
@@ -683,48 +683,48 @@ dbstatus() {
 
 # @info:	Backup of the database schema.
 # @args:	filename to save data to
-# @return:	true in case of dry-run, otherwise the return value of mysqldump
+# @return:	true in case of dry-run, otherwise the return value of mariadbdump
 # @deps:	load_default_config, parse_configuration
 fullschema () {
   if (( $CONFIG_dryrun )); then
-    case "${CONFIG_mysql_dump_compression}" in
+    case "${CONFIG_mariadb_dump_compression}" in
 	'gzip')
-	  echo "dry-running: $MYSQLDUMP ${opt_fullschema[@]} | gzip_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBDUMP ${opt_fullschema[@]} | gzip_compression > ${1}${suffix}";
 	  ;;
 	'bzip2')
-	  echo "dry-running: $MYSQLDUMP ${opt_fullschema[@]} | bzip2_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBDUMP ${opt_fullschema[@]} | bzip2_compression > ${1}${suffix}";
 	  ;;
 	'xz')
-	  echo "dry-running: $MYSQLDUMP ${opt_fullschema[@]} | xz_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBDUMP ${opt_fullschema[@]} | xz_compression > ${1}${suffix}";
 	  ;;
 	'zstd')
-	  echo "dry-running: $MYSQLDUMP ${opt_fullschema[@]} | zstd_compression > ${1}${suffix}";
+	  echo "dry-running: $MARIADBDUMP ${opt_fullschema[@]} | zstd_compression > ${1}${suffix}";
 	  ;;
 	*)
-	  echo "dry-running: $MYSQLDUMP ${opt_fullschema[@]} > ${1}${suffix}";
+	  echo "dry-running: $MARIADBDUMP ${opt_fullschema[@]} > ${1}${suffix}";
 	  ;;
     esac
     return 0;
   else
-    case "${CONFIG_mysql_dump_compression}" in
+    case "${CONFIG_mariadb_dump_compression}" in
 	'gzip')
-	  $MYSQLDUMP "${opt_fullschema[@]}" | gzip_compression > "${1}${suffix}";
+	  $MARIADBDUMP "${opt_fullschema[@]}" | gzip_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	'bzip2')
-	  $MYSQLDUMP "${opt_fullschema[@]}" | bzip2_compression > "${1}${suffix}";
+	  $MARIADBDUMP "${opt_fullschema[@]}" | bzip2_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	'xz')
-	  $MYSQLDUMP "${opt_fullschema[@]}" | xz_compression > "${1}${suffix}";
+	  $MARIADBDUMP "${opt_fullschema[@]}" | xz_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	'zstd')
-	  $MYSQLDUMP "${opt_fullschema[@]}" | zstd_compression > "${1}${suffix}";
+	  $MARIADBDUMP "${opt_fullschema[@]}" | zstd_compression > "${1}${suffix}";
 	  return $?
 	  ;;
 	*)
-	  $MYSQLDUMP "${opt_fullschema[@]}" > "${1}${suffix}";
+	  $MARIADBDUMP "${opt_fullschema[@]}" > "${1}${suffix}";
 	  return $?
 	  ;;
     esac
@@ -781,7 +781,7 @@ process_dbs() {
 	db="$1"
   fi
 
-  if [[ "x$CONFIG_mysql_dump_differential" = "xyes" ]] && [[ "x${CONFIG_encrypt}" != "xyes" ]] && (( $activate_differential_backup )); then
+  if [[ "x$CONFIG_mariadb_dump_differential" = "xyes" ]] && [[ "x${CONFIG_encrypt}" != "xyes" ]] && (( $activate_differential_backup )); then
 
 
 	  unset manifest_entry manifest_entry_to_check
@@ -835,7 +835,7 @@ process_dbs() {
 
   fi
 
-  if [[ "x$CONFIG_mysql_dump_differential" = "xyes" ]] && [[ "x${CONFIG_encrypt}" != "xyes" ]] && (( $activate_differential_backup )) && ((! ($filename_flags & $filename_flag_encrypted) )); then
+  if [[ "x$CONFIG_mariadb_dump_differential" = "xyes" ]] && [[ "x${CONFIG_encrypt}" != "xyes" ]] && (( $activate_differential_backup )) && ((! ($filename_flags & $filename_flag_encrypted) )); then
 
 	  # the master file is encrypted ... well this just shouldn't happen ^^ not going to decrypt or stuff like that ...at least not today :)
 
@@ -844,21 +844,21 @@ process_dbs() {
 		cfname="$(mktemp "${fname%.sql}_"XXXXXXXX".sql${suffix}")"
 		uid="${cfname%.@(diff|sql)*}"
 		uid="${uid:-8:8}"
-		case "${CONFIG_mysql_dump_compression}" in
+		case "${CONFIG_mariadb_dump_compression}" in
 		'gzip')
-		  $MYSQLDUMP "${opt[@]}" "$@" | gzip_compression > "$cfname";
+		  $MARIADBDUMP "${opt[@]}" "$@" | gzip_compression > "$cfname";
 		  ;;
 		'bzip2')
-		  $MYSQLDUMP "${opt[@]}" "$@" | bzip2_compression > "$cfname";
+		  $MARIADBDUMP "${opt[@]}" "$@" | bzip2_compression > "$cfname";
 		  ;;
 		'xz')
-		  $MYSQLDUMP "${opt[@]}" "$@" | xz_compression > "$cfname";
+		  $MARIADBDUMP "${opt[@]}" "$@" | xz_compression > "$cfname";
 		  ;;
 		'zstd')
-		  $MYSQLDUMP "${opt[@]}" "$@" | zstd_compression > "$cfname";
+		  $MARIADBDUMP "${opt[@]}" "$@" | zstd_compression > "$cfname";
 		  ;;
 		*)
-		  $MYSQLDUMP "${opt[@]}" "$@" > "$cfname";
+		  $MARIADBDUMP "${opt[@]}" "$@" > "$cfname";
 		  ;;
 		esac
 		add_manifest_entry "$manifest_file" "$cfname" "$pid" "$db" && parse_manifest "$manifest_file" && cp -al "$cfname" "${CONFIG_backup_dir}"/latest/ && echo "Generated master backup $cfname" && return 0 || return 1
@@ -868,62 +868,62 @@ process_dbs() {
 		uid="${cfname%.@(diff|sql)*}"
 		uid=${uid:-8:8}
 		echo "Creating differential backup to ${manifest_entry[0]}:"
-		case "${CONFIG_mysql_dump_compression}" in
+		case "${CONFIG_mariadb_dump_compression}" in
 		'gzip')
 		  if (( $filename_flags & $filename_flag_gz )); then
-			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
+			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_bz2 )); then
-			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
+			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_xz )); then
-			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
+			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
 		  else
-			diff "${manifest_latest_master_entry[0]}" <($MYSQLDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
+			diff "${manifest_latest_master_entry[0]}" <($MARIADBDUMP "${opt[@]}" "$@") | gzip_compression > "$cfname";
 		  fi
 		  ;;
 		'bzip2')
 		  if (( $filename_flags & $filename_flag_gz )); then
-			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
+			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_bz2 )); then
-			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
+			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_xz )); then
-			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
+			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
 		  else
-			diff "${manifest_latest_master_entry[0]}" <($MYSQLDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
+			diff "${manifest_latest_master_entry[0]}" <($MARIADBDUMP "${opt[@]}" "$@") | bzip2_compression > "$cfname";
 		  fi
 		  ;;
 		'xz')
 		  if (( $filename_flags & $filename_flag_gz )); then
-			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_bz2 )); then
-			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_xz )); then
-			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  else
-			diff "${manifest_latest_master_entry[0]}" <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff "${manifest_latest_master_entry[0]}" <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  fi
 		  ;;
 		'zstd')
 		  if (( $filename_flags & $filename_flag_zst )); then
-			diff <(zstd_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff <(zstd_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_bz2 )); then
-			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  elif (( $filename_flags & $filename_flag_xz )); then
-			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  else
-			diff "${manifest_latest_master_entry[0]}" <($MYSQLDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
+			diff "${manifest_latest_master_entry[0]}" <($MARIADBDUMP "${opt[@]}" "$@") | xz_compression > "$cfname";
 		  fi
 		  ;;
 		*)
 		  if (( $filename_flags & $filename_flag_gz )); then
-			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") > "$cfname";
+			diff <(gzip_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") > "$cfname";
 		  elif (( $filename_flags & $filename_flag_bz2 )); then
-			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") > "$cfname";
+			diff <(bzip2_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") > "$cfname";
 		  elif (( $filename_flags & $filename_flag_xz )); then
-			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") > "$cfname";
+			diff <(xz_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") > "$cfname";
 		  elif (( $filename_flags & $filename_flag_zst )); then
-			diff <(zstd_compression -dc "${manifest_latest_master_entry[0]}") <($MYSQLDUMP "${opt[@]}" "$@") > "$cfname";
+			diff <(zstd_compression -dc "${manifest_latest_master_entry[0]}") <($MARIADBDUMP "${opt[@]}" "$@") > "$cfname";
 		  else
-			diff "${manifest_latest_master_entry[0]}" <($MYSQLDUMP "${opt[@]}" "$@") > "$cfname";
+			diff "${manifest_latest_master_entry[0]}" <($MARIADBDUMP "${opt[@]}" "$@") > "$cfname";
 		  fi
 		  ;;
 		esac
@@ -935,56 +935,56 @@ process_dbs() {
   else
 	  cfname="${fname}${suffix}"
 	  if (( $CONFIG_dryrun )); then
-		case "${CONFIG_mysql_dump_compression}" in
+		case "${CONFIG_mariadb_dump_compression}" in
 		'gzip')
-		  echo "dry-running: $MYSQLDUMP ${opt[@]} $@ | gzip_compression > ${cfname}"
+		  echo "dry-running: $MARIADBDUMP ${opt[@]} $@ | gzip_compression > ${cfname}"
 		  ;;
 		'bzip2')
-		  echo "dry-running: $MYSQLDUMP ${opt[@]} $@ | bzip2_compression > ${cfname}"
+		  echo "dry-running: $MARIADBDUMP ${opt[@]} $@ | bzip2_compression > ${cfname}"
 		  ;;
 		'xz')
-		  echo "dry-running: $MYSQLDUMP ${opt[@]} $@ | xz_compression > ${cfname}"
+		  echo "dry-running: $MARIADBDUMP ${opt[@]} $@ | xz_compression > ${cfname}"
 		  ;;
 		'zstd')
-		  echo "dry-running: $MYSQLDUMP ${opt[@]} $@ | zstd_compression > ${cfname}"
+		  echo "dry-running: $MARIADBDUMP ${opt[@]} $@ | zstd_compression > ${cfname}"
 		  ;;
 		*)
-		  echo "dry-running: $MYSQLDUMP ${opt[@]} $@ > ${cfname}"
+		  echo "dry-running: $MARIADBDUMP ${opt[@]} $@ > ${cfname}"
 		  ;;
 		esac
 		return 0;
 	  else
         if [ $NODOT_VER = "57" ]; then
-          max_execution_time=`$MYSQL -B --skip-column-names -e "show variables like '%max_execution_time%';" | awk '{print $2}'`
-          max_statement_time=`$MYSQL -B --skip-column-names -e "show variables like '%max_statement_time%';" | awk '{print $2}'`
-          $MYSQL -e "SET GLOBAL max_statement_time=0;"
-          $MYSQL -e "SET GLOBAL max_execution_time=0;"
+          max_execution_time=`$MARIADB -B --skip-column-names -e "show variables like '%max_execution_time%';" | awk '{print $2}'`
+          max_statement_time=`$MARIADB -B --skip-column-names -e "show variables like '%max_statement_time%';" | awk '{print $2}'`
+          $MARIADB -e "SET GLOBAL max_statement_time=0;"
+          $MARIADB -e "SET GLOBAL max_execution_time=0;"
         fi
-		case "${CONFIG_mysql_dump_compression}" in
+		case "${CONFIG_mariadb_dump_compression}" in
 		'gzip')
-		  $MYSQLDUMP "${opt[@]}" "$@" | gzip_compression > "${cfname}"
+		  $MARIADBDUMP "${opt[@]}" "$@" | gzip_compression > "${cfname}"
 		  ret=$?
 		  ;;
 		'bzip2')
-		  $MYSQLDUMP "${opt[@]}" "$@" | bzip2_compression > "${cfname}"
+		  $MARIADBDUMP "${opt[@]}" "$@" | bzip2_compression > "${cfname}"
 		  ret=$?
 		  ;;
 		'xz')
-		  $MYSQLDUMP "${opt[@]}" "$@" | xz_compression > "${cfname}"
+		  $MARIADBDUMP "${opt[@]}" "$@" | xz_compression > "${cfname}"
 		  ret=$?
 		  ;;
 		'zstd')
-		  $MYSQLDUMP "${opt[@]}" "$@" | zstd_compression > "${cfname}"
+		  $MARIADBDUMP "${opt[@]}" "$@" | zstd_compression > "${cfname}"
 		  ret=$?
 		  ;;
 		*)
-		  $MYSQLDUMP "${opt[@]}" "$@" > "${cfname}"
+		  $MARIADBDUMP "${opt[@]}" "$@" > "${cfname}"
 		  ret=$?
 		  ;;
 		esac
         if [ $NODOT_VER = "57" ]; then
-		  $MYSQL -e "SET GLOBAL max_execution_time=$max_execution_time;"
-		  $MYSQL -e "SET GLOBAL max_statement_time=$max_statement_time;"
+		  $MARIADB -e "SET GLOBAL max_execution_time=$max_execution_time;"
+		  $MARIADB -e "SET GLOBAL max_statement_time=$max_statement_time;"
         fi
 	  fi
 
@@ -1042,8 +1042,8 @@ directory_checks_enable_logging () {
 
     checkdirs=( "${CONFIG_backup_dir}"/{daily,weekly,monthly,latest,tmp} )
     [[ "${CONFIG_backup_local_files[@]}" ]] && { checkdirs=( "${checkdirs[@]}" "${CONFIG_backup_dir}/backup_local_files" ); }
-    [[ "${CONFIG_mysql_dump_full_schema}" = 'yes' ]] && { checkdirs=( "${checkdirs[@]}" "${CONFIG_backup_dir}/fullschema" ); }
-	[[ "${CONFIG_mysql_dump_dbstatus}" = 'yes' ]] && { checkdirs=( "${checkdirs[@]}" "${CONFIG_backup_dir}/status" ); }
+    [[ "${CONFIG_mariadb_dump_full_schema}" = 'yes' ]] && { checkdirs=( "${checkdirs[@]}" "${CONFIG_backup_dir}/fullschema" ); }
+	[[ "${CONFIG_mariadb_dump_dbstatus}" = 'yes' ]] && { checkdirs=( "${checkdirs[@]}" "${CONFIG_backup_dir}/status" ); }
 
     tmp_permcheck=0
 
@@ -1073,14 +1073,14 @@ directory_checks_enable_logging () {
 	if [[ -d "${CONFIG_backup_dir}" ]]; then
 	    if (( $CONFIG_dryrun )); then
 	      printf 'dry-running. Skipping. Logging to /tmp\n'
-	      log_file="/tmp/${CONFIG_mysql_dump_host}-`date +%N`.log"
-	      log_errfile="/tmp/ERRORS_${CONFIG_mysql_dump_host}-`date +%N`.log"
+	      log_file="/tmp/${CONFIG_mariadb_dump_host}-`date +%N`.log"
+	      log_errfile="/tmp/ERRORS_${CONFIG_mariadb_dump_host}-`date +%N`.log"
 	      activateIO "$log_file" "$log_errfile"
 	      tmp_permcheck=1
 	    else
 		if chk_folder_writable "${CONFIG_backup_dir}"; then
-		  log_file="${CONFIG_backup_dir}/${CONFIG_mysql_dump_host}-`date +%N`.log"
-		  log_errfile="${CONFIG_backup_dir}/ERRORS_${CONFIG_mysql_dump_host}-`date +%N`.log"
+		  log_file="${CONFIG_backup_dir}/${CONFIG_mariadb_dump_host}-`date +%N`.log"
+		  log_errfile="${CONFIG_backup_dir}/ERRORS_${CONFIG_mariadb_dump_host}-`date +%N`.log"
 		  activateIO "$log_file" "$log_errfile"
 		  tmp_permcheck=1
 		else
@@ -1098,8 +1098,8 @@ directory_checks_enable_logging () {
 	    else
 		if mkdir -p "${CONFIG_backup_dir}" >/dev/null 2>&1; then
 		  printf 'success.\n'
-		  log_file="${CONFIG_backup_dir}/${CONFIG_mysql_dump_host}-`date +%N`.log"
-		  log_errfile="${CONFIG_backup_dir}/ERRORS_${CONFIG_mysql_dump_host}-`date +%N`.log"
+		  log_file="${CONFIG_backup_dir}/${CONFIG_mariadb_dump_host}-`date +%N`.log"
+		  log_errfile="${CONFIG_backup_dir}/ERRORS_${CONFIG_mariadb_dump_host}-`date +%N`.log"
 		  activateIO "$log_file" "$log_errfile"
 		  tmp_permcheck=1
 		else
@@ -1115,8 +1115,8 @@ directory_checks_enable_logging () {
 
 	if (( $CONFIG_dryrun )); then
 	    printf 'dry-running. Skipping. Logging to /tmp\n'
-	    log_file="/tmp/${CONFIG_mysql_dump_host}-`date +%N`.log"
-	    log_errfile="/tmp/ERRORS_${CONFIG_mysql_dump_host}-`date +%N`.log"
+	    log_file="/tmp/${CONFIG_mariadb_dump_host}-`date +%N`.log"
+	    log_errfile="/tmp/ERRORS_${CONFIG_mariadb_dump_host}-`date +%N`.log"
 	    activateIO "$log_file" "$log_errfile"
 	else
 	  printf 'does not exist. Exiting.\n'
@@ -1158,13 +1158,13 @@ directory_checks_enable_logging () {
 
 }
 
-# @info:	If CONFIG_mysql_dump_latest is set to 'yes', the directory ${CONFIG_backup_dir}"/latest will
+# @info:	If CONFIG_mariadb_dump_latest is set to 'yes', the directory ${CONFIG_backup_dir}"/latest will
 #			be cleaned.
 # @args:	(none)
 # @deps:	load_default_config
 cleanup_latest ()  {
     # -> latest cleanup
-    if [[ "${CONFIG_mysql_dump_latest}" = "yes" ]]; then
+    if [[ "${CONFIG_mariadb_dump_latest}" = "yes" ]]; then
       printf 'Cleaning up latest directory ... '
       if (( $CONFIG_dryrun )); then
 	printf 'dry-running. Skipping.\n'
@@ -1187,32 +1187,32 @@ cleanup_latest ()  {
 check_dependencies () {
     echo
     echo "# Testing for installed programs"
-    dependencies=( 'mysql' 'mysqldump' )
+    dependencies=( 'mariadb' 'mariadb-dump' )
 
 	if [[ "x$CONFIG_multicore" = 'xyes' ]]; then
 
-		if [[ "x$CONFIG_mysql_dump_compression" = 'xbzip2' ]]; then
+		if [[ "x$CONFIG_mariadb_dump_compression" = 'xbzip2' ]]; then
 		  if type pbzip2 &>/dev/null; then
 		    echo "pbzip2 ... found."
 		  else
 		    CONFIG_multicore='no' # turn off multicore support, since the program isn't there
 		    echo "WARNING: Turning off multicore support, since pbzip2 isn't there."
 		  fi
-		elif [[ "x$CONFIG_mysql_dump_compression" = 'xgzip' ]]; then
+		elif [[ "x$CONFIG_mariadb_dump_compression" = 'xgzip' ]]; then
 		  if type pigz &>/dev/null; then
 		    echo "pigz ... found."
 		  else
 		    CONFIG_multicore='no' # turn off multicore support, since the program isn't there
 		    echo "WARNING: Turning off multicore support, since pigz isn't there."
 		  fi
-		elif [[ "x$CONFIG_mysql_dump_compression" = 'xxz' ]]; then
+		elif [[ "x$CONFIG_mariadb_dump_compression" = 'xxz' ]]; then
 		  if type xz &>/dev/null; then
 		    echo "xz ... found."
 		  else
 		    CONFIG_multicore='no' # turn off multicore support, since the program isn't there
 		    echo "WARNING: Turning off multicore support, since xz isn't there."
 		  fi
-		elif [[ "x$CONFIG_mysql_dump_compression" = 'xzstd' ]]; then
+		elif [[ "x$CONFIG_mariadb_dump_compression" = 'xzstd' ]]; then
 		  if type zstd &>/dev/null; then
 		    echo "zstd ... found."
 		  else
@@ -1222,10 +1222,10 @@ check_dependencies () {
 		fi
 
 	else
-		[[ "x$CONFIG_mysql_dump_compression" = 'xbzip2' ]] && dependencies=("${dependencies[@]}" 'bzip2' )
-		[[ "x$CONFIG_mysql_dump_compression" = 'xgzip' ]] && dependencies=("${dependencies[@]}" 'gzip' )
-		[[ "x$CONFIG_mysql_dump_compression" = 'xxz' ]] && dependencies=("${dependencies[@]}" 'xz' )
-		[[ "x$CONFIG_mysql_dump_compression" = 'xzstd' ]] && dependencies=("${dependencies[@]}" 'zstd' )
+		[[ "x$CONFIG_mariadb_dump_compression" = 'xbzip2' ]] && dependencies=("${dependencies[@]}" 'bzip2' )
+		[[ "x$CONFIG_mariadb_dump_compression" = 'xgzip' ]] && dependencies=("${dependencies[@]}" 'gzip' )
+		[[ "x$CONFIG_mariadb_dump_compression" = 'xxz' ]] && dependencies=("${dependencies[@]}" 'xz' )
+		[[ "x$CONFIG_mariadb_dump_compression" = 'xzstd' ]] && dependencies=("${dependencies[@]}" 'zstd' )
 	fi
 
     if [[ "x$CONFIG_mailcontent" = 'xlog' || "x$CONFIG_mailcontent" = 'xquiet' ]]; then
@@ -1262,13 +1262,13 @@ check_dependencies () {
 #
 parse_databases() {
   # bash 4.x version
-  #mapfile -t alldbnames < <(mysql --user="${CONFIG_mysql_dump_username}" --password="${CONFIG_mysql_dump_password}" --host="${CONFIG_mysql_dump_host}" --batch --skip-column-names -e "show databases")
+  #mapfile -t alldbnames < <(mariadb --user="${CONFIG_mariadb_dump_username}" --password="${CONFIG_mariadb_dump_password}" --host="${CONFIG_mariadb_dump_host}" --batch --skip-column-names -e "show databases")
   alldbnames=()
 
   printf "# Parsing databases ... "
   # bash 3.0
   local i;i=0;
-  while read -r; do alldbnames[i++]="$REPLY"; done < <($MYSQL "${mysql_opt[@]}" --batch --skip-column-names -e "show databases")
+  while read -r; do alldbnames[i++]="$REPLY"; done < <($MARIADB "${mariadb_opt[@]}" --batch --skip-column-names -e "show databases")
   unset i
 
   # mkfifo foo || exit; trap 'rm -f foo' EXIT
@@ -1856,8 +1856,8 @@ method_backup () {
 	if [[ -r "${CONFIG_configfile}" ]]; then source "${CONFIG_configfile}"; else let "N |= $N_config_file_missing"; fi
 	if (( $opt_flag_config_file )); then if [[ -r "${opt_config_file}" ]]; then source "${opt_config_file}"; let "N |= $N_arg_conffile_parsed"; else let "N |= $N_arg_conffile_unreadable"; fi; else let "N |= $N_too_many_args"; fi
 
-	# load mysql commands
-	mysql_commands
+	# load mariadb commands
+	mariadb_commands
 
 	(( $CONFIG_dryrun )) && {
 	  echo "NOTE: We are dry-running. That means, that the script just shows you what it would do, if it were operating normally."
@@ -1867,7 +1867,7 @@ method_backup () {
 
 	export LC_ALL=C
 	PROGNAME=`basename $0`
-	PATH=${PATH}:/usr/local/bin:/usr/bin:/bin:/usr/local/mysql/bin
+	PATH=${PATH}:/usr/local/bin:/usr/bin:/bin:/usr/local/mariadb/bin
 	version=3.0
 	fields=5 # manifest fields
 
@@ -1886,7 +1886,7 @@ method_backup () {
 	parse_databases
 
 	# debug output of variables
-	(( $CONFIG_debug )) && { echo; echo "# DEBUG: printing all current variables"; declare -p | egrep -o '.* (CONFIG_[a-z_]*|opt|mysql_opt|opt_dbstatus|opt_fullschema)=.*'; echo; }
+	(( $CONFIG_debug )) && { echo; echo "# DEBUG: printing all current variables"; declare -p | egrep -o '.* (CONFIG_[a-z_]*|opt|mariadb_opt|opt_dbstatus|opt_fullschema)=.*'; echo; }
 	(( $CONFIG_debug )) && { echo "DEBUG: before pre-backup"; ( IFS=,; echo "DEBUG: CONFIG_db_names '${CONFIG_db_names[*]}'" ); ( IFS=,; echo "DEBUG: CONFIG_db_month_names '${CONFIG_db_month_names[*]}'" );}
 
 
@@ -1911,10 +1911,10 @@ method_backup () {
 	#	daily_all-databases_DBNAME_2011-08-14_18h12m_7.sql(.enc).{gz,bzip2}
 
 	echo "======================================================================"
-	echo "AutoMySQLBackup version ${version}"
-	echo "http://sourceforge.net/projects/automysqlbackup/"
+	echo "AutoMariaDBBackup version ${version}"
+	echo "https://github.com/official-tisao/AutoMariaDBBackup"
 	echo
-	echo "Backup of Database Server - ${CONFIG_mysql_dump_host_friendly:-$CONFIG_mysql_dump_host}"
+	echo "Backup of Database Server - ${CONFIG_mariadb_dump_host_friendly:-$CONFIG_mariadb_dump_host}"
 	( IFS=,; echo "Databases - ${CONFIG_db_names[*]}" )
 	( IFS=,; echo "Databases (monthly) - ${CONFIG_db_month_names[*]}" )
 	echo "======================================================================"
@@ -1953,7 +1953,7 @@ method_backup () {
 	# <- backup local files
 
 	# -> dump full schema
-	if [[ "${CONFIG_mysql_dump_full_schema}" = 'yes' ]]; then
+	if [[ "${CONFIG_mariadb_dump_full_schema}" = 'yes' ]]; then
 		echo "======================================================================"
 		echo "Dump full schema."
 		echo
@@ -2017,7 +2017,7 @@ method_backup () {
 	# <- dump full schema
 
 	# -> dump status
-	if [[ "${CONFIG_mysql_dump_dbstatus}" = 'yes' ]]; then
+	if [[ "${CONFIG_mariadb_dump_dbstatus}" = 'yes' ]]; then
 		echo "======================================================================"
 		echo "Dump status."
 		echo
@@ -2098,7 +2098,7 @@ method_backup () {
 		  rotation_divisor="31"
 		  rotation_string="month"
 
-		  if [[ "${CONFIG_mysql_dump_use_separate_dirs}" = "yes" ]]; then
+		  if [[ "${CONFIG_mariadb_dump_use_separate_dirs}" = "yes" ]]; then
 			for db in "${CONFIG_db_month_names[@]}"; do
 			  echo "Monthly Backup of Database ( ${db} )"
 			  (shopt -s nullglob dotglob; f=("${CONFIG_backup_dir}/${subfolder}/${db}/${prefix}${db}_${date_stamp}_"[0-9][0-9]"h"[0-9][0-9]"m${midfix}${extension}${suffix}"); ((${#f[@]}))) && continue
@@ -2126,7 +2126,7 @@ method_backup () {
 		  rotation="${CONFIG_rotation_weekly}"
 		  rotation_divisor="7"
 		  rotation_string="week"
-		  if [[ "${CONFIG_mysql_dump_use_separate_dirs}" = "yes" ]]; then
+		  if [[ "${CONFIG_mariadb_dump_use_separate_dirs}" = "yes" ]]; then
 			for db in "${CONFIG_db_names[@]}"; do
 			  echo "Weekly Backup of Database ( ${db} )"
 			  (shopt -s nullglob dotglob; f=("${CONFIG_backup_dir}/${subfolder}/${db}/${prefix}${db}_${date_stamp}_"[0-9][0-9]"h"[0-9][0-9]"m${midfix}${extension}${suffix}"); ((${#f[@]}))) && continue
@@ -2155,7 +2155,7 @@ method_backup () {
 		  rotation_divisor="1"
 		  rotation_string="day"
 
-		  if [[ "${CONFIG_mysql_dump_use_separate_dirs}" = "yes" ]]; then
+		  if [[ "${CONFIG_mariadb_dump_use_separate_dirs}" = "yes" ]]; then
 			for db in "${CONFIG_db_names[@]}"; do
 			  echo "Daily Backup of Database ( ${db} )"
 			  process_dbs "$subfolder" "$prefix" "$midfix" "$extension" "$rotation" "$rotation_divisor" "$rotation_string" 0 "$db"
@@ -2176,7 +2176,7 @@ method_backup () {
 
 
 	# -> clean latest filenames
-	[[ "${CONFIG_mysql_dump_latest_clean_filenames}" = 'yes' ]] && find "${CONFIG_backup_dir}"/latest/ -type f -exec bash -c 'remove_datetimeinfo "$@"' -- {} \;
+	[[ "${CONFIG_mariadb_dump_latest_clean_filenames}" = 'yes' ]] && find "${CONFIG_backup_dir}"/latest/ -type f -exec bash -c 'remove_datetimeinfo "$@"' -- {} \;
 	# <- clean latest filenames
 
 	# -> finished information
@@ -2230,12 +2230,12 @@ method_list_manifest_entries () {
 	if [[ -r "${CONFIG_configfile}" ]]; then source "${CONFIG_configfile}"; echo "Parsed config file \"${CONFIG_configfile}\""; else let "N |= $N_config_file_missing"; fi; echo
 	if (( $opt_flag_config_file )); then if [[ -r "${opt_config_file}" ]]; then source "${opt_config_file}"; let "N |= $N_arg_conffile_parsed"; else let "N |= $N_arg_conffile_unreadable"; fi; else let "N |= $N_too_many_args"; fi
 
-	# load mysql commands
-	mysql_commands
+	# load mariadb commands
+	mariadb_commands
 
 	export LC_ALL=C
 	PROGNAME=`basename $0`
-	PATH=${PATH}:/usr/local/bin:/usr/bin:/bin:/usr/local/mysql/bin
+	PATH=${PATH}:/usr/local/bin:/usr/bin:/bin:/usr/local/mariadb/bin
 	version=3.0
 	fields=5 # manifest fields
 
@@ -2473,7 +2473,7 @@ while getopts ":c:blh" Option
 do
   case $Option in
 	c     ) echo "Using \"$OPTARG\" as optional config file."; echo; opt_config_file="$OPTARG"; opt_flag_config_file=1;;
-	b     ) echo "MySQL backup method invoked."; echo;  opt_flag_method_backup=1;;
+	b     ) echo "MariaDB backup method invoked."; echo;  opt_flag_method_backup=1;;
 	l	  ) echo "List manifest entries."; echo; opt_flag_list_manifest_entries=1;;
 	h	  )	echo "Usage `basename $0` options -cblh"
 			echo -e "-c CONFIG_FILE\tSpecify optional config file."

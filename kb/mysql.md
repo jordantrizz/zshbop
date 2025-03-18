@@ -71,6 +71,9 @@ CREATE USER 'automysqlbackup'@'localhost' IDENTIFIED BY 'secure-password';
 CREATE USER 'automysqlbackup'@'127.0.0.1' IDENTIFIED BY 'secure-password';
 GRANT SELECT, SHOW VIEW, LOCK TABLES, EVENT ON *.* TO 'automysqlbackup'@'localhost';
 GRANT SELECT, SHOW VIEW, LOCK TABLES, EVENT ON *.* TO 'automysqlbackup'@'127.0.0.1'
+GRANT EXECUTE ON sys.* TO 'automysqlbackup'@'localhost';
+GRANT EXECUTE ON sys.* TO 'automysqlbackup'@'127.0.0.1';
+FLUSH PRIVILEGES;
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -83,7 +86,7 @@ CONFIG_db_exclude_pattern=()
 CONFIG_do_monthly="01"
 CONFIG_do_weekly="5"
 CONFIG_rotation_daily=7
-CONFIG_mysql_dump_max_allowed_packet='512'
+CONFIG_mysql_dump_max_allowed_packet='512M'
 CONFIG_mysql_dump_username='automysqlbackup'
 CONFIG_mysql_dump_password='secure-password'
 CONFIG_mysql_dump_host='localhost'
