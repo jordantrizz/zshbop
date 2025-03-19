@@ -37,7 +37,7 @@ function proxmox_init () {
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20000" || DISKSIZE=$DISKSIZE[2]
-    [[ -z $OS_RELEASE ]] && OS_RELEASE="jammy" || OS_RELEASE=$OS_RELEASE[2]
+    [[ -z $OS_RELEASE ]] && OS_RELEASE="noble" || OS_RELEASE=$OS_RELEASE[2]
     [[ -z $DHCP_NET ]] || DHCP_NET=$DHCP_NET[2]
     [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
     [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]
