@@ -19,9 +19,10 @@ if [[ $? == "0" ]]; then
 	fi
 fi
 
-# -- ps
+# =====================================
+# -- linux aliases
+# =====================================
 alias ps="ps -auxwwf"
-
 # -- tran - https://github.com/abdfnx/tran/releases
 alias tran="tran_linux_amd64"
 
@@ -103,12 +104,3 @@ function linux-checkdiskspace () {
 # -- auto-ls
 export AUTO_LS_COMMANDS=('color' git-status)
 auto-ls-color () { ls -a --color=auto;echo "\n"; }
-
-# =================================================================================================
-# -- last-boots
-# =================================================================================================
-help_linux[last-boot]="Get last boot times"
-function last-boots () {
-    _loading "Running journalctl --list-boots"
-    journalctl --list-boots
-}

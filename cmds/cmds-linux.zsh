@@ -859,3 +859,21 @@ function whatprovides-db () {
 	fi
 	
 }
+
+# =====================================
+# -- last-boots
+# =====================================
+help_linux[last-boot]="Get last boot times"
+function last-boots () {
+    _loading "Running journalctl --list-boots"
+    journalctl --list-boots
+}
+
+# =====================================
+# -- journalctl-cron
+# =====================================
+help_linux[journalctl-cron]="Get cron logs last 48 hours"
+function journalctl-cron () {
+    _loading "Running journalctl -u cron.service --since '48 hours ago'"
+    journalctl -u cron.service --since '48 hours ago'
+}
