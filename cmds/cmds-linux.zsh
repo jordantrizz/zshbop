@@ -877,3 +877,12 @@ function journalctl-cron () {
     _loading "Running journalctl -u cron.service --since '48 hours ago'"
     journalctl -u cron.service --since '48 hours ago'
 }
+
+# =====================================
+# -- syslog-cron
+# =====================================
+help_linux[syslog-cron]="Get cron logs from syslog"
+function syslog-cron () {
+	_loading "Running grep CRON /var/log/syslog"
+	grep CRON /var/log/syslog
+}
