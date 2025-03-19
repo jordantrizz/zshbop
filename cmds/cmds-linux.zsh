@@ -884,5 +884,5 @@ function journalctl-cron () {
 help_linux[syslog-cron]="Get cron logs from syslog"
 function syslog-cron () {
 	_loading "Running grep CRON /var/log/syslog"
-	grep CRON /var/log/syslog
+	grep -i 'CRON' /var/log/syslog
 }
