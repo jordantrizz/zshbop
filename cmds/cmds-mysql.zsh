@@ -443,7 +443,12 @@ mysql-ps () {
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
 function mysql-myisam2innodb () {
 	_mysql-myisam2innodb-usage () {
-		echo "Usage: mysql-myisam2innodb -d<database>|-a"
+		echo "Usage: mysql-myisam2innodb [-d<database>|-a] -b"
+		echo "Commands:"
+		echo "  -d <database>  - Convert MyISAM tables to InnoDB in a specific database"
+		echo "  -a             - Convert MyISAM tables to InnoDB in all databases"
+		echo "Options:"
+		echo "  -sb             - Skip backup"
 	}
 
 	_mysql-myisam2innodb-get-tables () {
@@ -464,10 +469,14 @@ function mysql-myisam2innodb () {
 	_mysql-myisam2innodb-convert () {
 		DATABASE=$1
 		# Backup Database?
-		_loading2 "Backup database (${DATABASE}) before converting? [y/n]"
-		read REPLY
-		if [[ $REPLY =~ ^[Yy]$ ]]; then
-			mysql-backup-db -d $DATABASE
+		if [[ $SKIP_BACKUP == 0 ]]; then
+			_loading2 "Backup database (${DATABASE}) before converting? [y/n]"
+			read REPLY
+			if [[ $REPLY =~ ^[Yy]$ ]]; then
+				mysql-backup-db -d $DATABASE
+			fi
+		else
+			_loading2 "Skipping backup of database ${DATABASE}"
 		fi
 
 		echo "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
@@ -485,14 +494,16 @@ function mysql-myisam2innodb () {
 
 	local DATABASE MODE
 	local MYISAM_DATABASES=()
-	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL
+	local SKIP_BACKUP=0
+
+	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL sb=ARG_SKIP_BACKUP	
 	[[ $ARG_DATABASE  ]] && DATABASE=${ARG_DATABASE[2]}
 	[[ $ARG_ALL ]] && MODE="all" || MODE="single"
+	[[ $ARG_SKIP_BACKUP ]] && SKIP_BACKUP=1
+	
+	[[ -z $MODE ]] && { _mysql-myisam2innodb-usage; _error "Please specify an option to use, -d or -a"; return 1; }
 
-	if [[ -z $DATABASE ]] && [[ -z $MODE ]]; then
-		_mysql-myisam2innodb-usage
-		return 1
-	fi
+	[[ $MODE == "single" ]] && [[ -z $DATABASE ]] && { _mysql-myisam2innodb-usage; _error "Please specify a database to convert"; return 1; }
 
 	if [[ $MODE == "single" ]]; then
 		_loading "Upgrading MyISAM tables to InnoDB in database $DATABASE..."
