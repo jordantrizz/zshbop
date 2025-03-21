@@ -33,10 +33,10 @@ function proxmox_init () {
 
     # -- Set defaults
     [[ -z $CPU ]] && CPU="1" || CPU=$CPU[2]
-    [[ -z $MEM ]] && MEM="2048" || MEM=$MEM[2]
+    [[ -z $MEM ]] && MEM="2" || MEM=$MEM[2]
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
-    [[ -z $DISKSIZE ]] && DISKSIZE="20000" || DISKSIZE=$DISKSIZE[2]
+    [[ -z $DISKSIZE ]] && DISKSIZE="20" || DISKSIZE=$DISKSIZE[2]
     [[ -z $OS_RELEASE ]] && OS_RELEASE="noble" || OS_RELEASE=$OS_RELEASE[2]
     [[ -z $DHCP_NET ]] || DHCP_NET=$DHCP_NET[2]
     [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
@@ -48,6 +48,12 @@ function proxmox_init () {
     [[ -z $MAC ]] && MAC="" || MAC=$MAC[2]
     [[ -z $GW ]] && GW="" || GW=$GW[2]
     [[ -z $VM_ID ]] && VM_ID="" || VM_ID=$VM_ID[2]
+
+    # -- Convert GB to MB for MEM
+    MEM=$(_proxmox_mem_gb2mb $MEM)
+
+    # -- Convert DISKSIZE to MB
+    DISKSIZE=$(_proxmox_disk_gb2mb $DISKSIZE)
 
     _debugf "ALL_ARGS: $ALL_ARGS"
     _debugf "DEBUG: $DEBUG"
@@ -163,7 +169,7 @@ Command Options:
 
     Optional:
         -cpu <count>              Number of CPU cores (Default: 1)
-        -memory <memory>          Memory of VM in MB (Default: 2048) Ex. 512, 1024, 2048, 4096, 8192
+        -memory <memory>          Memory of VM in GB (Default: 2) Ex. 0.5 = 512MB 1 = 1GB 2 = 2GB etc.
         -network <network>        Network bridge to use (Default: vmbr0)
         -storage <storage>        Storage location (Autodetect)
         -disksize <disksize>      Disk size in MB (Default: 20000MB)
@@ -179,7 +185,7 @@ Command Options:
         -bridge [bridge]          Network bridge to use, optional. (Default: vmbr0)
 
 
-	Example: createvm -name server -memory 2048 -network vmbr0 -storage local -disksize 80 -os focal
+	Example: createvm -name server -memory 2 -network vmbr0 -storage local -disksize 80 -os focal
 
   createtemp <options>
   --------------------
@@ -256,6 +262,26 @@ function _proxmox_getid () {
     else
         _loading3 "VM ID set to $VM_ID"
     fi
+}
+
+# ===================================================================
+# -- _proxmox_mem_gb2mb
+# -- Convert GB to MB
+# ===================================================================
+function _proxmox_mem_gb2mb () {
+    local GB
+    GB=$1
+    echo $((GB * 1024))
+}
+
+# ===================================================================
+# -- _proxmox_disk_gb2mb
+# -- Convert GB to MB
+# ===================================================================
+function _proxmox_disk_gb2mb () {
+    local GB
+    GB=$1
+    echo $((GB * 1024 ))
 }
 
 # ===================================================================
