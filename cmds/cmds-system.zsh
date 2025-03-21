@@ -150,9 +150,11 @@ function cpu-features() {
 }
 
 
+# ========================================
 # -- mem
+# ========================================
 help_system[mem]='Get memory information'
-function mem () {
+function mem () {    
     if [[ $MACHINE_OS == "linux" ]]; then
         # -- Memory
         SWAP_USED=$(free -m | awk 'NR==3 {print $3}')

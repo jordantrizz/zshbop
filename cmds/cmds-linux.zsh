@@ -423,13 +423,14 @@ catvet () {
 # -- std-view
 # ===============================================
 help_linux[std-view]="Print stdout and stderr on command output"
-std-view () {
-	if [[ -z $1 ]]; then
-		echo "Usage: std-viewd <command>"
-		return 1
-	else
-		eval "{ { $1; } 2>&3 | sed 's/^/STDOUT: /'; } 3>&1 1>&2 | sed 's/^/STDERR: /'"
-	fi
+function std-view() {
+    if [[ -z $1 ]]; then
+        echo "Usage: std-view <command>"
+        return 1
+    else
+        # Use process substitution for cleaner handling of streams
+        eval "$1 > >(sed 's/^/STDOUT: /') 2> >(sed 's/^/STDERR: /' >&2)"
+    fi
 }
 
 # ===============================================
