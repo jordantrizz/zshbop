@@ -44,21 +44,21 @@ get_category_commands () {
         _debug "\${(P)HELP_CAT}: ${(P)HELP_CAT}"
         _loading "-- $ACTION - Core --------"
         _error "No command or category $ACTION, try running kb $ACTION"
-        echo ""
+        echo
         _loading2 "Potential Matches"    
         for key in ${(kon)ALL_HELP_COMMANDS}; do
             if [[ $key == *"$ACTION"* ]]; then
                 echo "$key"
             fi
         done
-        echo ""
+        echo
 	else
 		_loading "-- $ACTION -------- $help_files[${ACTION}] --------"
-        echo ""
+        echo
 		for key in ${(kon)${(P)HELP_CAT}}; do
             printf '%s\n' "  ${(r:25:)key} - ${${(P)HELP_CAT}[$key]}"
         done
-        echo ""
+        echo
     fi
 }
 
@@ -67,13 +67,13 @@ function get_category_commands_custom () {
     local ACTION=$1
     if [[ $cmdsc_files[$ACTION] ]]; then
         CMDSC_CMDS=(cmdsc_$ACTION)
-        echo ""
+        echo
         _loading2 "-- $ACTION - Custom - $cmdsc_files[$ACTION] --------"
-        echo ""
+        echo
         for key in ${(kon)${(P)CMDSC_CMDS}}; do
             printf '%s\n' "  ${(r:25:)key} - ${${(P)CMDSC_CMDS}[$key]}"
         done
-        echo ""
+        echo
     elif [[ $ACTION == "auto" ]]; then
         echo ${ALL_HELP_CATEGORIES_CUSTOM[@]}
     elif [[ $ACTION == "auto-cmd" ]]; then
@@ -81,7 +81,7 @@ function get_category_commands_custom () {
     else
         _loading "-- $ACTION - Custom --------"
         _error "No custom command or category $ACTION, try running kb $ACTION"
-        echo ""
+        echo
         _loading2 "Potential Matches"    
         for key in ${(kon)ALL_HELP_COMMANDS_CUSTOM}; do
             if [[ $key == *"$ACTION"* ]]; then
@@ -89,12 +89,12 @@ function get_category_commands_custom () {
             fi
         done
 		return
-        echo ""
+        echo
     fi
 }
 
 # -- Help
-help_core[help]="Display help information for commands"
+help_core[help]="Display all available commands"
 help () {
 		# All arguments $@ into $HCMD
         HCMD=$@
@@ -124,44 +124,44 @@ help () {
 # -- Help introduction
 help_intro () {
 	_loading " Welcome to $ZSHBOP_NAME"
-    echo ""
+    echo
     echo "ZSHBop contains a number of built-in functions, scripts and binaries. This help command will list all that are available."
 	echo "You can request help on any of the following categories by typing help <category>"
-	echo ""
+	echo
 
 	# -- Go through help_zshbop
     _loading2 "    zshbop    "
-    echo ""
+    echo
     for key in ${(kon)help_zshbop}; do
     	printf '%s\n' "  zshbop ${(r:25:)key} - ${help_zshbop[$key]}"
     done
 
 	# -- Go through help_core variables
-    echo ""
+    echo
     _loading2 "    Core    "
-    echo ""
+    echo
 
     for key in ${(kon)help_core}; do
         printf '%s\n' "  ${(r:25:)key} - ${help_core[$key]}"
     done
 
 	# -- Go through help_files variable
-    echo ""
+    echo
     _loading2 "    All Categories    "
-    echo ""
+    echo
     for key in ${(kon)help_files}; do
 		printf '%s\n' "  ${(r:25:)key} - $help_files[$key]"
     done
 
 	# -- Custom help files.
-	echo ""
+	echo
 	_loading "Checking for \$cmdsc_files"
 	_debug "$cmdsc_files"
     if [[ -n $cmdsc_files ]]; then
 		_debug "Loading custom commands"
-        echo ""
+        echo
         _loading2 "    Custom Command Categories    "
-        echo ""
+        echo
 		for key value in ${(kv)cmdsc_files}; do
 	    	printf '%s\n' "  chelp ${(r:25:)key} - $value"
 	    done
@@ -171,11 +171,11 @@ help_intro () {
 
 	# -- Examples
 
-	echo ""
+	echo
     _loading2 "    Examples    "
     echo "$> help mysql"
     echo "$> help tools"
-    echo ""
+    echo
 }
 
 init_help () {

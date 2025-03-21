@@ -489,8 +489,12 @@ zshbop_help () {
     echo " -- Installation Path: $ZSHBOP_ROOT"
 
     echo ""
+    _loading "-- List all commands --------------"
+    echo
+    echo "You can type 'help' at anytime to list all available commands"
+    echo
     _loading "-- core commands --------------"
-    echo ""
+    echo
     echo "These commands are available as just commands in the shell"
     echo ""
     for key in ${(kon)help_core}; do
@@ -512,7 +516,7 @@ zshbop_help () {
     echo ""
     _loading "-- zshbop commands --------------"
     echo ""
-    echo "These commands are available as zshbop commands in the shell"
+    echo "These commands are available as zshbop <command>"
     echo ""
     for key in ${(kon)help_zshbop}; do
         printf '%s\n' "  zshbop ${(r:25:)key} - ${help_zshbop[$key]}"
