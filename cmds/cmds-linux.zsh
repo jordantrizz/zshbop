@@ -420,12 +420,12 @@ catvet () {
 }
 
 # ===============================================
-# -- view-std
+# -- std-view
 # ===============================================
-help_linux[view-std]='View standard output and error'
-view-std () {
+help_linux[std-view]="Print stdout and stderr on command output"
+std-view () {
 	if [[ -z $1 ]]; then
-		echo "Usage: view-std <command>"
+		echo "Usage: std-viewd <command>"
 		return 1
 	else
 		eval "{ { $1; } 2>&3 | sed 's/^/STDOUT: /'; } 3>&1 1>&2 | sed 's/^/STDERR: /'"
