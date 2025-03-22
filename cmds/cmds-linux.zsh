@@ -796,8 +796,7 @@ function whatprovides() {
     # First check if the command is already installed
 	_cmd_exists $COMMAND_NAME
 	if [[ $? == "0" ]]; then
-		_success "Command $COMMAND_NAME is already installed"
-		return 0
+		_success "Command $COMMAND_NAME is already installed"		
 	else
 		_error "Command $COMMAND_NAME is not installed"
 	fi
