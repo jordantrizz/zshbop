@@ -206,3 +206,8 @@ function strip-comments() {
     # Strip comment lines and blank lines
     sed '/^\s*#/d;/^\s*$/d' $FILE
 }
+
+# ===================================
+# -- convert-all-heic.py
+# ===================================
+help_file[convert-all-heic.py]="Convert all HEIC in a directory"
