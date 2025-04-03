@@ -19,6 +19,7 @@ function _gc_replace (){
     fi
     function gc () {
         _loading "Committing using git, consider using glc"
+        git add *
         git commit -am "$*"
         git push
     }    
