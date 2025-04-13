@@ -127,16 +127,18 @@ function STARTLOG() {
     SCRIPT_NAME=$(basename "$0")
     SCRIPT_NAME="${SCRIPT_NAME%.*}"
     export ZB_LOG_STATUS="1"
-    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m> $SCRIPT_NAME ${funcstack[0]}\e[0m" > "$ZB_LOG"
+    DEBUG_LOG="$ZB_LOG"
+    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m> $SCRIPT_NAME ${funcstack[0]}\e[0m" > "$DEBUG_LOG"
 }
 export STARTLOG
 
 # -- Stop log
 function STOPLOG() {
- SCRIPT_NAME=$(basename "$0")
- SCRIPT_NAME="${SCRIPT_NAME%.*}"
- export ZB_LOG_STATUS="0"
- echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m< $SCRIPT_NAME ${funcstack[0]}\e[0m" >> "$ZB_LOG"
+    SCRIPT_NAME=$(basename "$0")
+    SCRIPT_NAME="${SCRIPT_NAME%.*}"
+    export ZB_LOG_STATUS="0"
+    DEBUG_LOG="$ZB_LOG"
+    echo -e "\e[1;30;40m[$(date)]\e[0m \e[0;35;40m[DEBUG]\e[0m \e[1;30;40m< $SCRIPT_NAME ${funcstack[0]}\e[0m" >> "$DEBUG_LOG"
 }
 export STOPLOG
 
@@ -230,9 +232,10 @@ _elog () { _log "${*}"; _error "${*}" }
 # --------------------------------------------------
 function zb_logger () {
     local LOG_TYPE="${1:=LOG}" LOG_ECHO=${2:=1} LOG_MSG="${3}"
+    local DEBUG_LOG="$ZB_LOG"
     
     function zb_echo () { echo "$LOG_OUTPUT"; }
-    function zb_log () { echo "[$LOG_TYPE] $LOG_MSG" >> "$ZB_LOG"; }
+    function zb_log () { echo "[$LOG_TYPE] $LOG_MSG" >> "$DEBUG_LOG"; }
     function zb_log_echo () { zb_echo; zb_log; }
     
     # -- Log Types
