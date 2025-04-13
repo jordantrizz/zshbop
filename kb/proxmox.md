@@ -115,6 +115,42 @@ WantedBy=multi-user.target
 systemctl restart corosync.service pvedaemon.service pve-firewall.service pve-ha-crm.service pve-ha-lrm.service pvestatd.service
 ```
 
+## Guest Tools (qemu-guest-agent)
+* Install qemu-guest-agent on the VM
+* Edit the VM config
+```
+qm set 102 --agent enabled=1
+```
+
+## Enabling CPU/Memory Hotplug
+* Edit the VM config
+* Under VM->Hardware->Processor->Enable Numa is checked.
+* Under VM->Options->Hotplug->CPU/Memory is checked.
+## NUMA, CPU Hotplug, and Memory Hotplug in Proxmox – Key Points
+### NUMA Support
+* Best for VMs with >1 socket or >8 vCPUs on multi-socket hosts.
+* Improves memory access efficiency when configured properly.
+* Misconfiguration can lead to cross-node memory access and performance hits.
+* Low overhead when used appropriately.
+  
+### CPU Hotplug
+* Allows dynamic vCPU addition without reboot (guest OS support required).
+* Minimal overhead; mostly safe for general use.
+* May cause issues with CPU affinity or in older guest OSes.
+* Good for flexible scaling but test for stability.
+  
+### Memory Hotplug
+* Enables live memory scaling, but comes with higher overhead.
+* May cause NUMA imbalance or memory fragmentation.
+* Not ideal for performance-critical workloads.
+* Prefer fixed memory or ballooning unless dynamic scaling is essential.
+
+### Numa Best Practices
+* Use NUMA for large, high-performance VMs.
+* Enable hotplug features only if you need live scaling.
+* Always test VM behavior after hot-adding resources.
+* For latency-sensitive workloads, plan fixed allocations and disable hotplug features for consistency.
+
 # Troubleshooting
 ## unable to create VM 100 - no such logical volume vg/data
 * If you change the storage type from LVM to LVM-then and the name of the storage you need to up date /etc/pve/storage.cfg
