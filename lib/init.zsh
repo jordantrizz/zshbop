@@ -544,27 +544,49 @@ init_check_software () {
 # ==============================================
 function init_check_services () {
     # -- Check system software versions
+    _log "Checking system software versions"
+    # -- Create an array of commands and versions
+    typeset -A check_services
+    check_services=(
+        # -- system
+        [pveversion]="pveversion 2>/dev/null"        
+        [mongod]="mongod --version | head -1"
+        [nginx]="nginx -v 2>&1"
+        [litespeed]="litespeed -v"
+        [redis-server]="redis-server --version"
+    )
 
-    # -- cloudflared
-    if (( $+commands[cloudflared] )) && _alert "cloudflared: $(cloudflared -v)" || _log "cloudflared Server not installed"
+    # -- Commands that we want to warn about if installed
+    typeset -A warn_commands
+    warn_commands=(
+        [cloudflared]="cloudflared -v"        
+    )
 
-    # -- proxmox 
-    if (( $+commands[pveversion] )) && _success "Proxmox: $(pveversion 2>/dev/null)" || _log "Proxmox Server not installed"
- 
-	# - mysql	    
-	if (( $+commands[mysqld] )) && _success "MySQL: $(mysqld --version)" || { _log "MySQL Server not installed";_warning "MySQL not installed, but could be using remote database" }
+    # -- mysql     
+    if command -v mysqld; then
+        _log "MySQL Server installed"
+        _success "MySQL: $(mysqld --version)"
+    else
+        _log "MySQL Server not installed"
+        _warning "MySQL not installed, but could be using remote database"
+    fi
 
-    # -- mongodb
-    if (( $+commands[mongod] )) && _success "MongoDB: $(mongod --version | head 1)" || _log "MongoDB Server not installed"
-	
-	# - nginx
-	if (( $+commands[nginx] )) && _success "Nginx: $(nginx -v 2>&1 >/dev/null)" || _log "Nginx not installed"	
-	
-	# - litespeed
-	if (( $+commands[litespeed] )) && _success "Litespeed: $(litespeed -v)" || _log "Litespeed not installed"
-		
-	# - Redis
-	if (( $+commands[redis-server] )) && _success "Redis: $(redis-server --version)" || _log "Redis not installed"
+
+    # -- Check if each command is installed and print version
+    for cmd in "${(k)check_services[@]}"; do
+        if command -v $cmd; then
+            _success "$cmd: $(eval ${check_services[$cmd]})"
+        else
+            _log "$cmd not installed"
+        fi
+    done
+
+    # -- Check for commands that should have warnings
+    for cmd in "${(k)warn_commands[@]}"; do
+        if command -v $cmd; then
+            _warning "WARNING: ${warn_commands[$cmd]}"
+        fi
+    done
 
 	# - Netdata    
     if [[ -f /opt/netdata/bin/netdata ]]; then
