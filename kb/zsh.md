@@ -238,7 +238,26 @@ typeset -gA help_files
 help_files[kb]='knowledge base'
 ```
 
-# ------ CODE SNIPPETS ------
+# Using ZSH command -v vs $+commands[foo]
+## Problem 
+When your Zsh session starts, commands[foo] is not yet populated.
+
+When you access commands[foo] for the first time (via your script), Zsh checks $PATH, fails to find it, but still adds an entry in the hash table for cloudflared.
+
+Until you run cloudflared (which fails), Zsh does not update or invalidate that hash entry.
+
+After the failed run, Zsh updates the hash table correctly and commands[foo] then evaluates to false.
+
+## Solution
+| Method                          | Accurate | Triggers Weird Behavior | Notes                                      |
+|---------------------------------|----------|--------------------------|--------------------------------------------|
+| `(( $+commands[foo] ))`         | ❌       | ✅ Yes                   | Zsh lazily populates hash, can be stale    |
+| `command -v foo &>/dev/null`   | ✅       | ❌ No                    | Preferred method, reliable and portable    |
+| `type foo &>/dev/null`         | ✅       | ❌ No                    | Also safe, gives more info if needed       |
+
+
+
+# ZSH Code Snippets
 
 ## Code Snippets Large
 
