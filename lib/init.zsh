@@ -554,6 +554,7 @@ function init_check_services () {
         [nginx]="nginx -v 2>&1"
         [litespeed]="litespeed -v"
         [redis-server]="redis-server --version"
+        
     )
 
     # -- Commands that we want to warn about if installed
@@ -562,19 +563,10 @@ function init_check_services () {
         [cloudflared]="cloudflared -v"        
     )
 
-    # -- mysql     
-    if command -v mysqld; then
-        _log "MySQL Server installed"
-        _success "MySQL: $(mysqld --version)"
-    else
-        _log "MySQL Server not installed"
-        _warning "MySQL not installed, but could be using remote database"
-    fi
-
 
     # -- Check if each command is installed and print version
     for cmd in "${(k)check_services[@]}"; do
-        if command -v $cmd; then
+        if command -v $cmd &>/dev/null; then
             _success "$cmd: $(eval ${check_services[$cmd]})"
         else
             _log "$cmd not installed"
@@ -583,10 +575,19 @@ function init_check_services () {
 
     # -- Check for commands that should have warnings
     for cmd in "${(k)warn_commands[@]}"; do
-        if command -v $cmd; then
+        if command -v $cmd &>/dev/null; then
             _warning "WARNING: ${warn_commands[$cmd]}"
         fi
     done
+
+    # -- mysql
+    if command -v mysqld &>/dev/null; then    
+        _log "MySQL Server installed"
+        _success "MySQL: $(mysqld --version 2> /dev/null)"
+    else
+        _log "MySQL Server not installed"
+        _warning "MySQL not installed, but could be using remote database"
+    fi
 
 	# - Netdata    
     if [[ -f /opt/netdata/bin/netdata ]]; then
