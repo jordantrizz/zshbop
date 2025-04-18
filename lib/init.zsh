@@ -548,9 +548,9 @@ function init_check_oom () {
 	_cmd_exists journalctl
     local OOM_COUNT
 	if [[ $? == 0 ]]; then		
-		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process')
+		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process' | wc -l)
 	elif [[ -f /var/log/syslog ]]; then		
-		OOM_COUNT=$(grep -i 'Out of memory: Killed process' /var/log/syslog)
+		OOM_COUNT=$(grep -i 'Out of memory: Killed process' /var/log/syslog | wc -l)
 		return 1
 	else
         _warning "Can't detect OOM killer events"
