@@ -506,5 +506,6 @@ function git-ssh-key () {
     _loading "Adding ssh-key to git repo"
     git config core.sshCommand "ssh -i $GIT_KEY_PATH -F /dev/null"
 
-    echo "Compelted"
+    _success "Compelted"
+    cat $GIT_KEY_PATH.pub
 }
