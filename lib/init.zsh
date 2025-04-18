@@ -539,6 +539,33 @@ init_check_software () {
     init_log
 }
 
+# ===============================================
+# -- init_check_oom - Check for OOM killer
+# ===============================================
+function init_check_oom () {
+    # -- Check if OOM killer is running
+    	# Check if journalctl is installed
+	_cmd_exists journalctl
+    local OOM_COUNT
+	if [[ $? == 0 ]]; then		
+		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process')
+	elif [[ -f /var/log/syslog ]]; then		
+		OOM_COUNT=$(grep -i 'Out of memory: Killed process' /var/log/syslog)
+		return 1
+	else
+        _warning "Can't detect OOM killer events"
+        return 1
+    fi
+    
+    # -- Check if OOM killer has killed any processes
+    if [[ $OOM_COUNT -gt 0 ]]; then
+        _warning "OOM killer has killed $OOM_COUNT processes"
+    else
+        _success "No OOM killer events found"
+    fi
+    init_log
+}
+
 # ==============================================
 # -- init_check_services
 # ==============================================
@@ -790,7 +817,8 @@ init_motd () {
     # -- Check System
     _loading "Checking System"    
 	init_check_services
-    init_check_software      
+    init_check_software
+    init_check_oom
     software-raid-check
     screen-sessions
     init_detect_install_type
