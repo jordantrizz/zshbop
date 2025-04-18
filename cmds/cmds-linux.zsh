@@ -886,3 +886,22 @@ function syslog-cron () {
 	_loading "Running grep CRON /var/log/syslog"
 	grep -i 'CRON' /var/log/syslog
 }
+
+
+# ====================================
+# -- oom-check
+# ====================================
+help_linux[oom-check]='Check for OOM killer running, list all oom killed processes with timestamps'
+oom-check () {
+	# Check if journalctl is installed
+	_cmd_exists journalctl
+	if [[ $? == 0 ]]; then
+		_loading "Running journalctl -k | grep -i 'oom'"
+		journalctl -k | grep -i 'Out of memory: Killed process'
+	elif [[ -f /var/log/syslog ]]; then
+		_loading "Running grep -i 'Out of memory: Killed process' /var/log/syslog"
+		grep -i 'Out of memory: Killed process' /var/log/syslog
+		return 1
+	fi
+
+}
