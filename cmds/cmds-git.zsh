@@ -471,3 +471,40 @@ function gcldupe () {
     
     echo "$GIT_LOG"
 }
+
+# =====================================
+# -- git-ssh-key
+# =====================================
+help_git[git-ssh-key]="Generate SSH key for git to be used for github code deploy"
+function git-ssh-key () {
+    local CURRENT_DIR_NAME=$(basename $(pwd))
+    local GIT_KEY_PATH="$HOME/.ssh/${CURRENT_DIR_NAME}_git"
+    local CREATE=$1
+    [[ -z $CREATE ]] && {
+        echo "Usage: git-ssh-key [create]"
+        echo "  Generate an ssh-key for a git repo to be used for github code deploy"
+        return 1
+    }
+
+    # -- Check if current dir is a git repo
+    if [[ ! -d .git ]]; then
+        _error "Not a git repo"
+        return 1
+    fi
+
+    # -- Check if ssh-key already exists
+    if [[ -f "$GIT_KEY_PATH" ]]; then
+        _error "SSH key already exists: $GIT_KEY_PATH"
+        return 1
+    fi
+
+    # -- Create ssh-key ed25519
+    _loading "Creating ssh-key: $GIT_KEY_PATH"
+    ssh-keygen -t ed25519 -f $GIT_KEY_PATH -C "$CURRENT_DIR_NAME" -N ""
+
+    # -- Add ssh-key to git repo for pushing
+    _loading "Adding ssh-key to git repo"
+    git config core.sshCommand "ssh -i $GIT_KEY_PATH -F /dev/null"
+
+    echo "Compelted"
+}
