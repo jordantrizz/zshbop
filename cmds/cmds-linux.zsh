@@ -903,5 +903,4 @@ oom-check () {
 		grep -i 'Out of memory: Killed process' /var/log/syslog
 		return 1
 	fi
-
 }
