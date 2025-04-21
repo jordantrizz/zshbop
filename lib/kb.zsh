@@ -17,6 +17,130 @@ function kb_init_aliases () {
 }
 
 # ==================================================
+# -- kb_usage
+# -- This function will print out the usage of the kb command
+# ==================================================
+function kb_usage () {
+    _loading "KB Usage"
+    echo "Usage: kb [options] <article>"
+    echo "Commands:"
+    echo "  <article>     The KB article to display"
+    echo "  _auto        Auto complete KB articles"
+    echo "  list         List all KB articles"
+    echo 
+    echo "Options:"
+    echo "  -c            Use cat instead of md reader"
+    echo "  -d            Change to the KB directory"
+    echo "  -s            Search for a KB article"
+    echo "  -h|--help     Show this help message"
+    echo
+    echo "Examples:"        
+    echo "       kb <article>"
+    echo "       kb list"
+    echo "       kb -s <search term>"
+    echo
+}
+
+# ==================================================
+# -- kb_list
+# -- This function will list all the KB articles
+# ==================================================
+function kb_list () {
+    \ls $ZSH_ROOT/kb
+    if [[ -d $ZBC/kb ]]; then				
+        _banner_yellow "Current Custom KB Articles"
+        \ls $ZBC/kb
+    fi   
+}
+
+# ====================================================================================================
+# -- kb - A built in knowledge base.
+# --
+# -- Usage:
+# -- kb <article>
+# ====================================================================================================
+function kb () {
+    _debugf "$funcstack[1] - ${@}"
+    local zparseopts_error=""
+    zparseopts -D -E c=ARG_CAT d=ARG_CD s:=ARG_SEARCH h=ARG_HELP -help=ARG_HELP || zparseopts_error=$?    
+    # Handle option parsing errors
+    if [[ -n "$zparseopts_error" ]]; then
+        _banner_red "Error in command options"
+        echo "Option -s requires a search term (e.g., kb -s docker)"
+        kb_usage
+        return 1
+    fi
+    _debug "ARG_CAT: $ARG_CAT ARG_CD: $ARG_CD ARG_SEARCH: $ARG_SEARCH ARG_HELP: $ARG_HELP"
+
+    # -- Options
+    [[ -n $ARG_HELP ]] && { kb_usage;kb_list;return 0; }
+    [[ -n $ARG_CD ]] && cd $ZSHBOP_ROOT/kb
+    
+    # -- Search
+    if [[ -n $ARG_SEARCH ]]; then
+        SEARCH_TERM="${ARG_SEARCH[2]}"
+        # -- Check if search term is empty
+        if [[ -z $SEARCH_TERM ]]; then
+            _banner_red "Search term is empty"
+            kb_usage
+            return 1
+        fi                
+        _loading "Searching for KB article $SEARCH_TERM"
+        kb_search_content $SEARCH_TERM
+        return 0
+    fi
+
+    # -- Processing <article>    
+    ARTICLE="$1"
+    kb_set_md_reader
+    _loading "KB System Startup"
+
+    # -- Check if kb is set
+    if [[ -z $ARTICLE ]]; then
+        _warning "No article name specified"
+        kb_list
+        return 1
+    elif [[ $ARTICLE == "_auto" ]]; then
+        _debug "Running autocomplete"
+        kb_print_topics _auto
+    # -- List KB articles.
+    elif [[ $ARTICLE == "list" ]]; then
+        kb_list
+        return 0
+    # -- Check if kb file exists
+    elif [[ -n $ARTICLE ]]; then
+        # -- Check if topic exists
+        if [[ -z $kb_topics[$ARTICLE] ]]; then
+            _banner_red "KB topic $ARTICLE not found"
+            kb_search_content $ARTICLE            
+            return 1
+        else
+            _banner_yellow "Found KB file $kb_topics[$ARTICLE], showing via $MD_READER"
+            _debug "Running $MD_READER $kb_topics[$ARTICLE]"
+            md-reader $kb_topics[$ARTICLE]
+        fi
+    # -- Custom KB's    
+    elif [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
+        _banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
+        KB_COMBINED="\n"
+        KB_COMBINED+="---- $ZSHBOP_ROOT/kb/${KB}.md ----\n"
+        KB_COMBINED+="\n"
+        KB_COMBINED+=$(cat $ZSHBOP_ROOT/kb/${KB}.md)
+        KB_COMBINED+="\n"
+        KB_COMBINED+="---- $ZBC/kb/${KB}.md ----\n"
+        KB_COMBINED+="\n"
+        KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
+        _debug "$KB_COMBINED"
+        md-reader-text $KB_COMBINED
+    else
+        kb_usage
+        kb_list
+        return 1
+    fi
+}
+
+
+# ==================================================
 # -- Init kb-topics.zsh
 # -- This function will create a multi dimensional array to store all the KB topics
 # ==================================================
@@ -120,39 +244,48 @@ function kb_print_topics () {
 }
 
 # ==================================================
-# -- kb_search
-# -- This function will search for a KB article
+# -- kb_search_title
+# -- This function will search for a KB articles title
 # ==================================================
-function kb_search () {
+function kb_search_title () {
     local KB_SEARCH OUTPUT
     KB_SEARCH="$1"
     _loading3 "Searching for KB article $KB_SEARCH in KB topics"        
     for KB_TOPIC in ${(kon)kb_topics}; do
         if [[ $KB_TOPIC == *$KB_SEARCH* ]]; then
-            echo "$KB_TOPIC\n"
+            echo "$KB_TOPIC"
         fi
     done
     _loading3 "Searching in Custom KB topics"
     for KB_TOPIC_CUSTOM in ${(kon)kb_topics_custom}; do
         if [[ $KB_TOPIC_CUSTOM == *$KB_SEARCH* ]]; then
-            echo "$KB_TOPIC_CUSTOM\n"            
+            echo "$KB_TOPIC_CUSTOM"            
         fi
     done
 }
 
-# ==================================================
-# -- kb_usage
-# -- This function will print out the usage of the kb command
-# ==================================================
-function kb_usage () {
-    _banner_yellow "Current KB Articles"
-    \ls $ZSH_ROOT/kb
-
-    if [[ -d $ZBC/kb ]]; then				
-        _banner_yellow "Current Custom KB Articles"
-        \ls $ZBC/kb
-    fi   
+# ===================================================
+# -- kb_search_content
+# -- This function will search for a KB articles content
+# ===================================================
+fucntion kb_search_content () {
+    local KB_SEARCH
+    KB_SEARCH="$1"
+    _loading3 "Searching for KB article $KB_SEARCH in KB topics"        
+    for KB_TOPIC in ${(kon)kb_topics}; do
+        if [[ $(grep -E "$KB_SEARCH" $kb_topics[$KB_TOPIC]) ]]; then
+            echo "$KB_TOPIC"
+        fi
+    done
+    _loading3 "Searching in Custom KB topics"
+    for KB_TOPIC_CUSTOM in ${(kon)kb_topics_custom}; do
+        if [[ $(grep -E "$KB_SEARCH" $kb_topics_custom[$KB_TOPIC_CUSTOM]) ]]; then
+            echo "$KB_TOPIC_CUSTOM"            
+        fi
+    done    
 }
+
+
 
 # ==================================================
 # -- kb_set_md_reader
@@ -197,71 +330,10 @@ function md-reader () {
 	fi    
 }
 
-# ====================================================================================================
-# -- kb - A built in knowledge base.
-# --
-# -- Usage:
-# -- kb <article>
-# ====================================================================================================
-function kb () {    
-    # -- args
-    zparseopts -D -E c=CAT
-    if [[ -n "$CAT" ]]; then
-        echo "Using cat on $1"
-        MD_READER="cat"
-    fi
-    KB="$1"
-
-    # -- debug function
-    _debug_all
-
-    # -- set md reader
-    kb_set_md_reader
-
-    # -- Auto complete KB articles.
-    if [[ $KB == "_auto" ]]; then
-        _debug "Running autocomplete"
-        kb_print_topics _auto
-    # -- List KB articles.
-    elif [[ $KB == "list" ]]; then
-        kb_usage
-        return 0
-    # -- Check if kb file exists
-    elif [[ -z $KB ]]; then
-        kb_usage
-        return 1
-    elif [[ -n $KB ]]; then
-        # -- Check if topic exists
-        if [[ -z $kb_topics[$KB] ]]; then
-            _banner_red "KB topic $KB not found"
-            kb_search $KB            
-            return 1
-        else
-            _banner_yellow "Found KB file $kb_topics[$KB], showing via $MD_READER"
-            _debug "Running $MD_READER $kb_topics[$KB]"
-            md-reader $kb_topics[$KB]
-        fi
-    # TODO Incorporate custom KB articles.
-    elif [[ -a $ZSHBOP_ROOT/kb/${KB}.md ]] && [[ -a $ZBC/kb/${KB}.md ]]; then
-        _banner_yellow "Found both zshbop and zshbop custom KB file, showing both via $MD_READER"
-        KB_COMBINED="\n"
-        KB_COMBINED+="---- $ZSHBOP_ROOT/kb/${KB}.md ----\n"
-        KB_COMBINED+="\n"
-        KB_COMBINED+=$(cat $ZSHBOP_ROOT/kb/${KB}.md)
-        KB_COMBINED+="\n"
-        KB_COMBINED+="---- $ZBC/kb/${KB}.md ----\n"
-        KB_COMBINED+="\n"
-        KB_COMBINED+=$(cat $ZBC/kb/${KB}.md)
-        _debug "$KB_COMBINED"
-        md-reader-text $KB_COMBINED
-    else
-        kb_usage
-        return 1
-    fi
-}
-
-
-
+# ==================================================
+# -- md-reader-text
+# -- This function will read a markdown text and display it in the best available md reader
+# ==================================================
 md-reader-text () {
     MD_TEXT="$1"
     if [[ $MD_READER == "cat" ]]; then
@@ -281,7 +353,10 @@ md-reader-text () {
 }
 
 
-# -- auto completion - needs to be at the end of this file.
+# ======================================================================================
+# -- kb_auto_complete
+# -- This function will auto complete the kb command
+# ======================================================================================
 function _kb  {    
     compadd $(kb _auto)
 }
