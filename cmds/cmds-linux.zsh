@@ -791,8 +791,8 @@ function whatprovides() {
     fi
 
 	local COMMAND_NAME=$1
-	_loading "Searching for packages that provide '$COMMAND_NAME'..."
-    _loading2 "Checking if $COMMAND_NAME is installed"
+	_loading "Searching for '$COMMAND_NAME'..."
+    _loading2 "1. Checking if $COMMAND_NAME is installed"
     # First check if the command is already installed
 	
 	_cmd_exists $COMMAND_NAME
@@ -802,35 +802,35 @@ function whatprovides() {
 		_error "Command $COMMAND_NAME is not installed"
 	fi
 
-    # If command is not installed, we need apt-file
-	_cmd_exists apt-file
-	if [[ $? == "1" ]]; then
-		_error "apt-file is not installed"
-		_loading2 "Installing apt-file..."3
-		sudo apt-get install apt-file
-		if [[ $? == "0" ]]; then
-			_success "apt-file installed"
-			_loading2 "Updating apt-file..."
-			sudo apt-file update
-		else
-			_error "apt-file failed to install"
-			return 1
-		fi
-	else
-		_loading2 "apt-file is already installed"
-	fi
-
 	# Try whatprovides-db first
-	_loading2 "Checking whatprovides-db for $COMMAND_NAME"
+	_loading2 "2. Checking whatprovides-db for $COMMAND_NAME"
 	whatprovides-db $COMMAND_NAME
 	if [[ $? == "0" ]]; then
-		return 0
+		_success "Command $COMMAND_NAME found in whatprovides-db"
+		_loading3 "Package: ${whatprovides_db[$COMMAND_NAME]}"		
 	else
 		_error "Command $COMMAND_NAME not found in whatprovides-db, trying apt-file"
 	fi
     
-	_loading "Searching for '$command_name' using apt-file..."
-    apt-file search -x "$COMMAND_NAME"
+	_loading2 "3. Searching for '$COMMAND_NAME' using apt-file..."
+	    # If command is not installed, we need apt-file
+	_cmd_exists apt-file
+	if [[ $? == "1" ]]; then
+		_error "apt-file is not installed"
+		_loading3 "Installing apt-file..."3
+		sudo apt-get install apt-file
+		if [[ $? == "0" ]]; then
+			_success "apt-file installed"
+		else
+			_error "apt-file failed to install"
+			return 1
+		fi
+	fi
+
+	_loading3 "apt-file is already installed"
+	_loading3 "Updating apt-file..."
+	sudo apt-file update
+	apt-file search "$COMMAND_NAME"
 }
 
 # =====================================
