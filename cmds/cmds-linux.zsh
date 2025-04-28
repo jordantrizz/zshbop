@@ -792,8 +792,9 @@ function whatprovides() {
 
 	local COMMAND_NAME=$1
 	_loading "Searching for packages that provide '$COMMAND_NAME'..."
-    
+    _loading2 "Checking if $COMMAND_NAME is installed"
     # First check if the command is already installed
+	
 	_cmd_exists $COMMAND_NAME
 	if [[ $? == "0" ]]; then
 		_success "Command $COMMAND_NAME is already installed"		
@@ -815,18 +816,21 @@ function whatprovides() {
 			_error "apt-file failed to install"
 			return 1
 		fi
+	else
+		_loading2 "apt-file is already installed"
 	fi
 
 	# Try whatprovides-db first
+	_loading2 "Checking whatprovides-db for $COMMAND_NAME"
 	whatprovides-db $COMMAND_NAME
 	if [[ $? == "0" ]]; then
 		return 0
 	else
-		_error "Command $COMMAND_NAME not found in database, trying apt-file"
+		_error "Command $COMMAND_NAME not found in whatprovides-db, trying apt-file"
 	fi
     
-	_loading "Searching for packages that provide '$command_name'..."
-    apt-file search -x "/bin/$command_name$|/sbin/$command_name$|/usr/bin/$command_name$|/usr/sbin/$command_name$"
+	_loading "Searching for '$command_name' using apt-file..."
+    apt-file search -x "$COMMAND_NAME"
 }
 
 # =====================================
