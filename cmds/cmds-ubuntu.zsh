@@ -24,8 +24,8 @@ alias netselect-fastest='sudo netselect -v -s10 -t20 `wget -q -O- https://launch
 help_ubuntu[ubuntu-swap-create]='Create a swap file'
 function ubuntu-swap-create () {
     _ubuntu-swap-create-usage () {
-        echo "Usage: ubuntu-swap-create <size>"        
-        echo "Creates a swap file of size 4GB at /swapfile if not size is provided."
+        echo "Usage: ubuntu-swap-create <size-in-GB-wthout-G>"        
+        echo "Creates a swap file of size 4G at /swapfile if not size is provided."
         echo
         echo "Current memory size: $MEM_SIZE"
     }
@@ -40,13 +40,7 @@ function ubuntu-swap-create () {
     fi   
 
     # Check if the user provided a size argument
-    if [[ $# -eq 1 ]]; then
-        # Ensure there is a G on the end
-        if [[ $1 != *G ]]; then
-            echo "Size must be in GB (e.g., 4G)."
-            _ubuntu-swap-create-usage
-            return 1
-        fi
+    if [[ $# -eq 1 ]]; then            
         # Check if the size is a valid number
         if ! [[ $1 =~ ^[0-9]+$ ]]; then
             echo "Size must be a number."
