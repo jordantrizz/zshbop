@@ -44,8 +44,8 @@ function ubuntu-swap-create () {
         CURRENT_SWAP_SIZE=$(sudo du -h /swapfile | awk '{print $1}')
         # Remove the G from the size
         CURRENT_SWAP_SIZE=${CURRENT_SWAP_SIZE%G}
-        _loading2 "Current swap file size: $CURRENT_SWAP_SIZE"
-        
+        SWAP_SIZE=${SWAP_SIZE%G}
+        _loading2 "Current swap file size: $CURRENT_SWAP_SIZE"        
         if [[ $CURRENT_SWAP_SIZE -gt $SWAP_SIZE ]]; then
             echo "Swap file is larger than $SWAP_SIZE. Please remove it first."
             return 1
