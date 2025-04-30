@@ -38,10 +38,7 @@ function ubuntu-swap-create () {
     fi
 
     # Check if swap file already exists
-    if [[ -f /swapfile ]]; then
-        echo "Swap file already exists. Please remove it first."
-        return 1
-
+    if [[ -f /swapfile ]]; then        
         # Check if the swap file is larger thatn SWAP_SIZE
         CURRENT_SWAP_SIZE=$(sudo du -h /swapfile | awk '{print $1}')
         if [[ $CURRENT_SWAP_SIZE -gt $SWAP_SIZE ]]; then
