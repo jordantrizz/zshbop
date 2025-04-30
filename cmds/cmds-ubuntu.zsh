@@ -31,6 +31,8 @@ function ubuntu-swap-create () {
     }
     SWAP_SIZE=4G    
     MEM_SIZE=$(free -h | grep Mem | awk '{print $2}')
+    # Remove the Gi from the size
+    MEM_SIZE=${MEM_SIZE%Gi}
     # Check if the user provided a size argument
     if [[ $# -gt 1 ]]; then
         _ubuntu-swap-create-usage
