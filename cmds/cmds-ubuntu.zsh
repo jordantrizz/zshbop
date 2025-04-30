@@ -42,6 +42,8 @@ function ubuntu-swap-create () {
         _loading "Swap file already exists. Checking size..."
                 # Check if the swap file is larger thatn SWAP_SIZE
         CURRENT_SWAP_SIZE=$(sudo du -h /swapfile | awk '{print $1}')
+        # Remove the G from the size
+        CURRENT_SWAP_SIZE=${CURRENT_SWAP_SIZE%G}
         _loading2 "Current swap file size: $CURRENT_SWAP_SIZE"
         
         if [[ $CURRENT_SWAP_SIZE -gt $SWAP_SIZE ]]; then
