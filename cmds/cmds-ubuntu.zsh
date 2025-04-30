@@ -49,17 +49,16 @@ function ubuntu-swap-create () {
         SWAP_SIZE=${SWAP_SIZE%G}
         _loading2 "Current swap file size: $CURRENT_SWAP_SIZE"        
         if [[ $CURRENT_SWAP_SIZE -gt $SWAP_SIZE ]]; then
-            _loading3 "Swap file is larger than $SWAP_SIZE. Resizing"
-            # Resize the swap file
-            sudo swapoff /swapfile
-            sudo dd if=/dev/zero of=/swapfile bs=1G count=${SWAP_SIZE}G
-            sudo mkswap /swapfile
-            sudo swapon /swapfile
+            _error "Swap file is larger than $SWAP_SIZE, not changing"
             return 1
         fi
         # Check if the swap file is smaller than SWAP_SIZE
         if [[ $CURRENT_SWAP_SIZE -lt $SWAP_SIZE ]]; then
-            echo "Swap file is smaller than $SWAP_SIZE. Please remove it first."
+            _loading3 "Swap file is smaller than $SWAP_SIZE. Resizing"                    
+            sudo swapoff /swapfile
+            sudo dd if=/dev/zero of=/swapfile bs=1G count=${SWAP_SIZE}G
+            sudo mkswap /swapfile
+            sudo swapon /swapfile                    
             return 1
         fi
     fi
