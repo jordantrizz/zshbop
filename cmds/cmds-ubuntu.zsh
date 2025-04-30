@@ -71,8 +71,8 @@ function ubuntu-swap-create () {
             return 1
         elif  [[ $CURRENT_SWAP_SIZE -lt $SWAP_SIZE ]]; then
             _loading3 "Current Swap File: ${CURRENT_SWAP_SIZE}G smaller than ${SWAP_SIZE}G..Resizing"                    
-            sudo swapoff /swapfile
-            sudo dd if=/dev/zero of=/swapfile bs=1G count=${SWAP_SIZE}G
+            sudo swapoff /swapfile            
+            sudo fallocate -l ${SWAP_SIZE}G /swapfile
             sudo mkswap /swapfile
             sudo swapon /swapfile                    
             return 1
