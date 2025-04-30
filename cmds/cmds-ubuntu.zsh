@@ -35,6 +35,29 @@ function ubuntu-swap-create () {
     if [[ $# -gt 1 ]]; then
         _ubuntu-swap-create-usage
         return 1
+    fi   
+
+    # Check if the user provided a size argument
+    if [[ $# -eq 1 ]]; then
+        # Ensure there is a G on the end
+        if [[ $1 != *G ]]; then
+            echo "Size must be in GB (e.g., 4G)."
+            _ubuntu-swap-create-usage
+            return 1
+        fi
+        # Check if the size is a valid number
+        if ! [[ $1 =~ ^[0-9]+$ ]]; then
+            echo "Size must be a number."
+            _ubuntu-swap-create-usage
+            return 1
+        fi
+        # Check if the size is greater than the current memory size
+        if [[ $1 -gt $MEM_SIZE ]]; then
+            echo "Size must be less than or equal to the current memory size ($MEM_SIZE)."
+            _ubuntu-swap-create-usage
+            return 1
+        fi
+        SWAP_SIZE=$1
     fi
 
     # Check if swap file already exists
@@ -62,30 +85,6 @@ function ubuntu-swap-create () {
             _loading3 "Current Swap File: ${CURRENT_SWAP_SIZE}G is the same as ${SWAP_SIZE}G..Not changing"                    
             return 1
         fi
-    fi
-    
-
-    # Check if the user provided a size argument
-    if [[ $# -eq 1 ]]; then
-        # Ensure there is a G on the end
-        if [[ $1 != *G ]]; then
-            echo "Size must be in GB (e.g., 4G)."
-            _ubuntu-swap-create-usage
-            return 1
-        fi
-        # Check if the size is a valid number
-        if ! [[ $1 =~ ^[0-9]+$ ]]; then
-            echo "Size must be a number."
-            _ubuntu-swap-create-usage
-            return 1
-        fi
-        # Check if the size is greater than the current memory size
-        if [[ $1 -gt $MEM_SIZE ]]; then
-            echo "Size must be less than or equal to the current memory size ($MEM_SIZE)."
-            _ubuntu-swap-create-usage
-            return 1
-        fi
-        SWAP_SIZE=$1
     fi
 
     _loading "Creating swap file of size $SWAP_SIZE..."
