@@ -64,8 +64,7 @@ function ubuntu-swap-create () {
         # Remove the G from the size
         CURRENT_SWAP_SIZE=${CURRENT_SWAP_SIZE%G}
         # Remove decimal point
-        CURRENT_SWAP_SIZE=${CURRENT_SWAP_SIZE%.*}
-        SWAP_SIZE=${SWAP_SIZE%G}
+        CURRENT_SWAP_SIZE=${CURRENT_SWAP_SIZE%.*}        
         _loading2 "Current swap file size: ${CURRENT_SWAP_SIZE}G suggested size: ${SWAP_SIZE}G"        
         if [[ $CURRENT_SWAP_SIZE -gt $SWAP_SIZE ]]; then
             _error "Current Swap file is larger than $SWAP_SIZE, not changing"
@@ -96,7 +95,7 @@ function ubuntu-swap-create () {
     fi
 
     # Create a swap file of size 1GB
-    sudo fallocate -l $SWAP_SIZE /swapfile
+    sudo fallocate -l ${SWAP_SIZE}G /swapfile
     
     # Set the correct permissions
     sudo chmod 600 /swapfile
