@@ -29,7 +29,7 @@ function ubuntu-swap-create () {
         echo
         echo "Current memory size: $MEM_SIZE"
     }
-    SWAP_SIZE=4G    
+    SWAP_SIZE=4
     MEM_SIZE=$(free -h | grep Mem | awk '{print $2}')
     # Remove the Gi from the size
     MEM_SIZE=${MEM_SIZE%Gi}
