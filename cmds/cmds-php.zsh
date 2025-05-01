@@ -122,6 +122,6 @@ function php-timezones () {
 # -- grep-php
 # =====================================
 help_php[grep-php]='Grep PHP files only'
-function find-php () {
+function grep-php () {
     grep -r --include=\*.php "$1" .
 }
