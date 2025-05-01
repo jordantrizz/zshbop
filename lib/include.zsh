@@ -178,7 +178,19 @@ _debugf () {
     [[ $DEBUGF == 1 ]] && echo $DEBUGF_MSG >&2
     # Log to file.
     [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$@"; 
-} 
+}
+
+debugf () {
+    if [[ $1 == on ]]; then
+        export DEBUGF="1"
+    elif [[ $1 == off ]]; then
+        export DEBUGF="0"
+    else
+        echo "Usage: debugf <on|off>"
+        return 1
+    fi
+}
+
 _debug_load () { 
     local MESSAGE="Loading $funcstack"
     local DEBUG_LOAD_MSG="\033[36m** [DEBUG_LOAD]: $MESSAGE \033[0m";
