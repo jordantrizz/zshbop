@@ -227,7 +227,6 @@ LOG_MSG=""
 [[ -f $ZSHBOP_ROOT/.verbose ]] && export ZSH_VERBOSE=1 || export ZSH_VERBOSE=0 # -- zshbop verbose logging
 _log () { zb_logger "LOG" 0 "$@" }
 _error () { zb_logger "ERROR" 1 "$@" }
-_error2 () { zb_logger "ERROR" 1 "$@" }
 _warning () { zb_logger "WARNING" 1 "$@" }
 _warning_log () { zb_logger "WARNING" 0 "$@" }
 _alert () { zb_logger "ALERT" 1 "$@" }
