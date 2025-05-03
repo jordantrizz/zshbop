@@ -192,7 +192,9 @@ function debugf () {
         echo "debugf = $DEBUGF"
     else
         [[ $DEBUGF == 1 ]] && { export DEBUGF="0"; echo "Debugging is now off"; return 0; }
-        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; echo "Debugging is now on"; return 0; }            
+        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; echo "Debugging is now on"; return 0; }  
+        export DEBUGF="0"
+        echo "Debugging was never set, setting to 0"          
     fi
 }
 
