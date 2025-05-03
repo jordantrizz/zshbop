@@ -66,6 +66,7 @@ export SSHK="${ZSHBOP_HOME}/.ssh"
 export TMP="${ZSHBOP_HOME}/tmp"
 export INIT_LAST_CORE=()
 export INIT_LAST_CUSTOM=()
+export DEBUGF="0"
 
 # -- Software specific
 GIT_CONFIG="${ZSHBOP_HOME}/.gitconfig"
