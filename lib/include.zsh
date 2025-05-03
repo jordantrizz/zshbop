@@ -169,17 +169,21 @@ _debug () {
     [[ $ZSH_DEBUG_LOG == 1 ]] && zb_logger "DEBUG" 0 "$@"; 
 }
 
-_debugf () { 
+_debugf() { 
     # Get previous function calling _debugf
-    local funcstack="${funcstack[2]}"
-    [[ -z $funcstack ]] && funcstack="${funcstack[1]}"
-    DEBUGF_MSG="\033[36m** [DEBUGF]: $funcstack -- $@\033[0m";
-    # Echo to screen.
-    [[ $DEBUGF == 1 ]] && echo $DEBUGF_MSG >&2
-    # Log to file.
-    [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$@"; 
+    local caller="${FUNCNAME[1]}"
+    # If empty, use the current function name
+    [[ -z $caller ]] && caller="${FUNCNAME[0]}"
+    
+    # Format debug message with cyan color
+    DEBUGF_MSG="\033[36m** [DEBUGF]: $caller -- $*\033[0m"
+    
+    # Echo to stderr if debugging is enabled
+    [[ $DEBUGF == 1 ]] && echo -e "$DEBUGF_MSG" >&2
+    
+    # Log to file if file logging is enabled
+    [[ $DEBUGF_LOG == 1 ]] && zb_logger "DEBUGF" 0 "$@"
 }
-
 
 function debugf () {
     if [[ $1 == on ]]; then
