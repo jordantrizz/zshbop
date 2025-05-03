@@ -182,13 +182,16 @@ _debugf () {
 
 
 function debugf () {
+    echo "debugf = $DEBUGF"
     if [[ $1 == on ]]; then
         export DEBUGF="1"
+        echo "debugf = $DEBUGF"
     elif [[ $1 == off ]]; then
         export DEBUGF="0"
+        echo "debugf = $DEBUGF"
     else
         [[ $DEBUGF == 1 ]] && { export DEBUGF="0"; echo "Debugging is now off"; return 0; }
-        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; echo "Debugging is now on"; return 0;}            
+        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; echo "Debugging is now on"; return 0; }            
     fi
 }
 
