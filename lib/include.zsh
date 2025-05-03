@@ -181,18 +181,17 @@ _debugf () {
     [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$@"; 
 }
 
-
-function debugf () {
-    echo "debugf = $DEBUGF"
+function _debugf_status () { echo "\$DEBUGF = $DEBUGF" }
+function debugf () {    
     if [[ $1 == on ]]; then
         export DEBUGF="1"
-        echo "debugf = $DEBUGF"
+        _debugf_status
     elif [[ $1 == off ]]; then
         export DEBUGF="0"
-        echo "debugf = $DEBUGF"
+        _debugf_status
     else
-        [[ $DEBUGF == 1 ]] && { export DEBUGF="0"; echo "Debugging is now off"; return 0; }
-        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; echo "Debugging is now on"; return 0; }  
+        [[ $DEBUGF == 1 ]] && { export DEBUGF="0"; _debugf_status; return 0; }
+        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; _debugf_status; return 0; }  
         export DEBUGF="0"
         echo "Debugging was never set, setting to 0"          
     fi
