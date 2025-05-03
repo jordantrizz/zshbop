@@ -9,7 +9,9 @@ help_files[core]='Core commands'
 typeset -gA help_core
 help_core[kb]='Knowledge Base'
 
+# =====================================
 # -- os - return os
+# =====================================
 help_core[os]='Return OS'
 function os () {
   echo "\$MACHINE_OS: $MACHINE_OS | \$MACHINE_OS2: $MACHINE_OS2"
@@ -26,7 +28,9 @@ function os () {
   echo "\$OS_INSTALL_DATE2: $OS_INSTALL_DATE2 | \$OS_INSTALL_METHOD2: $OS_INSTALL_METHOD2"
 }
 
+# =====================================
 # -- os - return os
+# =====================================
 help_core[os]='Return OS'
 function os-short () {
   local OUTPUT

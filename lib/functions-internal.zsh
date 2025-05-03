@@ -13,6 +13,7 @@ _echo () { echo "$@" }
 _success () { echo "$fg[green] * $@ ${RSC}" }
 _noticebg () { echo "$bg[magenta]$fg[white] * $@ ${RSC}" }
 _notice () { echo "$fg[magenta] * $@ ${RSC}" }
+_warning () { echo "$fg[yellow] * $@ ${RSC}" }
 # -- Banners
 _banner_red () { echo "$bg[red]$fg[white]${@}${RSC}" }
 _banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
