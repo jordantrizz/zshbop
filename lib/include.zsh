@@ -180,16 +180,18 @@ _debugf () {
     [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$@"; 
 }
 
-debugf () {
+
+function debugf () {
     if [[ $1 == on ]]; then
         export DEBUGF="1"
     elif [[ $1 == off ]]; then
         export DEBUGF="0"
     else
-        echo "Usage: debugf <on|off>"
-        return 1
+        [[ $DEBUGF == 1 ]] && { export DEBUGF="0"; echo "Debugging is now off"; return 0; }
+        [[ $DEBUGF == 0 ]] && { export DEBUGF="1"; echo "Debugging is now on"; return 0;}            
     fi
 }
+
 
 _debug_load () { 
     local MESSAGE="Loading $funcstack"
