@@ -5,7 +5,7 @@
 * Restart Proxmox ```systemctl restart pve-cluster```
 
 # Common Tasks
-## Setting up Think LVM
+## Setting up Thin LVM
 ```
 lvcreate -L 100G -n data pve
 lvconvert --type thin-pool pve/data
@@ -307,6 +307,25 @@ subnet 192.168.5.0 netmask 255.255.255.0 {
 INTERFACESv4="vmbr1"
 ```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
+
+## Samba Backups on Hetzner
+1. Edit /etc/fstab
+```
+//u111111.your-storagebox.de/backup  /mnt/HetznerSB  cifs credentials=/root/.smbcredentials,_netdev,vers=3.0,iocharset=utf8,x-systemd.automount  0  0
+```
+2. Create /root/.smbcredentials
+```
+username=yourusername
+password=yourpassword
+```
+3. Set permissions
+```
+chmod 600 /root/.smbcredentials
+```
+4. Mount
+```
+mount -a
+```
 
 # Common Issues
 ## Locale
