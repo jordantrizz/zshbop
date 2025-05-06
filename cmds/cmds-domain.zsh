@@ -26,7 +26,7 @@ function dom () {
     [[ -z $DOMAIN ]] && _error1 "Please specify a domain name"        
 
     # -- Strip domain name
-    DOMAIN_CLEAN=$(domain-strip $DOMAIN)
+    DOMAIN_CLEAN=$(domain-strip $DOMAIN 1)
 
     # -- Check if domain is valid
     [[ $DOMAIN =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]] || _error1 "Invalid domain name"
@@ -388,7 +388,7 @@ help_domain[domain-dmarc]='Check a domains dmarc record'
 function domain-dmarc () {
     local DOMAIN="$1" EXTENDED="${2:=1}"
 
-    domain-strip $DOMAIN >> /dev/null
+    domain-strip "$DOMAIN" 1 >> /dev/null
     DOMAIN=$OUTPUT_DOMAIN_STRIP
 
     _loading "Checking $DOMAIN for DMARC record"
@@ -442,7 +442,7 @@ function domain-dmarc () {
 help_domain[domain-spf]='Check a domains spf record'
 function domain-spf () {
     local DOMAIN="$1"
-    domain-strip $DOMAIN >> /dev/null
+    domain-strip $DOMAIN 1 >> /dev/null
     DOMAIN=$OUTPUT_DOMAIN_STRIP
 
     _loading "Checking $DOMAIN for SPF record"
