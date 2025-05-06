@@ -39,6 +39,54 @@ lvextend -l +100%FREE /dev/vg/host-data
 pvesm set defaultstorage host-data
 ```
 
+## Slack Alerts
+1. Method: Post
+2. URL: https://hooks.slack.com/services
+3. Headers 'Content-Type: application/json'
+4. Body
+```
+{
+  "username": "Proxmox",
+  "icon_emoji": ":shield:",
+  "text": "*{{title}}*",
+  "attachments": [
+    {
+      "fallback": "{{title}} – {{message}}",
+      "color": "#439FE0",
+      "title": "{{title}}",
+      "text": "{{escape message}}",
+      "ts": {{timestamp}},
+      "fields": [
+        {
+          "title": "Host",
+          "value": "{{fields.hostname}}",
+          "short": true
+        },
+        {
+          "title": "Type",
+          "value": "{{fields.type}}",
+          "short": true
+        },
+        {
+          "title": "Job ID",
+          "value": "{{fields.job-id}}",
+          "short": true
+        },
+        {
+          "title": "Severity",
+          "value": "{{severity}}",
+          "short": true
+        },
+        {
+          "title": "When",
+          "value": "<!date^{{timestamp}}^{date_short} {time}|{{timestamp}}>",
+          "short": true
+        }
+      ]
+    }
+  ]
+}
+```
 ## Sending with postmark
 *  joe /etc/postfix/main.cf
 ```
