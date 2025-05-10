@@ -1,3 +1,5 @@
+# Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Popular Links](#popular-links)
 - [GridPane CLI Commands](#gridpane-cli-commands)
   - [Set Default Site](#set-default-site)
@@ -26,6 +28,8 @@
   - [MySQL Configuration](#mysql-configuration)
   - [MySQL Slow Query Log](#mysql-slow-query-log)
 - [GridPane Fix Commands](#gridpane-fix-commands)
+- [Redis](#redis)
+  - [Redus Auth](#redus-auth)
 - [Caching](#caching)
   - [Redis Page Cache](#redis-page-cache)
     - [Enable Redis Page Cache](#enable-redis-page-cache)
@@ -41,6 +45,7 @@
   - [Update PHP memory per site.](#update-php-memory-per-site)
   - [Enable php-fpm slow log](#enable-php-fpm-slow-log)
   - [PHP FPM pm.max-requests](#php-fpm-pmmax-requests)
+  - [PHP: Changing CLI PHP Version](#php-changing-cli-php-version)
 - [Cache](#cache)
   - [Commands](#commands)
 - [Backups](#backups)
@@ -63,9 +68,11 @@
   - [Regenerate Nginx Config](#regenerate-nginx-config)
 - [Enable Debug Mode](#enable-debug-mode)
 - [Create Vanilla Nginx Config](#create-vanilla-nginx-config)
+- [GridPane Deployment Issues](#gridpane-deployment-issues)
+  - [GCP](#gcp)
 - [Notes](#notes)
   - [Check Caching](#check-caching)
-    - [Redis](#redis)
+    - [Redis](#redis-1)
     - [Nginx](#nginx-1)
 
 
@@ -317,6 +324,12 @@ gp stack redis -max-memory 300
 
 # Create Vanilla Nginx Config
 * gp conf nginx generate https-vanilla site.com
+
+# GridPane Deployment Issues
+## GCP
+1. Install full Ubuntu
+   * ```apt-get install -y ubuntu-server```
+2. Ensure that GPC firewall rules allow tcp port 11371 ingress
 
 # Notes
 
