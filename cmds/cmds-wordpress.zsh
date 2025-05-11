@@ -1028,3 +1028,37 @@ wp-memory-info () {
 	_wp-memory-info-usage
 
 }
+# =====================================
+# -- wp-site
+# =====================================
+help_wordpress[wp-site]='Get site information'
+function wp-site () {
+	local SITE_PATH="$1"
+	[[ -z $SITE_PATH ]] && SITE_PATH=$(pwd)
+	[[ ! -d $SITE_PATH ]] && { echo "Path $SITE_PATH doesn't exist"; return 1; }
+
+	# Check if WordPress is installed using wp-cli
+	_wp-install-check $SITE_PATH
+	if [[ $? == 0 ]]; then
+		_loading "Getting site information for $SITE_PATH"
+		_loading2 "Checking for updates"
+		wp --allow-root core check-update --path="$SITE_PATH"
+
+		# -- Get the site url
+		SITE_URL=$(wp --allow-root option get siteurl --path="$SITE_PATH")
+		echo "Site URL: $SITE_URL"
+		# -- Get other domain setting
+		SITE_HOME_URL=$(wp --allow-root option get home --path="$SITE_PATH")
+		echo "Home URL: $SITE_HOME_URL"
+		# -- Get the site name
+		SITE_NAME=$(wp --allow-root option get blogname --path="$SITE_PATH")
+		echo "Site Name: $SITE_NAME"
+		# -- Get the site description
+		SITE_DESCRIPTION=$(wp --allow-root option get blogdescription --path="$SITE_PATH")
+		echo "Site Description: $SITE_DESCRIPTION"
+
+	else
+		echo "WordPress is not installed in the $SITE_PATH directory."
+		return 1
+	fi
+}
