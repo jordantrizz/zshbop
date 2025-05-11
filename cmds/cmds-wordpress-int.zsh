@@ -31,6 +31,7 @@ help_int_wordpress[_wp-install-check]='Check if WordPress is installed'
 _wp-install-check () {
     local OUTPUT_DIR=$1 WP_EXISTS CWD=$(pwd)
     # Check if WordPress is installed
+    _debugf "Running: wp core is-installed --path='${CWD}'"
     WP_EXISTS="$(wp core is-installed --path='${CWD}' 2>&1)"
     WP_EXISTS_EXIT="$?"
     _debugf "WP_EXISTS: $WP_EXISTS"
