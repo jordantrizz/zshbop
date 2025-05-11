@@ -28,19 +28,6 @@ _wp-cli-check () {
 }
 
 # =========================================================
-# -- _wp-install-check
-# =========================================================
-help_inc_wordpress[_wp-install-check]='Check if WordPress is installed'
-_wp-install-check () {
-	# Check if WordPress is installed
-	WP_EXISTS=$(wp core is-installed 2> /dev/null)
-	if [[ $? == 1 ]]; then
-		_error "WordPress is not installed in the current directory."
-		return 1
-	fi
-}
-
-# =========================================================
 # =========================================================
 # =========================================================
 # =========================================================
