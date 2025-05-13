@@ -1,24 +1,40 @@
 # Ubuntu
 # DNS
 ## Check DNS
-```
-systemd-resolve --status
-```
+```systemd-resolve --status```
 ## Check if DHCP is being used
-```
-cat /etc/netplan/*network*
-```
+```cat /etc/netplan/*network*```
 
 ## Check resolvconf
-```
-cat /etc/resolvconf/resolv.conf.d/*
-```
+```cat /etc/resolvconf/resolv.conf.d/*```
 
 ## Clear Local DNS Cache
 ```
 systemd-resolve --flush-caches
 systemd-resolve --statistics
 ```
+
+## Change default DNS resolvers
+1. Edit the file /etc/systemd/resolved.conf
+```
+sudo joe /etc/systemd/resolved.conf
+```
+2. Uncomment and set DNS
+```
+[Resolve]
+DNS=8.8.8.8
+FallbackDNS=1.1.1.1    # optional
+Domains=~.            # force all lookups through these servers
+```
+3. Restart the service
+```
+sudo systemctl restart systemd-resolved
+```
+4. Check the DNS
+```
+systemd-resolve --status
+```
+
 
 # Time and Date Sync
 * Check to see firewall is block tcp/udp 123 for NTP.
