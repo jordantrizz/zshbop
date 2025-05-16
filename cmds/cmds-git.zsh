@@ -552,3 +552,24 @@ function git-config-defaults () {
         git config --global pull.rebase true
     fi
 }
+
+# =====================================
+# -- git-release
+# =====================================
+help_git[git-release]="Create a GitHub release using the latest tag and commit message"
+git-release() {
+  # grab the most recent tag
+  local tag
+  tag=$(git describe --tags --abbrev=0) || {
+    echo "❌ no tags found"; return 1
+  }
+
+  # grab the latest commit message
+  local msg
+  msg=$(git log -1 --pretty=%B)
+
+  # run GH CLI release create with tag, using the tag as title and the commit msg as notes
+  gh release create "$tag" \
+    --title "$tag" \
+    --notes "$msg"
+}
