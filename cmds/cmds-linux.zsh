@@ -908,3 +908,51 @@ oom-check () {
 		return 1
 	fi
 }
+
+# =============================================
+# -- ps-top
+# =============================================
+help_linux[ps-top]='Show processes using ps and refresh a configurable amount of time'
+ps-top() {
+  	# Help flag
+	_ps-top-usage () {
+		
+		echo "Usage: ps-top [interval] [cpu|mem] [topN]"
+		echo "  interval: Time in seconds to refresh (default: 2)"
+		echo "  cpu|mem: Sort by CPU usage or memory usage (default: cpu)"		
+		echo "  topN: Show top N processes (default: 0, show all)"
+		echo "  -h, --help: Show this help message"
+		echo "  Example: ps-top 2 cpu 10"		
+	}
+
+	if [[ $1 == "-h" || $1 == "--help" ]]; then
+		_ps-top-usage
+		return 0
+	fi
+
+	local INTERVAL="${1:-2}"
+	local SORTFIELD="${2:-cpu}"
+	local TOPN="${3:-0}"
+	local SORTCOL TOPCMD CMD
+
+	case "$SORTFIELD" in
+		cpu) SORTCOL=3 ;;
+		mem) SORTCOL=4 ;;
+		*)
+		echo "Invalid sort field: '$SORTFIELD' (use cpu or mem)"
+		return 1
+		;;
+	esac
+
+	if (( TOPN > 0 )); then
+		TOPCMD=" | head -n $TOPN"
+	else
+		TOPCMD=""
+	fi
+
+	CMD="ps -eo user:32,pid,%cpu,%mem,cmd --forest \
+		| { read -r header; echo \"\$header\"; tail -n +2 \
+			| sort -nrk${SORTCOL},${SORTCOL}${TOPCMD}; }"
+
+	watch -n "$INTERVAL" "$CMD"
+}
