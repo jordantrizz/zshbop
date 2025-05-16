@@ -516,26 +516,39 @@ function git-ssh-key () {
 help_git[git-config-defaults]="Set git config defaults."
 function git-config-defaults () {
     local GIT_LOAD_DEFAULTS="0"
+    _loading "Setting git config defaults for current repository"
+
+    # -- Confirm if git is installed
+    if ! _cmd_exists git; then
+        _error "Git is not installed"
+        return 1
+    fi
+    # -- Check if current dir is a git repo
+    if [[ ! -d .git ]]; then
+        _error "Not a git repo"
+        return 1
+    fi
+    
     # Check for git defaults file.
     if [[ -f "$HOME/.gitconfig.defaults" ]]; then
-        _loading "Found git defaults file: $HOME/.gitconfig.defaults"
+        _loading2 "Found git defaults file: $HOME/.gitconfig.defaults"
         GIT_LOAD_DEFAULTS="1"
     else
         _warning "Couldn't find git defaults file, using common defaults"
     fi
 
     if [[ -f "$ZBC_HOME/.gitconfig.defaults" ]]; then
-        _loading "Found git defaults file: $ZBC_HOME/.gitconfig.defaults"
+        _loading2 "Found git defaults file: $ZBC_HOME/.gitconfig.defaults"
         GIT_LOAD_DEFAULTS="1"    
     else
         _warning "Couldn't find git defaults file, using common defaults"
     fi
     
     if [[ $GIT_LOAD_DEFAULTS == "0" ]]; then
-        _loading "Couldn't find git defaults file, applying common defaults"
-        _loading2 "Setting git merge to fast forward only"
+        _loading2 "Couldn't find git defaults file, applying common defaults"
+        _loading3 "Setting git merge to fast forward only"
         git config --global merge.ff only
-        _loading2 "Setting git pull to rebase"
+        _loading3 "Setting git pull to rebase"
         git config --global pull.rebase true
     fi
 }
