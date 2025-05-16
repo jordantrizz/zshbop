@@ -509,3 +509,14 @@ function git-ssh-key () {
     _success "Compelted"
     cat $GIT_KEY_PATH.pub
 }
+
+# =====================================
+# -- git-config-defaults
+# =====================================
+help_git[git-config-defaults]="Set git config defaults."
+function git-config-defaults () {
+    _loading "Setting git merge to fast forward only"
+    git config --global merge.ff only
+    _loading "Setting git pull to rebase"
+    git config --global pull.rebase true
+}
