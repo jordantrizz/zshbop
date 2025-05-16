@@ -515,8 +515,27 @@ function git-ssh-key () {
 # =====================================
 help_git[git-config-defaults]="Set git config defaults."
 function git-config-defaults () {
-    _loading "Setting git merge to fast forward only"
-    git config --global merge.ff only
-    _loading "Setting git pull to rebase"
-    git config --global pull.rebase true
+    local GIT_LOAD_DEFAULTS="0"
+    # Check for git defaults file.
+    if [[ -f "$HOME/.gitconfig.defaults" ]]; then
+        _loading "Found git defaults file: $HOME/.gitconfig.defaults"
+        GIT_LOAD_DEFAULTS="1"
+    else
+        _warning "Couldn't find git defaults file, using common defaults"
+    fi
+
+    if [[ -f "$ZBC_HOME/.gitconfig.defaults" ]]; then
+        _loading "Found git defaults file: $ZBC_HOME/.gitconfig.defaults"
+        GIT_LOAD_DEFAULTS="1"    
+    else
+        _warning "Couldn't find git defaults file, using common defaults"
+    fi
+    
+    if [[ $GIT_LOAD_DEFAULTS == "0" ]]; then
+        _loading "Couldn't find git defaults file, applying common defaults"
+        _loading2 "Setting git merge to fast forward only"
+        git config --global merge.ff only
+        _loading2 "Setting git pull to rebase"
+        git config --global pull.rebase true
+    fi
 }
