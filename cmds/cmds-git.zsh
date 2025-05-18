@@ -148,9 +148,12 @@ function gcab {
     fi
 }
 
-# -- gbd - Git branch delete
-help_git[gbd]="Delete local and remote branch"
-function gbd {
+# =====================================
+# -- gbdall - Git branch delete
+# =====================================
+help_git[gbdall]="Delete local and remote branch"
+# -- Check if gbd alias exists 
+function gbdall {
     if [[ $# -ne 1 ]]; then
         echo "Usage: git-delete-branch branch"
         return 1
