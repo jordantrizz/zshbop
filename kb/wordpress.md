@@ -46,11 +46,17 @@ if ( WP_DEBUG ) {
     @ini_set( 'error_log', dirname(__FILE__) . '/debug.log' );
 };
 ```
+
 ## Change Site URL
 * Add wp-config.php
 ```
 define( 'WP_HOME', 'http://example.com' );
 define( 'WP_SITEURL', 'http://example.com' );
+```
+
+## Set wp-config.php Constants via wp-cli
+```
+wp config set WP_DEBUG true --raw
 ```
 
 # Linux Commands
