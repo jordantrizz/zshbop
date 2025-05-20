@@ -561,20 +561,50 @@ function git-config-defaults () {
 # =====================================
 help_git[git-release]="Create a GitHub release using the latest tag and commit message"
 git-release() {
-  # grab the most recent tag
-  local tag
-  tag=$(git describe --tags --abbrev=0) || {
-    echo "❌ no tags found"; return 1
-  }
+    _loading "Creating GitHub release"
+    # check if gh is installed
+    _loading2 "Checking if GitHub CLI (gh) is installed"
+    if ! _cmd_exists gh; then
+        _error "GitHub CLI (gh) is not installed"
+        return 1
+    fi
+    
+    # check if in a git repo
+    _loading2 "Checking if in a git repository"
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        _error "Not in a git repository"
+        return 1
+    fi
 
-  # grab the latest commit message
-  local msg
-  msg=$(git log -1 --pretty=%B)
+    # Ask to push all tags
+    read -q "REPLY?Do you want to push all tags? (y/n) "
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        # push all tags
+        _loading "Pushing all tags to origin"
+        git push --tags
+    else
+        _loading "Skipping tag push"
+    fi
+    
+    # grab the most recent tag
+    _loading2 "Getting the most recent tag"    
+    local tag
+    tag=$(git describe --tags --abbrev=0) || {
+        echo "❌ no tags found"; return 1
+    }
+    _loading3 "Found tag: $tag"
 
-  # run GH CLI release create with tag, using the tag as title and the commit msg as notes
-  gh release create "$tag" \
-    --title "$tag" \
-    --notes "$msg"
+    # grab the latest commit message
+    _loading3 "Getting the latest commit message"
+    local msg
+    msg=$(git log -1 --pretty=%B)
+
+    # run GH CLI release create with tag, using the tag as title and the commit msg as notes
+    _loading3 "Creating GitHub release"
+    gh release create "$tag" \
+        --title "$tag" \
+        --notes "$msg"
 }
 
 # =====================================
