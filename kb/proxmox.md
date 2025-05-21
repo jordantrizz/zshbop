@@ -308,21 +308,24 @@ INTERFACESv4="vmbr1"
 ```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
 
+## Backup System Notes
+1. Set Node Template `{{node}}-{{guestname}}-{{vmid}}`
+2. Use Notification System, ensure error is set.
 ## Samba Backups on Hetzner
 1. Edit /etc/fstab
 ```
 //u111111.your-storagebox.de/backup  /mnt/HetznerSB  cifs credentials=/root/.smbcredentials,_netdev,vers=3.0,iocharset=utf8,x-systemd.automount  0  0
 ```
-2. Create /root/.smbcredentials
+1. Create /root/.smbcredentials
 ```
 username=yourusername
 password=yourpassword
 ```
-3. Set permissions
+1. Set permissions
 ```
 chmod 600 /root/.smbcredentials
 ```
-4. Mount
+1. Mount
 ```
 mount -a
 ```
