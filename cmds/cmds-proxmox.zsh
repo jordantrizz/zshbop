@@ -22,3 +22,35 @@ function proxmox-backup.sh () {
     _loading " -- Running proxmox-backup.sh"
     /usr/bin/proxmox-backup.sh
 }
+
+# =====================================
+# -- proxmox-memory-report
+# =====================================
+help_proxmox[proxmox-memory-report]='Get memory report for Proxmox'
+function proxmox-memory-report () {
+    _loading "Running proxmox-memory-report"
+    # Get a list of all vms
+    local VMS=$(qm list | awk 'NR>1 {print $1}')
+    local TOTAL_MEMORY=0
+    local TOTAL_USED=0
+    local TOTAL_FREE=0
+
+    # Loop through each vm and get memory usage
+    local OUTPUT="VM\tTotal Memory\tUsed Memory\tFree Memory\n"
+    OUTPUT+="-----------------------------------------------------\n"
+    for VM in $VMS; do
+        local MEMORY=$(qm config $VM | grep memory | awk '{print $2}')
+        local USED=$(qm status $VM | grep 'memory' | awk '{print $2}' | sed 's/[^0-9]*//g')
+        local FREE=$((MEMORY - USED))
+        TOTAL_MEMORY=$((TOTAL_MEMORY + MEMORY))
+        TOTAL_USED=$((TOTAL_USED + USED))
+        TOTAL_FREE=$((TOTAL_FREE + FREE))
+        OUTPUT+="$VM\t$MEMORY\t$USED\t$FREE\n"
+    done
+    OUTPUT+="-----------------------------------------------------\n"
+    echo "$OUTPUT"
+    echo "Total Memory: $TOTAL_MEMORY"
+    echo "Total Used: $TOTAL_USED"
+    echo "Total Free: $TOTAL_FREE"
+    _success "Proxmox memory report generated successfully."
+}
