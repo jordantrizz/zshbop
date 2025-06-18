@@ -554,6 +554,8 @@ function git-config-defaults () {
         _loading3 "Setting git pull to rebase"
         git config --global pull.rebase true
     fi
+
+    git config --global alias.amend '!git add -A && git commit --amend --no-edit'
 }
 
 # =====================================
