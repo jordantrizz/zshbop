@@ -30,7 +30,7 @@ help_proxmox[proxmox-memory-report]='Get memory report for Proxmox'
 function proxmox-memory-report () {
     _loading "Running proxmox-memory-report"
     # Get a list of all vms
-    local VMS=$(qm list | awk 'NR>1 {print $1}')
+    local VMS=($(qm list | awk 'NR>1 {print $1}'))
     local TOTAL_MEMORY=0
     local TOTAL_USED=0
     local TOTAL_FREE=0
