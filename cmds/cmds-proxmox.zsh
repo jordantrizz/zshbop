@@ -48,8 +48,8 @@ function proxmox-memory-report () {
         #TOTAL_FREE=$((TOTAL_FREE + FREE))
         OUTPUT+="$VM\t$NAME\t$MEMORY\t$USED\t$FREE\n"
     done
-    OUTPUT+="-----------------------------------------------------\n"
-    echo "$OUTPUT"
+    echo "$OUTPUT" | column -t -s $'\t'
+    echo "-----------------------------------------------------"
     echo "Total Memory: $TOTAL_MEMORY"
     echo "Total Used: N/A"
     echo "Total Free: N/A"
