@@ -561,6 +561,7 @@ function _proxmox_createvm () {
 
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     # -- Run QM Command
     _loading2 "Creating VM with ID:$VM_ID"
@@ -614,8 +615,9 @@ function _proxmox_createvm () {
         _loading3 "No DHCP network set, skipping"
     fi
 
-        # -- Download cloudimage
+    # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     _loading2 "Create a copy of new image"
     cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
@@ -662,6 +664,7 @@ function _proxmox_createtemp () {
 
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     # -- Check if VM_ID is taken
     _loading2 "Checking if VMID $VM_ID is taken"
