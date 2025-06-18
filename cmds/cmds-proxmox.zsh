@@ -50,7 +50,8 @@ function proxmox-memory-report () {
     done
     echo "$OUTPUT" | column -t -s $'\t'
     echo "-----------------------------------------------------"
-    echo "Total Memory: $TOTAL_MEMORY"
+    echo "Total VM Memory: $TOTAL_MEMORY"
+    echo "Total SYS Memory: $(free -h | awk '/^Mem:/ {print $2}')"
     echo "Total Used: N/A"
     echo "Total Free: N/A"
     _success "Proxmox memory report generated successfully."
