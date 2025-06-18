@@ -42,12 +42,14 @@ function proxmox-memory-report () {
         local NAME=$(qm config $VM | grep name | awk '{print $2}')
         local MEMORY=$(qm config $VM | grep memory | awk '{print $2}')
         # Used
-        local AGENT_OUTPUT=$(qm agent $VM get-memory-block-info 2>/dev/null)
-        if [[ -n "$AGENT_OUTPUT" && "$AGENT_OUTPUT" != *"error"* ]]; then
-            # Parse the "size" field (bytes) and convert to MB
-            local SIZE=$(echo "$AGENT_OUTPUT" | grep -o '"size"[[:space:]]*:[[:space:]]*[0-9]*' | awk -F: '{print $2}' | tr -d ' ')
-            if [[ -n "$SIZE" ]]; then
-                USED=$((SIZE / 1024 / 1024))
+        local BALLOON=$(qm-monitor $VM info balloon | grep balloon:)
+        if [[ -n "$BALLOON" ]]; then
+            # Extract total_mem and free_mem (both in MB)
+            local TOTAL_MEM=$(echo $BALLOON | sed -n 's/.*total_mem=\([0-9]*\).*/\1/p')
+            local FREE_MEM=$(echo $BALLOON | sed -n 's/.*free_mem=\([0-9]*\).*/\1/p')
+            if [[ -n "$TOTAL_MEM" && -n "$FREE_MEM" ]]; then
+                USED=$((TOTAL_MEM - FREE_MEM))
+                FREE=$FREE_MEM
             fi
         fi
         local FREE=$((MEMORY - USED))
