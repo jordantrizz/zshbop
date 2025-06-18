@@ -41,11 +41,19 @@ function proxmox-memory-report () {
     for VM in $VMS; do
         local NAME=$(qm config $VM | grep name | awk '{print $2}')
         local MEMORY=$(qm config $VM | grep memory | awk '{print $2}')
-        local USED="N/A"
-        local FREE="N/A"
+        # Used
+        local AGENT_OUTPUT=$(qm agent $VM get-memory-block-info 2>/dev/null)
+        if [[ -n "$AGENT_OUTPUT" && "$AGENT_OUTPUT" != *"error"* ]]; then
+            # Parse the "size" field (bytes) and convert to MB
+            local SIZE=$(echo "$AGENT_OUTPUT" | grep -o '"size"[[:space:]]*:[[:space:]]*[0-9]*' | awk -F: '{print $2}' | tr -d ' ')
+            if [[ -n "$SIZE" ]]; then
+                USED=$((SIZE / 1024 / 1024))
+            fi
+        fi
+        local FREE=$((MEMORY - USED))
         TOTAL_MEMORY=$((TOTAL_MEMORY + MEMORY))
-        #TOTAL_USED=$((TOTAL_USED + USED))
-        #TOTAL_FREE=$((TOTAL_FREE + FREE))
+        TOTAL_USED=$((TOTAL_USED + USED))
+        TOTAL_FREE=$((TOTAL_FREE + FREE))
         OUTPUT+="$VM\t$NAME\t$MEMORY\t$USED\t$FREE\n"
     done
     echo "$OUTPUT" | column -t -s $'\t'
