@@ -456,6 +456,7 @@ function _proxmox_imagevm () {
 
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     # -- Create a copy of new image
     _loading2 "Create a copy of new image"
