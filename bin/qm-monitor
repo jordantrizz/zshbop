@@ -1,0 +1,14 @@
+#!/bin/bash
+QEMU_MONITOR_SOCKET_PATH=/var/run/qemu-server
+QEMU_MONITOR_SOCKET_EXT=qmp
+SOCAT=$(which socat) || { echo "socat cmd not found => exit"; exit 1; }
+VMID=$1
+shift
+command="{ 'execute': 'qmp_capabilities' }
+{ 'execute': 'human-monitor-command',
+     'arguments': { 'command-line': '$@' } }
+"
+
+echo "${command}" | ${SOCAT} unix-connect:${QEMU_MONITOR_SOCKET_PATH}/${VMID}.${QEMU_MONITOR_SOCKET_EXT} stdio \
+| tail -n -1|jq .[] |xargs echo -e #prettify output
+exit 0
