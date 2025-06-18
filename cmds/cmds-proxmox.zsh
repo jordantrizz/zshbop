@@ -36,16 +36,17 @@ function proxmox-memory-report () {
     local TOTAL_FREE=0
 
     # Loop through each vm and get memory usage
-    local OUTPUT="VM\tTotal Memory\tUsed Memory\tFree Memory\n"
+    local OUTPUT="VM\tName\tTotal Memory\tUsed Memory\tFree Memory\n"
     OUTPUT+="-----------------------------------------------------\n"
     for VM in $VMS; do
+        local NAME=$(qm config $VM | grep name | awk '{print $2}')
         local MEMORY=$(qm config $VM | grep memory | awk '{print $2}')
         local USED="N/A"
         local FREE="N/A"
         #TOTAL_MEMORY=$((TOTAL_MEMORY + MEMORY))
         #TOTAL_USED=$((TOTAL_USED + USED))
         #TOTAL_FREE=$((TOTAL_FREE + FREE))
-        OUTPUT+="$VM\t$MEMORY\t$USED\t$FREE\n"
+        OUTPUT+="$VM\t$NAME\t$MEMORY\t$USED\t$FREE\n"
     done
     OUTPUT+="-----------------------------------------------------\n"
     echo "$OUTPUT"
