@@ -37,7 +37,7 @@ function proxmox-memory-report () {
 
     # Loop through each vm and get memory usage
     local OUTPUT="VM\tName\tTotal Memory\tUsed Memory\tFree Memory\n"
-    OUTPUT+="-----------------------------------------------------\n"
+    OUTPUT+="--\t\t----\t------------\t-----------\t----------\n"
     for VM in $VMS; do
         local NAME=$(qm config $VM | grep name | awk '{print $2}')
         local MEMORY=$(qm config $VM | grep memory | awk '{print $2}')
