@@ -324,7 +324,7 @@ function _proxmox_download_cloudimage () {
     _if_marray "$OS_RELEASE" AVAIL_OS
     if [[ $MARRAY_VALID == "1" ]]; then
         _error "Couldn't get Ubuntu Image for $OS_RELEASE"
-        return
+        return 1
     else
         _loading3 "OS: $OS_RELEASE is valid"
     fi
