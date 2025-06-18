@@ -40,8 +40,8 @@ function proxmox-memory-report () {
     OUTPUT+="-----------------------------------------------------\n"
     for VM in $VMS; do
         local MEMORY=$(qm config $VM | grep memory | awk '{print $2}')
-        local USED=$(qm status $VM | grep 'memory' | awk '{print $2}' | sed 's/[^0-9]*//g')
-        local FREE=$((MEMORY - USED))
+        local USED="N/A"
+        local FREE="N/A"
         TOTAL_MEMORY=$((TOTAL_MEMORY + MEMORY))
         TOTAL_USED=$((TOTAL_USED + USED))
         TOTAL_FREE=$((TOTAL_FREE + FREE))
@@ -50,7 +50,7 @@ function proxmox-memory-report () {
     OUTPUT+="-----------------------------------------------------\n"
     echo "$OUTPUT"
     echo "Total Memory: $TOTAL_MEMORY"
-    echo "Total Used: $TOTAL_USED"
-    echo "Total Free: $TOTAL_FREE"
+    echo "Total Used: N/A"
+    echo "Total Free: N/A"
     _success "Proxmox memory report generated successfully."
 }
