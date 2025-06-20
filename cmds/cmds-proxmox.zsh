@@ -79,6 +79,7 @@ function proxmox-memory-report () {
     TOTAL_SYS_MEMORY=$(free -m | awk '/^Mem:/ {print $2}')
     echo "Total SYS Memory: $TOTAL_SYS_MEMORY"
     echo "% Available/MB: $((100 * (TOTAL_SYS_MEMORY - TOTAL_MEMORY) / TOTAL_SYS_MEMORY))% / $((TOTAL_SYS_MEMORY - TOTAL_MEMORY)) MB"
+    echo "10% of Total Memory: $((TOTAL_MEMORY / 10)) MB"
     echo "-----------------------------------------------------"
     echo "Total Used: $TOTAL_USED"
     echo "Total Free: $TOTAL_FREE"
