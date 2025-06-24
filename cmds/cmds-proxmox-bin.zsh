@@ -172,7 +172,7 @@ Command Options:
         -memory <memory>          Memory of VM in GB (Default: 2) Ex. 0.5 = 512MB 1 = 1GB 2 = 2GB etc.
         -network <network>        Network bridge to use (Default: vmbr0)
         -storage <storage>        Storage location (Autodetect)
-        -disksize <disksize>      Disk size in MB (Default: 20000MB)
+        -disksize <disksize>      Disk size in GB (Default: 20)
         -os <os>                  bionic,focal,jammy, noble (Default: jammy)
         -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
         -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
@@ -476,7 +476,7 @@ function _proxmox_imagevm () {
         _loading3 "scsi0 disk size is $DISKSIZE"
     else
         _loading3 "Skipping scsi0 disk size check, using default 20000M"
-        DISKSIZE="20000"
+        DISKSIZE="20"
     fi
 
     # -- Confirm deletion of scsi0 disk
