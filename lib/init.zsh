@@ -71,6 +71,8 @@ init_path () {
 
     init_add_path /snap/bin
 	
+    # -- Add npm global bin path
+    init_add_path $HOME/.npm-global/bin
     init_fix_path
     init_log
 }
