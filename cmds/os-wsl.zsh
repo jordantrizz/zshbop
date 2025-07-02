@@ -54,7 +54,8 @@ function wsl-fixes () {
 # ==================================================
 help_wsl[wsl-backupwtc]='Backup Windows Terminal configuration.'
 wsl-backupwtc () {
-	local WT_SOURCE="$(echo /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
+	local WIN_USER=$(powershell.exe '$env:UserName' 2>/dev/null | sed -e 's/\r//g')
+	local WT_SOURCE="$(echo /mnt/c/Users/$WIN_USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
 	local WT_DEST="$ZSHBOP_TEMP/wt-settings.json"
 	local QUEIT=${1:=0}		
 	local OUTPUT=""
