@@ -118,3 +118,152 @@ function docker-ports () {
 
     _loading2 "Next available TCP port: $next_tcp_port"
 }
+
+# ==================================================
+# -- docker-networks
+# ==================================================
+help_docker[docker-networks]='List all docker networks'
+function docker-networks () {
+    _loading "Listing all docker networks"
+    
+    # Get network list and store in an array
+    local networks_output
+    networks_output=$(docker network ls --format "table {{.Name}}\t{{.ID}}\t{{.Driver}}\t{{.Scope}}")
+    
+    # Process each line using a here-string to avoid subshell
+    while IFS= read -r line; do
+        if [[ $line != "NAME"* && -n "$line" ]]; then
+            network_name=$(echo "$line" | awk '{print $1}')
+            network_id=$(echo "$line" | awk '{print $2}')
+            network_driver=$(echo "$line" | awk '{print $3}')
+            network_scope=$(echo "$line" | awk '{print $4}')
+
+            # Skip if network name is empty
+            if [[ -z "$network_name" ]]; then
+                continue
+            fi
+
+            # Get the subnet and IP range for the network
+            network_info=$(docker network inspect "$network_id" --format '{{range .IPAM.Config}}{{.Subnet}} {{.Gateway}}{{end}}' 2>/dev/null)
+            subnet=$(echo "$network_info" | awk '{print $1}')
+            gateway=$(echo "$network_info" | awk '{print $2}')
+
+            # Get containers connected to this network
+            containers=$(docker network inspect "$network_id" --format '{{range .Containers}}{{.Name}} {{end}}' 2>/dev/null)
+
+            _loading2 "Network: $network_name (ID: $network_id, Driver: $network_driver, Scope: $network_scope)"
+            _loading2 "  Subnet: $subnet"
+            _loading2 "  Gateway: $gateway"
+            
+            if [[ -n "$containers" && "$containers" != " " ]]; then
+                _loading3 "Containers: $containers"
+            else
+                echo "  Containers: None"
+            fi
+            echo ""
+        fi
+    done <<< "$networks_output"
+}
+
+# ===================================================
+# -- docker-prune
+# ===================================================
+help_docker[docker-prune]='Prune unused Docker resources'
+function docker-prune () {
+    _loading "Pruning unused Docker resources"
+    # Prune unused Docker resources
+    docker system prune -a --volumes --force
+    if [[ $? -eq 0 ]]; then
+        _loading2 "Docker resources pruned successfully"
+    else
+        _loading2 "Failed to prune Docker resources"
+    fi
+}
+
+# ===================================================
+# -- docker-storage
+# ===================================================
+help_docker[docker-storage]='Show Docker storage usage'
+function docker-storage () {
+    _loading "Showing Docker storage usage"    
+    # Check if Docker is running
+    if ! docker info &>/dev/null; then
+        _loading2 "Docker is not running. Please start Docker first."
+        return 1
+    fi
+    
+    # Show Docker storage usage
+    _loading2 "Running 'docker system df' to display storage usage"
+    docker system df
+
+    # Show detailed information about Docker images
+    _loading2 "Running 'docker system df -v' for detailed image information"
+    docker system df -v
+
+    # Show overlay2 filesystem usage
+    _loading2 "Running 'du -h /var/lib/docker/overlay2' to show overlay2 filesystem usage"
+    STORAGE_OVERLAY2="$(sudo du -h /var/lib/docker/overlay2 --max-depth=1 | sort -hr | head -20)"
+    echo "$STORAGE_OVERLAY2"
+
+    # Get container storage usage and correlate with overlay2 data
+    _loading2 "Top storage consuming containers with overlay2 details:"
+    
+    # Check if jq is available
+    if ! command -v jq &>/dev/null; then
+        _warning "jq not available, showing basic container info" 0
+        docker ps -a --size --format "{{.Names}} ({{.ID}}): {{.Size}}" | head -5
+    else
+        # Get the top 5 containers by overlay2 size
+        echo "$STORAGE_OVERLAY2" | head -n 6 | tail -n +2 | while read overlay_size overlay_path; do
+            if [[ -n "$overlay_path" && "$overlay_path" != "/var/lib/docker/overlay2" ]]; then
+                overlay_id=$(basename "$overlay_path")
+                
+                _loading3 "Overlay2 Path: $overlay_path ($overlay_size)"
+                
+                # Find container using this overlay2 directory
+                CONTAINER_FOUND=""
+                CONTAINER_ID=""
+                CONTAINER_NAME=""
+                CONTAINER_IMAGE=""
+                
+                # Search through all containers to find which one uses this overlay2
+                for container in $(docker ps -aq 2>/dev/null); do
+                    # Get the container's overlay2 directories
+                    CONTAINER_OVERLAYS=$(docker inspect "$container" 2>/dev/null | jq -r '.[] | .GraphDriver.Data.MergedDir // .GraphDriver.Data.WorkDir // empty' 2>/dev/null | grep -o '[a-f0-9]\{64\}' | head -1)
+                    
+                    if [[ "$CONTAINER_OVERLAYS" == "$overlay_id" ]] || docker inspect "$container" 2>/dev/null | jq -r '.[] | .GraphDriver.Data | to_entries[] | .value' 2>/dev/null | grep -q "$overlay_id"; then
+                        CONTAINER_ID="$container"
+                        CONTAINER_NAME=$(docker inspect --format '{{.Name}}' "$container" 2>/dev/null | sed 's|/||')
+                        CONTAINER_IMAGE=$(docker inspect --format '{{.Config.Image}}' "$container" 2>/dev/null)
+                        CONTAINER_STATUS=$(docker inspect --format '{{.State.Status}}' "$container" 2>/dev/null)
+                        CONTAINER_FOUND="yes"
+                        break
+                    fi
+                done
+                
+                if [[ "$CONTAINER_FOUND" == "yes" ]]; then
+                    echo "  Container: $CONTAINER_NAME ($CONTAINER_ID)"
+                    echo "  Image: $CONTAINER_IMAGE"
+                    echo "  Status: $CONTAINER_STATUS"
+                    
+                    # Get container size information
+                    CONTAINER_SIZE=$(docker ps -a --size --format "{{.ID}}|{{.Size}}" | grep "^$CONTAINER_ID" | cut -d'|' -f2 | awk '{print $1}')
+                    echo "  Container Layer Size: $CONTAINER_SIZE"
+                    echo "  Overlay2 Size: $overlay_size"
+                    
+                    # Show mount information
+                    MOUNTS=$(docker inspect --format '{{range .Mounts}}{{.Type}}:{{.Source}}->{{.Destination}} {{end}}' "$CONTAINER_ID" 2>/dev/null)
+                    if [[ -n "$MOUNTS" ]]; then
+                        echo "  Mounts: $MOUNTS"
+                    fi
+                else
+                    echo "  Container: Unknown (overlay2 may be from deleted container)"
+                    echo "  Overlay2 Size: $overlay_size"
+                    echo "  Note: This overlay2 directory doesn't match any current container"
+                fi
+                echo ""
+            fi
+        done
+    fi
+
+}

@@ -54,7 +54,8 @@ function wsl-fixes () {
 # ==================================================
 help_wsl[wsl-backupwtc]='Backup Windows Terminal configuration.'
 wsl-backupwtc () {
-	local WT_SOURCE="$(echo /mnt/c/Users/$USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
+	local WIN_USER=$(powershell.exe '$env:UserName' 2>/dev/null | sed -e 's/\r//g')
+	local WT_SOURCE="$(echo /mnt/c/Users/$WIN_USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
 	local WT_DEST="$ZSHBOP_TEMP/wt-settings.json"
 	local QUEIT=${1:=0}		
 	local OUTPUT=""
@@ -115,15 +116,24 @@ function wsl-check-diskspace () {
 help_wsl[wsl-shortcuts]='Create Downloads and Desktop shortcuts for WSL'
 function wsl-shortcuts () {
 	local OUTPUT="" DO=0 OUTPUT_FULL=""
+	local WIN_USER DOWNLOAD_FOLDER DESKTOP_FOLDER
+	WIN_USER=$(powershell.exe '$env:UserName' 2>/dev/null | sed -e 's/\r//g')
 	# -- Create shortcuts
 	
-	if [[ ! -d "$HOME/Downloads" ]]; then		
-		ln -s /mnt/c/Users/$USER/Downloads ~/Downloads	
+	# -- Check to see if Downloads folder exists
+	DOWNLOAD_FOLDER="/mnt/c/Users/$WIN_USER/Downloads"
+	[[ ! -d "$DOWNLOAD_FOLDER" ]] && { _warning "Windows Downloads folder $DOWNLOAD_FOLDER not found, skipping shortcut creation"; return 1; }
+	# Check if Downloads folder exists as symlink
+	if [[ ! -L "$HOME/Downloads" ]]; then
+		ln -s /mnt/c/Users/$WIN_USER/Downloads ~/Downloads	
 		OUTPUT+="$HEADER Created Downloads shortcut."
 		DO=1
 	fi
-	if [[ ! -d "$HOME/Desktop" ]]; then		
-		ln -s /mnt/c/Users/$USER/Desktop ~/Desktop
+	# -- Create Desktop shortcut
+	DESKTOP_FOLDER="/mnt/c/Users/$WIN_USER/Desktop"
+	[[ ! -d "/mnt/c/Users/$WIN_USER/Desktop" ]] && { _warning "Windows Desktop folder $DESKTOP_FOLDER not found, skipping shortcut creation"; return 1; }
+	if [[ ! -L "$HOME/Desktop" ]]; then		
+		ln -s /mnt/c/Users/$WIN_USER/Desktop ~/Desktop
 		OUTPUT+="Created Desktop shortcut"
 		DO=1
 	fi

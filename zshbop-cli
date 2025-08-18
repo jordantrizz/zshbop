@@ -1,0 +1,329 @@
+#!/usr/bin/env bash
+# =========================================================
+# -- zshbop-cli -- bash-compatible zshbop command runner
+# -- 
+# -- Allows running zshbop commands from bash without
+# -- requiring zsh or sourcing into .zshrc
+# =========================================================
+
+# Get the directory where this script is located
+ZSHBOP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export ZSHBOP_ROOT
+
+# Source version
+export ZSHBOP_VERSION=$(cat "${ZSHBOP_ROOT}/VERSION" 2>/dev/null || echo "unknown")
+
+# Set zshbop home
+if [[ -w "$HOME" ]]; then
+    export ZSHBOP_HOME="$HOME"
+else
+    export ZSHBOP_HOME="$ZSHBOP_ROOT/../"
+fi
+
+# Basic logging setup
+export ZB_LOG="${ZSHBOP_HOME}/.zshbop.log"
+
+# Color setup for bash (simplified version of zsh colors)
+if [[ -t 1 ]]; then
+    # Terminal colors
+    RSC='\033[0m'        # Reset
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[0;33m'
+    BLUE='\033[0;34m'
+    MAGENTA='\033[0;35m'
+    CYAN='\033[0;36m'
+    WHITE='\033[0;37m'
+    BRIGHT_GREY='\033[0;90m'
+    
+    # Background colors
+    BG_RED='\033[41m'
+    BG_GREEN='\033[42m'
+    BG_YELLOW='\033[43m'
+    BG_MAGENTA='\033[45m'
+    BG_GREY='\033[47m'
+else
+    # No colors for non-terminal
+    RSC='' RED='' GREEN='' YELLOW='' BLUE='' MAGENTA='' CYAN='' WHITE='' BRIGHT_GREY=''
+    BG_RED='' BG_GREEN='' BG_YELLOW='' BG_MAGENTA='' BG_GREY=''
+fi
+
+# Basic helper functions (bash-compatible versions of zshbop functions)
+_echo() { echo "$@"; }
+_success() { echo -e "${GREEN} * $@ ${RSC}"; }
+_noticebg() { echo -e "${BG_MAGENTA}${WHITE} * $@ ${RSC}"; }
+_notice() { echo -e "${MAGENTA} * $@ ${RSC}"; }
+_warning() { echo -e "${YELLOW} * $@ ${RSC}"; }
+_error() { echo -e "${RED} * ERROR: $@ ${RSC}" >&2; }
+_banner_red() { echo -e "${BG_RED}${WHITE}${@}${RSC}"; }
+_banner_green() { echo -e "${BG_GREEN}${WHITE}${@}${RSC}"; }
+_banner_yellow() { echo -e "${BG_YELLOW} ${@} ${RSC}"; }
+_banner_grey() { echo -e "${BG_GREY} ${@} ${RSC}"; }
+_loading() { [[ "${QUIET:-0}" != "1" ]] && echo -e "${BG_YELLOW} * ${@}${RSC}"; }
+_loading2() { [[ "${QUIET:-0}" != "1" ]] && echo -e "${BG_GREY} ** ${@}${RSC}"; }
+_loading3() { [[ "${QUIET:-0}" != "1" ]] && echo -e "${BRIGHT_GREY} *** ${@}${RSC}"; }
+_debugf() { [[ "${DEBUG:-0}" == "1" ]] && echo -e "${CYAN}[DEBUG] $@${RSC}" >&2; }
+
+# Command existence check
+_cmd_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Usage function
+usage() {
+    echo -e "${BG_YELLOW} zshbop-cli ${RSC} - Run zshbop commands from bash"
+    echo ""
+    echo "Usage: $0 <command> [arguments...]"
+    echo ""
+    echo "Available commands:"
+    echo "  help <command>                # Show help for a specific command"
+    echo "  list-commands                 # List all available commands"
+    echo "  version                       # Show zshbop-cli version"
+    echo ""
+    echo "Examples:"
+    echo "  $0 domain google.com              # Check domain availability"
+    echo "  $0 docker-networks               # List docker networks"
+    echo "  $0 redis-info                    # Get redis information"
+    echo "  $0 list-commands                 # Show available commands"
+    echo "  $0 help <command>                # Get help for a specific command"
+    echo ""
+    echo "Environment variables:"
+    echo "  DEBUG=1                          # Enable debug output"
+    echo "  QUIET=1                          # Suppress loading messages"
+}
+
+# Function to list available commands
+list_commands() {
+    _loading "Scanning for available zshbop commands..."
+    echo ""
+    
+    local cmd_files=("${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
+    local categories=()
+    
+    for cmd_file in "${cmd_files[@]}"; do
+        if [[ -f "$cmd_file" ]]; then
+            local category=$(basename "$cmd_file" .zsh | sed 's/cmds-//')
+            categories+=("$category")
+            
+            echo -e "${GREEN}Category: $category${RSC}"
+            
+            # Extract function names (simplified - looks for 'function name()' or 'name()')
+            grep -E '^[a-zA-Z][a-zA-Z0-9_-]*\s*\(\)\s*\{' "$cmd_file" | \
+            sed -E 's/^([a-zA-Z][a-zA-Z0-9_-]*)\s*\(\).*/  \1/' | \
+            head -20  # Limit to first 20 functions per file
+            
+            echo ""
+        fi
+    done
+    
+    echo -e "${YELLOW}Found commands in categories: ${categories[*]}${RSC}"
+}
+
+# Function to run a zshbop command
+run_command() {
+    local command_name="$1"
+    shift
+    local args="$@"
+    
+    _debugf "Looking for command: $command_name"
+    _debugf "Arguments: $args"
+    
+    # Check if the command exists in any of the cmd files
+    local found=false
+    local cmd_files=("${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
+    
+    for cmd_file in "${cmd_files[@]}"; do
+        if [[ -f "$cmd_file" ]]; then
+            # Check if the command exists in this file
+            if grep -q "^${command_name}\s*()" "$cmd_file" || grep -q "^function ${command_name}" "$cmd_file"; then
+                _loading "Found command '$command_name' in $(basename "$cmd_file")"
+                found=true
+                
+                # Source the command file in a zsh subprocess
+                _loading2 "Executing command with zsh..."
+                
+                # Create a temporary script that sources zshbop and runs the command
+                local temp_script=$(mktemp)
+                cat > "$temp_script" << EOF
+#!/usr/bin/env zsh
+export ZSHBOP_ROOT="$ZSHBOP_ROOT"
+export ZSHBOP_VERSION="$ZSHBOP_VERSION"
+export ZSHBOP_HOME="$ZSHBOP_HOME"
+export QUIET="${QUIET:-0}"
+export DEBUG="${DEBUG:-0}"
+export ZB_LOG="${ZB_LOG}"
+
+# Initialize color variables for zsh
+autoload -U colors && colors
+typeset -gA fg bg
+for color in red green yellow blue magenta cyan white; do
+    fg[\$color]="\${fg[\$color]}"
+    bg[\$color]="\${bg[\$color]}"
+done
+export RSC="\${reset_color}"
+
+# Initialize help arrays
+typeset -gA help_files
+typeset -gA help_files_description
+typeset -gA help_int
+typeset -gA help_core
+typeset -gA help_zshbop
+typeset -gA help_zshbop_quick
+typeset -gA help_checks
+typeset -gA help_custom
+typeset -gA help_linux
+typeset -gA help_domain
+typeset -gA help_docker
+typeset -gA help_redis
+typeset -gA help_git
+typeset -gA help_mysql
+typeset -gA help_php
+typeset -gA help_ssl
+typeset -gA help_nginx
+typeset -gA help_wordpress
+typeset -gA help_system
+typeset -gA help_network
+typeset -gA help_mail
+typeset -gA help_aws
+typeset -gA help_cloudflare
+# Add more help arrays as needed
+
+# Define minimal required functions
+_debug() { [[ "\${DEBUG:-0}" == "1" ]] && echo "[DEBUG] \$@" >&2; }
+_debug_load() { _debug "Loading \${(%):-%N}"; }
+_log() { echo "[LOG] \$@" >> "\${ZB_LOG}" 2>/dev/null || true; }
+_cmd_exists() { command -v "\$1" >/dev/null 2>&1; }
+
+# Source core zshbop files for proper function definitions
+[[ -f "${ZSHBOP_ROOT}/lib/include.zsh" ]] && source "${ZSHBOP_ROOT}/lib/include.zsh"
+[[ -f "${ZSHBOP_ROOT}/lib/functions-internal.zsh" ]] && source "${ZSHBOP_ROOT}/lib/functions-internal.zsh"
+[[ -f "${ZSHBOP_ROOT}/lib/functions.zsh" ]] && source "${ZSHBOP_ROOT}/lib/functions.zsh"
+
+# Source the specific command file
+source "$cmd_file"
+
+# Run the command
+$command_name $args
+EOF
+                
+                chmod +x "$temp_script"
+                
+                # Execute the command
+                if _cmd_exists zsh; then
+                    zsh "$temp_script"
+                    local exit_code=$?
+                else
+                    _error "zsh is required to run zshbop commands but is not installed"
+                    rm -f "$temp_script"
+                    return 1
+                fi
+                
+                # Clean up
+                rm -f "$temp_script"
+                return $exit_code
+            fi
+        fi
+    done
+    
+    if [[ "$found" != "true" ]]; then
+        _error "Command '$command_name' not found in any zshbop command files"
+        echo ""
+        echo "Try: $0 list-commands    # to see available commands"
+        return 1
+    fi
+}
+
+# Function to show help for a command
+show_help() {
+    local command_name="$1"
+    
+    if [[ -z "$command_name" ]]; then
+        usage
+        return
+    fi
+    
+    _loading "Looking for help for command: $command_name"
+    
+    # Search for help text in command files
+    local cmd_files=("${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
+    local found=false
+    
+    for cmd_file in "${cmd_files[@]}"; do
+        if [[ -f "$cmd_file" ]]; then
+            # Look for help array entries
+            local help_line=$(grep "help_.*\[$command_name\]" "$cmd_file" 2>/dev/null)
+            if [[ -n "$help_line" ]]; then
+                found=true
+                echo -e "${GREEN}Help for '$command_name':${RSC}"
+                echo "$help_line" | sed -E "s/.*=[\'\"](.*)[\'\"].*/  \1/"
+                echo ""
+                
+                # Also show the function definition
+                echo -e "${YELLOW}Function definition:${RSC}"
+                local in_function=false
+                local brace_count=0
+                
+                while IFS= read -r line; do
+                    if [[ "$line" =~ ^${command_name}[[:space:]]*\(\) || "$line" =~ ^function[[:space:]]+${command_name} ]]; then
+                        in_function=true
+                        echo "  $line"
+                        if [[ "$line" == *"{" ]]; then
+                            ((brace_count++))
+                        fi
+                    elif [[ "$in_function" == "true" ]]; then
+                        echo "  $line"
+                        # Count braces to find end of function
+                        local open_braces=$(echo "$line" | tr -cd '{' | wc -c)
+                        local close_braces=$(echo "$line" | tr -cd '}' | wc -c)
+                        ((brace_count += open_braces - close_braces))
+                        
+                        if [[ $brace_count -le 0 ]]; then
+                            break
+                        fi
+                    fi
+                done < "$cmd_file" | head -20  # Limit output
+                
+                break
+            fi
+        fi
+    done
+    
+    if [[ "$found" != "true" ]]; then
+        _error "No help found for command '$command_name'"
+        return 1
+    fi
+}
+
+# Main script logic
+main() {
+    if [[ $# -eq 0 ]]; then
+        usage
+        return 1
+    fi
+    
+    local command="$1"
+    shift
+    
+    case "$command" in
+        "help"|"-h"|"--help")
+            if [[ $# -gt 0 ]]; then
+                show_help "$1"
+            else
+                usage
+            fi
+            ;;
+        "list-commands"|"list"|"commands")
+            list_commands
+            ;;
+        "version"|"--version")
+            echo "zshbop-cli version $ZSHBOP_VERSION"
+            echo "Location: $ZSHBOP_ROOT"
+            ;;
+        *)
+            run_command "$command" "$@"
+            ;;
+    esac
+}
+
+# Run main function with all arguments
+main "$@"

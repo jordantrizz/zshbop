@@ -148,9 +148,12 @@ function gcab {
     fi
 }
 
-# -- gbd - Git branch delete
-help_git[gbd]="Delete local and remote branch"
-function gbd {
+# =====================================
+# -- gbdall - Git branch delete
+# =====================================
+help_git[gbdall]="Delete local and remote branch"
+# -- Check if gbd alias exists 
+function gbdall {
     if [[ $# -ne 1 ]]; then
         echo "Usage: git-delete-branch branch"
         return 1
@@ -551,6 +554,8 @@ function git-config-defaults () {
         _loading3 "Setting git pull to rebase"
         git config --global pull.rebase true
     fi
+
+    git config --global alias.amend '!git add -A && git commit --amend --no-edit'
 }
 
 # =====================================
@@ -558,20 +563,50 @@ function git-config-defaults () {
 # =====================================
 help_git[git-release]="Create a GitHub release using the latest tag and commit message"
 git-release() {
-  # grab the most recent tag
-  local tag
-  tag=$(git describe --tags --abbrev=0) || {
-    echo "❌ no tags found"; return 1
-  }
+    _loading "Creating GitHub release"
+    # check if gh is installed
+    _loading2 "Checking if GitHub CLI (gh) is installed"
+    if ! _cmd_exists gh; then
+        _error "GitHub CLI (gh) is not installed"
+        return 1
+    fi
+    
+    # check if in a git repo
+    _loading2 "Checking if in a git repository"
+    if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+        _error "Not in a git repository"
+        return 1
+    fi
 
-  # grab the latest commit message
-  local msg
-  msg=$(git log -1 --pretty=%B)
+    # Ask to push all tags
+    read -q "REPLY?Do you want to push all tags? (y/n) "
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        # push all tags
+        _loading "Pushing all tags to origin"
+        git push --tags
+    else
+        _loading "Skipping tag push"
+    fi
+    
+    # grab the most recent tag
+    _loading2 "Getting the most recent tag"    
+    local tag
+    tag=$(git describe --tags --abbrev=0) || {
+        echo "❌ no tags found"; return 1
+    }
+    _loading3 "Found tag: $tag"
 
-  # run GH CLI release create with tag, using the tag as title and the commit msg as notes
-  gh release create "$tag" \
-    --title "$tag" \
-    --notes "$msg"
+    # grab the latest commit message
+    _loading3 "Getting the latest commit message"
+    local msg
+    msg=$(git log -1 --pretty=%B)
+
+    # run GH CLI release create with tag, using the tag as title and the commit msg as notes
+    _loading3 "Creating GitHub release"
+    gh release create "$tag" \
+        --title "$tag" \
+        --notes "$msg"
 }
 
 # =====================================
@@ -592,4 +627,98 @@ git-amend-clean() {
 
   # Amend the commit with the cleaned message
   git commit --amend -m "$cleaned_msg"
+}
+
+# =====================================
+# -- git-storage
+# =====================================
+help_git[git-storage]="Get git storage information"
+function git-storage() {
+    # -- Check if git is installed
+    [[ ! -x "$(command -v git)" ]] && { _error "Git is not installed";  return 1; }
+        
+    _loading "Getting git storage information"
+    # -- Get git storage information
+    _loading2 "Running git count-objects -vH"
+    git count-objects -vH
+
+    # -- Find large files
+    _loading2 "Finding large files in git history"
+    git rev-list --objects --all | \
+    git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize:disk) %(rest)' | \
+    grep '^blob' | sort -k3 -n -r | head -20 | \
+    numfmt --field=3 --to=iec
+}
+
+# =====================================
+# -- git-prune
+# =====================================
+help_git[git-prune]="Prune git repository"
+function git-prune() {
+    _loading2 "Running git gc --aggressive"
+    git gc --aggressive
+    _loading2 "Running git repack -a -d --depth=250 --window=250"
+    git repack -a -d --depth=250 --window=250
+    _loading2 "Running git prune"
+    git prune
+}
+
+# ======================================
+# -- git-log-oneline
+# ======================================
+help_git[git-log-oneline]="Show git log in one line format with commit hash and message"
+function git-log-oneline() {
+    GIT_COMMIT=${1}
+    if [[ -z $GIT_COMMIT ]]; then
+        _loading "Showing git log in one line format (deduplicated by message)"
+        git log --oneline | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print $1, msg}'
+    else
+        _loading "Showing git log oneline up to commit: $GIT_COMMIT (deduplicated by message)"
+        if ! git rev-parse --verify "$GIT_COMMIT" >/dev/null 2>&1; then
+            _error "Commit $GIT_COMMIT not found"
+            return 1
+        fi
+        _loading2 "Showing git log oneline up to commit: $GIT_COMMIT (deduplicated by message)"
+        git --no-pager log --no-merges --pretty=format:'%h %s' $GIT_COMMIT..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print $1, msg}'
+    fi
+}
+
+# =====================================
+# -- git-create-release
+# =====================================
+help_git[git-create-release]="Squash all commits since the last tag and use deduplicated commit messages as the new commit message"
+function git-create-release() {
+    # Find the last tag
+    local last_tag
+    last_tag=$(git describe --tags --abbrev=0 2>/dev/null)
+    if [[ -z $last_tag ]]; then
+        _error "No tags found in this repository."
+        return 1
+    fi
+
+    # Find the commit hash for the last tag
+    local last_tag_commit
+    last_tag_commit=$(git rev-list -n 1 $last_tag)
+
+    # Get deduplicated commit messages since the last tag
+    local commit_msgs
+    commit_msgs=$(git log --oneline $last_tag..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
+
+    if [[ -z $commit_msgs ]]; then
+        _error "No commit messages found to squash."
+        return 1
+    fi
+
+    _loading "Squashing all commits since $last_tag ($last_tag_commit) into one."
+    _loading2 "Commit messages to use:"
+    echo "$commit_msgs"
+
+    # Perform soft reset to last tag commit
+    git reset --soft $last_tag_commit
+
+    # Create a new commit with the deduplicated messages
+    git commit -m "$commit_msgs"
+
+    echo "\nAll commits since $last_tag have been squashed into one."
+    echo "You may need to push with --force: git push --force"
 }

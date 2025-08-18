@@ -308,31 +308,39 @@ INTERFACESv4="vmbr1"
 ```
 4. Restart dhcp server ```systemctl restart isc-dhcp-server```
 
+## Backup System Notes
+1. Set Node Template `{{node}}-{{guestname}}-{{vmid}}`
+2. Use Notification System, ensure error is set.
 ## Samba Backups on Hetzner
 1. Edit /etc/fstab
 ```
 //u111111.your-storagebox.de/backup  /mnt/HetznerSB  cifs credentials=/root/.smbcredentials,_netdev,vers=3.0,iocharset=utf8,x-systemd.automount  0  0
 ```
-2. Create /root/.smbcredentials
+1. Create /root/.smbcredentials
 ```
 username=yourusername
 password=yourpassword
 ```
-3. Set permissions
+1. Set permissions
 ```
 chmod 600 /root/.smbcredentials
 ```
-4. Mount
+1. Mount
 ```
 mount -a
 ```
 
 # Common Issues
 ## Locale
+### Interactive
 ```
 dpkg-reconfigure locales
 ```
 Select en_US.UTF8
+### Manual
+```
+sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen && locale-gen
+```
 
 ## Booting into Single User Mode (Ubuntu)
 1. Set Display to Default, serial will not work well when trying to navigate the boot menu
@@ -345,9 +353,9 @@ Select en_US.UTF8
 I enabled "Disable Chunked Encoding" under Cloudflare Zero Trust > Access > Tunnels > (my tunnel) > Public hostnames > (hostname for pve) > Additional Application Settings > HTTP Settings > Disable Chunked Encoding
 
 # Proxmox VE Helper
-* Kernel Clean - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/kernel-clean.sh)"`
-* Post Install - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/post-pve-install.sh)"`
-* Microcode Update - `bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/microcode.sh)"`
+* Kernel Clean - `bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/kernel-clean.sh)"`
+* Post Install - `bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/post-pve-install.sh)"`
+* Microcode Update - `bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/microcode.sh)"`
 ## Monitor-all
 bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/misc/monitor-all.sh)"
 ```

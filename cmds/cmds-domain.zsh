@@ -21,19 +21,86 @@ function dom () {
     _cmd_exists whois
     [[ $? -eq 1 ]] && { _error "whois is not installed"; return 1; }
     
+    # -- _check_subdomain function - Check if domain is a subdomain and prompt user
+    _check_subdomain () {
+        local INPUT_DOMAIN="$1"
+        local DOT_COUNT=$(echo "$INPUT_DOMAIN" | tr -cd '.' | wc -c)
+        
+        # Handle special cases for known multi-part TLDs
+        if [[ $INPUT_DOMAIN == *.co.uk || $INPUT_DOMAIN == *.com.au || $INPUT_DOMAIN == *.co.za || $INPUT_DOMAIN == *.org.uk ]]; then
+            # For domains like example.co.uk, we need at least 3 dots to be a subdomain
+            if [[ $DOT_COUNT -gt 2 ]]; then
+                _debugf "Domain is a sub-domain (multi-part TLD), stripping to base domain"
+                # Extract the last 3 parts (subdomain.domain.co.uk -> domain.co.uk)
+                local BASE_DOMAIN=$(echo $INPUT_DOMAIN | awk -F. '{print $(NF-2)"."$(NF-1)"."$NF}')
+                _debugf "Stripped DOMAIN: $BASE_DOMAIN"
+                
+                # Ask user if they want to check the base domain
+                _warning "Domain is a sub-domain, check base domain $BASE_DOMAIN? [y/n] "
+                read -q "REPLY"                
+                echo ""
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    DOMAIN_CLEAN=$BASE_DOMAIN
+                    _warning "Checking base domain: $DOMAIN_CLEAN"
+                    return 0
+                else
+                    check-dns-record $DOMAIN_CLEAN
+                    return 1
+                fi
+            fi
+        else
+            # For regular TLDs, we need more than 1 dot to be a subdomain
+            if [[ $DOT_COUNT -gt 1 ]]; then
+                _debugf "Domain is a sub-domain, stripping to base domain"
+                local BASE_DOMAIN=$(echo $INPUT_DOMAIN | awk -F. '{print $(NF-1)"."$NF}')
+                _debugf "Stripped DOMAIN: $BASE_DOMAIN"
+                
+                # Ask user if they want to check the base domain
+                _warning "Domain is a sub-domain, check base domain $BASE_DOMAIN? [y/n] "
+                read -q "REPLY"                
+                echo ""
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    DOMAIN_CLEAN=$BASE_DOMAIN
+                    _warning "Checking base domain: $DOMAIN_CLEAN"
+                    return 0
+                else
+                    check-dns-record $DOMAIN_CLEAN
+                    return 1
+                fi
+            fi
+        fi
+        return 0
+    }
+    
     local DOMAIN="$1"
+    local DOMAIN_CLEAN
     # -- Check if domain is set
-    [[ -z $DOMAIN ]] && _error1 "Please specify a domain name"        
+    [[ -z $DOMAIN ]] && _error "Please specify a domain name"
 
-    # -- Strip domain name
-    DOMAIN_CLEAN=$(domain-strip $DOMAIN 1)
+    _loading "Checking domain $DOMAIN"
 
-    # -- Check if domain is valid
-    [[ $DOMAIN =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]] || _error1 "Invalid domain name"
+    # -- Check if domain is an email or http:// or https://
+    if [[ $DOMAIN == *"@"* ]] || [[ $DOMAIN == *"http"* ]]; then
+        _loading2 "Detected email or http:// or https://, stripping domain"
+        DOMAIN_CLEAN=$(dom-strip $DOMAIN 1)
+        local DOMAIN_CLEAN_EXIT=$?
+        _debugf "DOMAIN_CLEAN: $DOMAIN_CLEAN"
+        [[ $DOMAIN_CLEAN_EXIT -eq 1 ]] && { _error "Error stripping domain name $DOMAIN_CLEAN"; return 1; }
+    else
+        # -- Check if domain is valid
+        [[ $DOMAIN =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]] || { _error "Invalid domain name"; return 1 }
+        DOMAIN_CLEAN="$DOMAIN"
+    fi
+    
+    # -- Check if domain is a subdomain and handle user choice
+    if ! _check_subdomain "$DOMAIN_CLEAN"; then
+        return 1
+    fi
+    
+    # -- Run domain on the domain
     domain $DOMAIN_CLEAN
 
-    _loading "Checking $DOMAIN_CLEAN"
-    if [[ $? -eq 0 ]]; then    
+    if [[ $? -eq 0 ]]; then
         echo ""
         domain-info $DOMAIN_CLEAN
         echo ""
@@ -50,6 +117,8 @@ function dom () {
 help_domain[dom-strip]='Strip a domain name to the base domain if email or :// is present'
 function dom-strip () {
     local DOMAIN="$1"
+    local QUIET=${2:="0"}
+
     # Check if email, and strip domain out
     if [[ $DOMAIN == *"@"* ]]; then
         _loading "Detected email address, stripping domain"
@@ -66,7 +135,7 @@ function dom-strip () {
     if [[ $DOMAIN =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
         _debugf "Domain is valid"
     else
-        _error1 "Invalid domain name"
+        _error "Invalid domain name"
     fi
     
     echo $DOMAIN
@@ -129,7 +198,7 @@ dom-cf () {
     
     # -- Strip domain name
     DOMAIN_CLEAN=$(domain-strip $DOMAIN 1)
-    [[ $? -eq 1 ]] && { _error "Error stripping domain name"; return 1; }
+    [[ $? -eq 1 ]] && { _error "Error stripping domain name $DOMAIN_CLEAN"; return 1; }
 
     # -- List Domain records for @ and www
     CURL_OUTPUT=$(mktemp)
@@ -150,7 +219,7 @@ dom-cf () {
     APEX_RECORD=$(echo $ALL_RECORDS | jq -r '.result[] | select(.name == "'$DOMAIN_CLEAN'" and (.type == "A" or .type == "CNAME"))')
     _debugf "APEX_RECORD: $APEX_RECORD"
     if [[ -z $APEX_RECORD ]]; then
-        _error1 "Apex record not found on Cloudflare"
+        _error "Apex record not found on Cloudflare"
         return 1
     else     
         _dom-cf-print-records "$APEX_RECORD"        
@@ -279,16 +348,19 @@ function domain () {
         echo "Check if a domain name is available. Enter in the full domain name"
         echo  "  -a    - check all domain extensions, just enter the first part"    
     }
+
     local DOMAIN DOMAIN_INPUT="$1" CHECK_DOMAIN DOMAIN_EXTS WHOIS_DOMAIN GET_REGISTRAR="0" WHOIS_OUT
+    local BASE_DOMAIN
 
     # -- No args print usage
     if [[ -z $1 ]]; then
         _domain_usage
         return 1
     fi
-
+    _debugf "DOMAIN_INPUT: $DOMAIN_INPUT"
     domain-strip $DOMAIN_INPUT 1 >> /dev/null
     DOMAIN=$OUTPUT_DOMAIN_STRIP
+    _debugf "DOMAIN: $DOMAIN"
 
     # -- Check all domain extensions
     _loading "Checking $DOMAIN"
@@ -303,17 +375,27 @@ function domain () {
         CHECK_DOMAIN="1"
     fi
 
+    # -- Check if domain is a sub-domain but also consider bc.ca or co.uk and other extensions
+    if [[ $DOMAIN =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+        # Domain format is valid, proceed with availability check
+        _debugf "Domain format is valid: $DOMAIN"
+    else
+        _error "Invalid domain name format. Please enter a valid domain name."
+        return 1
+    fi
+
     # -- Check if domain is available
     WHOIS_OUT=$(whois $DOMAIN)
+    _debugf "WHOIS_OUT: $WHOIS_OUT"
     if [[ $CHECK_DOMAIN == "1" ]]; then
         
         WHOIS_DOMAIN=$(echo $WHOIS_OUT | egrep -q '^No match|^NOT FOUND|^Not fo|AVAILABLE|^No Data Fou|has not been regi|No entri')        
         if [[ $? -eq 0 ]]; then
-            echo -e "Registration Status $bg[green] > ${DOMAIN}: Available to Register < ${RSC}"
+            echo -e "Registration Status $bg[yellow]> ${DOMAIN}: Available to Register < ${RSC}"
             return 1
         else 
-            echo "Registration Status : $bg[red]X ${DOMAIN}: Registered X ${RSC}"
-            GET_REGISTRAR=1
+            echo "Registration Status : $bg[green]X ${DOMAIN}: Registered X${RSC}" 
+            GET_REGISTRAR=1            
         fi        
     elif [[ $CHECK_DOMAIN == "2" ]]; then
         echo "Checking name $2 on $DOMAIN_EXTS"
@@ -322,9 +404,9 @@ function domain () {
             for (( i=1; i<=$ELEMENTS; i++ )); do
                 WHOIS_DOMAIN=$(whois ${DOMAINS[${i}]} | egrep -q '^No match|^NOT FOUND|^Not fo|AVAILABLE|^No Data Fou|has not been regi|No entri')
                 if [ $? -eq 0 ]; then
-                    echo -e "$1${DOMAIN_EXTS[$i]} : ${GREEN} > Available to Register < ${NC}"
+                    echo -e "$1${DOMAIN_EXTS[$i]} : $bg[yellow]> Available to Register <${RSC}"
                 else
-                    echo "$1${DOMAIN_EXTS[$i]} : ${RED}X Registered X ${NC}"
+                    echo "$1${DOMAIN_EXTS[$i]} : $bg[green]X Registered X${RSC}"
                     GET_REGISTRAR=1
                 fi                    
             done
@@ -350,8 +432,9 @@ function domain () {
         DOMAIN_EXPIRY="${DOMAIN_EXPIRY#"${DOMAIN_EXPIRY%%[![:space:]]*}"}"
         echo "$DOMAIN_EXPIRY"
 
-    fi
+    fi    
     echo ""
+    return 0
 }
 
 # ----------------------------------------------------------------------------------------------------
@@ -382,6 +465,139 @@ function domain-strip () {
     echo $DOMAIN_INPUT
     OUTPUT_DOMAIN_STRIP="$DOMAIN_INPUT"
 }
+
+# =====================================
+# -- check-dns-record
+# =====================================
+help_domain[check-dns-record]='Check a DNS record for A/CNAME/MX/TXT'
+function check-dns-record () {
+    _check_dns_record_usage () {
+        echo "Usage: check-dns-record <domain/record>"
+        echo "Check DNS records for a domain or subdomain"
+        echo "Examples:"
+        echo "  check-dns-record example.com"
+        echo "  check-dns-record www.example.com"
+        echo "  check-dns-record mail.example.com"
+    }
+
+    local RECORD="$1"
+    
+    # Check if record is provided
+    if [[ -z $RECORD ]]; then
+        _check_dns_record_usage
+        _error "Please specify a domain or record to check"
+        return 1
+    fi
+
+    # Check if dig is available
+    _cmd_exists dig
+    [[ $? -eq 1 ]] && { _error "dig is not installed"; return 1; }
+
+    _loading "Checking DNS records for $RECORD"
+
+    # Check A records
+    _loading2 "Checking A records"
+    A_RECORDS=$(dig +short A $RECORD)
+    if [[ -n $A_RECORDS ]]; then
+        _success "A records found:"
+        echo "$A_RECORDS" | while read -r line; do
+            if [[ -n $line ]]; then
+                # Check if it's an IP address or CNAME
+                if [[ $line =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+                    echo "  → $line"
+                else
+                    echo "  → $line (CNAME)"
+                fi
+            fi
+        done
+    else
+        _warning "No A records found"
+    fi
+    echo ""
+
+    # Check CNAME records explicitly
+    _loading2 "Checking CNAME records"
+    CNAME_RECORDS=$(dig +short CNAME $RECORD)
+    if [[ -n $CNAME_RECORDS ]]; then
+        _success "CNAME records found:"
+        echo "$CNAME_RECORDS" | while read -r line; do
+            if [[ -n $line ]]; then
+                echo "  → $line"
+            fi
+        done
+    else
+        _warning "No CNAME records found"
+    fi
+    echo ""
+
+    # Check MX records
+    _loading2 "Checking MX records"
+    MX_RECORDS=$(dig +short MX $RECORD)
+    if [[ -n $MX_RECORDS ]]; then
+        _success "MX records found:"
+        echo "$MX_RECORDS" | while read -r line; do
+            if [[ -n $line ]]; then
+                # MX records have priority and hostname
+                PRIORITY=$(echo $line | awk '{print $1}')
+                HOSTNAME=$(echo $line | awk '{print $2}')
+                echo "  → Priority: $PRIORITY, Mail Server: $HOSTNAME"
+            fi
+        done
+    else
+        _warning "No MX records found"
+    fi
+    echo ""
+
+    # Check TXT records
+    _loading2 "Checking TXT records"
+    TXT_RECORDS=$(dig +short TXT $RECORD)
+    if [[ -n $TXT_RECORDS ]]; then
+        _success "TXT records found:"
+        echo "$TXT_RECORDS" | while read -r line; do
+            if [[ -n $line ]]; then
+                # Clean up quotes from TXT records
+                CLEANED_TXT=$(echo $line | sed 's/^"//;s/"$//')
+                echo "  → $CLEANED_TXT"
+            fi
+        done
+    else
+        _warning "No TXT records found"
+    fi
+    echo ""
+
+    # Check AAAA records (IPv6)
+    _loading2 "Checking AAAA records (IPv6)"
+    AAAA_RECORDS=$(dig +short AAAA $RECORD)
+    if [[ -n $AAAA_RECORDS ]]; then
+        _success "AAAA records found:"
+        echo "$AAAA_RECORDS" | while read -r line; do
+            if [[ -n $line ]]; then
+                echo "  → $line"
+            fi
+        done
+    else
+        _warning "No AAAA records found"
+    fi
+    echo ""
+
+    # Summary
+    _loading "Summary for $RECORD:"
+    local FOUND_RECORDS=()
+    [[ -n $A_RECORDS ]] && FOUND_RECORDS+=("A")
+    [[ -n $CNAME_RECORDS ]] && FOUND_RECORDS+=("CNAME")
+    [[ -n $MX_RECORDS ]] && FOUND_RECORDS+=("MX")
+    [[ -n $TXT_RECORDS ]] && FOUND_RECORDS+=("TXT")
+    [[ -n $AAAA_RECORDS ]] && FOUND_RECORDS+=("AAAA")
+    
+    if [[ ${#FOUND_RECORDS[@]} -gt 0 ]]; then
+        _success "Record types found: ${FOUND_RECORDS[*]}"
+    else
+        _warning "No DNS records found for $RECORD"
+    fi
+    
+    return 0
+}
+
 
 # -- domain-dmarc
 help_domain[domain-dmarc]='Check a domains dmarc record'

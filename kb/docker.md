@@ -30,7 +30,7 @@ apt-get install docker-compose
 ```
 
 
-# Portainer
+# Installing Portainer
 ## Install
 ```
 docker volume create portainer_data
@@ -38,8 +38,14 @@ docker volume inspect portainer_data
 docker run -d -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
 ```
 
-# Alpine
-## Adding SSH for AWS EKR
+# Common Issues
+## Running out of Diskspace
+You can prune unused items within docker see https://docs.docker.com/config/pruning/
+
+### All Unused
+```docker system prune```
+
+## Apline Linux Adding SSH for AWS EKR
 * Start Docker Image
 ```docker run -it --entrypoint /bin/sh aab84910c0be```
 * Add SSH
@@ -58,9 +64,27 @@ docker ps -a
 docker commit 6d79a83d645b aab84910c0be
 ```
 
-# Common Issues
-## Running out of Diskspace
-You can prune unused items within docker see https://docs.docker.com/config/pruning/
+## Setting up UFW
+1. Disable Docker iptables
+```
+echo '{"iptables": false}' > /etc/docker/daemon.json
+systemctl restart docker
 
-### All Unused
-```docker system prune```
+2. Install ufw and ufw-docker
+```
+apt-get install ufw
+ufw enable
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw default deny incoming
+ufw default allow outgoing
+ufw logging on
+git clone https://github.com/chaifeng/ufw-docker.git
+cd ufw-docker
+./install.sh
+ls -al
+./ufw-docker
+./ufw-docker  install
+systemctl restart ufw
+```

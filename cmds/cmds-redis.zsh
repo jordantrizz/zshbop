@@ -51,19 +51,20 @@ redis-info () {
 		echo "Description: Grab redis maxmemory, configuration and statistics"
 	}
 	_loading "Collecting Redis Information"
-	
+    
 	_debugf "args: $@"
-	local -a CONFIG_FILE PORT SOCKET PASSWORD
+	local -a CONFIG_FILE PORT SOCKET PASSWORD SHOW_KEYS
 	REDIS_CMD="_redis-info-full"
 
 	# -- parse arguments
-	zparseopts -D -E c:=ARG_CONFIG_FILE p:=ARG_PORT s:=ARG_SOCKET a:=ARG_PASSWORD 
-	_debugf "CONFIG_FILE: $ARG_CONFIG_FILE ARG_PORT: $ARG_PORT ARG_SOCKET: $ARG_SOCKET ARG_PASSWORD: $ARG_PASSWORD"
+	zparseopts -D -E c:=ARG_CONFIG_FILE p:=ARG_PORT s:=ARG_SOCKET a:=ARG_PASSWORD k=ARG_SHOW_KEYS
+	_debugf "CONFIG_FILE: $ARG_CONFIG_FILE ARG_PORT: $ARG_PORT ARG_SOCKET: $ARG_SOCKET ARG_PASSWORD: $ARG_PASSWORD ARG_SHOW_KEYS: $ARG_SHOW_KEYS"
 	[[ -n $ARG_CONFIG_FILE ]] && { CONFIG_FILE=$ARG_CONFIG_FILE[2]; } || { CONFIG_FILE="/etc/redis/redis.conf"; }
 	[[ -n $ARG_PORT ]] && { PORT=$ARG_PORT[2]; } || { PORT=6379; }
 	[[ -n $ARG_SOCKET ]] && { SOCKET=$ARG_SOCKET[2]; } || { SOCKET="/var/run/redis/redis.sock"; }
 	[[ -n $ARG_PASSWORD ]] && { PASSWORD=$ARG_PASSWORD[2]; }
-	
+	[[ -n $ARG_SHOW_KEYS ]] && { SHOW_KEYS=1; } || { SHOW_KEYS=0; }
+    
 	# -- Check if redis is running
 	_loading2 "Checking if redis is running"
 	if ! pgrep redis-server > /dev/null; then
@@ -81,6 +82,11 @@ redis-info () {
 		REDIS_CMD="$REDIS_CMD -a $PASSWORD "
 	fi	
 
+	# -- Add -k if requested
+	if [[ $SHOW_KEYS -eq 1 ]]; then
+		REDIS_CMD+="-k "
+	fi
+
 	# -- Check if port or socket is provided
 	if [[ -n $PORT ]]; then
 		REDIS_CMD+="-p $PORT"
@@ -91,22 +97,22 @@ redis-info () {
 		eval $REDIS_CMD
 		return 0	
 	fi
-	
+    
 	# -- Check if there is more than one process
 	if [[ $(pgrep -c redis-server) -gt 1 ]]; then
 		local REDIS_PIDS=($(pgrep redis-server))
 		_notice "More than one redis-server process running"	
 		for PID in $REDIS_PIDS; do
 			_notice "Redis server (PID: $PID):"
-			
+            
 			# Get command line to show config
 			local CMDLINE=$(\ps -p $PID -o args=)
 			echo "  Command: $CMDLINE"
-			
+            
 			# Find Unix sockets
 			local UNIX_SOCKETS=$(ss -pxl | grep $PID | awk {' print $5 '})
 			echo "  Unix Sockets: $UNIX_SOCKETS"
-			
+            
 			# Find TCP ports
 			local TCP_PORTS=$(ss -tpl | grep $PID)
 			echo "  TCP Ports:"
@@ -115,7 +121,11 @@ redis-info () {
 		return
 	else
 		_success "One redis-server process running"
-		_redis-info-full
+		if [[ $SHOW_KEYS -eq 1 ]]; then
+			_redis-info-full -k
+		else
+			_redis-info-full
+		fi
 	fi
 }
 
@@ -128,13 +138,14 @@ _redis-info-full () {
 	
 	# -- Arguments
 	_debugf "args: $@"
-	zparseopts -D -E c:=ARG_CONFIG_FILE p:=ARG_PORT s:=ARG_SOCKET a:=ARG_PASSWORD
-	
-	_debugf "CONFIG: $ARG_CONFIG_FILE PORT: $ARG_PORT SOCKET: $ARG_SOCKET PASSWORD: $ARG_PASSWORD"
+	zparseopts -D -E c:=ARG_CONFIG_FILE p:=ARG_PORT s:=ARG_SOCKET a:=ARG_PASSWORD k=ARG_SHOW_KEYS
+    
+	_debugf "CONFIG: $ARG_CONFIG_FILE PORT: $ARG_PORT SOCKET: $ARG_SOCKET PASSWORD: $ARG_PASSWORD ARG_SHOW_KEYS: $ARG_SHOW_KEYS"
 	[[ -n $ARG_CONFIG_FILE ]] && { CONFIG_FILE=$ARG_CONFIG_FILE[2]; }
 	[[ -n $ARG_PORT ]] && { PORT=$ARG_PORT[2]; }
 	[[ -n $ARG_SOCKET ]] && { SOCKET=$ARG_SOCKET[2]; }
 	[[ -n $ARG_PASSWORD ]] && { PASSWORD=$ARG_PASSWORD[2]; }
+	[[ -n $ARG_SHOW_KEYS ]] && { SHOW_KEYS=1; } || { SHOW_KEYS=0; }
 
 	REDIS_CMD="redis-cli"
 
@@ -274,6 +285,41 @@ _redis-info-full () {
 		
 	else
 		_error "No $CONFIG_FILE file"
+	fi
+
+	# -- Print out all keyspaces
+	_loading "Querying Redis keyspaces (databases)"
+	# Get keyspace info
+	KEYSPACE_INFO=$(eval ${REDIS_CMD} info keyspace 2> /dev/null)
+	DB_COUNT=$(echo "$KEYSPACE_INFO" | grep -c '^db[0-9]')
+	if [[ $DB_COUNT -eq 0 ]]; then
+		_warning "No keyspaces (databases) found."
+	else
+		_success "Found $DB_COUNT keyspace(s):"
+		echo "$KEYSPACE_INFO" | grep '^db[0-9]' | while read -r line; do
+			DB_NAME=$(echo "$line" | awk -F: '{print $1}')
+			KEYS_COUNT=$(echo "$line" | grep -o 'keys=[0-9]*' | cut -d= -f2)
+			EXPIRES_COUNT=$(echo "$line" | grep -o 'expires=[0-9]*' | cut -d= -f2)
+			_notice "$DB_NAME: $KEYS_COUNT keys, $EXPIRES_COUNT expiring"
+			if [[ $SHOW_KEYS -eq 1 ]]; then
+				# List keys in this DB
+				if [[ $KEYS_COUNT -gt 0 ]]; then
+					_loading2 "Listing keys in $DB_NAME:"
+					# Extract DB number
+					DB_NUM=$(echo "$DB_NAME" | sed 's/db//')
+					# List keys (limit to 100 for safety)
+					eval "${REDIS_CMD} -n $DB_NUM --raw keys '*'" 2>/dev/null | head -100 | while read -r key; do
+						echo "  → $key"
+					done
+					# Warn if more than 100 keys
+					if [[ $KEYS_COUNT -gt 100 ]]; then
+						_warning "(showing first 100 keys only)"
+					fi
+				else
+					_notice "  (no keys in $DB_NAME)"
+				fi
+			fi
+		done
 	fi
 }
 

@@ -172,7 +172,7 @@ Command Options:
         -memory <memory>          Memory of VM in GB (Default: 2) Ex. 0.5 = 512MB 1 = 1GB 2 = 2GB etc.
         -network <network>        Network bridge to use (Default: vmbr0)
         -storage <storage>        Storage location (Autodetect)
-        -disksize <disksize>      Disk size in MB (Default: 20000MB)
+        -disksize <disksize>      Disk size in GB (Default: 20)
         -os <os>                  bionic,focal,jammy, noble (Default: jammy)
         -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
         -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
@@ -324,7 +324,7 @@ function _proxmox_download_cloudimage () {
     _if_marray "$OS_RELEASE" AVAIL_OS
     if [[ $MARRAY_VALID == "1" ]]; then
         _error "Couldn't get Ubuntu Image for $OS_RELEASE"
-        return
+        return 1
     else
         _loading3 "OS: $OS_RELEASE is valid"
     fi
@@ -456,6 +456,7 @@ function _proxmox_imagevm () {
 
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     # -- Create a copy of new image
     _loading2 "Create a copy of new image"
@@ -475,7 +476,7 @@ function _proxmox_imagevm () {
         _loading3 "scsi0 disk size is $DISKSIZE"
     else
         _loading3 "Skipping scsi0 disk size check, using default 20000M"
-        DISKSIZE="20000"
+        DISKSIZE="20"
     fi
 
     # -- Confirm deletion of scsi0 disk
@@ -560,6 +561,7 @@ function _proxmox_createvm () {
 
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     # -- Run QM Command
     _loading2 "Creating VM with ID:$VM_ID"
@@ -613,8 +615,9 @@ function _proxmox_createvm () {
         _loading3 "No DHCP network set, skipping"
     fi
 
-        # -- Download cloudimage
+    # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     _loading2 "Create a copy of new image"
     cp ${TEMP_DIR}/${IMAGE_FILE} ${TEMP_DIR}/${IMAGE_FILE}.build
@@ -661,6 +664,7 @@ function _proxmox_createtemp () {
 
     # -- Download cloudimage
     _proxmox_download_cloudimage $OS_RELEASE
+    [[ $? -ne 0 ]] && { _error "Failed to download cloudimage"; return 1; }
 
     # -- Check if VM_ID is taken
     _loading2 "Checking if VMID $VM_ID is taken"

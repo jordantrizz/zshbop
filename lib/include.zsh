@@ -38,10 +38,10 @@ export EDITOR='joe-wrapper.sh'
 export BLOCKSIZE='K'
 
 # Language
+export LC_ALL="en_US.UTF-8"
+export LANG="en_US.UTF-8"
+export LANGUAGE="en_US.UTF-8"
 export LC_TIME="C.UTF-8"
-export LANG=en_US.UTF-8
-export LANGUAGE=en_US.UTF-8
-export LANG="C.UTF-8"
 
 # -- zsh sepcific
 export ZDOTDIR="${ZSHBOP_HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching

@@ -20,13 +20,13 @@ _banner_green () { echo "$bg[green]$fg[white]${@}${RSC}" }
 _banner_yellow () { echo "$bg[yellow]$fg[black]${@}${RSC}" }
 _banner_grey () { echo "$bg[bright-grey]$fg[black]${@}${RSC}" }
 # -- loading
-_loading () { [[ $QUIET == 0 ]] && { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
-_loading2 () { [[ $QUIET == 0 ]] && { echo "$bg[bright-grey]$fg[black] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
-_loading2b () { [[ $QUIET == 0 ]] && { echo "$fg[bright-white] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
-_loading3 () { [[ $QUIET == 0 ]] && { echo "$fg[bright-grey] *** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
+_loading () { [[ "${QUIET:-0}" != "1" ]] && { echo "$bg[yellow]$fg[black] * ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
+_loading2 () { [[ "${QUIET:-0}" != "1" ]] && { echo "$bg[bright-grey]$fg[black] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
+_loading2b () { [[ "${QUIET:-0}" != "1" ]] && { echo "$fg[bright-white] ** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
+_loading3 () { [[ "${QUIET:-0}" != "1" ]] && { echo "$fg[bright-grey] *** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
 _loading3_log () { echo "[LOAD] *** ${@} >> ${ZB_LOG}" }
 _loading3b () { echo "$fg[bright-grey] ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG})}
-_loading4 () { [[ $QUIET == 0 ]] && { echo "$fg[bright-grey] **** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
+_loading4 () { [[ "${QUIET:-0}" != "1" ]] && { echo "$fg[bright-grey] **** ${@}${RSC}" | tee >(sed 's/^/[LOAD] /' >> ${ZB_LOG}); } }
 alias _loading_grey=_loading2
 # -- dividers
 _divider_white () { echo "$fg[black]$bg[white]                 $@               ${RSC}" }
