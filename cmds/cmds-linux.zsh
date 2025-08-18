@@ -18,7 +18,41 @@ swap-find () {
 # ===============================================
 help_linux[dir-filecount]='Count how many files are in each directory, recusively and report back a total.'
 dir-filecount () {
+	# - default to current directory
+	local TARGET_DIR=${1:-"."}
+		
 	find -maxdepth 1 -type d | sort | while read -r dir; do n=$(find "$dir" -type f | wc -l); printf "%4d : %s\n" $n "$dir"; done
+}
+
+# ===============================================
+# -- dir-dircount
+# ==============================================
+help_linux[dir-dircount]='Count how many directories are in each directory, recusively and report back a total.'
+dir-dircount () {
+	# - default to current directory	
+	local TARGET_DIR=${1:-"."}
+	_loading "Counting directories in $TARGET_DIR"
+
+	if [[ ! -d $TARGET_DIR ]]; then
+		_error "Directory $TARGET_DIR does not exist."
+		return 1
+	fi
+	TARGET_DIR=$(realpath "$TARGET_DIR")
+	_loading2 "Directory $TARGET_DIR found, counting directories..."
+
+	find "$TARGET_DIR" -maxdepth 1 -type d | while read -r dir; do 
+		# Skip the target directory itself
+		if [[ "$dir" == "$TARGET_DIR" ]]; then
+			continue
+		fi
+		
+		# Get the full path
+		local full_path=$(realpath "$dir")
+		
+		# Count only immediate subdirectories (depth 1)
+		n=$(find "$dir" -maxdepth 1 -type d | tail -n +2 | wc -l)
+		printf "%s   %d\n" "$(basename "$dir")" $n
+	done
 }
 
 # ===============================================
@@ -955,4 +989,20 @@ ps-top() {
 			| sort -nrk${SORTCOL},${SORTCOL}${TOPCMD}; }"
 
 	watch -n "$INTERVAL" "$CMD"
+}
+
+# =====================================
+# -- unix-epoch-ms
+# =====================================
+help_linux[unix-epoch-ms]='Convert unix epoch in miliseconds to human readable date'
+unix-epoch-ms () {
+     if [[ -z $1 ]]; then
+          echo "Usage: unix-epoch-ms <epoch-in-ms>"
+          return 1
+     fi
+     local epoch_ms=$1
+     local epoch_sec=$((epoch_ms / 1000))
+     local date_str=$(date -d "@$epoch_sec" +"%Y-%m-%d %H:%M:%S")
+     echo "Epoch in ms: $epoch_ms"
+     echo "Converted date: $date_str"
 }

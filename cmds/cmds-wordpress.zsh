@@ -284,10 +284,10 @@ function wp-profile () {
 }
 
 # =========================================================
-# -- wp-find-wp-cli
+# -- wp-cli-find
 # =========================================================
-help_wordpress[wp-find]='Find WordPress instances'
-function wp-find () {
+help_wordpress[wp-cli-find]='Find WordPress instances'
+function wp-cli-find () {
 	echo "Install wp-cli find-command"
 	echo "wp package install wp-cli/find-command:@stable"
 }
@@ -459,12 +459,16 @@ function wp-ajaxlog () {
 # =========================================================
 help_wordpress[wp-wordfence-scan]='Run Wordfence CLI scan'
 function wp-wordfence-scan () {
-	local SEARCH_PATH="$1"
+	local SEARCH_PATH=""
 	local LOG_DIR="$HOME/wp-wordfence-scan-logs"
+	local FORCE_SCAN=""
 
 	# -- internal functions
 	_wp-wordfence-scan-usage () {
-		echo "Usage: wp-wordfence-scan <path>"
+		echo "Usage: wp-wordfence-scan [-f] <path>"
+		echo "Options:"
+		echo "  -f      - Force scan on path without checking for WordPress installation"
+		echo "  <path>  - Path to scan"
 		return 1
 	}
 	_wp-wordfence-scan-log () {
@@ -476,6 +480,10 @@ function wp-wordfence-scan () {
 			echo "$1"
 		fi
 	}
+
+	# Parse options
+	zparseopts -D -E f=FORCE_SCAN
+	SEARCH_PATH="$1"
 
 	# -- Check path exists
 	if [[ -z $SEARCH_PATH ]]; then
@@ -495,6 +503,11 @@ function wp-wordfence-scan () {
 		return 1
 	fi
 
+	# -- Setup logging dir
+	if [[ ! -d $LOG_DIR ]]; then
+		mkdir -p $LOG_DIR
+	fi
+
 	# -- Start logging
 	_wp-wordfence-scan-log ">>>>>>>>>>>> START OF RUN <<<<<<<<<<<<" 1
 	_wp-wordfence-scan-log ">>>>>>>>>>>> START OF RUN <<<<<<<<<<<<" 1
@@ -502,9 +515,15 @@ function wp-wordfence-scan () {
 	# What are we doing?
 	_wp-wordfence-scan-log "$(_loading "Running Wordfence scan on $SEARCH_PATH")"
 
-	# -- Find WordPress Sites
-	WP_SITE_PATHS=($(wp-find $SEARCH_PATH 1))
-	_wp-wordfence-scan-log "$(_loading3 "Found ${#WP_SITE_PATHS[@]} WordPress sites")"
+	# -- Check if force scan is enabled
+	if [[ -n $FORCE_SCAN ]]; then
+		_wp-wordfence-scan-log "$(_loading3 "Force scan enabled - scanning $SEARCH_PATH directly")"
+		WP_SITE_PATHS=($SEARCH_PATH)
+	else
+		# -- Find WordPress Sites
+		WP_SITE_PATHS=($(wp-find $SEARCH_PATH 1))
+		_wp-wordfence-scan-log "$(_loading3 "Found ${#WP_SITE_PATHS[@]} WordPress sites")"
+	fi
 
 	# -- Run a scan on each site
 	for WP_SITE_PATH in ${WP_SITE_PATHS[@]}; do

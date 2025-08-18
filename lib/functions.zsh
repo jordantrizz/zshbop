@@ -131,7 +131,8 @@ zshbop_reload () {
         _loading "Quick reload of zshbop"        
         export ZSHBOP_RELOAD=1
         zshbop_cache-clear
-        init_zshbop
+        source $ZSHBOP_ROOT/lib/init.zsh
+        init_zbr_cmds
     else
         _loading "Reloading zshbop"        
         export ZSHBOP_RELOAD=1
@@ -294,6 +295,7 @@ help_zshbop_quick[zbuqr]='Update and quick reload zshbop'
 function zbuqr () { zshbop_update; zshbop_reload -q }
 help_zshbop_quick[zbu]='Update zshbop'
 function zbu () { zshbop_update }
+
 # =========================================================
 # -- zshbop_update ()
 # -- Update ZSHBOP
