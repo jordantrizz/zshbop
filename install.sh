@@ -60,9 +60,9 @@ _divider () { echo -e "${YELLOWBG}                                      ${ECOL}"
 # -- Core Functions
 ##################################
 
-# --------------------------------
+# =====================================
 # -- usage
-# --------------------------------
+# =====================================
 usage () {
 USAGE=\
 "Usage: install -h|-s|-o|-d (clean|search|default|home|git|)|(custom <branch> <location>)
@@ -81,6 +81,7 @@ USAGE=\
     home                          - Install in home directory
     git                           - Install in ~/git with dev branch
     custom <branch> <location>    - Custom install
+    env                           - Setup environment variables in .zshrc
     
   Custom Install: * Note: Custom install skips optional software check
     branch (main|next-release)
@@ -95,9 +96,9 @@ USAGE=\
 echo "$USAGE"
 }
 
-# --------------------------------
+# =====================================
 # -- zshbop_banner
-# --------------------------------
+# =====================================
 function zshbop_banner () {
     _divider
     echo "           _      _                   ";
@@ -116,9 +117,9 @@ function zshbop_banner () {
 # -- Functions
 ##################################
 
-# -----------------------------------------------
+# =====================================
 # -- _clean_zshbop
-# -----------------------------------------------
+# =====================================
 function _clean_zshbop () {    
     local FOUND_INSTANCE=""
     echo ""
@@ -160,19 +161,38 @@ function _clean_zshbop () {
     fi
 }
 
-# -----------------------------------------------
-# -- _search_zshbop
-# -----------------------------------------------
+# =====================================
+# -- _search_zshbop $MODE
+# =====================================
 function _search_zshbop () {
-    local ZSHBOP_LOCATIONS=("~/zshbop" "/usr/local/sbin/zshbop" "$HOME/git/zshbop")
-    _running "Searching for zshbop installs"
-    for ZSHBOP_LOCATION in "${ZSHBOP_LOCATIONS[@]}"; do
-        if [[ -d $ZSHBOP_LOCATION ]]; then
-            _success "Found zshbop install in $ZSHBOP_LOCATION"
-        else
-            _error "No zshbop install found in $ZSHBOP_LOCATION"
+    local MODE=${1:=0}
+    local ZSHBOP_DIR ZSHBOP_LOCATION
+
+    if [[ $MODE == 0 ]]; then
+        _running "Searching for zshbop installs in $ZSHBOP_SEARCH_LOCATIONS"    
+        local ZSHBOP_LOCATIONS=("~/zshbop" "/usr/local/sbin/zshbop" "$HOME/git/zshbop")
+        _running "Searching for zshbop installs"
+        for ZSHBOP_LOCATION in "${ZSHBOP_LOCATIONS[@]}"; do
+            if [[ -d $ZSHBOP_LOCATION ]]; then
+                _success "Found zshbop install in $ZSHBOP_LOCATION"
+            else
+                _error "No zshbop install found in $ZSHBOP_LOCATION"
+            fi
+        done
+    elif [[ $MODE == 1 ]]; then
+        # Return full path to detected zshbop install
+        for ZSHBOP_LOCATION in "${ZSHBOP_SEARCH_LOCATIONS[@]}"; do
+            if [[ -d $ZSHBOP_LOCATION ]]; then
+                ZSHBOP_DIR="$ZSHBOP_LOCATION"
+                break
+            fi            
+        done
+        if [[ -n $ZSHBOP_DIR ]]; then
+            echo "$ZSHBOP_DIR"
+        else          
+            return 1
         fi
-    done
+    fi
 }
 
 # ================================================
@@ -445,9 +465,9 @@ function pre_flight_check () {
     echo ""
 }
 
-# --------------------------------
+# =====================================
 # -- install_package - install packages.
-# --------------------------------
+# =====================================
 function install_package () {
     local PRE_CMD="" CMD=""
     _running "Installing ${*}"
@@ -611,13 +631,13 @@ function install_method () {
     echo ""
 }
 
-# --------------------------------
+# =====================================
 # -- clone_repository
 # --
 # -- $1 = BRANCH
 # -- $2 = INSTALL_LOCATION
 # -- $3 = INSTALL_PATH
-# --------------------------------
+# =====================================
 function clone_repository () {
     local GIT_CMD="git"
     local BRANCH=$1
@@ -667,12 +687,42 @@ function clone_repository () {
     fi
 }
 
-# -----------------------------------------------
+# =====================================
+# -- _setup_env
+# =====================================
+function _setup_env() {
+    # -- Check if zshbop is installed
+    ZSHBOP_DIR="$(_search_zshbop 1)"
+    [[ $? -ne 0 ]] && _error "zshbop not found, exiting." && exit 1
+    _loading2 "Checking if we can write to \$HOME/.zshrc"
+    # -- Check if we can write to $HOME
+    if [[ -w $HOME ]]; then
+        _success "We can write to $HOME"
+        # -- Check if .zshrc has zshbop.zsh in it
+        if [[ -f $HOME/.zshrc ]]; then
+            # Check if source line already exists
+            if grep -q "zshbop.zsh" $HOME/.zshrc; then
+                _success "zshbop.zsh already in .zshrc, skipping"
+                return 0
+            fi
+        fi
+        _running2 "Adding zshbop.zsh to .zshrc"
+        # -- Add source line to .zshrc
+        echo "source $ZSHBOP_DIR/zshbop.zsh" >> $HOME/.zshrc
+        _success "Added zshbop.zsh to .zshrc"
+        return 0        
+    else
+        _error "We can't write to $HOME"
+        return 1
+    fi
+}
+
+# =====================================
 # -- setup_zshbop
 # --
 # -- $1 = branch
 # -- $2 = install location
-# -----------------------------------------------
+# =====================================
 function setup_zshbop() {
     # -- Setup ZSH
     local BRANCH=$1
@@ -709,18 +759,8 @@ function setup_zshbop() {
      _running2 "Setting up system based .zshrc..."
     
     # -- Check if we can write to $HOME
-    if [[ -w $HOME ]]; then
-        _success "- We can write to $HOME"
-        # -- Check if .zshrc has zshbop.zsh in it
-        if ! [ -f $HOME/.zshrc ]; then
-            echo "source $INSTALL_PATH/zshbop/zshbop.zsh" >> $HOME/.zshrc
-            DOTZSH="0"
-        else
-            DOTZSH="1"
-        fi
-    else
-        DOTZSH="2"        
-    fi
+    _setup_env
+    DOTZSH=$?
 
     echo ""
     _divider
@@ -745,12 +785,11 @@ function setup_zshbop() {
     echo ""    
     
     _divider
-
 }
 
-# -------------------------------------------------------------------------------------------------
+# =====================================--------------------------------------------------
 # -- Main
-# -------------------------------------------------------------------------------------------------
+# =====================================--------------------------------------------------
 
 # -- Parse Arguments
 _debug "ARGS: ${*}"
@@ -788,35 +827,52 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 # -- set $CMD
 CMD="$1"
 
+# =====================================
 # -- help
+# =====================================
 if [[ $HELP == "1" ]];then
     usage
     exit
 # -- clean
+# =====================================
+# -- clean
+# =====================================
 elif [[ $CMD == "clean" ]]; then
 	_running "Running zshbop clean"
     _clean_zshbop
-# -- default
+# ======================================
+# -- search
+# ======================================
 elif [[ $CMD == "search" ]]; then
     _running "Running zshbop search"
-    _search_zshbop    
+    _search_zshbop
+# =====================================
+# -- default
+# =====================================
 elif [[ $CMD == "default" ]]; then
 	pre_flight_check	
     BRANCH=main
     INSTALL_LOCATION=system
     setup_zshbop $BRANCH $INSTALL_LOCATION 
+# =====================================
 # -- home
+# =====================================
 elif [[ $CMD == "home" ]]; then
 	pre_flight_check    
     BRANCH=main
     INSTALL_LOCATION=home
     setup_zshbop $BRANCH $INSTALL_LOCATION 
+# =====================================
 # -- git
+# =====================================
 elif [[ $CMD == "git" ]]; then
 	pre_flight_check	
 	BRANCH=dev
 	INSTALL_LOCATION=git
     setup_zshbop $BRANCH $INSTALL_LOCATION 
+# =====================================
+# -- custom
+# =====================================
 elif [[ $CMD == "custom" ]]; then
 	_running "Custom install"
 	if [[ -z $2 ]] || [[ -z $3 ]]; then
@@ -828,6 +884,16 @@ elif [[ $CMD == "custom" ]]; then
 		INSTALL_LOCATION="$3"
         setup_zshbop $BRANCH $INSTALL_LOCATION 
 	fi
+# =====================================
+# -- env
+# =====================================
+elif [[ $CMD == "env" ]]; then
+    # Setup environment variables in .zshrc
+    _running "Setting up environment variables in .zshrc"
+    _setup_env
+# =====================================
+# -- install
+# =====================================
 else
     if [[ -n $CMD ]]; then
         usage
