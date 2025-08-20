@@ -686,39 +686,61 @@ function git-log-oneline() {
 # =====================================
 # -- git-create-release
 # =====================================
-help_git[git-create-release]="Squash all commits since the last tag and use deduplicated commit messages as the new commit message"
+help_git[git-create-release]="Squash all commits since the last tag and use deduplicated commit messages as the new commit message. Optional: provide release number to tag and format commit message"
 function git-create-release() {
+    local RELEASE_NUMBER="$1"
+    
     # Find the last tag
-    local last_tag
-    last_tag=$(git describe --tags --abbrev=0 2>/dev/null)
-    if [[ -z $last_tag ]]; then
+    local LAST_TAG
+    LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+    if [[ -z $LAST_TAG ]]; then
         _error "No tags found in this repository."
         return 1
     fi
 
     # Find the commit hash for the last tag
-    local last_tag_commit
-    last_tag_commit=$(git rev-list -n 1 $last_tag)
+    local LAST_TAG_COMMIT
+    LAST_TAG_COMMIT=$(git rev-list -n 1 $LAST_TAG)
 
     # Get deduplicated commit messages since the last tag
-    local commit_msgs
-    commit_msgs=$(git log --oneline $last_tag..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
+    local COMMIT_MSGS
+    COMMIT_MSGS=$(git log --oneline $LAST_TAG..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
 
-    if [[ -z $commit_msgs ]]; then
+    if [[ -z $COMMIT_MSGS ]]; then
         _error "No commit messages found to squash."
         return 1
     fi
 
-    _loading "Squashing all commits since $last_tag ($last_tag_commit) into one."
+    _loading "Squashing all commits since $LAST_TAG ($LAST_TAG_COMMIT) into one."
     _loading2 "Commit messages to use:"
-    echo "$commit_msgs"
+    echo "$COMMIT_MSGS"
 
     # Perform soft reset to last tag commit
-    git reset --soft $last_tag_commit
+    git reset --soft $LAST_TAG_COMMIT
+
+    # Create commit message based on whether release number is provided
+    local FINAL_COMMIT_MSG
+    if [[ -n $RELEASE_NUMBER ]]; then
+        FINAL_COMMIT_MSG="Release $RELEASE_NUMBER
+
+$COMMIT_MSGS"
+        _loading2 "Using release format with release number: $RELEASE_NUMBER"
+    else
+        FINAL_COMMIT_MSG="$COMMIT_MSGS"
+        _loading2 "Using standard format (no release number provided)"
+    fi
 
     # Create a new commit with the deduplicated messages
-    git commit -m "$commit_msgs"
+    git commit -m "$FINAL_COMMIT_MSG"
 
-    echo "\nAll commits since $last_tag have been squashed into one."
-    echo "You may need to push with --force: git push --force"
+    # Tag the commit if release number is provided
+    if [[ -n $RELEASE_NUMBER ]]; then
+        _loading "Tagging commit with release number: $RELEASE_NUMBER"
+        git tag "$RELEASE_NUMBER"
+        echo "\nAll commits since $LAST_TAG have been squashed and tagged as $RELEASE_NUMBER."
+        echo "You may need to push with --force and push tags: git push --force && git push --tags"
+    else
+        echo "\nAll commits since $LAST_TAG have been squashed into one."
+        echo "You may need to push with --force: git push --force"
+    fi
 }
