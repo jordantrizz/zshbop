@@ -97,7 +97,7 @@ list_commands() {
     _loading "Scanning for available zshbop commands..."
     echo ""
     
-    local cmd_files=("${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
+    local cmd_files=("${ZSHBOP_ROOT}/software/"*.zsh "${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
     local categories=()
     
     for cmd_file in "${cmd_files[@]}"; do
@@ -130,12 +130,12 @@ run_command() {
     
     # Check if the command exists in any of the cmd files
     local found=false
-    local cmd_files=("${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
+    local cmd_files=("${ZSHBOP_ROOT}/software/"*.zsh "${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
     
     for cmd_file in "${cmd_files[@]}"; do
         if [[ -f "$cmd_file" ]]; then
-            # Check if the command exists in this file
-            if grep -q "^${command_name}\s*()" "$cmd_file" || grep -q "^function ${command_name}" "$cmd_file"; then
+            # Check if the command exists in this file (exact match)
+            if grep -q "^${command_name}\s*()" "$cmd_file" || grep -q "^function ${command_name}\s*(" "$cmd_file"; then
                 _loading "Found command '$command_name' in $(basename "$cmd_file")"
                 found=true
                 
@@ -152,6 +152,21 @@ export ZSHBOP_HOME="$ZSHBOP_HOME"
 export QUIET="${QUIET:-0}"
 export DEBUG="${DEBUG:-0}"
 export ZB_LOG="${ZB_LOG}"
+
+# Set ZSHBOP_SOFTWARE_PATH based on installation location
+if [[ "$ZSHBOP_ROOT" == "/usr/local/sbin/zshbop" ]]; then
+    export ZSHBOP_INSTALL_TYPE="system"
+    export ZSHBOP_SOFTWARE_PATH="/usr/local/sbin"
+elif [[ "$ZSHBOP_ROOT" == "$HOME/zshbop" ]]; then
+    export ZSHBOP_INSTALL_TYPE="user"
+    export ZSHBOP_SOFTWARE_PATH="$HOME/bin"
+elif [[ "$ZSHBOP_ROOT" == "$HOME/git/zshbop" ]]; then
+    export ZSHBOP_INSTALL_TYPE="git"
+    export ZSHBOP_SOFTWARE_PATH="$HOME/bin"
+else
+    export ZSHBOP_INSTALL_TYPE="unknown"
+    export ZSHBOP_SOFTWARE_PATH="$HOME/bin"
+fi
 
 # Initialize color variables for zsh
 autoload -U colors && colors
@@ -199,6 +214,13 @@ _cmd_exists() { command -v "\$1" >/dev/null 2>&1; }
 [[ -f "${ZSHBOP_ROOT}/lib/functions-internal.zsh" ]] && source "${ZSHBOP_ROOT}/lib/functions-internal.zsh"
 [[ -f "${ZSHBOP_ROOT}/lib/functions.zsh" ]] && source "${ZSHBOP_ROOT}/lib/functions.zsh"
 
+# Source all software files if we're dealing with a software command
+if [[ "$cmd_file" == *"/software/"* ]]; then
+    for software_file in "${ZSHBOP_ROOT}/software/"*.zsh; do
+        [[ -f "\$software_file" ]] && source "\$software_file"
+    done
+fi
+
 # Source the specific command file
 source "$cmd_file"
 
@@ -245,7 +267,7 @@ show_help() {
     _loading "Looking for help for command: $command_name"
     
     # Search for help text in command files
-    local cmd_files=("${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
+    local cmd_files=("${ZSHBOP_ROOT}/software/"*.zsh "${ZSHBOP_ROOT}/cmds/"cmds-*.zsh)
     local found=false
     
     for cmd_file in "${cmd_files[@]}"; do
