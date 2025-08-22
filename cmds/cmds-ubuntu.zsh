@@ -117,7 +117,8 @@ function ubuntu-swap-create () {
 help_ubuntu[ubuntu-resolve-dns]='Manage systemd-resolved DNS settings with options: --update, --show, or no args for usage'
 function ubuntu-resolve-dns () {
     # Short status function
-    _ubuntu-resolve-dns-show-short () {
+    
+    _ubuntu-resolve-dns-show-short () {        
         # Check for DNS override
         local override="no"
         local dns_val=""
@@ -205,6 +206,8 @@ function ubuntu-resolve-dns () {
 
     # Update DNS settings function
     _ubuntu-resolve-dns-update () {
+        local FORCE=${1:-0}
+
         _loading "Updating systemd-resolved DNS settings to Google/Cloudflare DNS..."
 
         # Check if systemd-resolved is running, if not fail
@@ -222,63 +225,65 @@ function ubuntu-resolve-dns () {
             return 1
         fi
 
-        # -- Check if already set to Google/Cloudflare by checking the actual running configuration
-        local already_set="no"
-        if command -v resolvectl >/dev/null 2>&1; then
-            # Get the global DNS servers from resolvectl status
-            local status_output global_dns_servers fallback_dns_servers
-            status_output=$(resolvectl status 2>/dev/null)
-            
-            # Parse Global DNS servers (handle multi-line format)
-            global_dns_servers=$(echo "$status_output" | awk '
-                /^Global$/,/^Link/ {
-                    if (/^[ ]*DNS Servers:/) {
-                        sub(/^[ ]*DNS Servers:[ ]*/, "")
-                        print $0
-                        getline
-                        while (/^[ ]+[0-9]/) {
-                            print $1
+        if [[ $FORCE -eq 0 ]]; then            
+            # -- Check if already set to Google/Cloudflare by checking the actual running configuration
+            local already_set="no"
+            if command -v resolvectl >/dev/null 2>&1; then
+                # Get the global DNS servers from resolvectl status
+                local status_output global_dns_servers fallback_dns_servers
+                status_output=$(resolvectl status 2>/dev/null)
+                
+                # Parse Global DNS servers (handle multi-line format)
+                global_dns_servers=$(echo "$status_output" | awk '
+                    /^Global$/,/^Link/ {
+                        if (/^[ ]*DNS Servers:/) {
+                            sub(/^[ ]*DNS Servers:[ ]*/, "")
+                            print $0
                             getline
+                            while (/^[ ]+[0-9]/) {
+                                print $1
+                                getline
+                            }
                         }
-                    }
-                }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
-            
-            # Parse Fallback DNS servers (handle multi-line format)
-            fallback_dns_servers=$(echo "$status_output" | awk '
-                /^Global$/,/^Link/ {
-                    if (/^[ ]*Fallback DNS Servers:/) {
-                        sub(/^[ ]*Fallback DNS Servers:[ ]*/, "")
-                        print $0
-                        getline
-                        while (/^[ ]+[0-9]/) {
-                            print $1
+                    }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
+                
+                # Parse Fallback DNS servers (handle multi-line format)
+                fallback_dns_servers=$(echo "$status_output" | awk '
+                    /^Global$/,/^Link/ {
+                        if (/^[ ]*Fallback DNS Servers:/) {
+                            sub(/^[ ]*Fallback DNS Servers:[ ]*/, "")
+                            print $0
                             getline
+                            while (/^[ ]+[0-9]/) {
+                                print $1
+                                getline
+                            }
                         }
-                    }
-                }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
-            
-            _loading2 "Current Global DNS: '$global_dns_servers'"
-            _loading2 "Current Fallback DNS: '$fallback_dns_servers'"
-            
-            # Check if DNS and Fallback match Google/Cloudflare
-            if [[ "$global_dns_servers" == "8.8.8.8 1.1.1.1" && "$fallback_dns_servers" == "8.8.4.4 1.0.0.1" ]]; then
-                already_set="yes"
-            fi
-        else
-            # Fallback to checking the config file
-            if [[ -f /etc/systemd/resolved.conf ]]; then
-                local current_dns current_fallback
-                current_dns=$(grep '^DNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
-                current_fallback=$(grep '^FallbackDNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
-                if [[ "$current_dns" == "8.8.8.8 1.1.1.1" && "$current_fallback" == "8.8.4.4 1.0.0.1" ]]; then
+                    }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
+                
+                _loading2 "Current Global DNS: '$global_dns_servers'"
+                _loading2 "Current Fallback DNS: '$fallback_dns_servers'"
+                
+                # Check if DNS and Fallback match Google/Cloudflare
+                if [[ "$global_dns_servers" == "8.8.8.8 1.1.1.1" && "$fallback_dns_servers" == "8.8.4.4 1.0.0.1" ]]; then
                     already_set="yes"
                 fi
+            else
+                # Fallback to checking the config file
+                if [[ -f /etc/systemd/resolved.conf ]]; then
+                    local current_dns current_fallback
+                    current_dns=$(grep '^DNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
+                    current_fallback=$(grep '^FallbackDNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
+                    if [[ "$current_dns" == "8.8.8.8 1.1.1.1" && "$current_fallback" == "8.8.4.4 1.0.0.1" ]]; then
+                        already_set="yes"
+                    fi
+                fi
             fi
-        fi
-        
-        if [[ "$already_set" == "yes" ]]; then
-            _loading2 "DNS is already set to Google/Cloudflare. No update needed."
-            return 0
+            
+            if [[ "$already_set" == "yes" ]]; then
+                _loading2 "DNS is already set to Google/Cloudflare. No update needed."
+                return 0
+            fi
         fi
 
         # -- Backup current configuration
@@ -315,6 +320,7 @@ EOF
         echo "Options:"
         echo "  --update    Update DNS settings to use Google (8.8.8.8) and Cloudflare (1.1.1.1)"
         echo "  --show      Show current DNS configuration"
+        echo "  --force     Force update DNS settings even if already set"
         echo "  (no args)   Show this usage and current configuration"
         echo
     }
@@ -326,6 +332,10 @@ EOF
             ;;
         --show)
             _ubuntu-resolve-dns-show
+            ;;
+        --force)
+            _loading "Forcing DNS update..."
+            _ubuntu-resolve-dns-update 1
             ;;
         --help|-h|help)
             _ubuntu-resolve-dns-usage
