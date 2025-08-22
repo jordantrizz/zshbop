@@ -292,8 +292,8 @@ function ubuntu-resolve-dns () {
 DNS=8.8.8.8 1.1.1.1
 FallbackDNS=8.8.4.4 1.0.0.1
 Domains=~.
-DNSSEC=yes
-DNSOverTLS=yes
+DNSSEC=allow-downgrade
+DNSOverTLS=opportunistic
 Cache=yes
 EOF
 
