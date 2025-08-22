@@ -311,6 +311,52 @@ EOF
         resolvectl status
     }
 
+    # Disable systemd-resolved and use direct DNS
+    _ubuntu-resolve-dns-disable () {
+        _loading "Disabling systemd-resolved and setting up direct DNS..."
+        
+        # -- Check if we're running as root
+        if ! _checkroot; then
+            _error "This command must be run as root."
+            return 1
+        fi
+
+        # -- Backup current resolv.conf if it exists
+        if [[ -f /etc/resolv.conf ]]; then
+            _loading2 "Backing up current /etc/resolv.conf..."
+            sudo cp /etc/resolv.conf /etc/resolv.conf.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+        fi
+
+        # -- Stop and disable systemd-resolved
+        _loading2 "Stopping and disabling systemd-resolved..."
+        sudo systemctl disable --now systemd-resolved
+
+        # -- Point resolv.conf straight at public resolvers
+        _loading2 "Setting up direct DNS in /etc/resolv.conf..."
+        printf 'nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 8.8.8.8\noptions timeout:2 attempts:2 rotate\n' \
+        | sudo tee /etc/resolv.conf > /dev/null
+
+        # -- Test DNS resolution
+        _loading "Testing DNS resolution..."
+        if command -v dig >/dev/null 2>&1; then
+            _loading2 "Testing with dig..."
+            dig @1.1.1.1 geektank.net +time=2 +tries=1
+        else
+            _loading2 "dig not available, skipping dig test"
+        fi
+
+        if command -v curl >/dev/null 2>&1; then
+            _loading2 "Testing with curl..."
+            time curl -4sS https://geektank.net -o /dev/null
+        else
+            _loading2 "curl not available, skipping curl test"
+        fi
+
+        _loading2 "systemd-resolved has been disabled and direct DNS configured."
+        echo "Current /etc/resolv.conf:"
+        cat /etc/resolv.conf
+    }
+
     # Usage function
     _ubuntu-resolve-dns-usage () {
         echo "Usage: ubuntu-resolve-dns [OPTION]"
@@ -320,6 +366,7 @@ EOF
         echo "Options:"
         echo "  --update    Update DNS settings to use Google (8.8.8.8) and Cloudflare (1.1.1.1)"
         echo "  --show      Show current DNS configuration"
+        echo "  --disable   Disable systemd-resolved and use direct DNS in /etc/resolv.conf"
         echo "  --force     Force update DNS settings even if already set"
         echo "  (no args)   Show this usage and current configuration"
         echo
@@ -332,6 +379,9 @@ EOF
             ;;
         --show)
             _ubuntu-resolve-dns-show
+            ;;
+        --disable)
+            _ubuntu-resolve-dns-disable
             ;;
         --force)
             _loading "Forcing DNS update..."
