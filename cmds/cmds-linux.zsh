@@ -85,8 +85,9 @@ backup () {
 			_error "Error creating tar file"
 			return 1
 		else
-		_success "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar"
-	elif
+			_success "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar"
+		fi
+	else
 		# -- Split into parts
 		TAR_BACKUP_DATE=`date +%m-%d-%Y`
 		_loading "Backing up folder $1 to $1-${TAR_BACKUP_DATE}.tar and splitting into $PART_SIZE MB parts"
