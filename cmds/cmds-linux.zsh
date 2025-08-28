@@ -85,7 +85,7 @@ backup () {
 		TAR_BACKUP_DATE=`date +%m-%d-%Y`
 		_loading "Backing up folder $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar"
 		echo ""
-		tar -cvf $BACKUP_DIR-${TAR_BACKUP_DATE}.tar $BACKUP_DIR
+		tar -cf $BACKUP_DIR-${TAR_BACKUP_DATE}.tar $BACKUP_DIR
 		if [[ $? != 0 ]]; then
 			_error "Error creating tar file"
 			return 1
@@ -98,7 +98,7 @@ backup () {
 		TAR_BACKUP_DATE=`date +%m-%d-%Y`
 		_loading "Backing up folder $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar and splitting into ${SIZE_VALUE} MB parts"
 		echo ""
-		tar -cvf - $BACKUP_DIR | split -b ${SIZE_VALUE}M - $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-
+		tar -cf - $BACKUP_DIR | split -b ${SIZE_VALUE}M - $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-
 		if [[ $? != 0 ]]; then
 			_error "Error creating tar file"
 			return 1
