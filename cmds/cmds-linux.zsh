@@ -62,18 +62,42 @@ help_linux[backup]='Backup a folder in a tar file'
 backup () {
 	if [[ -z $1 ]]; then
 		echo "Usage: backup <folder>"
+		echo
+		echo "Options:"
+		echo "  -p <size>        - Split into multiple files of <count> MB each"
+		echo
+		echo "Examples:"
+		echo "  backup /home/user/folder"
+		echo "  backup -p 500 /home/user/folder"
 		return
 	fi
-	if [[ ! -d $1 ]]; then
-		_error "Folder $1 doesn't exist...exiting"
-		return
-	else
+	local BACKUP_DIR=$1
+	zparseopts -D -E p:=PART_SIZE
+	_debugf "PART_SIZE: $PART_SIZE"
+
+	[[ ! -d $BACKUP_DIR ]] && { _error "Folder $1 doesn't exist...exiting"; return 1 }
+	if [[ -z $PART_SIZE ]]; then
 		TAR_BACKUP_DATE=`date +%m-%d-%Y`
-		echo "Backing up folder $1 to $1-${TAR_BACKUP_DATE}.tar"
+		_loading "Backing up folder $1 to $1-${TAR_BACKUP_DATE}.tar"
 		echo ""
 		tar -cvf $1-${TAR_BACKUP_DATE}.tar $1
+		if [[ $? != 0 ]]; then
+			_error "Error creating tar file"
+			return 1
+		else
+		_success "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar"
+	elif
+		# -- Split into parts
+		TAR_BACKUP_DATE=`date +%m-%d-%Y`
+		_loading "Backing up folder $1 to $1-${TAR_BACKUP_DATE}.tar and splitting into $PART_SIZE MB parts"
 		echo ""
-		echo "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar"
+		tar -cvf - $1 | split -b ${PART_SIZE}M - $1-${TAR_BACKUP_DATE}.tar.part-
+		if [[ $? != 0 ]]; then
+			_error "Error creating tar file"
+			return 1
+		else
+			_success "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar in parts of $PART_SIZE MB"
+		fi
 	fi
 }
 
