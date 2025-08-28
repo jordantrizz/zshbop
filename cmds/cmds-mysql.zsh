@@ -367,11 +367,22 @@ mysql-backup-all-dbs () {
 
 	# Confirm actions
 	_loading "Backing up all databases on ${MYSQL_BACKUP_HOST} as ${MYSQL_BACKUP_USER} to ${BACKUP_DIR}"
+	echo "Options: Compress=${COMPRESS}, AskPassword=${ASK_PASSWORD}"
 	echo "Proceed? [y/n]"
 	read REPLY
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 		echo "Aborting..."
 		return 1
+	fi
+
+	# -- Password
+	if [[ $ASK_PASSWORD == 1 ]]; then
+		echo "Enter password for ${MYSQL_BACKUP_USER}@${MYSQL_BACKUP_HOST}:"
+		stty -echo
+		read MYSQL_BACKUP_PASS
+		stty echo
+		echo ""
+		export MYSQL_PWD=$MYSQL_BACKUP_PASS
 	fi
 
 	# -- Start backup of all DB's
