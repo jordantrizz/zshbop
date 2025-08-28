@@ -98,12 +98,37 @@ backup () {
 		TAR_BACKUP_DATE=`date +%m-%d-%Y`
 		_loading "Backing up folder $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar and splitting into ${SIZE_VALUE} MB parts"
 		echo ""
-		tar -cf - $BACKUP_DIR | split -b ${SIZE_VALUE}M - $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-
-		if [[ $? != 0 ]]; then
+		_loading2 "Creating tar archive and splitting into parts..."
+		
+		# Use split with verbose output and monitor parts being created
+		tar -cf - $BACKUP_DIR | split -b ${SIZE_VALUE}M - $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part- &
+		TAR_PID=$!
+		
+		# Monitor the split process
+		sleep 2
+		while kill -0 $TAR_PID 2>/dev/null; do
+			part_count=$(ls $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-* 2>/dev/null | wc -l)
+			if [[ $part_count -gt 0 ]]; then
+				latest_part=$(ls -t $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-* 2>/dev/null | head -1)
+				if [[ -n $latest_part ]]; then
+					part_size=$(du -h "$latest_part" 2>/dev/null | cut -f1)
+					_loading3 "Created $part_count parts so far... Latest: $(basename "$latest_part") ($part_size)"
+				fi
+			fi
+			sleep 3
+		done
+		
+		wait $TAR_PID
+		tar_exit_code=$?
+		
+		if [[ $tar_exit_code != 0 ]]; then
 			_error "Error creating tar file"
 			return 1
 		else
-			_success "Completed backup of $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar in parts of ${SIZE_VALUE} MB"
+			final_part_count=$(ls $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-* 2>/dev/null | wc -l)
+			_success "Completed backup of $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar in $final_part_count parts of ${SIZE_VALUE} MB each"
+			_loading2 "Part files created:"
+			ls -lh $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-*
 		fi
 	fi
 }
