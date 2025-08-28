@@ -380,7 +380,7 @@ mysql-backup-all-dbs () {
 			_loading3 " -- Skipping $dbname"
 			continue
 		fi
-		echo "Backing up $dbname to $BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql"
+		_loading3 "Backing up $dbname to $BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql"
         mysqldump -h $MYSQL_BACKUP_HOST -u $MYSQL_BACKUP_USER --complete-insert --routines --triggers --single-transaction "$dbname" > "$BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql"
 		if [[ $? == "1" ]]; then
 			_error " -- Error backing up $dbname"
