@@ -321,9 +321,6 @@ mysql-logins () {
 # ===============================================
 help_mysql[mysql-backup-all-dbs]='Backup all databases on server'
 mysql-backup-all-dbs () {
-    local MYSQL_BACKUP_HOST="127.0.0.1"
-    local MYSQL_BACKUP_USER="root"
-    
 	_mysql-backup-all-dbs-usage () {
 		echo "Usage: mysql-backupall [-d <backup-dir>] [-h <host>] [-u <username>] [-p]"
         echo ""
@@ -332,6 +329,8 @@ mysql-backup-all-dbs () {
 		echo "  -h        - MySQL Host, defaults to localhost"
 		echo "  -u        - MySQL Username, defaults to root"
 		echo "  -p        - Ask for MySQL password"
+		echo "  -l        - List databases only"
+		echo "  -c		  - Compress backups with gzip"
 		echo ""
         echo "  Example: mysql-backupdbs 127.0.0.1 root yes"
         echo "   By default use ~/.my.cnf or specify host and username which is optional"
@@ -340,11 +339,23 @@ mysql-backup-all-dbs () {
 	}
 
 	# Parse options
-	zparseopts -D -E d:=ARG_BACKUP_DIR h:=ARG_HOST u:=ARG_USER p=ARG_PASSWORD
+	zparseopts -D -E d:=ARG_BACKUP_DIR h:=ARG_HOST u:=ARG_USER p=ARG_PASSWORD l=ARG_LIST c=ARG_COMPRESS
+	local ASK_PASSWORD=0
+	local BACKUP_DIR=""
+	local DB_NAMES=()
+	local MYSQL_BACKUP_HOST="127.0.0.1"
+    local MYSQL_BACKUP_USER="root"
 	[[ $ARG_BACKUP_DIR ]] && BACKUP_DIR=${ARG_BACKUP_DIR[2]} || BACKUP_DIR="$HOME/db-backups"
 	[[ $ARG_HOST ]] && MYSQL_BACKUP_HOST=${ARG_HOST[2]}
 	[[ $ARG_USER ]] && MYSQL_BACKUP_USER=${ARG_USER[2]}
 	[[ $ARG_PASSWORD ]] && ASK_PASSWORD=1 || ASK_PASSWORD=0
+	[[ $ARG_COMPRESS ]] && COMPRESS=1 || COMPRESS=0
+
+	if [[ -n $ARG_LIST ]]; then
+		_loading "Listing all databases"
+		_mysql_wrapper -e 'show databases'
+		return 0
+	fi
 
 	# Date mm-dd-YYYY-HH_MM_SS
 	local MYSQL_BACKUPALL_DATE=`date +%m-%d-%Y-%H_%M_%S`	
@@ -386,6 +397,15 @@ mysql-backup-all-dbs () {
 			_error " -- Error backing up $dbname"
 		else
 			_success " -- Completed backup of $dbname to $BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql"
+			if [[ $COMPRESS == 1 ]]; then
+				_loading3 " -- Compressing $BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql with gzip"
+				gzip "$BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql"
+				if [[ $? == "1" ]]; then
+					_error " -- Error compressing $BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql"
+				else
+					_success " -- Completed compressing $BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql to $BACKUP_DIR/${dbname}-${MYSQL_BACKUPALL_DATE}.sql.gz"
+				fi
+			fi
 		fi
     done
 }
