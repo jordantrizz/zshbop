@@ -365,9 +365,14 @@ mysql-backup-all-dbs () {
 
 	# -- Start backup of all DB's
     _loading "Running backup of all DB's"
-    echo "mysql -h ${MYSQL_BACKUP_HOST} -u ${MYSQL_BACKUP_USER} -N -e 'show databases'"
+	_loading2 "mysql -h ${MYSQL_BACKUP_HOST} -u ${MYSQL_BACKUP_USER} -N -e 'show databases'"
     DB_NAMES=($(mysql -h ${MYSQL_BACKUP_HOST} -u ${MYSQL_BACKUP_USER} -N -e 'show databases;'))
-    _loading2 "Found Databases - ${DB_NAMES[@]}"
+	if [[ $? == "1" ]]; then
+		_error " -- Error getting database list"
+		return 1
+	else
+    	_loading2 "Found Databases - ${DB_NAMES[@]}"
+	fi
 
     for dbname in "${DB_NAMES[@]}"; do
 		# Skip these databases
