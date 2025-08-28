@@ -71,33 +71,39 @@ backup () {
 		echo "  backup -p 500 /home/user/folder"
 		return
 	fi
-	local BACKUP_DIR=$1
+	
+	# Parse options first
 	zparseopts -D -E p:=PART_SIZE
 	_debugf "PART_SIZE: $PART_SIZE"
-
-	[[ ! -d $BACKUP_DIR ]] && { _error "Folder $1 doesn't exist...exiting"; return 1 }
+	
+	# Get the folder argument after parsing options
+	local BACKUP_DIR=$1
+	
+	[[ ! -d $BACKUP_DIR ]] && { _error "Folder $BACKUP_DIR doesn't exist...exiting"; return 1 }
+	
 	if [[ -z $PART_SIZE ]]; then
 		TAR_BACKUP_DATE=`date +%m-%d-%Y`
-		_loading "Backing up folder $1 to $1-${TAR_BACKUP_DATE}.tar"
+		_loading "Backing up folder $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar"
 		echo ""
-		tar -cvf $1-${TAR_BACKUP_DATE}.tar $1
+		tar -cvf $BACKUP_DIR-${TAR_BACKUP_DATE}.tar $BACKUP_DIR
 		if [[ $? != 0 ]]; then
 			_error "Error creating tar file"
 			return 1
 		else
-			_success "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar"
+			_success "Completed backup of $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar"
 		fi
 	else
-		# -- Split into parts
+		# Extract the size value from the array
+		local SIZE_VALUE=${PART_SIZE[2]}
 		TAR_BACKUP_DATE=`date +%m-%d-%Y`
-		_loading "Backing up folder $1 to $1-${TAR_BACKUP_DATE}.tar and splitting into $PART_SIZE MB parts"
+		_loading "Backing up folder $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar and splitting into ${SIZE_VALUE} MB parts"
 		echo ""
-		tar -cvf - $1 | split -b ${PART_SIZE}M - $1-${TAR_BACKUP_DATE}.tar.part-
+		tar -cvf - $BACKUP_DIR | split -b ${SIZE_VALUE}M - $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-
 		if [[ $? != 0 ]]; then
 			_error "Error creating tar file"
 			return 1
 		else
-			_success "Completed backup of $1 to $1-${TAR_BACKUP_DATE}.tar in parts of $PART_SIZE MB"
+			_success "Completed backup of $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar in parts of ${SIZE_VALUE} MB"
 		fi
 	fi
 }
