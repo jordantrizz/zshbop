@@ -193,9 +193,47 @@ function ubuntu-resolve-dns () {
                 fi
             elif command -v systemd-resolve >/dev/null 2>&1; then
                 echo "=== Current DNS Status (systemd-resolve - Ubuntu 18.04) ==="
-                systemd-resolve --status 2>/dev/null || echo "Unable to get systemd-resolve status"
+                # Filter systemd-resolve output to show only essential DNS info
+                local status_output
+                status_output=$(systemd-resolve --status 2>/dev/null)
+                if [[ -n "$status_output" ]]; then
+                    # Show only Global section with DNS Servers, filter out DNSSEC NTA and Link sections
+                    echo "$status_output" | awk '
+                        /^Global$/ { 
+                            print; 
+                            in_global=1; 
+                            next 
+                        }
+                        /^Link [0-9]/ { 
+                            in_global=0; 
+                            exit 
+                        }
+                        in_global && /^[ ]*DNS Servers:/ { 
+                            print; 
+                            getline; 
+                            while (/^[ ]+[0-9]/) { 
+                                print; 
+                                getline 
+                            } 
+                        }
+                        in_global && /^[ ]*DNS Domain:/ { 
+                            print; 
+                            next 
+                        }
+                        in_global && /^[ ]*DNSSEC NTA:/ { 
+                            # Skip DNSSEC NTA section entirely
+                            while (getline && /^[ ]+/) { }
+                            if (!/^$/) { 
+                                # Put back the line we read too far
+                                print 
+                            }
+                        }
+                    '
+                else
+                    echo "Unable to get systemd-resolve status"
+                fi
                 # Grab Global DNS from systemd-resolve output
-                GLOBAL_DNS=$(systemd-resolve --status | grep 'DNS Servers:' | head -1 | awk '{print $3}')
+                GLOBAL_DNS=$(echo "$status_output" | grep 'DNS Servers:' | head -1 | awk '{print $3}')
                 if [[ -n "$GLOBAL_DNS" ]]; then
                     echo "\nGlobal DNS: $GLOBAL_DNS (via systemd-resolve)"
                     # Warn if not Google/Cloudflare
@@ -342,7 +380,45 @@ EOF
             resolvectl status
         elif command -v systemd-resolve >/dev/null 2>&1; then
             _loading3 "Using systemd-resolve (Ubuntu 18.04 fallback)..."
-            systemd-resolve --status
+            # Filter systemd-resolve output to show only essential DNS info
+            local status_output
+            status_output=$(systemd-resolve --status 2>/dev/null)
+            if [[ -n "$status_output" ]]; then
+                # Show only Global section with DNS Servers, filter out DNSSEC NTA and Link sections
+                echo "$status_output" | awk '
+                    /^Global$/ { 
+                        print; 
+                        in_global=1; 
+                        next 
+                    }
+                    /^Link [0-9]/ { 
+                        in_global=0; 
+                        exit 
+                    }
+                    in_global && /^[ ]*DNS Servers:/ { 
+                        print; 
+                        getline; 
+                        while (/^[ ]+[0-9]/) { 
+                            print; 
+                            getline 
+                        } 
+                    }
+                    in_global && /^[ ]*DNS Domain:/ { 
+                        print; 
+                        next 
+                    }
+                    in_global && /^[ ]*DNSSEC NTA:/ { 
+                        # Skip DNSSEC NTA section entirely
+                        while (getline && /^[ ]+/) { }
+                        if (!/^$/) { 
+                            # Put back the line we read too far
+                            print 
+                        }
+                    }
+                '
+            else
+                echo "Unable to get systemd-resolve status"
+            fi
         else
             _loading3 "Neither resolvectl nor systemd-resolve available, checking /etc/resolv.conf..."
             cat /etc/resolv.conf
