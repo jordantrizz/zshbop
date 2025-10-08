@@ -282,6 +282,9 @@ function zb_logger () {
 # =========================================================
 # -- Boot time tracking
 # =========================================================
+# Load zsh/datetime module for EPOCHREALTIME (microsecond precision)
+zmodload zsh/datetime
+
 typeset -gA ZSHBOP_BOOT_TIMES
 typeset -gA ZSHBOP_COMPONENT_START_TIME
 typeset -g ZSHBOP_BOOT_START=0
@@ -290,8 +293,8 @@ typeset -g ZSHBOP_BOOT_START=0
 function _track_boot_time() {
     local component="${1}"
     local start_time="${2}"
-    local end_time=$SECONDS
-    local elapsed=$((end_time - start_time))
+    local end_time=$EPOCHREALTIME
+    local elapsed=$(printf "%.6f" $((end_time - start_time)))
     ZSHBOP_BOOT_TIMES[$component]=$elapsed
     
     # Log to both debug and file
@@ -303,7 +306,7 @@ function _track_boot_time() {
 # -- Start tracking a component
 function _start_boot_timer() {
     local component="${1}"
-    ZSHBOP_COMPONENT_START_TIME[$component]=$SECONDS
+    ZSHBOP_COMPONENT_START_TIME[$component]=$EPOCHREALTIME
 }
 
 # ---------------

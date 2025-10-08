@@ -21,8 +21,8 @@ function init_log () {
     # Track boot time for this component
     if [[ -n ${ZSHBOP_COMPONENT_START_TIME[$ZSBBOP_FUNC_LOADING]} ]]; then
         local start_time=${ZSHBOP_COMPONENT_START_TIME[$ZSBBOP_FUNC_LOADING]}
-        local end_time=$SECONDS
-        local elapsed=$((end_time - start_time))
+        local end_time=$EPOCHREALTIME
+        local elapsed=$(printf "%.6f" $((end_time - start_time)))
         ZSHBOP_BOOT_TIMES[$ZSBBOP_FUNC_LOADING]=$elapsed
         
         # Log to both debug and file
@@ -865,10 +865,11 @@ init_motd () {
 # ==============================================
 function init_zshbop () {
     # Start overall boot timer
-    ZSHBOP_BOOT_START=$SECONDS
+    ZSHBOP_BOOT_START=$EPOCHREALTIME
     
     _log "${funcstack[1]}:start"
     echo "[BOOT_TIME] Starting zshbop initialization" >> "$ZB_LOG"
+    echo "[BOOT_TIME] Boot times are recorded with microsecond precision (format: X.XXXXXXs)" >> "$ZB_LOG"
 
     # --------------------------------------------------
 	# -- Start init
@@ -941,7 +942,7 @@ function init_zshbop () {
     _log "${funcstack[1]}:end"
     
     # Calculate total boot time
-    local total_time=$((SECONDS - ZSHBOP_BOOT_START))
+    local total_time=$(printf "%.6f" $((EPOCHREALTIME - ZSHBOP_BOOT_START)))
     
     # Log boot time summary
     echo "" >> "$ZB_LOG"
