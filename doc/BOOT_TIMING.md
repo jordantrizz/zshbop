@@ -50,10 +50,23 @@ touch $ZSHBOP_ROOT/.debug
 ```
 
 ## Testing
-A test script is provided to verify microsecond precision:
+Test scripts are provided to verify microsecond precision and component timing:
+
+### General Boot Timing Test
 ```bash
 zsh test-boot-timing.zsh
 ```
+
+### init_os Timing Test
+```bash
+zsh test-init-os-timing.zsh
+```
+
+This test verifies that:
+- Boot timing entries are created for all OS-specific loading steps
+- Microsecond precision is maintained (6 decimal places)
+- Timing works correctly even when detection short-circuits
+- Nested timing for complex configurations (like WSL) is tracked properly
 
 ## Performance Testing
 To test for regressions:
@@ -72,8 +85,33 @@ To test for regressions:
 
 4. Differences of even 0.01s (10 milliseconds) are now detectable
 
+## Component-Specific Timing
+
+### init_os Detailed Timing
+The `init_os` function now includes detailed timing for each OS-specific loading step:
+
+```
+[BOOT_TIME]   init_os: os-common.zsh loaded in 0.012345s
+[BOOT_TIME]   init_os: os-linux.zsh loaded in 0.023456s
+[BOOT_TIME] Boot time: init_os took 0.035801s
+```
+
+For WSL configurations, you'll see nested timing:
+```
+[BOOT_TIME]   init_os: os-common.zsh loaded in 0.012345s
+[BOOT_TIME]   init_os: os-linux.zsh (WSL) loaded in 0.023456s
+[BOOT_TIME]   init_os: os-wsl.zsh loaded in 0.015678s
+[BOOT_TIME]   init_os: init_wsl completed in 0.003456s
+[BOOT_TIME]   init_os: WSL configuration total time 0.042590s
+[BOOT_TIME] Boot time: init_os took 0.054935s
+```
+
+This nested timing helps identify slow OS-specific scripts or configuration steps.
+
 ## Technical Details
 - Uses zsh's `zsh/datetime` module for `EPOCHREALTIME` variable
 - All calculations preserve floating-point precision
 - Output formatted with `printf "%.6f"` for consistent 6 decimal places
 - Maintains backward compatibility with existing log parsers (still uses `[BOOT_TIME]` prefix)
+- Component-level timing tracked via `_start_boot_timer` and `init_log`
+- Nested sub-component timing logged directly to maintain visibility into slow steps
