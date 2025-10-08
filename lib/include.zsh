@@ -279,6 +279,33 @@ function zb_logger () {
     fi
 }
 
+# =========================================================
+# -- Boot time tracking
+# =========================================================
+typeset -gA ZSHBOP_BOOT_TIMES
+typeset -gA ZSHBOP_COMPONENT_START_TIME
+typeset -g ZSHBOP_BOOT_START=0
+
+# -- Track component boot time
+function _track_boot_time() {
+    local component="${1}"
+    local start_time="${2}"
+    local end_time=$SECONDS
+    local elapsed=$((end_time - start_time))
+    ZSHBOP_BOOT_TIMES[$component]=$elapsed
+    
+    # Log to both debug and file
+    local msg="Boot time: ${component} took ${elapsed}s"
+    _debug "$msg"
+    echo "[BOOT_TIME] $msg" >> "$ZB_LOG"
+}
+
+# -- Start tracking a component
+function _start_boot_timer() {
+    local component="${1}"
+    ZSHBOP_COMPONENT_START_TIME[$component]=$SECONDS
+}
+
 # ---------------
 # -- Source files
 # ---------------
