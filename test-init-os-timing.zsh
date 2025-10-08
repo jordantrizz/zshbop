@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
 # =============================================================================
-# test-init-os-timing.zsh - Test script to verify init_os boot timing
+# test-init-os-timing.zsh - Test script to verify init_os execution timing
 # =============================================================================
 
-echo "Testing init_os Boot Timing Instrumentation"
-echo "============================================="
+echo "Testing init_os Execution Time Tracking"
+echo "========================================"
 echo ""
 
 # Load zsh/datetime module for EPOCHREALTIME
@@ -27,14 +27,55 @@ export MACHINE_OS="linux"
 export MACHINE_OS2=""
 
 # Load colors
-source ${ZSHBOP_ROOT}/lib/colors.zsh
+source ${ZSHBOP_ROOT}/lib/colors.zsh 2>/dev/null || true
 RSC=$reset_color
 
-# Mock required functions
-_debug_all() { : }
-_log() { echo "[LOG] $@" >> "$ZB_LOG"; }
-_debug() { [[ $ZSH_DEBUG == 1 ]] && echo "[DEBUG] $@"; }
-init_log() { : }
+# Load the execution time tracking functions
+typeset -gA ZSHBOP_EXEC_TIMES
+typeset -gA ZSHBOP_EXEC_START_TIME
+
+source ${ZSHBOP_ROOT}/lib/include.zsh 2>/dev/null || {
+    # Fallback if full load fails - define minimal functions
+    function _debug() { [[ $ZSH_DEBUG == 1 ]] && echo "[DEBUG] $@"; }
+    function _log() { echo "[LOG] $@" >> "$ZB_LOG"; }
+    function _debug_all() { : }
+    function init_log() { : }
+    
+    function _track_execution() {
+        local label="${1}"
+        local context="${2:-}"
+        local start_time="${3}"
+        local end_time=$EPOCHREALTIME
+        local elapsed=$(printf "%.6f" $((end_time - start_time)))
+        
+        local key="${context:+${context}:}${label}"
+        ZSHBOP_EXEC_TIMES[$key]=$elapsed
+        
+        local msg
+        if [[ -n $context ]]; then
+            msg="Execution time: ${context}: ${label} took ${elapsed}s"
+            local log_msg="[EXEC_TIME]   ${context}: ${label} took ${elapsed}s"
+        else
+            msg="Execution time: ${label} took ${elapsed}s"
+            local log_msg="[EXEC_TIME] ${label} took ${elapsed}s"
+        fi
+        
+        _debug "$msg"
+        echo "$log_msg" >> "$ZB_LOG"
+    }
+    
+    function _time_step() {
+        local description="${1}"
+        local context="${2}"
+        shift 2
+        
+        local start_time=$EPOCHREALTIME
+        "$@"
+        local exit_code=$?
+        _track_execution "$description" "$context" "$start_time"
+        return $exit_code
+    }
+}
 
 # Mock OS files to simulate loading
 mkdir -p /tmp/mock-os-cmds
@@ -48,88 +89,28 @@ cat > /tmp/mock-os-cmds/os-linux.zsh << 'EOF'
 sleep 0.02
 EOF
 
-cat > /tmp/mock-os-cmds/os-mac.zsh << 'EOF'
-# Mock os-mac.zsh
-sleep 0.015
-EOF
-
-# Override ZSHBOP_ROOT/cmds path for testing
+# Override path for testing
+ZSHBOP_ROOT_ORIG="$ZSHBOP_ROOT"
 ZSHBOP_ROOT="/tmp/mock-os-cmds"
 
-echo "Test 1: Testing Linux OS timing"
-echo "--------------------------------"
+echo "Test 1: Testing Linux OS timing with new _time_step function"
+echo "-------------------------------------------------------------"
 
-# Define the init_os function with our changes
+# Define init_os using the new approach
 function init_os () {
-	_debug_all
+    _debug_all
     _log "Loading OS specific configuration"
     
-    # Track timing for common OS configuration
-    local os_common_start=$EPOCHREALTIME
-	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
-	source $ZSHBOP_ROOT/os-common.zsh
-	local os_common_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_common_start)))
-    _debug "Loaded os-common.zsh in ${os_common_elapsed}s"
-    echo "[BOOT_TIME]   init_os: os-common.zsh loaded in ${os_common_elapsed}s" >> "$ZB_LOG"
-
-	# Include OS Specific configuration	
-	# -- Mac
-	if [[ $MACHINE_OS == "mac" ]] then
-        local os_mac_start=$EPOCHREALTIME
-        _log "Loading OS Configuration cmds/os-mac.zsh"
-        source $ZSHBOP_ROOT/os-mac.zsh
-        local os_mac_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_mac_start)))
-        _debug "Loaded os-mac.zsh in ${os_mac_elapsed}s"
-        echo "[BOOT_TIME]   init_os: os-mac.zsh loaded in ${os_mac_elapsed}s" >> "$ZB_LOG"
-    # -- WSL Linux
-    elif [[ $MACHINE_OS2 = "wsl" ]]; then
-        local os_wsl_start=$EPOCHREALTIME
-        _log "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
-        
-        local os_linux_wsl_start=$EPOCHREALTIME
-        source $ZSHBOP_ROOT/os-linux.zsh
-        local os_linux_wsl_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_linux_wsl_start)))
-        _debug "Loaded os-linux.zsh (WSL) in ${os_linux_wsl_elapsed}s"
-        echo "[BOOT_TIME]   init_os: os-linux.zsh (WSL) loaded in ${os_linux_wsl_elapsed}s" >> "$ZB_LOG"
-        
-        local os_wsl_file_start=$EPOCHREALTIME
-        source $ZSHBOP_ROOT/os-wsl.zsh
-        local os_wsl_file_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_wsl_file_start)))
-        _debug "Loaded os-wsl.zsh in ${os_wsl_file_elapsed}s"
-        echo "[BOOT_TIME]   init_os: os-wsl.zsh loaded in ${os_wsl_file_elapsed}s" >> "$ZB_LOG"
-        
-        local init_wsl_start=$EPOCHREALTIME
-        # Mock init_wsl function
-        sleep 0.005
-        local init_wsl_elapsed=$(printf "%.6f" $((EPOCHREALTIME - init_wsl_start)))
-        _debug "init_wsl completed in ${init_wsl_elapsed}s"
-        echo "[BOOT_TIME]   init_os: init_wsl completed in ${init_wsl_elapsed}s" >> "$ZB_LOG"
-        
-        local os_wsl_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_wsl_start)))
-        echo "[BOOT_TIME]   init_os: WSL configuration total time ${os_wsl_elapsed}s" >> "$ZB_LOG"
-	# -- Linux
-    elif [[ $MACHINE_OS = "linux" ]] then
-        local os_linux_start=$EPOCHREALTIME
-		_log "Loading cmds/os-linux.zsh"
-        source $ZSHBOP_ROOT/os-linux.zsh
-        local os_linux_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_linux_start)))
-        _debug "Loaded os-linux.zsh in ${os_linux_elapsed}s"
-        echo "[BOOT_TIME]   init_os: os-linux.zsh loaded in ${os_linux_elapsed}s" >> "$ZB_LOG"
-    elif [[ $MACHINE_OS = "synology" ]] then
-        local os_synology_start=$EPOCHREALTIME
-		_log "Loading cmds/os-linux.zsh (Synology)"
-        source $ZSHBOP_ROOT/os-linux.zsh
-        local os_synology_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_synology_start)))
-        _debug "Loaded os-linux.zsh (Synology) in ${os_synology_elapsed}s"
-        echo "[BOOT_TIME]   init_os: os-linux.zsh (Synology) loaded in ${os_synology_elapsed}s" >> "$ZB_LOG"
-	else
-        _log "No OS specific configuration found for MACHINE_OS=$MACHINE_OS"
-        echo "[BOOT_TIME]   init_os: No OS-specific configuration loaded (MACHINE_OS=$MACHINE_OS)" >> "$ZB_LOG"
+    _time_step "os-common.zsh" "init_os" source $ZSHBOP_ROOT/os-common.zsh
+    
+    if [[ $MACHINE_OS = "linux" ]] then
+        _log "Loading cmds/os-linux.zsh"
+        _time_step "os-linux.zsh" "init_os" source $ZSHBOP_ROOT/os-linux.zsh
     fi
     init_log
 }
 
-# Run the test
+# Run test
 init_os
 
 echo ""
@@ -138,16 +119,16 @@ echo "==================="
 cat "$ZB_LOG"
 echo ""
 
-# Verify log entries exist
-if grep -q "\[BOOT_TIME\].*init_os:" "$ZB_LOG"; then
-    echo "✓ Test PASSED: init_os timing entries found in log"
+# Verify execution time entries exist
+if grep -q "\[EXEC_TIME\].*init_os:" "$ZB_LOG"; then
+    echo "✓ Test PASSED: init_os execution timing entries found in log"
 else
-    echo "✗ Test FAILED: No init_os timing entries found in log"
+    echo "✗ Test FAILED: No init_os execution timing entries found in log"
     exit 1
 fi
 
 # Verify microsecond precision
-if grep -E "\[BOOT_TIME\].*init_os:.*[0-9]+\.[0-9]{6}s" "$ZB_LOG"; then
+if grep -E "\[EXEC_TIME\].*init_os:.*[0-9]+\.[0-9]{6}s" "$ZB_LOG"; then
     echo "✓ Test PASSED: Timing entries show microsecond precision"
 else
     echo "✗ Test FAILED: Timing entries do not show microsecond precision"
@@ -172,8 +153,8 @@ echo "==================="
 cat "$ZB_LOG"
 echo ""
 
-# Verify we still get boot time entries even with short-circuit
-if grep -q "\[BOOT_TIME\].*init_os:" "$ZB_LOG"; then
+# Verify we still get execution time entries even with short-circuit
+if grep -q "\[EXEC_TIME\].*init_os:" "$ZB_LOG"; then
     echo "✓ Test PASSED: init_os timing entries found even with short-circuit"
 else
     echo "✗ Test FAILED: No init_os timing entries with short-circuit"
@@ -182,8 +163,3 @@ fi
 
 # Clean up
 rm -rf /tmp/mock-os-cmds
-rm -f "$ZB_LOG"
-
-echo ""
-echo "============================================="
-echo "All tests passed! init_os boot timing instrumentation is working."
