@@ -387,30 +387,67 @@ init_log
 function init_os () {
 	_debug_all
     _log "Loading OS specific configuration"
-	# -- Include common OS configuration
+    
+    # Track timing for common OS configuration
+    local os_common_start=$EPOCHREALTIME
 	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
 	source $ZSHBOP_ROOT/cmds/os-common.zsh
+	local os_common_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_common_start)))
+    _debug "Loaded os-common.zsh in ${os_common_elapsed}s"
+    echo "[BOOT_TIME]   init_os: os-common.zsh loaded in ${os_common_elapsed}s" >> "$ZB_LOG"
 
 	# Include OS Specific configuration	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
-        _log "Loaded OS Configuration cmds/os-mac.zsh"
-        source $ZSHBOP_ROOT/cmds/os-mac.zsh   
+        local os_mac_start=$EPOCHREALTIME
+        _log "Loading OS Configuration cmds/os-mac.zsh"
+        source $ZSHBOP_ROOT/cmds/os-mac.zsh
+        local os_mac_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_mac_start)))
+        _debug "Loaded os-mac.zsh in ${os_mac_elapsed}s"
+        echo "[BOOT_TIME]   init_os: os-mac.zsh loaded in ${os_mac_elapsed}s" >> "$ZB_LOG"
     # -- WSL Linux
-    elif [[ $MACHINE_OS2 = "wsl" ]]; then				
+    elif [[ $MACHINE_OS2 = "wsl" ]]; then
+        local os_wsl_start=$EPOCHREALTIME
         _log "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
-        source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
+        
+        local os_linux_wsl_start=$EPOCHREALTIME
+        source $ZSHBOP_ROOT/cmds/os-linux.zsh
+        local os_linux_wsl_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_linux_wsl_start)))
+        _debug "Loaded os-linux.zsh (WSL) in ${os_linux_wsl_elapsed}s"
+        echo "[BOOT_TIME]   init_os: os-linux.zsh (WSL) loaded in ${os_linux_wsl_elapsed}s" >> "$ZB_LOG"
+        
+        local os_wsl_file_start=$EPOCHREALTIME
         source $ZSHBOP_ROOT/cmds/os-wsl.zsh
+        local os_wsl_file_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_wsl_file_start)))
+        _debug "Loaded os-wsl.zsh in ${os_wsl_file_elapsed}s"
+        echo "[BOOT_TIME]   init_os: os-wsl.zsh loaded in ${os_wsl_file_elapsed}s" >> "$ZB_LOG"
+        
+        local init_wsl_start=$EPOCHREALTIME
         init_wsl
+        local init_wsl_elapsed=$(printf "%.6f" $((EPOCHREALTIME - init_wsl_start)))
+        _debug "init_wsl completed in ${init_wsl_elapsed}s"
+        echo "[BOOT_TIME]   init_os: init_wsl completed in ${init_wsl_elapsed}s" >> "$ZB_LOG"
+        
+        local os_wsl_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_wsl_start)))
+        echo "[BOOT_TIME]   init_os: WSL configuration total time ${os_wsl_elapsed}s" >> "$ZB_LOG"
 	# -- Linux
     elif [[ $MACHINE_OS = "linux" ]] then
+        local os_linux_start=$EPOCHREALTIME
 		_log "Loading cmds/os-linux.zsh"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
+        local os_linux_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_linux_start)))
+        _debug "Loaded os-linux.zsh in ${os_linux_elapsed}s"
+        echo "[BOOT_TIME]   init_os: os-linux.zsh loaded in ${os_linux_elapsed}s" >> "$ZB_LOG"
     elif [[ $MACHINE_OS = "synology" ]] then
-		_log "Loading cmds/os-linux.zsh"
+        local os_synology_start=$EPOCHREALTIME
+		_log "Loading cmds/os-linux.zsh (Synology)"
         source $ZSHBOP_ROOT/cmds/os-linux.zsh
+        local os_synology_elapsed=$(printf "%.6f" $((EPOCHREALTIME - os_synology_start)))
+        _debug "Loaded os-linux.zsh (Synology) in ${os_synology_elapsed}s"
+        echo "[BOOT_TIME]   init_os: os-linux.zsh (Synology) loaded in ${os_synology_elapsed}s" >> "$ZB_LOG"
 	else
-        _log "No OS specific configuration found"
+        _log "No OS specific configuration found for MACHINE_OS=$MACHINE_OS"
+        echo "[BOOT_TIME]   init_os: No OS-specific configuration loaded (MACHINE_OS=$MACHINE_OS)" >> "$ZB_LOG"
     fi
     init_log
 }
