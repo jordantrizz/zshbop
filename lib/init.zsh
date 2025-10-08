@@ -23,6 +23,9 @@ function init_log () {
         local start_time=${ZSHBOP_EXEC_START_TIME[$ZSBBOP_FUNC_LOADING]}
         _track_execution "$ZSBBOP_FUNC_LOADING" "" "$start_time"
         
+        # Also populate ZSHBOP_BOOT_TIMES for boot summary
+        ZSHBOP_BOOT_TIMES[$ZSBBOP_FUNC_LOADING]=${ZSHBOP_EXEC_TIMES[$ZSBBOP_FUNC_LOADING]}
+        
         # Clear the start time
         unset "ZSHBOP_EXEC_START_TIME[$ZSBBOP_FUNC_LOADING]"
     fi
