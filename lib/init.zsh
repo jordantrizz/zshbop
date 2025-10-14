@@ -549,10 +549,16 @@ init_check_software () {
 # -- init_check_oom - Check for OOM killer
 # ===============================================
 function init_check_oom () {
+    # -- OOM killer is Linux-specific, skip on other OS
+    if [[ $MACHINE_OS != "linux" ]]; then
+        _debug "Skipping OOM check on $MACHINE_OS"
+        return 0
+    fi
+    
     # -- Check if OOM killer is running
+    local OOM_COUNT
     	# Check if journalctl is installed
 	_cmd_exists journalctl
-    local OOM_COUNT
 	if [[ $? == 0 ]]; then		
 		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process' | wc -l)
 	elif [[ -f /var/log/syslog ]]; then		
