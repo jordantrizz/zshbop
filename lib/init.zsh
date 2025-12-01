@@ -17,6 +17,18 @@ function init_log () {
         _debug "Loading $ZSBBOP_FUNC_LOADING"
         ZSHBOP_LOAD+=($ZSBBOP_FUNC_LOADING)
     fi
+    
+    # Track execution time for this component
+    if [[ -n ${ZSHBOP_EXEC_START_TIME[$ZSBBOP_FUNC_LOADING]} ]]; then
+        local start_time=${ZSHBOP_EXEC_START_TIME[$ZSBBOP_FUNC_LOADING]}
+        _track_execution "$ZSBBOP_FUNC_LOADING" "" "$start_time"
+        
+        # Also populate ZSHBOP_BOOT_TIMES for boot summary
+        ZSHBOP_BOOT_TIMES[$ZSBBOP_FUNC_LOADING]=${ZSHBOP_EXEC_TIMES[$ZSBBOP_FUNC_LOADING]}
+        
+        # Clear the start time
+        unset "ZSHBOP_EXEC_START_TIME[$ZSBBOP_FUNC_LOADING]"
+    fi
 }
 
 # =========================================================
@@ -371,30 +383,31 @@ init_log
 function init_os () {
 	_debug_all
     _log "Loading OS specific configuration"
-	# -- Include common OS configuration
-	_log "Loading $ZSHBOP_ROOT/cmds/os-common.zsh"
-	source $ZSHBOP_ROOT/cmds/os-common.zsh
+    
+    # Track timing for common OS configuration using new reusable function
+    _time_step "os-common.zsh" "init_os" source $ZSHBOP_ROOT/cmds/os-common.zsh
 
 	# Include OS Specific configuration	
 	# -- Mac
 	if [[ $MACHINE_OS == "mac" ]] then
-        _log "Loaded OS Configuration cmds/os-mac.zsh"
-        source $ZSHBOP_ROOT/cmds/os-mac.zsh   
+        _log "Loading OS Configuration cmds/os-mac.zsh"
+        _time_step "os-mac.zsh" "init_os" source $ZSHBOP_ROOT/cmds/os-mac.zsh
     # -- WSL Linux
-    elif [[ $MACHINE_OS2 = "wsl" ]]; then				
+    elif [[ $MACHINE_OS2 = "wsl" ]]; then
         _log "Loading cmds/os-linux.zsh and cmds/os-wsl.zsh"
-        source $ZSHBOP_ROOT/cmds/os-linux.zsh       	
-        source $ZSHBOP_ROOT/cmds/os-wsl.zsh
-        init_wsl
+        
+        _time_step "os-linux.zsh (WSL)" "init_os" source $ZSHBOP_ROOT/cmds/os-linux.zsh
+        _time_step "os-wsl.zsh" "init_os" source $ZSHBOP_ROOT/cmds/os-wsl.zsh
+        _time_step "init_wsl" "init_os" init_wsl
 	# -- Linux
     elif [[ $MACHINE_OS = "linux" ]] then
 		_log "Loading cmds/os-linux.zsh"
-        source $ZSHBOP_ROOT/cmds/os-linux.zsh
+        _time_step "os-linux.zsh" "init_os" source $ZSHBOP_ROOT/cmds/os-linux.zsh
     elif [[ $MACHINE_OS = "synology" ]] then
-		_log "Loading cmds/os-linux.zsh"
-        source $ZSHBOP_ROOT/cmds/os-linux.zsh
+		_log "Loading cmds/os-linux.zsh (Synology)"
+        _time_step "os-linux.zsh (Synology)" "init_os" source $ZSHBOP_ROOT/cmds/os-linux.zsh
 	else
-        _log "No OS specific configuration found"
+        _log "No OS specific configuration found for MACHINE_OS=$MACHINE_OS"
     fi
     init_log
 }
@@ -549,10 +562,16 @@ init_check_software () {
 # -- init_check_oom - Check for OOM killer
 # ===============================================
 function init_check_oom () {
+    # -- OOM killer is Linux-specific, skip on other OS
+    if [[ $MACHINE_OS != "linux" ]]; then
+        _debug "Skipping OOM check on $MACHINE_OS"
+        return 0
+    fi
+    
     # -- Check if OOM killer is running
+    local OOM_COUNT
     	# Check if journalctl is installed
 	_cmd_exists journalctl
-    local OOM_COUNT
 	if [[ $? == 0 ]]; then		
 		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process' | wc -l)
 	elif [[ -f /var/log/syslog ]]; then		
@@ -813,6 +832,42 @@ function init_last () {
 ###########################################################
 
 # ==============================================
+# -- init_mise - activate mise runtime manager if present
+# ==============================================
+function init_mise () {
+    _debug_all
+
+    # Allow disabling via environment variable
+    if [[ -n "$ZSHBOP_MISE_DISABLE" ]]; then
+        _debug "mise disabled via $ZSHBOP_MISE_DISABLE"
+        init_log
+        return 0
+    fi
+
+    local mise_bin
+    if command -v mise >/dev/null 2>&1; then
+        mise_bin="$(command -v mise)"
+    elif [[ -x "$HOME/.local/bin/mise" ]]; then
+        mise_bin="$HOME/.local/bin/mise"
+    else
+        _debug "mise not found; skipping activation"
+        init_log
+        return 0
+    fi
+
+    _log "Activating mise from $mise_bin"
+    local activate_out
+    activate_out="$($mise_bin activate zsh 2>/dev/null)"
+    if [[ $? -eq 0 && -n "$activate_out" ]]; then
+        eval "$activate_out"
+        _success "mise activated"
+    else
+        _warning "mise activation failed"
+    fi
+    init_log
+}
+
+# ==============================================
 # -- init_motd - initial scripts to run on login
 # ==============================================
 init_motd () {
@@ -848,7 +903,12 @@ init_motd () {
 # -- init_zshbop -- initialize zshbop
 # ==============================================
 function init_zshbop () {
+    # Start overall boot timer
+    ZSHBOP_BOOT_START=$EPOCHREALTIME
+    
     _log "${funcstack[1]}:start"
+    echo "[BOOT_TIME] Starting zshbop initialization" >> "$ZB_LOG"
+    echo "[BOOT_TIME] Boot times are recorded with microsecond precision (format: X.XXXXXXs)" >> "$ZB_LOG"
 
     # --------------------------------------------------
 	# -- Start init
@@ -860,48 +920,49 @@ function init_zshbop () {
     # --------------------------------------------------
     # -- Init zshbop
     # --------------------------------------------------    
-    init_core # -- Init core functionality    
+    _start_boot_timer "init_core"; init_core # -- Init core functionality    
     if [[ $ZSHBOP_RELOAD == "1" ]]; then
         _loading3 "Loading includes...." 
-        init_include        # -- Include files
+        _start_boot_timer "init_include"; init_include        # -- Include files
     fi
-    init_path            # -- Set paths
-    init_dirs            # -- Set directories 
-    init_detectos        # -- Detect operating system
-    init_zbr_cmds        # -- Include commands
-    init_software        # -- Include software
-    init_help            # -- Load help
+    _start_boot_timer "init_path"; init_path            # -- Set paths
+    _start_boot_timer "init_mise"; init_mise            # -- Activate mise runtime (if installed)
+    _start_boot_timer "init_dirs"; init_dirs            # -- Set directories 
+    _start_boot_timer "init_detectos"; init_detectos        # -- Detect operating system
+    _start_boot_timer "init_zbr_cmds"; init_zbr_cmds        # -- Include commands
+    _start_boot_timer "init_software"; init_software        # -- Include software
+    _start_boot_timer "init_help"; init_help            # -- Load help
     # --------------------------------------------------
     # -- Include Commands First as a dependency for all below commands.
     # --------------------------------------------------    
-    init_checks          # -- Init checks
-    zsh-check-version    # -- Check zsh    
-    init_home_bin        # -- Check if home bin exists	
-	init_pkg_manager     # -- Init package manager     
-    init-app-config      # -- Common application configuration
-    zshbop_custom-load   # -- Init custom zshbop  
+    _start_boot_timer "init_checks"; init_checks          # -- Init checks
+    _start_boot_timer "zsh-check-version"; zsh-check-version    # -- Check zsh    
+    _start_boot_timer "init_home_bin"; init_home_bin        # -- Check if home bin exists	
+    _start_boot_timer "init_pkg_manager"; init_pkg_manager     # -- Init package manager     
+    _start_boot_timer "init-app-config"; init-app-config      # -- Common application configuration
+    _start_boot_timer "zshbop_custom-load"; zshbop_custom-load   # -- Init custom zshbop  
   	if [[ $ZSHBOP_RELOAD == "0" ]]; then
-        init_omz_plugins     # -- Init OhMyZSH plugins
-  	    init_plugins         # -- Init plugins
+        _start_boot_timer "init_omz_plugins"; init_omz_plugins     # -- Init OhMyZSH plugins
+  	    _start_boot_timer "init_plugins"; init_plugins         # -- Init plugins
     fi
-    init_os              # -- Init os defaults # TODO Needs to be refactored    
-    init_p10k            # -- Init powerlevel10k
-  	init_app_config      # -- Init config
-    init_zsh_sweep       # -- Init zsh-sweep if installed
+    _start_boot_timer "init_os"; init_os              # -- Init os defaults # TODO Needs to be refactored    
+    _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
+    _start_boot_timer "init_app_config"; init_app_config      # -- Init config
+    _start_boot_timer "init_zsh_sweep"; init_zsh_sweep       # -- Init zsh-sweep if installed
 
     # -- Print out what loaded
     _log "Loaded zshbop functions: $ZSHBOP_LOAD"
     echo ""
      
     # -- Load custom then commands dependant on custom    
-    init_sshkeys         # -- Init ssh keys
-    init_kb              # -- Init Knowledge Base
+    _start_boot_timer "init_sshkeys"; init_sshkeys         # -- Init ssh keys
+    _start_boot_timer "init_kb"; init_kb              # -- Init Knowledge Base
 
     # -- Check if init_custom_startup is defined as a function and then execute it    
     _debug "Checking if init_custom_startup is defined as a function"
     if whence -f init_custom_startup > /dev/null; then
         _debug "init_custom_startup is defined"
-        init_custom_startup
+        _start_boot_timer "init_custom_startup"; init_custom_startup
     else
         _debug "init_custom_startup is not defined"
     fi
@@ -911,13 +972,44 @@ function init_zshbop () {
         _loading2 "Not loading init_motd, init_sshkeys on Reload"
         ZSHBOP_RELOAD="0"
     else
-        init_motd           # -- Init motd
+        _start_boot_timer "init_motd"; init_motd           # -- Init motd
     fi
 
     # -- Run last commands
-    init_last
+    _start_boot_timer "init_last"; init_last
 
     # -- End init
     _log "${funcstack[1]}:end"
+    
+    # Calculate total boot time
+    local total_time=$(printf "%.6f" $((EPOCHREALTIME - ZSHBOP_BOOT_START)))
+    
+    # Log boot time summary
+    echo "" >> "$ZB_LOG"
+    echo "[BOOT_TIME] ========================================" >> "$ZB_LOG"
+    echo "[BOOT_TIME] zshbop Boot Time Summary" >> "$ZB_LOG"
+    echo "[BOOT_TIME] ========================================" >> "$ZB_LOG"
+    echo "[BOOT_TIME] Total boot time: ${total_time}s" >> "$ZB_LOG"
+    echo "[BOOT_TIME] Component breakdown:" >> "$ZB_LOG"
+    
+    # Sort and display component times
+    for component in ${(k)ZSHBOP_BOOT_TIMES}; do
+        echo "[BOOT_TIME]   ${component}: ${ZSHBOP_BOOT_TIMES[$component]}s" >> "$ZB_LOG"
+    done
+    
+    echo "[BOOT_TIME] ========================================" >> "$ZB_LOG"
+    echo "" >> "$ZB_LOG"
+    
+    # Also log to debug if enabled
+    _debug "========================================="
+    _debug "zshbop Boot Time Summary"
+    _debug "========================================="
+    _debug "Total boot time: ${total_time}s"
+    _debug "Component breakdown:"
+    for component in ${(k)ZSHBOP_BOOT_TIMES}; do
+        _debug "  ${component}: ${ZSHBOP_BOOT_TIMES[$component]}s"
+    done
+    _debug "========================================="
+    
     init_log
 }

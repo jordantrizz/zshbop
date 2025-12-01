@@ -227,11 +227,15 @@ help_wordpress[wp-admin-email]='Update admin email'
 function wp-admin-email () {
 	_wp-admin-email-usage () {
 		echo "Usage: wp-admin-email (get|set <email>)"
+        echo
+        echo "You can manually run wp option update admin_email <email> to set the admin email."
 	}
 
 	[[ -z $1 ]] && { _wp-admin-email-usage; return 1 }		
 	
-	_wp-cli-check && _wp-install-check || return 1
+	_wp-cli-check || { _error "wp-cli not found";_wp-admin-email-usage; return 1 }
+    _wp-install-check || { _error "WordPress not installed"; _wp-admin-email-usage; return 1 }
+
 	if [[ $1 == "set" ]]; then
 		[[ -z $2 ]] && { _wp-admin-email-usage; return 1 }
 		wp option update admin_email ${2}

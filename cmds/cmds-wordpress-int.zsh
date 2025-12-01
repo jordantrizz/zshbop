@@ -36,7 +36,7 @@ _wp-install-check () {
     WP_EXISTS_EXIT="$?"
     _debugf "WP_EXISTS: $WP_EXISTS"
     if [[ $WP_EXISTS_EXIT == 1 ]]; then
-            _error "WordPress is not installed in the current directory."
+            _error "WordPress is not installed in the current directory (${CWD})"
             return 1
     else
         if [[ -n $OUTPUT_DIR ]]; then

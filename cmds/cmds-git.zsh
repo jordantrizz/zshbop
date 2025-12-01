@@ -559,54 +559,156 @@ function git-config-defaults () {
 }
 
 # =====================================
-# -- git-release
+# -- git-create-release
 # =====================================
-help_git[git-release]="Create a GitHub release using the latest tag and commit message"
-git-release() {
+help_git[gh-create-release]="Create a GitHub release for the current tag; use -a/--all to create releases for all local tags missing on GitHub"
+function gh-create-release() {
     _loading "Creating GitHub release"
-    # check if gh is installed
+
+    # Verify GitHub CLI and repo context
     _loading2 "Checking if GitHub CLI (gh) is installed"
     if ! _cmd_exists gh; then
         _error "GitHub CLI (gh) is not installed"
         return 1
     fi
-    
-    # check if in a git repo
+
     _loading2 "Checking if in a git repository"
     if ! git rev-parse --is-inside-work-tree &>/dev/null; then
         _error "Not in a git repository"
         return 1
     fi
 
+    # Parse options with zparseopts
+    local -a _args
+    local -a _opt_all _opt_help
+    zparseopts -D -E -a _args -- a=_opt_all -all=_opt_all h=_opt_help -help=_opt_help
+
+    local DO_ALL
+    DO_ALL=0
+    if (( ${#_opt_all} )); then
+        DO_ALL=1
+    fi
+    if (( ${#_opt_help} )); then
+        echo "Usage: gh-create-release [-a|--all]"
+        echo "  Default: create a GitHub release for the tag at HEAD (must be exactly tagged)"
+        echo "  -a, --all   Create releases for all local tags that do not have a GitHub release"
+        return 0
+    fi
+    # Warn about unexpected leftover args
+    if (( ${#_args} )); then
+        _warning "Ignoring unexpected arguments: ${_args[*]}"
+    fi
+
+    if [[ $DO_ALL -eq 1 ]]; then
+        _loading2 "Bulk mode: creating releases for local tags missing on GitHub"
+
+        # Gather local tags
+        local local_tags_text
+        local -a local_tags
+        local_tags_text=$(git tag)
+        local_tags=("${(f)local_tags_text}")
+        if [[ ${#local_tags} -eq 0 ]]; then
+            _error "No local tags found."
+            return 1
+        fi
+
+        # Try to fetch all existing GitHub release tags using JSON
+        local gh_release_tags_text
+        gh_release_tags_text=$(gh release list --limit 1000 --json tagName --jq '.[].tagName' 2>/dev/null)
+
+        local -A has_release
+        has_release=()
+        if [[ -n "$gh_release_tags_text" ]]; then
+            local t
+            for t in ${(f)gh_release_tags_text}; do
+                has_release[$t]=1
+            done
+        else
+            _loading3 "Falling back to per-tag checks (gh JSON not available)"
+        fi
+
+        # Determine which local tags do not have a GitHub release
+        local -a missing_tags
+        missing_tags=()
+        local tag_name
+        for tag_name in $local_tags; do
+            if [[ -n "$gh_release_tags_text" ]]; then
+                if [[ -z ${has_release[$tag_name]} ]]; then
+                    missing_tags+="$tag_name"
+                fi
+            else
+                if ! gh release view "$tag_name" >/dev/null 2>&1; then
+                    missing_tags+="$tag_name"
+                fi
+            fi
+        done
+
+        if [[ ${#missing_tags} -eq 0 ]]; then
+            _loading2 "All local tags already have GitHub releases."
+            return 0
+        fi
+
+        _loading2 "Tags without releases (${#missing_tags}): ${missing_tags[*]}"
+        read -q "REPLY?Create releases for these ${#missing_tags} tags? (y/n) "
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            _loading "Aborting."
+            return 1
+        fi
+
+        # Optionally push tags before creating releases
+        read -q "REPLY?Do you want to push all tags before creating releases? (y/n) "
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            _loading "Pushing all tags to origin"
+            git push --tags
+        fi
+
+        # Create releases for each missing tag
+        local msg
+        for tag_name in $missing_tags; do
+            _loading3 "Creating release for $tag_name"
+            msg=$(git log -1 --pretty=%B "$tag_name")
+            gh release create "$tag_name" --title "$tag_name" --notes "$msg" || {
+                _warning "Failed to create release for $tag_name"
+            }
+        done
+        _success "Bulk release creation complete."
+        return 0
+    fi
+
+    # Single-tag mode: ensure HEAD is exactly at a tag
+    _loading2 "Checking that HEAD is tagged"
+    local tag
+    tag=$(git describe --tags --exact-match HEAD 2>/dev/null)
+    if [[ -z "$tag" ]]; then
+        _error "HEAD is not at a tag. Please tag the current commit first."
+        return 1
+    fi
+    _loading3 "HEAD tag: $tag"
+
+    # Check if a GitHub release for this tag already exists
+    if gh release view "$tag" >/dev/null 2>&1; then
+        _warning "A GitHub release for tag $tag already exists. Nothing to do."
+        return 0
+    fi
+
     # Ask to push all tags
     read -q "REPLY?Do you want to push all tags? (y/n) "
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        # push all tags
         _loading "Pushing all tags to origin"
         git push --tags
     else
         _loading "Skipping tag push"
     fi
-    
-    # grab the most recent tag
-    _loading2 "Getting the most recent tag"    
-    local tag
-    tag=$(git describe --tags --abbrev=0) || {
-        echo "❌ no tags found"; return 1
-    }
-    _loading3 "Found tag: $tag"
 
-    # grab the latest commit message
-    _loading3 "Getting the latest commit message"
+    # Use tag's commit message as release notes
     local msg
-    msg=$(git log -1 --pretty=%B)
+    msg=$(git log -1 --pretty=%B "$tag")
 
-    # run GH CLI release create with tag, using the tag as title and the commit msg as notes
-    _loading3 "Creating GitHub release"
-    gh release create "$tag" \
-        --title "$tag" \
-        --notes "$msg"
+    _loading3 "Creating GitHub release for $tag"
+    gh release create "$tag" --title "$tag" --notes "$msg"
 }
 
 # =====================================
@@ -684,41 +786,61 @@ function git-log-oneline() {
 }
 
 # =====================================
-# -- git-create-release
+# -- git-squash-release
 # =====================================
-help_git[git-create-release]="Squash all commits since the last tag and use deduplicated commit messages as the new commit message"
-function git-create-release() {
+help_git[git-squash-release]="Squash all commits since the last tag and use deduplicated commit messages as the new commit message"
+function git-squash-release() {
     # Find the last tag
-    local last_tag
-    last_tag=$(git describe --tags --abbrev=0 2>/dev/null)
-    if [[ -z $last_tag ]]; then
+    local LAST_TAG
+    LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+    if [[ -z $LAST_TAG ]]; then
         _error "No tags found in this repository."
         return 1
     fi
 
     # Find the commit hash for the last tag
-    local last_tag_commit
-    last_tag_commit=$(git rev-list -n 1 $last_tag)
+    local LAST_TAG_COMMIT
+    LAST_TAG_COMMIT=$(git rev-list -n 1 $LAST_TAG)
 
     # Get deduplicated commit messages since the last tag
-    local commit_msgs
-    commit_msgs=$(git log --oneline $last_tag..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
+    local COMMIT_MSGS
+    COMMIT_MSGS=$(git log --oneline $LAST_TAG..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
 
-    if [[ -z $commit_msgs ]]; then
+    if [[ -z $COMMIT_MSGS ]]; then
         _error "No commit messages found to squash."
         return 1
     fi
 
-    _loading "Squashing all commits since $last_tag ($last_tag_commit) into one."
+    _loading "Squashing all commits since $LAST_TAG ($LAST_TAG_COMMIT) into one."
     _loading2 "Commit messages to use:"
-    echo "$commit_msgs"
+    echo "$COMMIT_MSGS"
 
     # Perform soft reset to last tag commit
-    git reset --soft $last_tag_commit
+    git reset --soft $LAST_TAG_COMMIT
+
+    # Create commit message based on whether release number is provided
+    local FINAL_COMMIT_MSG
+    if [[ -n $RELEASE_NUMBER ]]; then
+        FINAL_COMMIT_MSG="Release $RELEASE_NUMBER
+
+$COMMIT_MSGS"
+        _loading2 "Using release format with release number: $RELEASE_NUMBER"
+    else
+        FINAL_COMMIT_MSG="$COMMIT_MSGS"
+        _loading2 "Using standard format (no release number provided)"
+    fi
 
     # Create a new commit with the deduplicated messages
-    git commit -m "$commit_msgs"
+    git commit -m "$FINAL_COMMIT_MSG"
 
-    echo "\nAll commits since $last_tag have been squashed into one."
-    echo "You may need to push with --force: git push --force"
+    # Tag the commit if release number is provided
+    if [[ -n $RELEASE_NUMBER ]]; then
+        _loading "Tagging commit with release number: $RELEASE_NUMBER"
+        git tag "$RELEASE_NUMBER"
+        echo "\nAll commits since $LAST_TAG have been squashed and tagged as $RELEASE_NUMBER."
+        echo "You may need to push with --force and push tags: git push --force && git push --tags"
+    else
+        echo "\nAll commits since $LAST_TAG have been squashed into one."
+        echo "You may need to push with --force: git push --force"
+    fi
 }

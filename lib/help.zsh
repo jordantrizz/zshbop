@@ -31,11 +31,16 @@ get_category_commands () {
             help_all_cat=(help_${key})
             output_all+=$(_loading2 "-- $key --------\n")
             for key in ${(kon)${(P)help_all_cat}}; do
+                # Skip internal commands (those starting with _)
+                if [[ $key == _* ]]; then
+                    continue
+                fi
                 output_all+=$(printf '%s\n' "  ${(r:25:)key} - ${${(P)help_all_cat}[$key]}\n")
             done
             output_all+="\n"
 		done
-		echo $output_all | less
+		# Preserve formatting when paging
+		printf "%s" "$output_all" | less
     elif [[ $ACTION == "auto" ]]; then
         echo ${ALL_HELP_CATEGORIES[@]}
     elif [[ $ACTION == "auto-cmd" ]]; then
@@ -56,6 +61,10 @@ get_category_commands () {
 		_loading "-- $ACTION -------- $help_files[${ACTION}] --------"
         echo
 		for key in ${(kon)${(P)HELP_CAT}}; do
+            # Skip internal commands (those starting with _)
+            if [[ $key == _* ]]; then
+                continue
+            fi
             printf '%s\n' "  ${(r:25:)key} - ${${(P)HELP_CAT}[$key]}"
         done
         echo
@@ -115,10 +124,104 @@ help () {
         	get_category_commands auto-cmd
             get_category_commands_custom auto-cmd
         else
-        	HELP_CAT=(help_${HCMD})
-			get_category_commands $HCMD
-            get_category_commands_custom $HCMD
+			# If it's a valid category (help_<category> exists), show that category
+			local cat_var=(help_${HCMD})
+			if typeset -p $cat_var &>/dev/null; then
+				HELP_CAT=($cat_var)
+				get_category_commands $HCMD
+                get_category_commands_custom $HCMD
+			else
+				# Not a category; try to show matching commands (exact and fuzzy)
+				if ! help_search "$HCMD"; then
+					_error "No command or category $HCMD found"
+					# Fallback to old potential matches list
+					_loading2 "Potential Matches"
+					for key in ${(kon)ALL_HELP_COMMANDS}; do
+						if [[ $key == *"$HCMD"* ]]; then
+							echo "$key"
+						fi
+					done
+				fi
+			fi
         fi
+}
+
+# Search and display matching categories and commands
+# Usage: help_search <term>
+help_search () {
+    local term
+    term="$1"
+    if [[ -z "$term" ]]; then
+        return 1
+    fi
+
+    local lc_term
+    lc_term="${term:l}"
+    local -a category_matches
+    category_matches=()
+    local -a command_matches
+    command_matches=()
+    local desc cat_lc desc_lc assoc cmd_desc cmd_lc cmd_desc_lc cat cmd
+
+    # Categories and their descriptions
+    for cat in ${(kon)help_files}; do
+        desc="$help_files[$cat]"
+        cat_lc="${cat:l}"
+        desc_lc="${desc:l}"
+        if [[ $cat_lc == *$lc_term* || $desc_lc == *$lc_term* ]]; then
+            category_matches+=("$cat"$'\t'"$desc")
+        fi
+
+        assoc="help_${cat}"
+        if typeset -p $assoc &>/dev/null; then
+            for cmd in ${(kon)${(P)assoc}}; do
+                # Skip internal commands
+                if [[ $cmd == _* ]]; then
+                    continue
+                fi
+                cmd_desc="${${(P)assoc}[$cmd]}"
+                cmd_lc="${cmd:l}"
+                cmd_desc_lc="${cmd_desc:l}"
+                if [[ $cmd_lc == *$lc_term* || $cmd_desc_lc == *$lc_term* ]]; then
+                    command_matches+=("$cat"$'\t'"$cmd"$'\t'"$cmd_desc")
+                fi
+            done
+        fi
+    done
+
+    # If nothing matched, bail
+    if (( ${#category_matches} == 0 && ${#command_matches} == 0 )); then
+        return 1
+    fi
+
+    if (( ${#category_matches} )); then
+        _loading "Matching categories for '$term':"
+        for entry in "${category_matches[@]}"; do
+            IFS=$'\t' read -r cat desc <<< "$entry"
+            printf '  %-20s - %s\n' "$cat" "$desc"
+        done
+        echo
+    fi
+
+    if (( ${#command_matches} )); then
+        _loading "Matching commands for '$term':"
+        local prev_cat
+        prev_cat=""
+        for entry in "${command_matches[@]}"; do
+            IFS=$'\t' read -r cat cmd desc <<< "$entry"
+            if [[ "$cat" != "$prev_cat" ]]; then
+                if [[ -n "$prev_cat" ]]; then
+                    echo ""
+                fi
+                _loading2 "Category: $cat"
+                prev_cat="$cat"
+            fi
+            printf '  %-25s - %s\n' "$cmd" "$desc"
+        done
+        echo
+    fi
+
+    return 0
 }
 
 # -- Help introduction

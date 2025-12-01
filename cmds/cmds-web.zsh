@@ -33,7 +33,242 @@ help_web[curl-ttfb2]='Curl to get TTFB or Time To First Byte from https://github
 alias curl-ttfb2="ttfb2"
 
 # -- image-opt
-help_web[image-opt]="Optimize images"
+# Optimize PNG/GIF/JPEG images using pngcrush, gifsicle, and jpegtran.
+# - Auto-detects type by file extension unless -t is provided
+# - Writes an optimized candidate next to the file (suffix .opt by default)
+# - With -m/--commit, replaces the original if the optimized file is smaller
+# - Reports size savings per file
+#
+# Usage:
+#   image-opt [-t png|gif|jpg|jpeg|auto] [-m] [-s suffix] FILE [FILE ...]
+#   image-opt -h
+#
+# Examples:
+#   image-opt image.png
+#   image-opt -t gif anim.gif
+#   image-opt -m *.jpg
+#
+help_web[image-opt]='Optimize PNG/GIF/JPEG images (pngcrush/gifsicle/jpegtran|jpegoptim). Auto-detect JPEG tool; warns when using jpegoptim. Use -m to replace if smaller.'
+
+image-opt () {
+    local TYPE="auto" SUFFIX=".opt" COMMIT=0 VERBOSE=0 TOOL="auto" QUALITY=""
+    typeset -g IMAGE_OPT_JPEGOPTIM_WARNED
+
+    local _usage='Usage: image-opt [-t png|gif|jpg|jpeg|auto] [-m] [-s suffix] FILE [FILE ...]'
+            local _help='Optimize PNG/GIF/JPEG images using pngcrush, gifsicle, and jpegtran (lossless) or jpegoptim (lossless/lossy).
+        -t, --type       Force type (default: auto by file extension)
+        -m, --commit     Replace original only if optimized is smaller
+        -s, --suffix     Suffix for optimized candidate (default: .opt)
+        -T, --tool       auto|jpegtran|jpegoptim (default: auto)
+    -q, --quality    JPEG quality (0-100) for jpegoptim (enables lossy). If omitted, jpegoptim runs lossless.
+    -v, --verbose    Verbose output
+    -h, --help       This help'
+
+    # Parse options using zparseopts (consumes recognized options from $@)
+    local zparseopts_error=0
+    local ARG_TYPE ARG_SUFFIX ARG_COMMIT ARG_VERBOSE ARG_HELP ARG_TOOL ARG_QUALITY
+    zparseopts -D -E \
+        t:=ARG_TYPE -type:=ARG_TYPE \
+        s:=ARG_SUFFIX -suffix:=ARG_SUFFIX \
+        m=ARG_COMMIT -commit=ARG_COMMIT \
+        v=ARG_VERBOSE -verbose=ARG_VERBOSE \
+        T:=ARG_TOOL -tool:=ARG_TOOL \
+        q:=ARG_QUALITY -quality:=ARG_QUALITY \
+        h=ARG_HELP -help=ARG_HELP || zparseopts_error=$?
+
+    if (( zparseopts_error )); then
+        _error "Invalid options"
+        echo "$_usage"
+        return 1
+    fi
+
+    if (( ${#ARG_HELP} )); then
+        echo "$_usage"
+        echo "\n$_help"
+        return 0
+    fi
+
+    # Apply parsed options
+    if (( ${#ARG_TYPE} )); then TYPE=${${ARG_TYPE[-1]}:l}; fi
+    if (( ${#ARG_SUFFIX} )); then SUFFIX=${ARG_SUFFIX[-1]}; fi
+    (( ${#ARG_COMMIT} )) && COMMIT=1
+    (( ${#ARG_VERBOSE} )) && VERBOSE=1
+    if (( ${#ARG_TOOL} )); then TOOL=${${ARG_TOOL[-1]}:l}; fi
+    if (( ${#ARG_QUALITY} )); then QUALITY=${ARG_QUALITY[-1]}; fi
+
+    # Resolve JPEG tool helper
+    _resolve_jpeg_tool () { # echoes selected tool or empty if none
+        local pref="$1"
+        case "$pref" in
+            auto|"")
+                if command -v jpegtran >/dev/null 2>&1; then
+                    echo jpegtran; return 0
+                elif command -v jpegoptim >/dev/null 2>&1; then
+                    echo jpegoptim; return 0
+                else
+                    echo ""; return 1
+                fi
+                ;;
+            jpegtran)
+                echo jpegtran; return 0 ;;
+            jpegoptim)
+                echo jpegoptim; return 0 ;;
+            *)
+                echo ""; return 1 ;;
+        esac
+    }
+
+    if [[ $# -lt 1 ]]; then
+        echo "$_usage"
+        return 1
+    fi
+
+    # Helpers
+    _image_opt_exists_or_warn () { # $1=cmd $2=display
+        _cmd_exists "$1"
+        if [[ $? != 0 ]]; then
+            _error "Required tool not found: $2 ($1)" 0
+            return 1
+        fi
+        return 0
+    }
+
+    _filesize_bytes () { # portable size via wc -c
+        # usage: _filesize_bytes <path>
+        if [[ -f "$1" ]]; then
+            wc -c <"$1" | awk '{print $1}' 2>/dev/null
+        fi
+    }
+
+    _percent_savings () { # $1=old $2=new
+        local old=$1 new=$2
+        if [[ -z $old || -z $new || $old -eq 0 ]]; then echo "0"; return; fi
+        echo $(( (old - new) * 100 / old ))
+    }
+
+    _opt_one_png () { # $1=file $2=dest
+        _image_opt_exists_or_warn pngcrush "pngcrush" || return 2
+        pngcrush -q -brute "$1" "$2" >/dev/null 2>&1
+    }
+
+    _opt_one_gif () { # $1=file $2=dest
+        _image_opt_exists_or_warn gifsicle "gifsicle" || return 2
+        gifsicle -O3 "$1" -o "$2" >/dev/null 2>&1
+    }
+
+    _opt_one_jpg () { # $1=file $2=dest $3=tool
+        local src="$1" dst="$2" tool="$3"
+        case "$tool" in
+            jpegoptim)
+                _image_opt_exists_or_warn jpegoptim "jpegoptim" || return 2
+                if [[ -z "$IMAGE_OPT_JPEGOPTIM_WARNED" ]]; then
+                    if [[ -n "$QUALITY" ]]; then
+                        _warning "Using jpegoptim with quality=$QUALITY (lossy). Verify output before committing." 0
+                    else
+                        _warning "Using jpegoptim in lossless mode. It can be lossy if --quality is provided." 0
+                    fi
+                    IMAGE_OPT_JPEGOPTIM_WARNED=1
+                fi
+                # jpegoptim works in-place; copy to destination then optimize
+                command cp -f -- "$src" "$dst" || return 2
+                local args=(--quiet)
+                # Lossless defaults
+                args+=(--strip-all --all-progressive)
+                # If QUALITY provided, enable lossy via -m
+                if [[ -n "$QUALITY" ]]; then
+                    args+=(-m"$QUALITY")
+                fi
+                jpegoptim ${args[@]} "$dst" >/dev/null 2>&1 || return 2
+                ;;
+            *)
+                _image_opt_exists_or_warn jpegtran "jpegtran" || return 2
+                # Optimize and make progressive, strip metadata (lossless)
+                jpegtran -copy none -optimize -progressive "$src" > "$dst" 2>/dev/null || return 2
+                ;;
+        esac
+    }
+
+    _detect_type () { # $1=filename -> echoes png|gif|jpg|unknown
+        local f=${1:l}
+        case "$f" in
+            *.png) echo png ;;
+            *.gif) echo gif ;;
+            *.jpg|*.jpeg) echo jpg ;;
+            *) echo unknown ;;
+        esac
+    }
+
+    local total_saved=0 total_files=0 changed=0
+    for f in "$@"; do
+        if [[ ! -f "$f" ]]; then
+            _warning "Skipping: not a file: $f" 0
+            continue
+        fi
+
+        local t="$TYPE"
+        [[ "$t" == "auto" ]] && t=$(_detect_type "$f")
+        if [[ "$t" == "unknown" ]]; then
+            _warning "Cannot determine image type for $f (use -t to specify)" 0
+            continue
+        fi
+
+        local dest="$f$SUFFIX"
+        rm -f -- "$dest" 2>/dev/null
+
+        case "$t" in
+            png) _opt_one_png "$f" "$dest" ;;
+            gif) _opt_one_gif "$f" "$dest" ;;
+            jpg|jpeg)
+                local sel
+                sel=$(_resolve_jpeg_tool "$TOOL")
+                if [[ -z "$sel" ]]; then
+                    _error "No JPEG optimizer found (install jpegtran or jpegoptim)" 0
+                    rm -f -- "$dest"
+                    continue
+                fi
+                _opt_one_jpg "$f" "$dest" "$sel" ;;
+        esac
+        local rc=$?
+        if [[ $rc -ne 0 || ! -s "$dest" ]]; then
+            _warning "Failed to optimize: $f" 0
+            [[ -f "$dest" ]] && rm -f -- "$dest"
+            continue
+        fi
+
+        local oldb newb saved pct
+        oldb=$(_filesize_bytes "$f")
+        newb=$(_filesize_bytes "$dest")
+        if [[ -z "$oldb" || -z "$newb" ]]; then
+            _warning "Could not stat sizes for $f" 0
+            rm -f -- "$dest"
+            continue
+        fi
+        (( saved = oldb - newb ))
+        pct=$(_percent_savings "$oldb" "$newb")
+        (( total_saved += (saved>0?saved:0) ))
+        (( total_files += 1 ))
+
+        if (( VERBOSE )); then
+            _loading3 "$f: $oldb -> $newb bytes (saved ${saved} bytes, ${pct}%)"
+        else
+            echo "$f: $oldb -> $newb bytes (saved ${saved} bytes, ${pct}%)"
+        fi
+
+        if (( COMMIT )); then
+            if (( newb < oldb )); then
+                mv -f -- "$dest" "$f"
+                (( changed += 1 ))
+            else
+                rm -f -- "$dest"
+            fi
+        fi
+    done
+
+    if (( total_files > 0 )); then
+        _success "Optimized $total_files file(s). Total saved: $total_saved bytes" 
+        (( COMMIT )) && _loading "Committed replacements: $changed"
+    fi
+}
 
 # -- web-topips
 help_web[web-topips]="Get the top requests by IP in an OLS or Nginx access log"

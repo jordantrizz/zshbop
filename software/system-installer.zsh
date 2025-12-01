@@ -147,9 +147,9 @@ software_gh-cli-deb () {
 # --------------------------------------------------
 help_software[powershell]="Powershell for Linux"
 _cmd_exists pwsh
-[[ $? -ge "1" ]] && alias pwsh=powershell_download || alias pwsh=pwsh
+[[ $? -ge "1" ]] && alias pwsh=software_powershell || alias pwsh=pwsh
 
-powershell_download () {
+software_powershell () {
 	if [[ $MACHINE_OS == "mac" ]]; then
 		echo "Installing Powershell on Mac using brew"
 		brew install --cask powershell

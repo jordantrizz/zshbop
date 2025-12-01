@@ -936,3 +936,119 @@ function zshbop_internal () {
         printf '%s\n' "  ${(r:25:)key} - ${help_int[$key]}"
     done
 }
+
+# =========================================================
+# -- zshbop-boot ()
+# -- Show the most recent zshbop boot timing summary
+# =========================================================
+help_zshbop[boot]='Show the most recent zshbop boot timing summary'
+function zshbop-boot () {
+    local tail_lines=600
+    local log_file="${ZB_LOG:-${ZSHBOP_HOME}/.zshbop.log}"
+    local boot_separator='[BOOT_TIME] ========================================'
+    local boot_header='[BOOT_TIME] zshbop Boot Time Summary'
+    local boot_prefix='[BOOT_TIME] '
+    local boot_component_prefix='[BOOT_TIME]   '
+
+    zparseopts -D -E h=ARG_HELP n:=ARG_LINES
+
+    if [[ -n $ARG_HELP ]]; then
+        echo "Usage: zshbop-boot [-n <lines>]"
+        echo "  -n <lines>   Number of log lines to scan for the summary (default ${tail_lines})"
+        return 0
+    fi
+
+    if [[ -n $ARG_LINES ]]; then
+        tail_lines=${ARG_LINES[2]}
+        if [[ -z $tail_lines || ! $tail_lines =~ '^[0-9]+' ]]; then
+            _error "Invalid line count: ${ARG_LINES[2]}"
+            return 1
+        fi
+    fi
+
+    if [[ ! -f $log_file ]]; then
+        _error "Boot log not found at $log_file"
+        return 1
+    fi
+
+    local tail_data
+    tail_data=$(command tail -n $tail_lines "$log_file" 2>/dev/null)
+    if [[ -z $tail_data ]]; then
+        _warning "No boot timing entries found in $log_file"
+        return 1
+    fi
+
+    local -a lines summary_lines
+    lines=(${(f)tail_data})
+    local capturing=0
+    local seen_header=0
+
+    for (( idx=${#lines[@]}; idx>=1; idx-- )); do
+        local line="${lines[idx]}"
+
+        if [[ $line == $boot_separator ]]; then
+            if (( capturing )); then
+                summary_lines=("$line" ${summary_lines[@]})
+                if (( seen_header )); then
+                    break
+                fi
+            else
+                capturing=1
+                summary_lines=("$line" ${summary_lines[@]})
+            fi
+            continue
+        fi
+
+        (( capturing )) || continue
+
+        summary_lines=("$line" ${summary_lines[@]})
+        if [[ $line == $boot_header ]]; then
+            seen_header=1
+        fi
+    done
+
+    if (( ! ${#summary_lines[@]} )); then
+        _warning "No boot summary found in the last $tail_lines lines of $log_file"
+        return 1
+    fi
+
+    echo ""
+    echo "${fg[cyan]}zshbop Boot Time (last startup)${RSC}"
+    echo "${fg[cyan]}--------------------------------${RSC}"
+
+    local line
+    for line in "${summary_lines[@]}"; do
+        if [[ -z $line ]]; then
+            echo ""
+            continue
+        fi
+
+        if [[ $line == $boot_separator ]]; then
+            local cleaned_separator=${line#$boot_prefix}
+            echo "${fg[magenta]}${cleaned_separator}${RSC}"
+        else
+            local cleaned_line=${line#$boot_prefix}
+            echo "${cleaned_line}"
+        fi
+    done
+
+    local -a component_entries
+    for line in "${summary_lines[@]}"; do
+        if [[ $line == ${boot_component_prefix}* ]]; then
+            component_entries+=("${line#$boot_component_prefix}")
+        fi
+    done
+
+    if (( ${#component_entries[@]} )); then
+        local sorted_output
+        sorted_output=$(printf '%s\n' "${component_entries[@]}" | awk -F': ' '{name=$1; raw=$2; gsub(/s$/, "", raw); if (raw == "") raw = 0; printf "%s\t%s\n", raw, name;}' | sort -k1,1nr)
+
+        if [[ -n $sorted_output ]]; then
+            echo ""
+            echo "${fg[yellow]}Components by elapsed time${RSC}"
+            printf '%s\n' "$sorted_output" | awk -F'\t' '{printf "  %-30s %ss\n", $2, $1}'
+        fi
+    fi
+
+    return 0
+}

@@ -58,6 +58,7 @@ zshbop is a frankenstien project to improve my own workflow. It utilizes a numbe
 
 * Customized Powerlevel10k prompt
 * A knowledge base of common topics
+* Boot time tracking with microsecond precision (see [doc/BOOT_TIMING.md](doc/BOOT_TIMING.md))
 * A library of alises, functions for common tasks for various workflows around the following.
     * Cloudflare
     * Docker

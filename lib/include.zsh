@@ -279,6 +279,81 @@ function zb_logger () {
     fi
 }
 
+# =========================================================
+# -- Execution time tracking (for boot and runtime)
+# =========================================================
+# Load zsh/datetime module for EPOCHREALTIME (microsecond precision)
+zmodload zsh/datetime
+
+typeset -gA ZSHBOP_EXEC_TIMES
+typeset -gA ZSHBOP_EXEC_START_TIME
+typeset -g ZSHBOP_BOOT_START=0
+
+# -- Generic execution time tracking function
+# Usage: _track_execution "label" "context" start_time
+# - label: descriptive name (e.g., "os-common.zsh", "init_core")
+# - context: optional parent context (e.g., "init_os", "")
+# - start_time: start time from $EPOCHREALTIME
+function _track_execution() {
+    local label="${1}"
+    local context="${2:-}"
+    local start_time="${3}"
+    local end_time=$EPOCHREALTIME
+    local elapsed=$(printf "%.6f" $((end_time - start_time)))
+    
+    # Store the time
+    local key="${context:+${context}:}${label}"
+    ZSHBOP_EXEC_TIMES[$key]=$elapsed
+    
+    # Format the message
+    local msg
+    if [[ -n $context ]]; then
+        msg="Execution time: ${context}: ${label} took ${elapsed}s"
+        local log_msg="[EXEC_TIME]   ${context}: ${label} took ${elapsed}s"
+    else
+        msg="Execution time: ${label} took ${elapsed}s"
+        local log_msg="[EXEC_TIME] ${label} took ${elapsed}s"
+    fi
+    
+    # Log to both debug and file
+    _debug "$msg"
+    echo "$log_msg" >> "$ZB_LOG"
+}
+
+# -- Start tracking execution time
+# Usage: _start_execution_timer "label"
+function _start_execution_timer() {
+    local label="${1}"
+    ZSHBOP_EXEC_START_TIME[$label]=$EPOCHREALTIME
+}
+
+# -- Simplified wrapper for tracking a step within a function
+# Usage: _time_step "description" "parent_function" command args...
+# Example: _time_step "os-common.zsh" "init_os" source $ZSHBOP_ROOT/cmds/os-common.zsh
+function _time_step() {
+    local description="${1}"
+    local context="${2}"
+    shift 2
+    
+    local start_time=$EPOCHREALTIME
+    "$@"
+    local exit_code=$?
+    _track_execution "$description" "$context" "$start_time"
+    return $exit_code
+}
+
+# Backward compatibility aliases for boot time tracking
+typeset -gA ZSHBOP_BOOT_TIMES
+alias _start_boot_timer='_start_execution_timer'
+function _track_boot_time() {
+    # Maintain backward compatibility
+    local component="${1}"
+    local start_time="${2}"
+    _track_execution "$component" "" "$start_time"
+    # Also store in old format for boot summary
+    ZSHBOP_BOOT_TIMES[$component]=${ZSHBOP_EXEC_TIMES[$component]}
+}
+
 # ---------------
 # -- Source files
 # ---------------

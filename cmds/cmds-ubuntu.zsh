@@ -117,7 +117,8 @@ function ubuntu-swap-create () {
 help_ubuntu[ubuntu-resolve-dns]='Manage systemd-resolved DNS settings with options: --update, --show, or no args for usage'
 function ubuntu-resolve-dns () {
     # Short status function
-    _ubuntu-resolve-dns-show-short () {
+    
+    _ubuntu-resolve-dns-show-short () {        
         # Check for DNS override
         local override="no"
         local dns_val=""
@@ -137,8 +138,11 @@ function ubuntu-resolve-dns () {
             if command -v resolvectl >/dev/null 2>&1; then
                 global_dns=$(resolvectl dns | grep '^Global:' | awk '{print $2}')
                 echo "Global DNS: ${global_dns:-none}"
+            elif command -v systemd-resolve >/dev/null 2>&1; then
+                global_dns=$(systemd-resolve --status | grep 'DNS Servers:' | head -1 | awk '{print $3}')
+                echo "Global DNS: ${global_dns:-none} (via systemd-resolve)"
             else
-                echo "Global DNS: resolvectl not available"
+                echo "Global DNS: command not available"
             fi
         else
             echo "systemd-resolved is not running. Checking /etc/resolv.conf..."
@@ -187,8 +191,58 @@ function ubuntu-resolve-dns () {
                         _warning "Global DNS is not Google/Cloudflare: $GLOBAL_DNS"
                     fi
                 fi
+            elif command -v systemd-resolve >/dev/null 2>&1; then
+                echo "=== Current DNS Status (systemd-resolve - Ubuntu 18.04) ==="
+                # Filter systemd-resolve output to show only essential DNS info
+                local status_output
+                status_output=$(systemd-resolve --status 2>/dev/null)
+                if [[ -n "$status_output" ]]; then
+                    # Show only Global section with DNS Servers, filter out DNSSEC NTA and Link sections
+                    echo "$status_output" | awk '
+                        /^Global$/ { 
+                            print; 
+                            in_global=1; 
+                            next 
+                        }
+                        /^Link [0-9]/ { 
+                            in_global=0; 
+                            exit 
+                        }
+                        in_global && /^[ ]*DNS Servers:/ { 
+                            print; 
+                            getline; 
+                            while (/^[ ]+[0-9]/) { 
+                                print; 
+                                getline 
+                            } 
+                        }
+                        in_global && /^[ ]*DNS Domain:/ { 
+                            print; 
+                            next 
+                        }
+                        in_global && /^[ ]*DNSSEC NTA:/ { 
+                            # Skip DNSSEC NTA section entirely
+                            while (getline && /^[ ]+/) { }
+                            if (!/^$/) { 
+                                # Put back the line we read too far
+                                print 
+                            }
+                        }
+                    '
+                else
+                    echo "Unable to get systemd-resolve status"
+                fi
+                # Grab Global DNS from systemd-resolve output
+                GLOBAL_DNS=$(echo "$status_output" | grep 'DNS Servers:' | head -1 | awk '{print $3}')
+                if [[ -n "$GLOBAL_DNS" ]]; then
+                    echo "\nGlobal DNS: $GLOBAL_DNS (via systemd-resolve)"
+                    # Warn if not Google/Cloudflare
+                    if [[ "$GLOBAL_DNS" != "8.8.8.8" && "$GLOBAL_DNS" != "1.1.1.1" && "$GLOBAL_DNS" != "8.8.4.4" && "$GLOBAL_DNS" != "1.0.0.1" ]]; then
+                        _warning "Global DNS is not Google/Cloudflare: $GLOBAL_DNS"
+                    fi
+                fi
             else
-                echo "resolvectl command not available"
+                echo "Neither resolvectl nor systemd-resolve command available"
             fi
         else
             echo "❌ systemd-resolved is not running. Checking /etc/resolv.conf..."
@@ -205,6 +259,8 @@ function ubuntu-resolve-dns () {
 
     # Update DNS settings function
     _ubuntu-resolve-dns-update () {
+        local FORCE=${1:-0}
+
         _loading "Updating systemd-resolved DNS settings to Google/Cloudflare DNS..."
 
         # Check if systemd-resolved is running, if not fail
@@ -222,63 +278,80 @@ function ubuntu-resolve-dns () {
             return 1
         fi
 
-        # -- Check if already set to Google/Cloudflare by checking the actual running configuration
-        local already_set="no"
-        if command -v resolvectl >/dev/null 2>&1; then
-            # Get the global DNS servers from resolvectl status
-            local status_output global_dns_servers fallback_dns_servers
-            status_output=$(resolvectl status 2>/dev/null)
-            
-            # Parse Global DNS servers (handle multi-line format)
-            global_dns_servers=$(echo "$status_output" | awk '
-                /^Global$/,/^Link/ {
-                    if (/^[ ]*DNS Servers:/) {
-                        sub(/^[ ]*DNS Servers:[ ]*/, "")
-                        print $0
-                        getline
-                        while (/^[ ]+[0-9]/) {
-                            print $1
+        if [[ $FORCE -eq 0 ]]; then            
+            # -- Check if already set to Google/Cloudflare by checking the actual running configuration
+            local already_set="no"
+            if command -v resolvectl >/dev/null 2>&1; then
+                # Get the global DNS servers from resolvectl status
+                local status_output global_dns_servers fallback_dns_servers
+                status_output=$(resolvectl status 2>/dev/null)
+                
+                # Parse Global DNS servers (handle multi-line format)
+                global_dns_servers=$(echo "$status_output" | awk '
+                    /^Global$/,/^Link/ {
+                        if (/^[ ]*DNS Servers:/) {
+                            sub(/^[ ]*DNS Servers:[ ]*/, "")
+                            print $0
                             getline
+                            while (/^[ ]+[0-9]/) {
+                                print $1
+                                getline
+                            }
                         }
-                    }
-                }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
-            
-            # Parse Fallback DNS servers (handle multi-line format)
-            fallback_dns_servers=$(echo "$status_output" | awk '
-                /^Global$/,/^Link/ {
-                    if (/^[ ]*Fallback DNS Servers:/) {
-                        sub(/^[ ]*Fallback DNS Servers:[ ]*/, "")
-                        print $0
-                        getline
-                        while (/^[ ]+[0-9]/) {
-                            print $1
+                    }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
+                
+                # Parse Fallback DNS servers (handle multi-line format)
+                fallback_dns_servers=$(echo "$status_output" | awk '
+                    /^Global$/,/^Link/ {
+                        if (/^[ ]*Fallback DNS Servers:/) {
+                            sub(/^[ ]*Fallback DNS Servers:[ ]*/, "")
+                            print $0
                             getline
+                            while (/^[ ]+[0-9]/) {
+                                print $1
+                                getline
+                            }
                         }
-                    }
-                }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
-            
-            _loading2 "Current Global DNS: '$global_dns_servers'"
-            _loading2 "Current Fallback DNS: '$fallback_dns_servers'"
-            
-            # Check if DNS and Fallback match Google/Cloudflare
-            if [[ "$global_dns_servers" == "8.8.8.8 1.1.1.1" && "$fallback_dns_servers" == "8.8.4.4 1.0.0.1" ]]; then
-                already_set="yes"
-            fi
-        else
-            # Fallback to checking the config file
-            if [[ -f /etc/systemd/resolved.conf ]]; then
-                local current_dns current_fallback
-                current_dns=$(grep '^DNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
-                current_fallback=$(grep '^FallbackDNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
-                if [[ "$current_dns" == "8.8.8.8 1.1.1.1" && "$current_fallback" == "8.8.4.4 1.0.0.1" ]]; then
+                    }' | tr '\n' ' ' | sed 's/[[:space:]]*$//' | sed 's/[[:space:]]\+/ /g')
+                
+                _loading2 "Current Global DNS: '$global_dns_servers'"
+                _loading2 "Current Fallback DNS: '$fallback_dns_servers'"
+                
+                # Check if DNS and Fallback match Google/Cloudflare
+                if [[ "$global_dns_servers" == "8.8.8.8 1.1.1.1" && "$fallback_dns_servers" == "8.8.4.4 1.0.0.1" ]]; then
                     already_set="yes"
                 fi
+            elif command -v systemd-resolve >/dev/null 2>&1; then
+                # Fallback for Ubuntu 18.04 using systemd-resolve
+                local status_output
+                status_output=$(systemd-resolve --status 2>/dev/null)
+                
+                # Parse DNS servers from systemd-resolve output (simpler format)
+                local dns_servers
+                dns_servers=$(echo "$status_output" | grep 'DNS Servers:' | head -1 | awk '{for(i=3;i<=NF;i++) printf "%s ", $i; print ""}' | sed 's/[[:space:]]*$//')
+                
+                _loading2 "Current DNS Servers (systemd-resolve): '$dns_servers'"
+                
+                # Check if DNS matches Google/Cloudflare (allowing different order)
+                if [[ "$dns_servers" =~ "8.8.8.8" && "$dns_servers" =~ "1.1.1.1" ]]; then
+                    already_set="yes"
+                fi
+            else
+                # Fallback to checking the config file
+                if [[ -f /etc/systemd/resolved.conf ]]; then
+                    local current_dns current_fallback
+                    current_dns=$(grep '^DNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
+                    current_fallback=$(grep '^FallbackDNS=' /etc/systemd/resolved.conf | awk -F= '{print $2}')
+                    if [[ "$current_dns" == "8.8.8.8 1.1.1.1" && "$current_fallback" == "8.8.4.4 1.0.0.1" ]]; then
+                        already_set="yes"
+                    fi
+                fi
             fi
-        fi
-        
-        if [[ "$already_set" == "yes" ]]; then
-            _loading2 "DNS is already set to Google/Cloudflare. No update needed."
-            return 0
+            
+            if [[ "$already_set" == "yes" ]]; then
+                _loading2 "DNS is already set to Google/Cloudflare. No update needed."
+                return 0
+            fi
         fi
 
         # -- Backup current configuration
@@ -292,8 +365,8 @@ function ubuntu-resolve-dns () {
 DNS=8.8.8.8 1.1.1.1
 FallbackDNS=8.8.4.4 1.0.0.1
 Domains=~.
-DNSSEC=yes
-DNSOverTLS=yes
+DNSSEC=allow-downgrade
+DNSOverTLS=opportunistic
 Cache=yes
 EOF
 
@@ -303,7 +376,99 @@ EOF
 
         _loading2 "systemd-resolved restarted. Checking status..."
         # -- Check status
-        resolvectl status
+        if command -v resolvectl >/dev/null 2>&1; then
+            resolvectl status
+        elif command -v systemd-resolve >/dev/null 2>&1; then
+            _loading3 "Using systemd-resolve (Ubuntu 18.04 fallback)..."
+            # Filter systemd-resolve output to show only essential DNS info
+            local status_output
+            status_output=$(systemd-resolve --status 2>/dev/null)
+            if [[ -n "$status_output" ]]; then
+                # Show only Global section with DNS Servers, filter out DNSSEC NTA and Link sections
+                echo "$status_output" | awk '
+                    /^Global$/ { 
+                        print; 
+                        in_global=1; 
+                        next 
+                    }
+                    /^Link [0-9]/ { 
+                        in_global=0; 
+                        exit 
+                    }
+                    in_global && /^[ ]*DNS Servers:/ { 
+                        print; 
+                        getline; 
+                        while (/^[ ]+[0-9]/) { 
+                            print; 
+                            getline 
+                        } 
+                    }
+                    in_global && /^[ ]*DNS Domain:/ { 
+                        print; 
+                        next 
+                    }
+                    in_global && /^[ ]*DNSSEC NTA:/ { 
+                        # Skip DNSSEC NTA section entirely
+                        while (getline && /^[ ]+/) { }
+                        if (!/^$/) { 
+                            # Put back the line we read too far
+                            print 
+                        }
+                    }
+                '
+            else
+                echo "Unable to get systemd-resolve status"
+            fi
+        else
+            _loading3 "Neither resolvectl nor systemd-resolve available, checking /etc/resolv.conf..."
+            cat /etc/resolv.conf
+        fi
+    }
+
+    # Disable systemd-resolved and use direct DNS
+    _ubuntu-resolve-dns-disable () {
+        _loading "Disabling systemd-resolved and setting up direct DNS..."
+        
+        # -- Check if we're running as root
+        if ! _checkroot; then
+            _error "This command must be run as root."
+            return 1
+        fi
+
+        # -- Backup current resolv.conf if it exists
+        if [[ -f /etc/resolv.conf ]]; then
+            _loading2 "Backing up current /etc/resolv.conf..."
+            sudo cp /etc/resolv.conf /etc/resolv.conf.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+        fi
+
+        # -- Stop and disable systemd-resolved
+        _loading2 "Stopping and disabling systemd-resolved..."
+        sudo systemctl disable --now systemd-resolved
+
+        # -- Point resolv.conf straight at public resolvers
+        _loading2 "Setting up direct DNS in /etc/resolv.conf..."
+        printf 'nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 8.8.8.8\noptions timeout:2 attempts:2 rotate\n' \
+        | sudo tee /etc/resolv.conf > /dev/null
+
+        # -- Test DNS resolution
+        _loading "Testing DNS resolution..."
+        if command -v dig >/dev/null 2>&1; then
+            _loading2 "Testing with dig..."
+            dig @1.1.1.1 geektank.net +time=2 +tries=1
+        else
+            _loading2 "dig not available, skipping dig test"
+        fi
+
+        if command -v curl >/dev/null 2>&1; then
+            _loading2 "Testing with curl..."
+            time curl -4sS https://geektank.net -o /dev/null
+        else
+            _loading2 "curl not available, skipping curl test"
+        fi
+
+        _loading2 "systemd-resolved has been disabled and direct DNS configured."
+        echo "Current /etc/resolv.conf:"
+        cat /etc/resolv.conf
     }
 
     # Usage function
@@ -315,6 +480,8 @@ EOF
         echo "Options:"
         echo "  --update    Update DNS settings to use Google (8.8.8.8) and Cloudflare (1.1.1.1)"
         echo "  --show      Show current DNS configuration"
+        echo "  --disable   Disable systemd-resolved and use direct DNS in /etc/resolv.conf"
+        echo "  --force     Force update DNS settings even if already set"
         echo "  (no args)   Show this usage and current configuration"
         echo
     }
@@ -326,6 +493,13 @@ EOF
             ;;
         --show)
             _ubuntu-resolve-dns-show
+            ;;
+        --disable)
+            _ubuntu-resolve-dns-disable
+            ;;
+        --force)
+            _loading "Forcing DNS update..."
+            _ubuntu-resolve-dns-update 1
             ;;
         --help|-h|help)
             _ubuntu-resolve-dns-usage
