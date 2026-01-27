@@ -204,3 +204,47 @@ vhwinfo () {
         echo " -- Downloading vhwinfo.sh via wget and running"
         wget --no-check-certificate https://github.com/rafa3d/vHWINFO/raw/master/vhwinfo.sh -O - -o /dev/null|bash
 }
+
+# ===============================================
+# -- software_mise
+# ===============================================
+help_software[mise]='Install mise - runtime and version manager'
+software_mise () {
+	# Check if mise is already installed
+	if _cmd_exists mise; then
+		_notice "mise already installed"
+		return 0
+	fi
+	
+	_loading "Installing mise to $ZSHBOP_SOFTWARE_PATH"
+	
+	# Create temporary directory for installation
+	local MISE_TEMP="/tmp/mise-install-$$"
+	mkdir -p "$MISE_TEMP"
+	
+	# Download and run the official installer script
+	if curl -sSL https://mise.jdx.dev/install.sh -o "$MISE_TEMP/install.sh"; then
+		# Set environment to install to user-local path
+		export MISE_INSTALL_PATH="$ZSHBOP_SOFTWARE_PATH"
+		
+		# Run the installer
+		if bash "$MISE_TEMP/install.sh"; then
+			_success "mise installed successfully to $ZSHBOP_SOFTWARE_PATH"
+			chmod 755 "$ZSHBOP_SOFTWARE_PATH/mise"
+		else
+			_error "mise installation failed"
+			rm -rf "$MISE_TEMP"
+			return 1
+		fi
+	else
+		_error "Failed to download mise installer"
+		rm -rf "$MISE_TEMP"
+		return 1
+	fi
+	
+	# Cleanup
+	rm -rf "$MISE_TEMP"
+	
+	# Update PATH to include the new installation
+	_success "mise is now available. You may need to restart your shell to see it in your PATH"
+}

@@ -1,12 +1,8 @@
-# --
+# ==============================================
 # MySQL commands
-#
-# Example help: help_wordpress[wp]='Generate phpinfo() file'
-#
-# --
+# ==============================================
 _debug " -- Loading ${(%):-%N}"
 
-# What help file is this?
 help_files[mysql]='MySQL related commands'
 
 # - Init help array

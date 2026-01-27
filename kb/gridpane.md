@@ -314,6 +314,7 @@ gp stack redis -max-memory 300
 
 # Post to Slack
 * /usr/local/bin/gpmonitor <title> <data>
+* 'gp monitor SYS_SWAP_MEM 75 warning'
 
 # Nginx
 ## Regenerate Nginx Config

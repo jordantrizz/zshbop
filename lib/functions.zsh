@@ -315,18 +315,19 @@ zshbop_update () {
     if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
     	_debugf "Detected old branch name develop"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
-        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
-        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
-        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
+        [[ $? -ge "1" ]] && { _error "Failed to checkout dev branch"; return 1 }
+        _loading3 "Resetting to origin/dev"
+        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/dev
+        [[ $? -ge "1" ]] && { _error "Failed to reset to origin/dev"; return 1 }
     else
         _loading3 "Fetching $ZSHBOP_BRANCH"
         git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch
         [[ $? -ge "1" ]] && { _error "Failed to fetch latest changes"; return 1 }
 
-        _loading3 "Pulling down $ZSHBOP_BRANCH"
-        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull
-        # -- Check if pull was successful
-        [[ $? -ge "1" ]] && { _error "Failed to pull latest changes"; return 1 }
+        _loading3 "Resetting to origin/$ZSHBOP_BRANCH"
+        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$ZSHBOP_BRANCH
+        # -- Check if reset was successful
+        [[ $? -ge "1" ]] && { _error "Failed to reset to origin/$ZSHBOP_BRANCH"; return 1 }
    fi
     echo ""
 

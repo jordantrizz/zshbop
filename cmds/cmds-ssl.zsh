@@ -156,5 +156,94 @@ gen-ssl-cert () {
 	openssl rsa -in cert.key -out key.pem
 }
 
+# ==================================================
+# -- certbot-gen-ssl
+# ==================================================
+help_ssl[certbot-gen-ssl]='Generate SSL certificate using Certbot DNS-01 manual challenge'
+certbot-gen-ssl () {
+	local domain email wildcard base_dir config_dir work_dir logs_dir certs_dir
+
+	# -- Parse arguments using zparseopts
+	zparseopts -D -E -- \
+		{h,-help}=flag_help \
+		{d,-domain}:=arg_domain \
+		{e,-email}:=arg_email
+
+	# -- Usage function
+	function _certbot_gen_ssl_usage () {
+		echo ""
+		echo "Usage: certbot-gen-ssl -d <domain> -e <email>"
+		echo "  -h, --help     Show this help message"
+		echo "  -d, --domain   Domain name (e.g., example.com)"
+		echo "  -e, --email    Email address for Let's Encrypt notifications"
+		echo ""
+		echo "Example: certbot-gen-ssl -d example.com -e your-email@example.com"
+		echo ""
+		echo "This will generate certificates for both the domain and wildcard (*.domain)"
+		echo "Certificates will be stored in: \$HOME/ssl/<domain>/certs/"
+	}
+
+	# -- Show help
+	if [[ -n "$flag_help" ]]; then
+		_certbot_gen_ssl_usage
+		return 0
+	fi
+
+	# -- Get domain and email from arguments
+	domain="${arg_domain[2]}"
+	email="${arg_email[2]}"
+
+	# -- Input Validation
+	if [[ -z "$domain" ]] || [[ -z "$email" ]]; then
+		_error "Please provide a domain name and email address"
+		_certbot_gen_ssl_usage
+		return 1
+	fi
+
+	wildcard="*.$domain"
+	base_dir="$HOME/ssl/$domain"
+
+	# -- Directory Setup
+	_loading "Setting up directories for $domain in $base_dir..."
+	mkdir -p "$base_dir"
+
+	config_dir="$base_dir/config"
+	work_dir="$base_dir/work"
+	logs_dir="$base_dir/logs"
+	certs_dir="$base_dir/certs"
+
+	mkdir -p "$certs_dir"
+
+	# -- Certbot Execution
+	_loading "Starting Certbot DNS-01 manual challenge for $domain and $wildcard..."
+	echo "Certificates will be stored in: $certs_dir"
+
+	certbot certonly --manual \
+		-d "$domain" -d "$wildcard" \
+		--preferred-challenges dns \
+		--email "$email" \
+		--server https://acme-v02.api.letsencrypt.org/directory \
+		--agree-tos \
+		--config-dir "$config_dir" \
+		--work-dir "$work_dir" \
+		--logs-dir "$logs_dir" \
+		--cert-path "$certs_dir/cert.pem" \
+		--key-path "$certs_dir/privkey.pem" \
+		--fullchain-path "$certs_dir/fullchain.pem"
+
+	# -- Completion Message
+	if [[ $? -eq 0 ]]; then
+		echo ""
+		_success "Certificate generation successful!"
+		echo "Your certificate files are located in: $certs_dir"
+		echo "Remember to run the renewal command manually every 60-90 days using:"
+		echo "  certbot renew --config-dir $config_dir"
+	else
+		echo ""
+		_error "Certificate generation failed. Check the logs in $logs_dir for details."
+		return 1
+	fi
+}
+
 # -- curl-vh
 help_ssl[curl-vh]='Curl with verbose headers and SSL checking'

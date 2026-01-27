@@ -184,12 +184,61 @@ function _gbl_replace {
 INIT_LAST_CORE+=("_gbl_replace")
 
 # =====================================
-# -- gtpush - Git tag push
+# -- gtpush - Git tag push (optionally create a tag first)
 # =====================================
-help_git[gtpush]="Git tag push"
+help_git[gtpush]="Git tag push (optionally create tag first)"
 function gtpush {
-    _loading "Pushing tags to origin"
-    git push origin --tags
+    if [[ -n "$1" ]]; then
+        _loading "Creating tag $1 on current branch"
+        
+        # Try to create the tag
+        if ! git tag "$1" 2>&1 | grep -q "already exists"; then
+            # Tag creation succeeded (no "already exists" error)
+            _loading "Pushing tag $1 to origin"
+            git push origin "$1"
+            return 0
+        fi
+        
+        # Tag already exists - prompt user for action
+        _warning "Tag '$1' already exists"
+        echo ""
+        echo "Choose action:"
+        echo "  (l) Delete locally only"
+        echo "  (b) Delete locally and remotely"
+        echo "  (n) No, exit"
+        echo ""
+        read -k 1 "choice?Select [l/b/n]: "
+        echo ""
+        
+        case $choice in
+            l)
+                _loading "Deleting tag $1 locally"
+                git tag -d "$1" || { _error "Failed to delete local tag $1"; return 1; }
+                _loading "Creating tag $1 on current branch"
+                git tag "$1" || { _error "Failed to create tag $1"; return 1; }
+                _loading "Pushing tag $1 to origin"
+                git push origin "$1"
+                _success "Tag $1 created and pushed"
+                ;;
+            b)
+                _loading "Deleting tag $1 locally and remotely"
+                git tag -d "$1" || { _error "Failed to delete local tag $1"; return 1; }
+                git push origin --delete "$1" || { _warning "Failed to delete remote tag $1"; }
+                _loading "Creating tag $1 on current branch"
+                git tag "$1" || { _error "Failed to create tag $1"; return 1; }
+                _loading "Pushing tag $1 to origin"
+                git push origin "$1"
+                _success "Tag $1 deleted remotely, recreated and pushed"
+                ;;
+            n|*)
+                _error "Aborting tag creation"
+                return 1
+                ;;
+        esac
+    else
+        _loading "Pushing all tags to origin"
+        git push origin --tags
+    fi
 }
 
 # =====================================

@@ -37,11 +37,20 @@ export PAGER='less -Q -j16'
 export EDITOR='joe-wrapper.sh'
 export BLOCKSIZE='K'
 
-# Language
-export LC_ALL="en_US.UTF-8"
-export LANG="en_US.UTF-8"
-export LANGUAGE="en_US.UTF-8"
-export LC_TIME="C.UTF-8"
+# Language - check if locale is available before setting
+if locale -a 2>/dev/null | grep -q '^en_US\.UTF-8$\|^en_US\.utf8$'; then
+    export LC_ALL="en_US.UTF-8"
+    export LANG="en_US.UTF-8"
+    export LANGUAGE="en_US.UTF-8"
+elif locale -a 2>/dev/null | grep -q '^C\.UTF-8$\|^C\.utf8$'; then
+    export LC_ALL="C.UTF-8"
+    export LANG="C.UTF-8"
+    export LANGUAGE="C.UTF-8"
+fi
+# LC_TIME uses C.UTF-8 for consistent date formatting
+if locale -a 2>/dev/null | grep -q '^C\.UTF-8$\|^C\.utf8$'; then
+    export LC_TIME="C.UTF-8"
+fi
 
 # -- zsh sepcific
 export ZDOTDIR="${ZSHBOP_HOME}" # -- Set the ZDOTDIR to $HOME this fixes system wide installs not being able to generate .zwc files for caching

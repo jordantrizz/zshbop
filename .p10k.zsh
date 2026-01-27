@@ -29,6 +29,55 @@
 
   autoload -Uz is-at-least && is-at-least 5.1 || return
 
+  # Detect the system hostname using multiple fallback methods
+  _p9k_hostname_detect() {
+    local hostname=""
+    
+    _debugf "Starting hostname detection"
+    
+    # Try hostnamectl first (reliable on systemd systems)
+    if command -v hostnamectl &>/dev/null; then
+      _debugf "hostnamectl found, trying it first"
+      hostname=$(hostnamectl hostname 2>/dev/null)
+      _debugf "hostnamectl returned: '$hostname'"
+    fi
+    
+    # If hostnamectl didn't work or returned localhost, try hostname commands
+    if [[ -z "$hostname" ]] || [[ "$hostname" == "localhost" ]]; then
+      _debugf "hostnamectl unavailable or returned localhost, trying hostname -af"
+      
+      local hostname_af=$(hostname -af 2>/dev/null)
+      _debugf "hostname -af returned: '$hostname_af'"
+      
+      if [[ -n "$hostname_af" ]] && [[ "$hostname_af" != "localhost" ]]; then
+        hostname="$hostname_af"
+        _debugf "Using hostname -af result: '$hostname'"
+      else
+        _debugf "hostname -af failed or returned localhost, trying hostname"
+        hostname=$(hostname 2>/dev/null)
+        _debugf "hostname returned: '$hostname'"
+      fi
+    fi
+    
+    # Final fallback for non-Linux systems that specifically use hostname -f
+    if [[ -z "$hostname" ]] || [[ "$hostname" == "localhost" ]]; then
+      if [[ "$MACHINE_OS" != "Linux" ]]; then
+        _debugf "Non-Linux system with no valid hostname, trying hostname -f"
+        hostname=$(hostname -f 2>/dev/null)
+        _debugf "hostname -f returned: '$hostname'"
+      fi
+    fi
+    
+    # Only use localhost if absolutely nothing else worked
+    if [[ -z "$hostname" ]]; then
+      _debugf "All methods failed, falling back to localhost"
+      hostname="localhost"
+    fi
+    
+    _debugf "Final hostname: '$hostname'"
+    print "$hostname"
+  }
+
   zmodload zsh/langinfo
   if [[ ${langinfo[CODESET]:-} != (utf|UTF)(-|)8 ]]; then
     local LC_ALL=${${(@M)$(locale -a):#*.(utf|UTF)(-|)8}[1]:-en_US.UTF-8}
@@ -658,16 +707,8 @@
   typeset -g POWERLEVEL9K_CONTEXT_BACKGROUND=0
 
   # Fix for %M not providing a fully qualified hostname
-  # Todo utilize $_p9k_os
-  if [[ $MACHINE_OS == "Linux" ]]; then
-  	if [[ $(hostname -af) == "localhost" ]]; then
-    	HOSTNAME=$(hostname)
-    else
-    	HOSTNAME=$(hostname -af)
-    fi
-  else
-  		HOSTNAME=$(hostname -f)
-  fi
+  # Uses _p9k_hostname_detect function with fallback logic
+  HOSTNAME=$(_p9k_hostname_detect)
   
   if (( ${+HIDE_HOSTNAME} )); then
 	HOSTNAME="hidden"
