@@ -59,6 +59,7 @@ zshbop is a frankenstien project to improve my own workflow. It utilizes a numbe
 * Customized Powerlevel10k prompt
 * A knowledge base of common topics
 * Boot time tracking with microsecond precision (see [doc/BOOT_TIMING.md](doc/BOOT_TIMING.md))
+* Terminal environment detection (VSCode, iTerm2, WezTerm, Windows Terminal)
 * A library of alises, functions for common tasks for various workflows around the following.
     * Cloudflare
     * Docker
@@ -225,6 +226,7 @@ Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as ne
 | `ZSHBOP_UPDATE_GIT` | Git Repositores to update when running zshbop update | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |
 | `ZSH_IP_PROVIDER` | IP Provider for zshbop | String | eg. ipinfo.io |
 | `ZSH_IP_API_KEY` | API Key for ip-info commmand | String | |
+| `ZSHBOP_TERMINAL` | Detected terminal environment (read-only) | String | vscode, iterm, wezterm, windows-terminal, unknown |
 
 ### Exbin
 * Exbin https://exbin.call-cc.be

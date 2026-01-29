@@ -204,6 +204,24 @@ function php-relay () {
 }
 
 # --------------------------------------------------
+# -- pie
+# --------------------------------------------------
+help_software[pie]="Install PHP pie (Package Installer for Extensions)"
+function software_pie () {
+    _loading "Installing pie dependencies"
+    sudo apt install -y gcc make autoconf libtool bison re2c pkg-config php-dev
+    
+    _loading3 "Downloading pie.phar"
+    sudo curl -L -o /usr/local/bin/pie https://github.com/php/pie/releases/download/1.3.7/pie.phar
+    
+    _loading3 "Making pie executable"
+    sudo chmod +x /usr/local/bin/pie
+    
+    _success "pie installed successfully"
+    pie --version
+}
+
+# --------------------------------------------------
 # -- goaccess
 # --------------------------------------------------
 help_software[goaccess]="Install goaccess latest"

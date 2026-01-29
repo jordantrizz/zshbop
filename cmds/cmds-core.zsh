@@ -23,6 +23,7 @@ function os () {
   else
     echo "\$VMTYPE: Not set"
   fi
+  echo "\$ZSHBOP_TERMINAL: $ZSHBOP_TERMINAL"
   echo "-------------------"
   echo "\$OS_INSTALL_DATE: $OS_INSTALL_DATE | \$OS_INSTALL_METHOD: $OS_INSTALL_METHOD"
   echo "\$OS_INSTALL_DATE2: $OS_INSTALL_DATE2 | \$OS_INSTALL_METHOD2: $OS_INSTALL_METHOD2"
@@ -31,13 +32,14 @@ function os () {
 # =====================================
 # -- os - return os
 # =====================================
-help_core[os]='Return OS'
+help_core[os-short]='Return OS (short format)'
 function os-short () {
   local OUTPUT
   OUTPUT+="OS: $MACHINE_OS/${MACHINE_OS2}/$OSTYPE Flavour:${MACHINE_OS_FLAVOUR}/${MACHINE_OS_VERSION} Install Date: $OS_INSTALL_DATE"  
   if [[ $VMTYPE ]] then
     OUTPUT+=" VM: $VMTYPE" 
-  fi 
+  fi
+  OUTPUT+=" Terminal: $ZSHBOP_TERMINAL"
   echo $OUTPUT
 }
 
