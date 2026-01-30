@@ -66,7 +66,8 @@ export KB="${ZSHBOP_ROOT}/kb"
 export GIT_HOME="${HOME}/git"
 export REPOS_DIR="$ZSHBOP_ROOT/repos"
 export RUN_REPORT="0"
-export ZSHBOP_RELOAD="0"
+# Only set ZSHBOP_RELOAD to 0 if not already set (preserve reload flag across exec zsh)
+[[ -z "$ZSHBOP_RELOAD" ]] && export ZSHBOP_RELOAD="0"
 typeset -a ZSHBOP_UPDATE_GIT=()
 export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository 
 typeset -a ZSHBOP_LOAD=()

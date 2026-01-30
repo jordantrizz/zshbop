@@ -208,54 +208,52 @@ function gtpush {
     
     if [[ -n "$1" ]]; then
         local tag="$1"
-        local ref="${2:-.}"  # Default to current branch/HEAD if no ref provided
+        local ref="${2:-HEAD}"  # Default to HEAD if no ref provided
         
-        _loading "Creating tag $tag on $ref"
-        
-        # Try to create the tag on the specified ref
-        if ! git tag "$tag" "$ref" 2>&1 | grep -q "already exists"; then
-            # Tag creation succeeded (no "already exists" error)
-            _loading "Pushing tag $tag to origin"
-            git push origin "$tag"
-            return 0
+        # Check if tag already exists locally
+        if git tag -l "$tag" | grep -q "^${tag}$"; then
+            # Tag already exists - prompt user for action
+            _warning "Tag '$tag' already exists"
+            echo ""
+            echo "Choose action:"
+            echo "  (l) Delete locally only"
+            echo "  (b) Delete locally and remotely"
+            echo "  (n) No, exit"
+            echo ""
+            read -k 1 "choice?Select [l/b/n]: "
+            echo ""
+            
+            case $choice in
+                l)
+                    _loading "Deleting tag $tag locally"
+                    git tag -d "$tag" || { _error "Failed to delete local tag $tag"; return 1; }
+                    ;;
+                b)
+                    _loading "Deleting tag $tag locally and remotely"
+                    git tag -d "$tag" || { _error "Failed to delete local tag $tag"; return 1; }
+                    git push origin --delete "$tag" 2>/dev/null || { _warning "Failed to delete remote tag $tag (may not exist)"; }
+                    ;;
+                n|*)
+                    _error "Aborting tag creation"
+                    return 1
+                    ;;
+            esac
         fi
         
-        # Tag already exists - prompt user for action
-        _warning "Tag '$tag' already exists"
-        echo ""
-        echo "Choose action:"
-        echo "  (l) Delete locally only"
-        echo "  (b) Delete locally and remotely"
-        echo "  (n) No, exit"
-        echo ""
-        read -k 1 "choice?Select [l/b/n]: "
-        echo ""
+        _loading "Creating tag $tag on $ref"
+        if ! git tag "$tag" "$ref"; then
+            _error "Failed to create tag $tag"
+            return 1
+        fi
         
-        case $choice in
-            l)
-                _loading "Deleting tag $tag locally"
-                git tag -d "$tag" || { _error "Failed to delete local tag $tag"; return 1; }
-                _loading "Creating tag $tag on $ref"
-                git tag "$tag" "$ref" || { _error "Failed to create tag $tag"; return 1; }
-                _loading "Pushing tag $tag to origin"
-                git push origin "$tag"
-                _success "Tag $tag created and pushed"
-                ;;
-            b)
-                _loading "Deleting tag $tag locally and remotely"
-                git tag -d "$tag" || { _error "Failed to delete local tag $tag"; return 1; }
-                git push origin --delete "$tag" || { _warning "Failed to delete remote tag $tag"; }
-                _loading "Creating tag $tag on $ref"
-                git tag "$tag" "$ref" || { _error "Failed to create tag $tag"; return 1; }
-                _loading "Pushing tag $tag to origin"
-                git push origin "$tag"
-                _success "Tag $tag deleted remotely, recreated and pushed"
-                ;;
-            n|*)
-                _error "Aborting tag creation"
-                return 1
-                ;;
-        esac
+        _loading "Pushing tag $tag to origin"
+        if git push origin "$tag"; then
+            _success "Tag $tag created and pushed"
+        else
+            _error "Failed to push tag $tag"
+            return 1
+        fi
+        return 0
     else
         _loading "Pushing all tags to origin"
         git push origin --tags
@@ -461,18 +459,28 @@ function git-repos-updates () {
 }
 
 # -- git-check-exit
-help_git[git-check-exit]="Check for uncommitted changes and unpushed commits in all Git repositories and exit with error code if any are found"
+help_git[git-check-exit]="Check for uncommitted changes and unpushed commits in all Git repositories on shell exit"
 function git-check-exit () {
+    # Skip if we're reloading zshbop (not actually exiting)
+    # Use temp file flag since env vars may not propagate to trap context
+    local reload_flag="${TMPDIR:-/tmp}/.zshbop_reload_$$"
+    if [[ -f "$reload_flag" ]]; then
+        rm -f "$reload_flag"
+        return 0
+    fi
+    
     [[ ! -d $GIT_HOME ]] && return 0
     git-check-repos $GIT_HOME
     if [[ $? -ne 0 ]]; then
-        echo -n "Uncommited and unpushed changes found. Press enter to continue anyway or 'r' to return to ZSH\n"
-        read response
-        if [[ $response != "" ]]; then
-            zsh
-        else
-            exit 1
+        echo ""
+        echo -n "Uncommited and unpushed changes found. Press 'c' to cancel exit, or Enter to continue: "
+        read -k 1 response
+        echo ""
+        if [[ $response == "c" || $response == "C" ]]; then
+            # Cancel the exit by starting a new shell
+            exec zsh
         fi
+        # Otherwise continue with exit
     fi
 }
 

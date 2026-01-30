@@ -15,12 +15,22 @@ alias traceroute="sudo traceroute -M icmp"
 # -- _wsl_get_windows_user - Helper function to get Windows username
 # ==================================================
 function _wsl_get_windows_user () {
-	local win_user
-	win_user=$(/mnt/c/Windows/System32/cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r')
-	if [[ -z "$win_user" ]]; then
-		win_user=$(powershell.exe '$env:UserName' 2>/dev/null | tr -d '\r')
+	local win_user=""
+	
+	# Try cmd.exe first
+	if [[ -x /mnt/c/Windows/System32/cmd.exe ]]; then
+		win_user=$(/mnt/c/Windows/System32/cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r\n' | tr -d '[:space:]')
 	fi
-	echo "$win_user"
+	
+	# Fallback to powershell if cmd.exe failed or returned empty
+	if [[ -z "$win_user" ]]; then
+		win_user=$(powershell.exe '$env:UserName' 2>/dev/null | tr -d '\r\n' | tr -d '[:space:]')
+	fi
+	
+	# Validate the user folder exists before returning
+	if [[ -n "$win_user" && -d "/mnt/c/Users/$win_user" ]]; then
+		echo "$win_user"
+	fi
 }
 
 # ==================================================
@@ -31,6 +41,15 @@ function _wsl_get_windows_user () {
 # -- init_wsl
 init_wsl () {
 	_debug " -- Running init_wsl"
+	
+	# Set global WINDOWS_USER variable for all WSL functions
+	export WINDOWS_USER=$(_wsl_get_windows_user)
+	if [[ -z "$WINDOWS_USER" ]]; then
+		_warning "Could not determine Windows username - some WSL features may not work"
+	else
+		_debug "Windows username: $WINDOWS_USER"
+	fi
+	
 	wsl-fixes
 	wsl-screen-fix
 	wsl-backupwtc 1
@@ -66,13 +85,11 @@ function wsl-fixes () {
 # ==================================================
 help_wsl[wsl-backupwtc]='Backup Windows Terminal configuration.'
 wsl-backupwtc () {
-	local WIN_USER
-	WIN_USER=$(_wsl_get_windows_user)
-	if [[ -z "$WIN_USER" ]]; then
-		_error "Could not determine Windows username"
+	if [[ -z "$WINDOWS_USER" ]]; then
+		_error "WINDOWS_USER not set, cannot backup Windows Terminal config"
 		return 1
 	fi
-	local WT_SOURCE="$(echo /mnt/c/Users/$WIN_USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
+	local WT_SOURCE="$(echo /mnt/c/Users/$WINDOWS_USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
 	local WT_DEST="$ZSHBOP_TEMP/wt-settings.json"
 	local QUEIT=${1:=0}		
 	local OUTPUT=""
@@ -133,28 +150,28 @@ function wsl-check-diskspace () {
 help_wsl[wsl-shortcuts]='Create Downloads and Desktop shortcuts for WSL'
 function wsl-shortcuts () {
 	local OUTPUT="" DO=0 OUTPUT_FULL=""
-	local WIN_USER DOWNLOAD_FOLDER DESKTOP_FOLDER
-	WIN_USER=$(_wsl_get_windows_user)
-	if [[ -z "$WIN_USER" ]]; then
-		_warning "Could not determine Windows username, skipping shortcut creation"
+	local DOWNLOAD_FOLDER DESKTOP_FOLDER
+	
+	if [[ -z "$WINDOWS_USER" ]]; then
+		_warning "WINDOWS_USER not set, skipping shortcut creation"
 		return 1
 	fi
 	# -- Create shortcuts
 	
 	# -- Check to see if Downloads folder exists
-	DOWNLOAD_FOLDER="/mnt/c/Users/$WIN_USER/Downloads"
+	DOWNLOAD_FOLDER="/mnt/c/Users/$WINDOWS_USER/Downloads"
 	[[ ! -d "$DOWNLOAD_FOLDER" ]] && { _warning "Windows Downloads folder $DOWNLOAD_FOLDER not found, skipping shortcut creation"; return 1; }
 	# Check if Downloads folder exists as symlink
 	if [[ ! -L "$HOME/Downloads" ]]; then
-		ln -s /mnt/c/Users/$WIN_USER/Downloads ~/Downloads	
+		ln -s /mnt/c/Users/$WINDOWS_USER/Downloads ~/Downloads	
 		OUTPUT+="$HEADER Created Downloads shortcut."
 		DO=1
 	fi
 	# -- Create Desktop shortcut
-	DESKTOP_FOLDER="/mnt/c/Users/$WIN_USER/Desktop"
-	[[ ! -d "/mnt/c/Users/$WIN_USER/Desktop" ]] && { _warning "Windows Desktop folder $DESKTOP_FOLDER not found, skipping shortcut creation"; return 1; }
+	DESKTOP_FOLDER="/mnt/c/Users/$WINDOWS_USER/Desktop"
+	[[ ! -d "/mnt/c/Users/$WINDOWS_USER/Desktop" ]] && { _warning "Windows Desktop folder $DESKTOP_FOLDER not found, skipping shortcut creation"; return 1; }
 	if [[ ! -L "$HOME/Desktop" ]]; then		
-		ln -s /mnt/c/Users/$WIN_USER/Desktop ~/Desktop
+		ln -s /mnt/c/Users/$WINDOWS_USER/Desktop ~/Desktop
 		OUTPUT+="Created Desktop shortcut"
 		DO=1
 	fi
@@ -199,7 +216,7 @@ function wsl-paths () {
 		return 0
 	fi
 
-	local VERBOSE=0 WINDOWS_USER="" VSCODE_PATH="" VSCODE_INSIDERS_PATH=""
+	local VERBOSE=0 VSCODE_PATH="" VSCODE_INSIDERS_PATH=""
 	[[ -n $opts_verbose ]] && VERBOSE=1
 
 	# -- Check if /etc/wsl.conf has appendWindowsPath = false
@@ -213,24 +230,25 @@ function wsl-paths () {
 		[[ $VERBOSE -eq 1 ]] && _log "/etc/wsl.conf not found (using WSL defaults)"
 	fi
 
+	# -- Check if WINDOWS_USER is set
+	if [[ -z "$WINDOWS_USER" ]]; then
+		[[ $VERBOSE -eq 1 ]] && _warning "WINDOWS_USER not set, cannot add VS Code paths"
+		return 1
+	fi
+	[[ $VERBOSE -eq 1 ]] && _log "Windows username: $WINDOWS_USER"
+
 	# -- Check if code already exists in PATH
 	if (( $+commands[code] )); then
 		[[ $VERBOSE -eq 1 ]] && _success "VS Code (code) already available in PATH: $(which code)"
 	else
 		[[ $VERBOSE -eq 1 ]] && _log "VS Code (code) not found in PATH, checking Windows installation..."
-		# Get Windows username using helper function
-		WINDOWS_USER=$(_wsl_get_windows_user)
-		[[ $VERBOSE -eq 1 ]] && _log "Windows username: $WINDOWS_USER"
-
-		if [[ -n "$WINDOWS_USER" ]]; then
-			VSCODE_PATH="/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code/bin"
-			if [[ -d "$VSCODE_PATH" ]]; then
-				export PATH="$PATH:$VSCODE_PATH"
-				[[ $VERBOSE -eq 1 ]] && _success "Added VS Code to PATH: $VSCODE_PATH"
-				_debug "Added VS Code to PATH: $VSCODE_PATH"
-			else
-				[[ $VERBOSE -eq 1 ]] && _warning "VS Code not found at: $VSCODE_PATH"
-			fi
+		VSCODE_PATH="/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code/bin"
+		if [[ -d "$VSCODE_PATH" ]]; then
+			export PATH="$PATH:$VSCODE_PATH"
+			[[ $VERBOSE -eq 1 ]] && _success "Added VS Code to PATH: $VSCODE_PATH"
+			_debug "Added VS Code to PATH: $VSCODE_PATH"
+		else
+			[[ $VERBOSE -eq 1 ]] && _warning "VS Code not found at: $VSCODE_PATH"
 		fi
 	fi
 
@@ -239,20 +257,13 @@ function wsl-paths () {
 		[[ $VERBOSE -eq 1 ]] && _success "VS Code Insiders already available in PATH: $(which code-insiders)"
 	else
 		[[ $VERBOSE -eq 1 ]] && _log "VS Code Insiders not found in PATH, checking Windows installation..."
-		# Get Windows username if not already retrieved
-		if [[ -z "$WINDOWS_USER" ]]; then
-			WINDOWS_USER=$(_wsl_get_windows_user)
-		fi
-
-		if [[ -n "$WINDOWS_USER" ]]; then
-			VSCODE_INSIDERS_PATH="/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code Insiders/bin"
-			if [[ -d "$VSCODE_INSIDERS_PATH" ]]; then
-				export PATH="$PATH:$VSCODE_INSIDERS_PATH"
-				[[ $VERBOSE -eq 1 ]] && _success "Added VS Code Insiders to PATH: $VSCODE_INSIDERS_PATH"
-				_debug "Added VS Code Insiders to PATH: $VSCODE_INSIDERS_PATH"
-			else
-				[[ $VERBOSE -eq 1 ]] && _warning "VS Code Insiders not found at: $VSCODE_INSIDERS_PATH"
-			fi
+		VSCODE_INSIDERS_PATH="/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code Insiders/bin"
+		if [[ -d "$VSCODE_INSIDERS_PATH" ]]; then
+			export PATH="$PATH:$VSCODE_INSIDERS_PATH"
+			[[ $VERBOSE -eq 1 ]] && _success "Added VS Code Insiders to PATH: $VSCODE_INSIDERS_PATH"
+			_debug "Added VS Code Insiders to PATH: $VSCODE_INSIDERS_PATH"
+		else
+			[[ $VERBOSE -eq 1 ]] && _warning "VS Code Insiders not found at: $VSCODE_INSIDERS_PATH"
 		fi
 	fi
 }

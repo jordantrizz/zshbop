@@ -136,6 +136,8 @@ zshbop_reload () {
     else
         _loading "Reloading zshbop"        
         export ZSHBOP_RELOAD=1
+        # Create temp file flag to skip git-check-exit during reload
+        touch "${TMPDIR:-/tmp}/.zshbop_reload_$$"
         zshbop_cache-clear
         _log "Running exec zsh"
         exec zsh

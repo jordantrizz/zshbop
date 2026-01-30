@@ -1024,6 +1024,18 @@ init_motd () {
 # -- init_zshbop -- initialize zshbop
 # ==============================================
 function init_zshbop () {
+    # Prevent double initialization (can happen with VS Code shell integration)
+    # Allow re-init if ZSHBOP_RELOAD is set
+    if [[ -n "$ZSHBOP_INITIALIZED" && "$ZSHBOP_RELOAD" != "1" ]]; then
+        _debug "init_zshbop: Already initialized, skipping (set ZSHBOP_RELOAD=1 to force)"
+        return 0
+    fi
+    
+    # Capture reload state then immediately reset to prevent double init
+    # if something re-sources .zshrc during initialization
+    local IS_RELOAD="$ZSHBOP_RELOAD"
+    export ZSHBOP_RELOAD="0"
+    
     # Start overall boot timer
     ZSHBOP_BOOT_START=$EPOCHREALTIME
     
@@ -1042,7 +1054,7 @@ function init_zshbop () {
     # -- Init zshbop
     # --------------------------------------------------    
     _start_boot_timer "init_core"; init_core # -- Init core functionality    
-    if [[ $ZSHBOP_RELOAD == "1" ]]; then
+    if [[ $IS_RELOAD == "1" ]]; then
         _loading3 "Loading includes...." 
         _start_boot_timer "init_include"; init_include        # -- Include files
     fi
@@ -1064,10 +1076,10 @@ function init_zshbop () {
     _start_boot_timer "init_pkg_manager"; init_pkg_manager     # -- Init package manager     
     _start_boot_timer "init-app-config"; init-app-config      # -- Common application configuration
     _start_boot_timer "zshbop_custom-load"; zshbop_custom-load   # -- Init custom zshbop  
-  	if [[ $ZSHBOP_RELOAD == "0" ]]; then
+  	if [[ $IS_RELOAD == "0" ]]; then
         _start_boot_timer "init_omz_plugins"; init_omz_plugins     # -- Init OhMyZSH plugins
-  	    _start_boot_timer "init_plugins"; init_plugins         # -- Init plugins
     fi
+    _start_boot_timer "init_plugins"; init_plugins         # -- Init plugins (needed for p10k prompt)
     _start_boot_timer "init_os"; init_os              # -- Init os defaults # TODO Needs to be refactored    
     _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
     _start_boot_timer "init_app_config"; init_app_config      # -- Init config
@@ -1091,9 +1103,8 @@ function init_zshbop () {
     fi
     
     _debug "init_zshbop: \$funcstack = $funcstack"
-    if [[ $ZSHBOP_RELOAD == "1" ]]; then
+    if [[ $IS_RELOAD == "1" ]]; then
         _loading2 "Not loading init_motd, init_sshkeys on Reload"
-        ZSHBOP_RELOAD="0"
     else
         _start_boot_timer "init_motd"; init_motd           # -- Init motd
     fi
@@ -1133,6 +1144,9 @@ function init_zshbop () {
         _debug "  ${component}: ${ZSHBOP_BOOT_TIMES[$component]}s"
     done
     _debug "========================================="
+    
+    # Mark as initialized to prevent double init
+    export ZSHBOP_INITIALIZED=1
     
     init_log
 }
