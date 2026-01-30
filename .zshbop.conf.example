@@ -21,6 +21,18 @@
 #export ZSHBOP_IP_SCAM="" # API key for scamalytics.com
 
 # =================================================================================================
+# -- NVM (Node Version Manager) Configuration
+# =================================================================================================
+#export ZSHBOP_NVM_ENABLE="1"  # Enable NVM initialization (disabled by default)
+#export ZSHBOP_NVM_LAZY="1"    # Lazy load NVM on first use (default when enabled, set to 0 for immediate load)
+#export NVM_DIR="$HOME/.nvm"   # Override NVM directory location
+
+# =================================================================================================
+# -- Basher (Shell Package Manager) Configuration
+# =================================================================================================
+#export ZSHBOP_BASHER_DISABLE="1"  # Disable Basher auto-initialization (enabled by default if ~/.basher exists)
+
+# =================================================================================================
 # -- Application settings
 # =================================================================================================
 

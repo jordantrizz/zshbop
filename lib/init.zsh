@@ -868,6 +868,127 @@ function init_mise () {
 }
 
 # ==============================================
+# -- init_nvm - activate NVM (Node Version Manager) if enabled
+# ==============================================
+function init_nvm () {
+    _debug_all
+
+    # NVM is disabled by default - must be explicitly enabled
+    if [[ -z "$ZSHBOP_NVM_ENABLE" ]]; then
+        _debug "NVM not enabled (set ZSHBOP_NVM_ENABLE=1 to enable)"
+        init_log
+        return 0
+    fi
+
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+
+    if [[ ! -d "$NVM_DIR" ]]; then
+        _debug "NVM directory not found at $NVM_DIR; skipping"
+        init_log
+        return 0
+    fi
+
+    # Lazy loading is the default when enabled (better performance)
+    if [[ -z "$ZSHBOP_NVM_LAZY" || "$ZSHBOP_NVM_LAZY" == "1" ]]; then
+        _log "Setting up NVM lazy loading from $NVM_DIR"
+        _nvm_lazy_load
+        _success "NVM lazy loading configured (loads on first use of nvm/node/npm/npx)"
+    else
+        _log "Loading NVM immediately from $NVM_DIR"
+        _nvm_load_now
+    fi
+    init_log
+}
+
+# Helper: Load NVM immediately
+function _nvm_load_now () {
+    if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+        source "$NVM_DIR/nvm.sh"
+        _debug "NVM loaded"
+    else
+        _warning "nvm.sh not found in $NVM_DIR"
+        return 1
+    fi
+
+    # Load NVM bash completion (works in zsh too)
+    if [[ -s "$NVM_DIR/bash_completion" ]]; then
+        source "$NVM_DIR/bash_completion"
+        _debug "NVM bash_completion loaded"
+    fi
+}
+
+# Helper: Setup lazy loading for NVM
+function _nvm_lazy_load () {
+    # Create wrapper functions that load NVM on first use
+    function nvm () {
+        unfunction nvm node npm npx 2>/dev/null
+        _nvm_load_now
+        nvm "$@"
+    }
+
+    function node () {
+        unfunction nvm node npm npx 2>/dev/null
+        _nvm_load_now
+        node "$@"
+    }
+
+    function npm () {
+        unfunction nvm node npm npx 2>/dev/null
+        _nvm_load_now
+        npm "$@"
+    }
+
+    function npx () {
+        unfunction nvm node npm npx 2>/dev/null
+        _nvm_load_now
+        npx "$@"
+    }
+}
+
+# ==============================================
+# -- init_basher - activate Basher package manager if present
+# ==============================================
+function init_basher () {
+    _debug_all
+
+    # Allow disabling via environment variable
+    if [[ -n "$ZSHBOP_BASHER_DISABLE" ]]; then
+        _debug "Basher disabled via ZSHBOP_BASHER_DISABLE"
+        init_log
+        return 0
+    fi
+
+    # Check for basher in standard location or XDG location
+    local basher_root
+    if [[ -d "$HOME/.basher" ]]; then
+        basher_root="$HOME/.basher"
+    elif [[ -d "${XDG_DATA_HOME:-$HOME/.local/share}/basher" ]]; then
+        basher_root="${XDG_DATA_HOME:-$HOME/.local/share}/basher"
+    else
+        _debug "Basher not found; skipping"
+        init_log
+        return 0
+    fi
+
+    export BASHER_ROOT="$basher_root"
+
+    # Add basher bin to PATH if not already there
+    if [[ ":$PATH:" != *":$basher_root/bin:"* ]]; then
+        export PATH="$basher_root/bin:$PATH"
+    fi
+
+    # Initialize basher
+    if [[ -x "$basher_root/bin/basher" ]]; then
+        _log "Activating Basher from $basher_root"
+        eval "$("$basher_root/bin/basher" init - zsh)"
+        _success "Basher activated"
+    else
+        _warning "Basher directory found but basher binary not executable"
+    fi
+    init_log
+}
+
+# ==============================================
 # -- init_motd - initial scripts to run on login
 # ==============================================
 init_motd () {
@@ -927,6 +1048,8 @@ function init_zshbop () {
     fi
     _start_boot_timer "init_path"; init_path            # -- Set paths
     _start_boot_timer "init_mise"; init_mise            # -- Activate mise runtime (if installed)
+    _start_boot_timer "init_nvm"; init_nvm              # -- Activate NVM (if enabled)
+    _start_boot_timer "init_basher"; init_basher        # -- Activate Basher (if installed)
     _start_boot_timer "init_dirs"; init_dirs            # -- Set directories 
     _start_boot_timer "init_detectos"; init_detectos        # -- Detect operating system
     _start_boot_timer "init_zbr_cmds"; init_zbr_cmds        # -- Include commands

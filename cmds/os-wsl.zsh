@@ -12,6 +12,18 @@ typeset -gA help_wsl
 alias traceroute="sudo traceroute -M icmp"
 
 # ==================================================
+# -- _wsl_get_windows_user - Helper function to get Windows username
+# ==================================================
+function _wsl_get_windows_user () {
+	local win_user
+	win_user=$(/mnt/c/Windows/System32/cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r')
+	if [[ -z "$win_user" ]]; then
+		win_user=$(powershell.exe '$env:UserName' 2>/dev/null | tr -d '\r')
+	fi
+	echo "$win_user"
+}
+
+# ==================================================
 # -- Run Commands
 # --
 # -- These commands run on WSL startup
@@ -54,7 +66,12 @@ function wsl-fixes () {
 # ==================================================
 help_wsl[wsl-backupwtc]='Backup Windows Terminal configuration.'
 wsl-backupwtc () {
-	local WIN_USER=$(powershell.exe '$env:UserName' 2>/dev/null | sed -e 's/\r//g')
+	local WIN_USER
+	WIN_USER=$(_wsl_get_windows_user)
+	if [[ -z "$WIN_USER" ]]; then
+		_error "Could not determine Windows username"
+		return 1
+	fi
 	local WT_SOURCE="$(echo /mnt/c/Users/$WIN_USER/AppData/Local/Packages/Microsoft.WindowsTerminal_*/LocalState/settings.json)"
 	local WT_DEST="$ZSHBOP_TEMP/wt-settings.json"
 	local QUEIT=${1:=0}		
@@ -117,7 +134,11 @@ help_wsl[wsl-shortcuts]='Create Downloads and Desktop shortcuts for WSL'
 function wsl-shortcuts () {
 	local OUTPUT="" DO=0 OUTPUT_FULL=""
 	local WIN_USER DOWNLOAD_FOLDER DESKTOP_FOLDER
-	WIN_USER=$(powershell.exe '$env:UserName' 2>/dev/null | sed -e 's/\r//g')
+	WIN_USER=$(_wsl_get_windows_user)
+	if [[ -z "$WIN_USER" ]]; then
+		_warning "Could not determine Windows username, skipping shortcut creation"
+		return 1
+	fi
 	# -- Create shortcuts
 	
 	# -- Check to see if Downloads folder exists
@@ -165,12 +186,75 @@ wsl-screen-fix () {
 # ==================================================
 # -- wsl-paths
 # ==================================================
-help_wsl[wsl-paths]='Set WSL paths for Visual Studio Code'
+help_wsl[wsl-paths]='Set WSL paths for Visual Studio Code and VSCode Insiders'
 function wsl-paths () {
-	# Get current windows user
-	local WINDOWS_USER=$(/mnt/c/Windows/System32/cmd.exe /c 'echo %USERNAME%' 2> /dev/null | sed -e 's/\r//g')
-	# -- Set WSL paths for Visual Studio Code
-	export PATH=$PATH:"/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code/bin"
+	# Parse options with zparseopts
+	local -a opts_help opts_verbose
+	zparseopts -D -E -- h=opts_help -help=opts_help v=opts_verbose -verbose=opts_verbose
+
+	if [[ -n $opts_help ]]; then
+		echo "Usage: wsl-paths [-h|--help] [-v|--verbose]"
+		echo "Checks and adds VS Code/Insiders to PATH if not already available"
+		echo "Also warns if appendWindowsPath is disabled in /etc/wsl.conf"
+		return 0
+	fi
+
+	local VERBOSE=0 WINDOWS_USER="" VSCODE_PATH="" VSCODE_INSIDERS_PATH=""
+	[[ -n $opts_verbose ]] && VERBOSE=1
+
+	# -- Check if /etc/wsl.conf has appendWindowsPath = false
+	if [[ -f /etc/wsl.conf ]]; then
+		if grep -qi "appendWindowsPath\s*=\s*false" /etc/wsl.conf 2>/dev/null; then
+			_warning "WSL: appendWindowsPath is disabled in /etc/wsl.conf - Windows paths not auto-added to PATH"
+		else
+			[[ $VERBOSE -eq 1 ]] && _success "appendWindowsPath is enabled in /etc/wsl.conf"
+		fi
+	else
+		[[ $VERBOSE -eq 1 ]] && _log "/etc/wsl.conf not found (using WSL defaults)"
+	fi
+
+	# -- Check if code already exists in PATH
+	if (( $+commands[code] )); then
+		[[ $VERBOSE -eq 1 ]] && _success "VS Code (code) already available in PATH: $(which code)"
+	else
+		[[ $VERBOSE -eq 1 ]] && _log "VS Code (code) not found in PATH, checking Windows installation..."
+		# Get Windows username using helper function
+		WINDOWS_USER=$(_wsl_get_windows_user)
+		[[ $VERBOSE -eq 1 ]] && _log "Windows username: $WINDOWS_USER"
+
+		if [[ -n "$WINDOWS_USER" ]]; then
+			VSCODE_PATH="/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code/bin"
+			if [[ -d "$VSCODE_PATH" ]]; then
+				export PATH="$PATH:$VSCODE_PATH"
+				[[ $VERBOSE -eq 1 ]] && _success "Added VS Code to PATH: $VSCODE_PATH"
+				_debug "Added VS Code to PATH: $VSCODE_PATH"
+			else
+				[[ $VERBOSE -eq 1 ]] && _warning "VS Code not found at: $VSCODE_PATH"
+			fi
+		fi
+	fi
+
+	# -- Check if code-insiders already exists in PATH
+	if (( $+commands[code-insiders] )); then
+		[[ $VERBOSE -eq 1 ]] && _success "VS Code Insiders already available in PATH: $(which code-insiders)"
+	else
+		[[ $VERBOSE -eq 1 ]] && _log "VS Code Insiders not found in PATH, checking Windows installation..."
+		# Get Windows username if not already retrieved
+		if [[ -z "$WINDOWS_USER" ]]; then
+			WINDOWS_USER=$(_wsl_get_windows_user)
+		fi
+
+		if [[ -n "$WINDOWS_USER" ]]; then
+			VSCODE_INSIDERS_PATH="/mnt/c/Users/$WINDOWS_USER/AppData/Local/Programs/Microsoft VS Code Insiders/bin"
+			if [[ -d "$VSCODE_INSIDERS_PATH" ]]; then
+				export PATH="$PATH:$VSCODE_INSIDERS_PATH"
+				[[ $VERBOSE -eq 1 ]] && _success "Added VS Code Insiders to PATH: $VSCODE_INSIDERS_PATH"
+				_debug "Added VS Code Insiders to PATH: $VSCODE_INSIDERS_PATH"
+			else
+				[[ $VERBOSE -eq 1 ]] && _warning "VS Code Insiders not found at: $VSCODE_INSIDERS_PATH"
+			fi
+		fi
+	fi
 }
 
 

@@ -11,34 +11,48 @@ This is my custom ZSH configuration. It uses antidote to install ZSH plugins.
 Table of Contents
 =================
 
-* [zshbop](#zshbop)
-* [Installation](#installation)
-    * [Advanced Install](#advanced-install)
-* [Custom Configuration File](#custom-configuration-file)
-    * [Custom Configuration Examples](#custom-configuration-examples)
-        * [zshbop Overrides](#zshbop-overrides)
-        * [Exbin](#exbin)
-* [Commands/Aliases](#commandsaliases)
-* [Installation Notes](#installation-notes)
-    * [macOS Installation Notes](#macos-installation-notes)
-    * [Windows Installation Notes](#windows-installation-notes)
-        * [WSL 1 vs WSL 2](#wsl-1-vs-wsl-2)
-        * [Upgrade WSL 1 to WSL 2](#upgrade-wsl-1-to-wsl-2)
-        * [WSL Subsystem](#wsl-subsystem)
-        * [Windows Terminal](#windows-terminal)
-        * [VcXsrv (WSL Gui)](#vcxsrv-wsl-gui)
-* [Font Installation Notes](#font-installation-notes)
-    * [Automatic Font Install](#automatic-font-install)
-    * [Manual Font Install](#manual-font-install)
-        * [macOS](#macos)
-        * [Windows](#windows)
-            * [Windows Terminal](#windows-terminal-1)
-            * [WSL Script Install - Broken](#wsl-script-install---broken)
-* [ZSH Installation Issues](#zsh-installation-issues)
-    * [CentOS 7 + zsh 5.1.1](#centos-7--zsh-511)
-* [Issues](#issues)
-* [ToDo](#todo)
-  Found markers
+- [Table of Contents](#table-of-contents)
+- [zshbop](#zshbop)
+  - [Features](#features)
+  - [Branches](#branches)
+  - [Commands](#commands)
+    - [Core Commands](#core-commands)
+    - [zshbop Quick Commands](#zshbop-quick-commands)
+    - [zshbop Commands](#zshbop-commands)
+  - [Debugging](#debugging)
+- [Installation](#installation)
+  - [Install Guided](#install-guided)
+  - [Install Usage](#install-usage)
+  - [Install Examples](#install-examples)
+    - [Install main branc into home directory](#install-main-branc-into-home-directory)
+    - [Install next-release branch into system directory /usr/local/sbin](#install-next-release-branch-into-system-directory-usrlocalsbin)
+    - [Install main branch into git directory ~/git](#install-main-branch-into-git-directory-git)
+    - [Install next-release branch into system and skip optional software check](#install-next-release-branch-into-system-and-skip-optional-software-check)
+- [Font Installation Notes](#font-installation-notes)
+  - [Automatic Font Install](#automatic-font-install)
+  - [Manual Font Install](#manual-font-install)
+    - [macOS](#macos)
+    - [Windows](#windows)
+      - [Windows Terminal](#windows-terminal)
+      - [WSL Script Install - Broken](#wsl-script-install---broken)
+- [Configuration and Customization](#configuration-and-customization)
+  - [Using zshbop Configuration File](#using-zshbop-configuration-file)
+    - [Configuration Options](#configuration-options)
+    - [Exbin](#exbin)
+  - [Custom Startup Scripts](#custom-startup-scripts)
+- [Installation Notes](#installation-notes)
+  - [Operating System Installation Notes](#operating-system-installation-notes)
+    - [macOS Installation Notes](#macos-installation-notes)
+    - [Windows Installation Notes](#windows-installation-notes)
+      - [Windows Terminal](#windows-terminal-1)
+      - [WSL Subsystem](#wsl-subsystem)
+      - [WSL 1 vs WSL 2](#wsl-1-vs-wsl-2)
+      - [Upgrade WSL 1 to WSL 2](#upgrade-wsl-1-to-wsl-2)
+      - [VcXsrv (WSL Gui)](#vcxsrv-wsl-gui)
+- [ZSH Installation Issues](#zsh-installation-issues)
+  - [CentOS 7 + zsh 5.1.1](#centos-7--zsh-511)
+- [Issues](#issues)
+- [ToDo](#todo)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -121,6 +135,15 @@ These commands are shortened aliases for zshbop commands
 * `zb update` - Update zshbop
 * `zb version` - Get version information
 
+## Debugging
+You can use the function `zbdebug` on the CLI and `_debugf` within any function to print out debug information.
+
+```
+zbdebug os-binary
+** [DEBUG]: No binary specified
+```
+
+The function `os-binary` has a `_debugf "No binary specified"` which is printed out when `zbdebug` is called with the argument `os-binary`.
 
 # Installation
 
@@ -227,6 +250,10 @@ Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as ne
 | `ZSH_IP_PROVIDER` | IP Provider for zshbop | String | eg. ipinfo.io |
 | `ZSH_IP_API_KEY` | API Key for ip-info commmand | String | |
 | `ZSHBOP_TERMINAL` | Detected terminal environment (read-only) | String | vscode, iterm, wezterm, windows-terminal, unknown |
+| `ZSHBOP_NVM_ENABLE` | Enable NVM initialization (disabled by default) | 1 | Not set |
+| `ZSHBOP_NVM_LAZY` | Lazy load NVM on first use of nvm/node/npm/npx | 0 or 1 | 1 (when enabled) |
+| `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |
+| `ZSHBOP_BASHER_DISABLE` | Disable Basher auto-initialization | 1 | Not set (auto-enabled if ~/.basher exists) |
 
 ### Exbin
 * Exbin https://exbin.call-cc.be
@@ -236,6 +263,13 @@ Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as ne
 | `EXBIN_TYPE`| Choose either `netcat` or `api` for exbin posting.| String | `netcat`|
 | `EXBIN_HOST`| Exbin host, for netcat just the hostname and for api the full URL.| String| `exbin.call-cc.be`|
 | `EXBIN_PORT`|  If you don't use the standard 9999 port for exbin.| Number| `9999`|
+
+### Internal Variables
+These variables are set internally by zshbop and are available for use in scripts and functions.
+
+| Variable | Description | Set By |
+|----------|-------------|--------|
+| `WINDOWS_USER` | Windows username detected via `cmd.exe` or `powershell.exe` (WSL only) | `_wsl_get_windows_user` |
 
 ##  Custom Startup Scripts
 You can create a custom startup script to run when zshbop starts. This is useful if you want to run a script that's not included in zshbop.
