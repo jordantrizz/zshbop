@@ -23,9 +23,9 @@ function proxmox-backup.sh () {
     /usr/bin/proxmox-backup.sh
 }
 
-# =====================================
+# ===============================================
 # -- proxmox-memory-report
-# =====================================
+# ===============================================
 help_proxmox[proxmox-memory-report]='Get memory report for Proxmox'
 function proxmox-memory-report () {
     _loading "Running proxmox-memory-report"

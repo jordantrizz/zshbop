@@ -1,13 +1,13 @@
 #!/usr/bin/env zsh
-# =========================================================
+# =============================================================================
 # -- functions.zsh
 # -- Required zshbop functions for the main .zshrc script.
-# =========================================================
+# =============================================================================
 _debug_load
 
-# --------------------------------------------------
+# =============================================================================
 # -- ZSHBOP Aliases
-# --------------------------------------------------
+# ===============================================
 # zbd
 help_zshbop_quick[zbd]='Change directory to $ZBR'
 alias zbd="cd $ZBR"
@@ -22,9 +22,9 @@ alias zbuf="git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull;git --
 help_zshbop_quick[zb]='zshbop main command'
 alias zb="zshbop"
 
-# --------------------------------------------------
+# ===============================================
 # -- Core aliases
-# --------------------------------------------------
+# ===============================================
 
 # init
 help_core[init]='Initialize zshbop'
@@ -38,24 +38,62 @@ alias motd="init_motd"
 help_core[report]='Print out errors and warnings'
 alias report="zshbop_report"
 
-# =========================================================
+# ===============================================
 # -- zshbop functions
-# =========================================================
+# ===============================================
 
 # omz-plugins
 help_zshbop[omz-plugins]='Print out enabled OMZ plugins'
 alias omz-plugins='echo "OMZ Plugins $OMZ_PLUGINS"'
 
-# =========================================================
-# -- cc ()
-# --
-# -- clear cache for various tools
-# =========================================================
+# ===============================================
+# -- cc () - clear cache for various tools
+# ===============================================
 help_zshbop[cache-clear]='Clear cache for antigen + more'
 function cc () { zshbop_cache-clear }
+
+# ===============================================
+# -- zcc () - clear only zshbop startup caches (fast)
+# ===============================================
+help_zshbop[zcc]='Clear only zshbop startup caches (fast)'
+function zcc () { 
+    _loading "Clearing zshbop startup caches"
+    
+    # List caches before clearing
+    local cache_file cache_name file_mtime current_time cache_age
+    current_time=$(date +%s)
+    local found_caches=0
+    
+    for cache_file in "${ZSHBOP_CACHE_DIR}"/*.cache(N); do
+        [[ ! -f "$cache_file" ]] && continue
+        found_caches=1
+        cache_name=$(basename "$cache_file")
+        if [[ $MACHINE_OS == "mac" ]]; then
+            file_mtime=$(stat -f %m "$cache_file" 2>/dev/null)
+        else
+            file_mtime=$(stat -c %Y "$cache_file" 2>/dev/null)
+        fi
+        file_mtime=${file_mtime:-0}
+        cache_age=$(( (current_time - file_mtime) / 60 ))
+        _loading2 "Clearing: ${cache_name} (${cache_age}m old)"
+        rm -f "$cache_file"
+    done
+    
+    if [[ $found_caches -eq 0 ]]; then
+        _loading2 "No cache files found"
+    fi
+    
+    _loading2 "Done. Run 'zbr' to reload with fresh data."
+}
+
 zshbop_cache-clear () {
     _log "${funcstack[1]}:start"
     _loading "**** Start ZSH cache clear ****"
+    
+    # -- Clear zshbop startup caches
+    _loading2 "Clearing zshbop startup caches"
+    _cache_clear
+    
 	_loading2 "Clearing plugin manager cache"
 	if [[ ${ZSHBOP_PLUGIN_MANAGER} == "init_antigen" ]]; then
       _loading2 $(antigen reset)
@@ -73,9 +111,9 @@ zshbop_cache-clear () {
     _loading "**** End ZSH cache clear ****"
     echo ""
 }
-# =========================================================
-# -- cache-clear-super
-# =========================================================
+# ===============================================
+# -- cache-clear-super () - Clear everything, including zsh autocompletion
+# ===============================================
 
 alias scc="cache-clear-super"
 help_zshbop[cache-clear-super]='Clear everything, including zsh autocompletion'
@@ -84,11 +122,9 @@ zshbop_cache-clear-super () {
     rm -f ~/.zcompdump*
 }
 
-# =========================================================
-# -- zshbop_reload ()
-# --
-# -- reload zshbop
-# =========================================================
+# ===============================================
+# -- zshbop_reload () - reload zshbop
+# ===============================================
 help_zshbop[reload]='Reload zshbop'
 zshbop_reload () {
     _log "${funcstack[1]}:start"
@@ -130,7 +166,6 @@ zshbop_reload () {
     elif [[ -n $ARG_QUICK ]]; then
         _loading "Quick reload of zshbop"        
         export ZSHBOP_RELOAD=1
-        zshbop_cache-clear
         source $ZSHBOP_ROOT/lib/init.zsh
         init_zbr_cmds
     else
@@ -138,7 +173,6 @@ zshbop_reload () {
         export ZSHBOP_RELOAD=1
         # Create temp file flag to skip git-check-exit during reload
         touch "${TMPDIR:-/tmp}/.zshbop_reload_$$"
-        zshbop_cache-clear
         _log "Running exec zsh"
         exec zsh
     fi
@@ -159,11 +193,9 @@ zshbop_reload () {
     #fi
 }
 
-# =========================================================
-# -- zshbop_branch ($branch)
-# --
-# -- Change branch of zshbop
-# =========================================================
+# ===============================================
+# -- zshbop_branch () - Change branch of zshbop
+# ===============================================
 help_zshbop[branch]='Run main or dev branch of zshbop'
 zshbop_branch  () {
     _debug_all
@@ -235,11 +267,11 @@ zshbop_branch  () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_check-updates ()
 # --
 # -- Check for zshbop updates.
-# =========================================================
+# ===============================================
 help_zshbop[check-updates]='Check for zshbop update, not completed yet'
 zshbop_check-updates () {
 	_debug_all
@@ -298,10 +330,10 @@ function zbuqr () { zshbop_update; zshbop_reload -q }
 help_zshbop_quick[zbu]='Update zshbop'
 function zbu () { zshbop_update }
 
-# =========================================================
+# ===============================================
 # -- zshbop_update ()
 # -- Update ZSHBOP
-# =========================================================
+# ===============================================
 help_zshbop[update]='Update zshbop'
 zshbop_update () {
     _log "${funcstack[1]}:start"
@@ -371,17 +403,17 @@ zshbop_update () {
     echo ""
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_version ()
-# =========================================================
+# ===============================================
 help_zshbop[version]='Get version information'
 zshbop_version () {
         echo "zshbop Version: ${fg[green]}${ZSHBOP_VERSION}/${fg[black]}${bg[cyan]}${ZSHBOP_BRANCH}${reset_color}/$ZSHBOP_COMMIT${RSC}"
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_debugf ()
-# =========================================================
+# ===============================================
 help_zshbop[debug]='Turn debug on and off'
 alias debug=zshbop_debug
 zshbop_debugf () {
@@ -423,9 +455,9 @@ zshbop_debugf () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_formatting ()
-# =========================================================
+# ===============================================
 help_zshbop[formatting]='List variables for using color'
 alias formatting=zshbop_formatting
 function zshbop_color () { zshbop_formatting $@; }
@@ -448,9 +480,9 @@ function zshbop_formatting () {
     colors-print
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_custom
-# =========================================================
+# ===============================================
 help_zshbop[custom]='Custom zshbop configuration'
 zshbop_custom () {
 	_loading "Instructions on how to utilize custom zshbop configuration."
@@ -458,9 +490,9 @@ zshbop_custom () {
 	echo " - You can also copy the .zshbop.conf file within this repository as a template"
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_custom-load
-# =========================================================
+# ===============================================
 help_zshbop[custom-load]='Load zshbop custom config'
 zshbop_custom-load () {
 	if [[ $1 == "-q" ]]; then
@@ -478,9 +510,9 @@ zshbop_custom-load () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_help
-# =========================================================
+# ===============================================
 help_zshbop[help]='zshbop help screen'
 zshbop_help () {
     _debug_all
@@ -529,9 +561,9 @@ zshbop_help () {
     echo ""
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_report ($LOG_LEVEL, $TAIL_LINES)
-# =========================================================
+# ===============================================
 help_zshbop[report]='Print out errors and warnings'
 function zshbop_report () {
     # -- Check if calling from zshbop report or zshbop_report
@@ -597,9 +629,9 @@ function zshbop_report () {
     echo "$ZSHBOP_REPORT" | tr -s '\n'
 }
 
-# ==============================================
+# ===============================================
 # -- system_check - check usualy system stuff
-# ==============================================
+# ===============================================
 help_zshbop[check-system]='Print out errors and warnings'
 function zshbop_check-system () {
 	# -- start
@@ -629,9 +661,9 @@ function zshbop_check-system () {
     
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_check
-# =========================================================
+# ===============================================
 help_zshbop[check]='Check environment for installed software and tools'
 function zshbop_check () {
     _log "${funcstack[1]}:start"
@@ -669,9 +701,9 @@ function zshbop_check () {
     _log "${funcstack[1]}:end"
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_install-env
-# =========================================================
+# ===============================================
 help_zshbop[install-env]='Install Recommended Tools and Software'
 fucntion zshbop_install-env () {
     _log "${funcstack[1]}:start"
@@ -754,9 +786,9 @@ fucntion zshbop_install-env () {
 
 
 
-# =========================================================
+# ===============================================
 # -- zshbop_cleanup
-# =========================================================
+# ===============================================
 help_zshbop[cleanup]='Cleanup old things'
 function zshbop_cleanup () {
     local QUEIT=${1:=0}
@@ -792,9 +824,9 @@ function zshbop_cleanup () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_issue
-# =========================================================
+# ===============================================
 help_zshbop[issue]='Create zshbop issue on Github, must have gh installed and configured'
 function zshbop_issue () {
     local ISSUE_TITLE ISSUE_BODY
@@ -842,9 +874,9 @@ function zshbop_issue () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_plugins
-# =========================================================
+# ===============================================
 help_zshbop[plugins]='List plugins'
 function zshbop_plugins () {
     _loading "Listing plugins"
@@ -856,9 +888,9 @@ function zshbop_plugins () {
     cat "${ZBR}/.zsh_plugins.txt"
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_setup
-# =========================================================
+# ===============================================
 help_zshbop[setup]='Setup zshbop, run first'
 function zshbop_setup () {
     _log "${funcstack[1]}:start"
@@ -875,9 +907,9 @@ function zshbop_setup () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_variables
-# =========================================================
+# ===============================================
 help_zshbop[variables]='List zshbop internal variables'
 function zshbop_variables () {
     _loading "ZSHBOP Variables"
@@ -892,14 +924,14 @@ function zshbop_variables () {
     echo "ZSHBOP_RELOAD: $ZSHBOP_RELOAD"    
 }
 
-# =========================================================
-# =========================================================
-# =========================================================
-# =========================================================
+# ===============================================
+# ===============================================
+# ===============================================
+# ===============================================
 
-# =========================================================
+# ===============================================
 # -- Always Last
-# =========================================================
+# ===============================================
 
 function zshbop () {
 	_debug_all
@@ -918,9 +950,9 @@ function zshbop () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_log
-# =========================================================
+# ===============================================
 help_zshbop[log]='Print out log'
 function zshbop_log () {
     _log "${funcstack[1]}:start"
@@ -928,9 +960,9 @@ function zshbop_log () {
     cat $ZB_LOG
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop_internal
-# =========================================================
+# ===============================================
 help_zshbop[internal]='List internal functions'
 function zshbop_internal () {
     _loading "Internal Functions"
@@ -940,10 +972,10 @@ function zshbop_internal () {
     done
 }
 
-# =========================================================
+# ===============================================
 # -- zshbop-boot ()
 # -- Show the most recent zshbop boot timing summary
-# =========================================================
+# ===============================================
 help_zshbop[boot]='Show the most recent zshbop boot timing summary'
 function zshbop-boot () {
     local tail_lines=600

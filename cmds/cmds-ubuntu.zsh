@@ -12,15 +12,15 @@ help_files[ubuntu]='Ubuntu OS related commands'
 # - Init help array
 typeset -gA help_ubuntu
 
-# =====================================
+# ===============================================
 # -- netselect-fastest
-# =====================================
+# ===============================================
 help_ubuntu[netselect-fastest]='Find the fastest Ubuntu mirror'
 alias netselect-fastest='sudo netselect -v -s10 -t20 `wget -q -O- https://launchpad.net/ubuntu/+archivemirrors | grep -P -B8 "statusUP|statusSIX" | grep -o -P "(f|ht)tp://[^\"]*"`'
 
-# =====================================
+# ===============================================
 # -- ubuntu-swap-create
-# =====================================
+# ===============================================
 help_ubuntu[ubuntu-swap-create]='Create a swap file'
 function ubuntu-swap-create () {
     _ubuntu-swap-create-usage () {
@@ -111,9 +111,9 @@ function ubuntu-swap-create () {
     echo "Swap file created and enabled."
 }
 
-# =====================================
+# ===============================================
 # -- ubuntu-resolve-dns  
-# =====================================
+# ===============================================
 help_ubuntu[ubuntu-resolve-dns]='Manage systemd-resolved DNS settings with options: --update, --show, or no args for usage'
 function ubuntu-resolve-dns () {
     # Short status function
@@ -519,9 +519,9 @@ EOF
     esac
 }
 
-# ==================================================
+# ===============================================
 # -- ubuntu-check-restart
-# ==================================================
+# ===============================================
 help_ubuntu[ubuntu-check-restart]='Check if a system restart is required'
 function ubuntu-check-restart () {
     _loading "Checking if a system restart is required..."

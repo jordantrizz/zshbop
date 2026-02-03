@@ -5,7 +5,7 @@ _debug " -- Loading ${(%):-%N}"
 help_files[hardware]="Hardware specific commands" # Help file description
 typeset -gA help_hardware # Init help array.
 
-# ===============================================
+# =============================================================================
 # -- bios-info
 # ===============================================
 help_hardware[bios-info]="Get BIOS information"

@@ -11,9 +11,9 @@ else
     export ZSHBOP_HOME="$ZSHBOP_ROOT/../" # -- zshbop root directory
 fi
 
-# =========================================================
+# ===============================================
 # ---- Variables
-# =========================================================
+# ===============================================
 
 # -- autoload
 autoload -Uz compinit compdef
@@ -120,9 +120,9 @@ setopt share_history          # share command history data
 setopt inc_append_history     # allow multiple terminal sessions to append to one history
 setopt share_history          # share command history data
 
-# =========================================================
+# ===============================================
 # -- Debugging and Logging
-# =========================================================
+# ===============================================
 
 # -- Logging
 [[ -z $ZB_LOG_PATH ]] && export ZB_LOG_PATH="$ZSHBOP_HOME" # -- Default log path
@@ -169,6 +169,7 @@ DEBUGF_MSG=""
 
 [[ -f $ZSHBOP_ROOT/.debug ]] && export ZSH_DEBUG=1 || export ZSH_DEBUG=0 # -- zshbop debugging
 [[ -f $ZSHBOP_ROOT/.debug_log ]] && export ZSH_DEBUG_LOG=1 || export ZSH_DEBUG_LOG=0 # -- zshbop debugging log
+[[ -f $ZSHBOP_ROOT/.debugf ]] && export DEBUGF=1 || export DEBUGF=0 # -- function level debugging
 [[ -f $ZSHBOP_ROOT/.debugf_log ]] && export DEBUGF_LOG=1 || export DEBUGF_LOG=0 # -- zshbop debugging log
 
 _debug () { 
@@ -192,7 +193,74 @@ _debugf () {
 }
 
 function _debugf_status () { echo "\$DEBUGF = $DEBUGF" }
-function debugf () {    
+function debugf () {
+    local -a opts_help opts_persist opts_clear opts_log opts_nolog
+    zparseopts -D -E -- h=opts_help -help=opts_help p=opts_persist -persist=opts_persist c=opts_clear -clear=opts_clear l=opts_log -log=opts_log -nolog=opts_nolog
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: debugf [on|off] [-h|--help] [-p|--persist] [-c|--clear] [-l|--log] [--nolog]"
+        echo ""
+        echo "Toggle function-level debugging for zshbop."
+        echo ""
+        echo "Commands:"
+        echo "  on           Enable debugging for current shell"
+        echo "  off          Disable debugging for current shell"
+        echo "  (no args)    Toggle debugging state"
+        echo ""
+        echo "Options:"
+        echo "  -h, --help      Show this help message"
+        echo "  -p, --persist   Persist debugging across new shells (creates $ZSHBOP_ROOT/.debugf)"
+        echo "  -c, --clear     Remove persist file (disables debugging in new shells)"
+        echo "  -l, --log       Enable file logging and start logger (for AI agents)"
+        echo "  --nolog         Disable file logging and stop logger"
+        echo ""
+        echo "File Logging (for AI agents):"
+        echo "  Quick: debugf -l   # Enables logging to $ZB_LOG"
+        echo "  Log file: $ZB_LOG"
+        echo ""
+        echo "Current Status:"
+        echo "  DEBUGF=$DEBUGF (screen output)"
+        echo "  DEBUGF_LOG=$DEBUGF_LOG (file logging)"
+        echo "  ZB_LOG_STATUS=$ZB_LOG_STATUS (logger active)"
+        echo "  Persist file: $([[ -f $ZSHBOP_ROOT/.debugf ]] && echo 'exists' || echo 'not present')"
+        echo "  Log persist:  $([[ -f $ZSHBOP_ROOT/.debugf_log ]] && echo 'exists' || echo 'not present')"
+        return 0
+    fi
+
+    if [[ -n $opts_persist ]]; then
+        touch "$ZSHBOP_ROOT/.debugf"
+        export DEBUGF="1"
+        _success "Debugging persisted across new shells ($ZSHBOP_ROOT/.debugf created)"
+        _debugf_status
+        return 0
+    fi
+
+    if [[ -n $opts_clear ]]; then
+        [[ -f "$ZSHBOP_ROOT/.debugf" ]] && rm "$ZSHBOP_ROOT/.debugf"
+        export DEBUGF="0"
+        _success "Persist file removed, debugging disabled"
+        _debugf_status
+        return 0
+    fi
+
+    if [[ -n $opts_log ]]; then
+        touch "$ZSHBOP_ROOT/.debugf_log"
+        export DEBUGF_LOG="1"
+        export DEBUGF="1"
+        STARTLOG
+        _success "File logging enabled: $ZB_LOG"
+        _success "DEBUGF and DEBUGF_LOG both enabled"
+        return 0
+    fi
+
+    if [[ -n $opts_nolog ]]; then
+        [[ -f "$ZSHBOP_ROOT/.debugf_log" ]] && rm "$ZSHBOP_ROOT/.debugf_log"
+        export DEBUGF_LOG="0"
+        STOPLOG
+        _success "File logging disabled"
+        return 0
+    fi
+
     if [[ $1 == on ]]; then
         export DEBUGF="1"
         _debugf_status
@@ -216,9 +284,9 @@ _debug_load () {
     [[ $DEBUGF_LOG == 1 ]] &&  zb_logger "DEBUGF" 0 "$MESSAGE"
 }
 
-# ================================================
+# ===============================================
 # -- zbdebug
-# ================================================
+# ===============================================
 zbdebug () {
     local function=$1
     shift
@@ -289,9 +357,9 @@ function zb_logger () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- Execution time tracking (for boot and runtime)
-# =========================================================
+# ===============================================
 # Load zsh/datetime module for EPOCHREALTIME (microsecond precision)
 zmodload zsh/datetime
 
@@ -355,6 +423,19 @@ function _time_step() {
 # Backward compatibility aliases for boot time tracking
 typeset -gA ZSHBOP_BOOT_TIMES
 alias _start_boot_timer='_start_execution_timer'
+
+# -- Finish tracking boot time for a specific label (for sub-timers)
+# Usage: _finish_boot_timer "label"
+function _finish_boot_timer() {
+    local label="${1}"
+    if [[ -n ${ZSHBOP_EXEC_START_TIME[$label]} ]]; then
+        local start_time=${ZSHBOP_EXEC_START_TIME[$label]}
+        _track_execution "$label" "" "$start_time"
+        ZSHBOP_BOOT_TIMES[$label]=${ZSHBOP_EXEC_TIMES[$label]}
+        unset "ZSHBOP_EXEC_START_TIME[$label]"
+    fi
+}
+
 function _track_boot_time() {
     # Maintain backward compatibility
     local component="${1}"
@@ -362,6 +443,101 @@ function _track_boot_time() {
     _track_execution "$component" "" "$start_time"
     # Also store in old format for boot summary
     ZSHBOP_BOOT_TIMES[$component]=${ZSHBOP_EXEC_TIMES[$component]}
+}
+
+# ---------------
+# -- Cache helper functions
+# ---------------
+
+# -- Check if cache is valid (exists and not expired)
+# Usage: _cache_valid "cache_name" [ttl_seconds]
+# Returns: 0 if valid, 1 if expired or missing
+function _cache_valid() {
+    local cache_name="${1}"
+    local ttl="${2:-3600}"  # Default 1 hour
+    local cache_file="${ZSHBOP_CACHE_DIR}/${cache_name}.cache"
+    
+    [[ ! -f "$cache_file" ]] && return 1
+    
+    local file_mtime current_time cache_age
+    if [[ $MACHINE_OS == "mac" ]]; then
+        file_mtime=$(stat -f %m "$cache_file" 2>/dev/null)
+    else
+        file_mtime=$(stat -c %Y "$cache_file" 2>/dev/null)
+    fi
+    file_mtime=${file_mtime:-0}
+    current_time=$(date +%s)
+    cache_age=$((current_time - file_mtime))
+    
+    [[ $cache_age -lt $ttl ]] && return 0 || return 1
+}
+
+# -- Read from cache file
+# Usage: _cache_read "cache_name"
+# Output: cache contents to stdout
+function _cache_read() {
+    local cache_name="${1}"
+    local cache_file="${ZSHBOP_CACHE_DIR}/${cache_name}.cache"
+    [[ -f "$cache_file" ]] && cat "$cache_file"
+}
+
+# -- Write to cache file
+# Usage: _cache_write "cache_name" "content"
+# Or:    echo "content" | _cache_write "cache_name"
+function _cache_write() {
+    local cache_name="${1}"
+    local content="${2}"
+    local cache_file="${ZSHBOP_CACHE_DIR}/${cache_name}.cache"
+    
+    if [[ -n "$content" ]]; then
+        printf '%s' "$content" > "$cache_file" 2>/dev/null
+    else
+        cat > "$cache_file" 2>/dev/null
+    fi
+}
+
+# -- Clear specific or all zshbop caches
+# Usage: _cache_clear [cache_name]  - clears specific cache
+#        _cache_clear               - clears all .cache files
+function _cache_clear() {
+    local cache_name="${1}"
+    
+    if [[ -n "$cache_name" ]]; then
+        local cache_file="${ZSHBOP_CACHE_DIR}/${cache_name}.cache"
+        if [[ -f "$cache_file" ]]; then
+            rm -f "$cache_file"
+            _loading2 "Cleared cache: ${cache_name}"
+        fi
+    else
+        # Clear all .cache files
+        local cleared=0
+        for f in "${ZSHBOP_CACHE_DIR}"/*.cache(N); do
+            rm -f "$f"
+            ((cleared++))
+        done
+        _loading2 "Cleared $cleared cache file(s)"
+    fi
+}
+
+# -- List all caches with age
+# Usage: _cache_list
+function _cache_list() {
+    local cache_file cache_name file_mtime current_time cache_age
+    current_time=$(date +%s)
+    
+    echo "Cache files in ${ZSHBOP_CACHE_DIR}:"
+    for cache_file in "${ZSHBOP_CACHE_DIR}"/*.cache(N); do
+        [[ ! -f "$cache_file" ]] && continue
+        cache_name=$(basename "$cache_file" .cache)
+        if [[ $MACHINE_OS == "mac" ]]; then
+            file_mtime=$(stat -f %m "$cache_file" 2>/dev/null)
+        else
+            file_mtime=$(stat -c %Y "$cache_file" 2>/dev/null)
+        fi
+        file_mtime=${file_mtime:-0}
+        cache_age=$((current_time - file_mtime))
+        echo "  ${cache_name}: $(( cache_age / 60 ))m old"
+    done
 }
 
 # ---------------

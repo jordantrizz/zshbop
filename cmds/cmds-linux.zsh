@@ -1,11 +1,11 @@
-# ===============================================
+# =============================================================================
 # -- Linux commands
-# ===============================================
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
 help_files[linux]='Linux related commands'
 typeset -gA help_linux
 
-# ===============================================
+# =============================================================================
 # -- swap-find - find what's using swap.
 # ===============================================
 help_linux[swap-find]='Find what processes are using swap.'
@@ -26,7 +26,7 @@ dir-filecount () {
 
 # ===============================================
 # -- dir-dircount
-# ==============================================
+# ===============================================
 help_linux[dir-dircount]='Count how many directories are in each directory, recusively and report back a total.'
 dir-dircount () {
 	# - default to current directory	
@@ -563,9 +563,9 @@ swap-reset () {
 	fi
 }
 
-# ====================================
+# ===============================================
 # -- linux - list all linux flavours and versions with code names
-# ====================================
+# ===============================================
 help_linux[linux]='List all linux flavours and versions with code names'
 linux () {
 	# List past and current debian versions and codenames, stable testing and EOL dates
@@ -594,9 +594,9 @@ linux () {
 }
 
 
-# ==================================================
+# ===============================================
 # -- date override
-# ==================================================
+# ===============================================
 help_linux['date-more']='Show current date and C.UTF-8 date'
 function date-more () {
     # Show current date
@@ -607,9 +607,9 @@ function date-more () {
 }
 
 
-# =================================================================================================
+# =============================================================================
 # -- lsof-mem
-# =================================================================================================
+# =============================================================================
 help_linux[lsof-mem]='List open file memory usage of a process'
 lsof-mem () {
 	local PID=$1
@@ -631,9 +631,9 @@ lsof-mem () {
 	fi
 }
 
-# =================================================================================================
+# =============================================================================
 # -- get-pids
-# =================================================================================================
+# =============================================================================
 help_linux[get-pids]='Get all child pids for a process'
 get-pids () {
 	local PID=$1
@@ -646,9 +646,9 @@ get-pids () {
 }
 
 
-# =================================================================================================
+# =============================================================================
 # -- sum-mem
-# =================================================================================================
+# =============================================================================
 help_linux[sum-mem]='Sum memory usage of a process and its child processes'
 sum-mem () {
 	local PARENT_PID=$1
@@ -683,9 +683,9 @@ sum-mem () {
 	_notice "Total memory usage in from Bytes to MB: $(( TOTAL_MEMORY / 1024 / 1024 )) MB"
 }
 
-# =================================================================================================
+# =============================================================================
 # -- compress
-# =================================================================================================
+# =============================================================================
 help_linux[compress]='Compress a file or folder'
 function compress () {
 	local DATA=$1
@@ -870,9 +870,9 @@ smartctl-all-disks () {
 	fi
 }
 
-# =====================================
+# ===============================================
 # -- whatprovides - find what package provides a command
-# =====================================
+# ===============================================
 help_linux[whatprovides]='Find what package provides a specific command'
 function whatprovides() {
     if [[ -z $1 ]]; then
@@ -923,9 +923,9 @@ function whatprovides() {
 	apt-file search "$COMMAND_NAME"
 }
 
-# =====================================
+# ===============================================
 # -- whatprovides-db - A database of whatprovides for quicker lookups
-# =====================================
+# ===============================================
 help_linux[whatprovides-db]='A database of whatprovides for quicker lookups'
 function whatprovides-db () {
 	# Database of common commands and their packages
@@ -954,27 +954,27 @@ function whatprovides-db () {
 	
 }
 
-# =====================================
+# ===============================================
 # -- last-boots
-# =====================================
+# ===============================================
 help_linux[last-boot]="Get last boot times"
 function last-boots () {
     _loading "Running journalctl --list-boots"
     journalctl --list-boots
 }
 
-# =====================================
+# ===============================================
 # -- journalctl-cron
-# =====================================
+# ===============================================
 help_linux[journalctl-cron]="Get cron logs last 48 hours"
 function journalctl-cron () {
     _loading "Running journalctl -u cron.service --since '48 hours ago'"
     journalctl -u cron.service --since '48 hours ago'
 }
 
-# =====================================
+# ===============================================
 # -- syslog-cron
-# =====================================
+# ===============================================
 help_linux[syslog-cron]="Get cron logs from syslog"
 function syslog-cron () {
 	_loading "Running grep CRON /var/log/syslog"
@@ -982,9 +982,9 @@ function syslog-cron () {
 }
 
 
-# ====================================
+# ===============================================
 # -- oom-check
-# ====================================
+# ===============================================
 help_linux[oom-check]='Check for OOM killer running, list all oom killed processes with timestamps'
 oom-check () {
 	# Check if journalctl is installed
@@ -999,9 +999,9 @@ oom-check () {
 	fi
 }
 
-# =============================================
+# ===============================================
 # -- ps-top
-# =============================================
+# ===============================================
 help_linux[ps-top]='Show processes using ps and refresh a configurable amount of time'
 ps-top() {
   	# Help flag
@@ -1047,9 +1047,9 @@ ps-top() {
 	watch -n "$INTERVAL" "$CMD"
 }
 
-# =====================================
+# ===============================================
 # -- unix-epoch-ms
-# =====================================
+# ===============================================
 help_linux[unix-epoch-ms]='Convert unix epoch in miliseconds to human readable date'
 unix-epoch-ms () {
      if [[ -z $1 ]]; then

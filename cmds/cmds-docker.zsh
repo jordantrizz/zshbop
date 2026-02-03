@@ -5,9 +5,9 @@ _debug " -- Loading ${(%):-%N}"
 help_files[docker]="Docker commands" # Help file description
 typeset -gA help_docker # Init help array.
 
-# ==============================================================================
+# =============================================================================
 # dps
-# ==============================================================================
+# =============================================================================
 help_docker[dps]='Docker PS, either docker ps or dops'
 function _dps_replace () {
     if _cmd_exists dops; then
@@ -26,9 +26,9 @@ function _dps_replace () {
 }
 INIT_LAST_CORE+=("_dps_replace")
 
-# ==============================================================================
+# =============================================================================
 # -- dops
-# ==============================================================================
+# =============================================================================
 help_docker[dops]='Mikescher/better-docker-ps'
 function dops () {
     dops_linux-amd64-static $@
@@ -119,9 +119,9 @@ function docker-ports () {
     _loading2 "Next available TCP port: $next_tcp_port"
 }
 
-# ==================================================
+# ===============================================
 # -- docker-networks
-# ==================================================
+# ===============================================
 help_docker[docker-networks]='List all docker networks'
 function docker-networks () {
     _loading "Listing all docker networks"
@@ -165,9 +165,9 @@ function docker-networks () {
     done <<< "$networks_output"
 }
 
-# ===================================================
+# ===============================================
 # -- docker-prune
-# ===================================================
+# ===============================================
 help_docker[docker-prune]='Prune unused Docker resources'
 function docker-prune () {
     _loading "Pruning unused Docker resources"
@@ -180,9 +180,9 @@ function docker-prune () {
     fi
 }
 
-# ===================================================
+# ===============================================
 # -- docker-storage
-# ===================================================
+# ===============================================
 help_docker[docker-storage]='Show Docker storage usage'
 function docker-storage () {
     _loading "Showing Docker storage usage"    

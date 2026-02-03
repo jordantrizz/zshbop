@@ -1,11 +1,11 @@
 #!/usr/bin/env zsh
-# =================================================================================================
+# =============================================================================
 # -- init.zsh - zshbop functions 
-# =================================================================================================
+# =============================================================================
 
-# =========================================================
+# =============================================================================
 # -- debug_load
-# =========================================================
+# =============================================================================
 _debug_load
 function init_log () {
     local ZSBBOP_FUNC_LOADING="${funcstack[2]}"
@@ -31,9 +31,9 @@ function init_log () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- init_core - core functions
-# =========================================================
+# ===============================================
 init_core () {
     _debug_all
     _debug "Loading zshbop core"
@@ -47,9 +47,9 @@ init_core () {
 }
 init_core
 
-# =========================================================
+# ===============================================
 # -- init_include - include files
-# =========================================================
+# ===============================================
 init_include () {
     source ${ZSHBOP_ROOT}/lib/functions.zsh # -- zshbop functions
     source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include aliases
@@ -57,9 +57,9 @@ init_include () {
 }
 init_include
 
-# =========================================================
+# ===============================================
 # -- init_path - setup all the required paths.
-# =========================================================
+# ===============================================
 init_path () {
 	_debug_all
 
@@ -93,9 +93,9 @@ init_path () {
 
 }
 
-# ==============================================
+# ===============================================
 # -- init_add_path_dirs
-# ==============================================
+# ===============================================
 init_add_path_dirs () {
 	DIR="$@"
 	if [[ -d $DIR ]]; then
@@ -115,9 +115,9 @@ init_add_path_dirs () {
     init_log
 }
 
-# =========================================================
+# ===============================================
 # -- init_add_path
-# =========================================================
+# ===============================================
 init_add_path () {
     _debug_all
     _debugf "Adding $1 to \$PATH"
@@ -132,10 +132,10 @@ init_add_path () {
     init_log
 }
 
-# =========================================================
+# ===============================================
 # -- init_fix_path
 # -- Go through $PATH and unique it and remove any duplicates
-# =========================================================
+# ===============================================
 init_fix_path () {
     _debug_all
     _debugf "Fixing \$PATH"
@@ -144,9 +144,9 @@ init_fix_path () {
     init_log
 }
 
-# =========================================================
+# ===============================================
 # -- init_dirs - setup all the required directories for ZSHBOP
-# =========================================================
+# ===============================================
 init_dirs () {
 	# Creating $HOME/tmp
 	_debug "Creating \$HOME/tmp folder"
@@ -162,9 +162,9 @@ init_dirs () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_detectos -- detect the OS running
-# ==============================================
+# ===============================================
 init_detectos () {
     # -- Detect operating system        
     export UNAME=$(uname -s)
@@ -215,9 +215,9 @@ init_detectos () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- Initialize oh-my-zsh plugins
-# ==============================================
+# ===============================================
 init_omz_plugins () {
 	_debug "Loading OMZ plugins"
 	# omz plugin config
@@ -265,9 +265,9 @@ init_omz_plugins () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_zsh_sweep
-# ==============================================
+# ===============================================
 function init_zsh_sweep () {
     [[ "$ZSH_EVAL_CONTEXT" == "toplevel" ]] && DEBUG="1"
 
@@ -283,9 +283,9 @@ function init_zsh_sweep () {
 }
 
 
-# ==============================================
+# ===============================================
 # -- powerlevel10k customizations
-# ==============================================
+# ===============================================
 function init_p10k () {
 	_log "Loading powerlevel10k configuration"
 	# shellcheck source=./.p10k.zsh
@@ -296,9 +296,9 @@ function init_p10k () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- fzf
-# ==============================================
+# ===============================================
 # TODO need to fix
 function init_fzf () {
 	if _cmd_exists fzf; then
@@ -313,9 +313,9 @@ function init_fzf () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- Initialize ZSH plugins
-# ==============================================
+# ===============================================
 function init_plugins () {
 	_log "Loading Plugin Manager, \$ZSHBOP_PLUGIN_MANAGER = $ZSHBOP_PLUGIN_MANAGER"
 	if [[ -z ${ZSHBOP_PLUGIN_MANAGER} ]]; then
@@ -326,9 +326,9 @@ function init_plugins () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- Initialize antidote plugin manager
-# ==============================================
+# ===============================================
 function init_antidote () {
 	# -- plugin config
 	export AUTO_LS_CHPWD="false"
@@ -360,9 +360,9 @@ function init_antidote () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- Initialize antigen plugin manager
-# ==============================================
+# ===============================================
 function init_antigen () {
 	_debug "Loading antigen"
 	_loading "Loading antigen"
@@ -377,9 +377,9 @@ function init_antigen () {
 init_log
 }
 
-# ==============================================
+# ===============================================
 # -- Load os zsh scripts
-# ==============================================
+# ===============================================
 function init_os () {
 	_debug_all
     _log "Loading OS specific configuration"
@@ -412,9 +412,9 @@ function init_os () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- Load default SSH keys into keychain
-# ==============================================
+# ===============================================
 function init_sshkeys () {
     _loading2 "Loading SSH keys"
     _debug_all
@@ -466,9 +466,9 @@ function init_sshkeys () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_pkg_manager
-# ==============================================
+# ===============================================
 function init_pkg_manager () {
 	_debug_all
 	_debug "Running on $MACHINE_OS"
@@ -505,9 +505,9 @@ function init_pkg_manager () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init-app-config - set some application configuration
-# ==============================================
+# ===============================================
 init-app-config () {    
 	_log "Setting application configuration"
 	# -- git
@@ -516,9 +516,9 @@ init-app-config () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_zbr_cmds
-# ==============================================
+# ===============================================
 function init_zbr_cmds () {
     _log "Loading zshbop cmds...."
    	for CMD_FILE in "${ZSHBOP_ROOT}/cmds/"cmds-*.zsh; do
@@ -527,9 +527,9 @@ function init_zbr_cmds () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_app_config
-# ==============================================
+# ===============================================
 function init_app_config () {
     _debug_all
     _log "Setting application configuration"
@@ -541,9 +541,9 @@ function init_app_config () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_checklist - Check services and software
-# ==============================================
+# ===============================================
 init_check_software () {
 	# -- check if atop is installed
     if _cmd_exists atop; then 
@@ -561,26 +561,64 @@ init_check_software () {
 # ===============================================
 # -- init_check_oom - Check for OOM killer
 # ===============================================
+help_core[init_check_oom]='Check for OOM killer events (cached)'
 function init_check_oom () {
+    # -- Parse options
+    local -a opts_force opts_help
+    zparseopts -D -E -- f=opts_force -force=opts_force h=opts_help -help=opts_help
+    
+    if [[ -n $opts_help ]]; then
+        echo "Usage: init_check_oom [-f|--force] [-h|--help]"
+        echo "  -f, --force  Bypass cache and re-check OOM events"
+        echo "  -h, --help   Show this help message"
+        return 0
+    fi
+    
     # -- OOM killer is Linux-specific, skip on other OS
     if [[ $MACHINE_OS != "linux" ]]; then
         _debug "Skipping OOM check on $MACHINE_OS"
         return 0
     fi
     
+    local cache_name="oom_check"
+    local cache_ttl=${ZSHBOP_OOM_CACHE_TTL:-3600}  # Default 1 hour TTL
+    local oom_lookback="72 hours ago"
+    
+    # -- Check cache validity (unless --force)
+    if [[ -z $opts_force ]] && _cache_valid "$cache_name" "$cache_ttl"; then
+        _debug "Using cached OOM check"
+        local cached_count
+        cached_count=$(_cache_read "$cache_name" | head -1 | tr -d '[:space:]')
+        cached_count=${cached_count:-0}
+        if [[ $cached_count -gt 0 ]]; then
+            _warning "OOM killer has killed $cached_count processes (cached)"
+        else
+            _success "No OOM killer events found (cached)"
+        fi
+        return 0
+    fi
+    
     # -- Check if OOM killer is running
-    local OOM_COUNT
-    	# Check if journalctl is installed
-	_cmd_exists journalctl
-	if [[ $? == 0 ]]; then		
-		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process' | wc -l)
-	elif [[ -f /var/log/syslog ]]; then		
-		OOM_COUNT=$(grep -i 'Out of memory: Killed process' /var/log/syslog | wc -l)
-		return 1
-	else
+    local OOM_COUNT=0
+    
+    # Check if journalctl is installed
+    if (( $+commands[journalctl] )); then
+        # Use timeout, limit to 72 hours, for faster results
+        OOM_COUNT=$(timeout 3 journalctl -k --since "$oom_lookback" 2>/dev/null | grep -ci 'Out of memory: Killed process' || echo 0)
+    elif [[ -f /var/log/syslog ]]; then
+        # Fallback to syslog with timeout
+        OOM_COUNT=$(timeout 3 grep -ci 'Out of memory: Killed process' /var/log/syslog 2>/dev/null || echo 0)
+    else
         _warning "Can't detect OOM killer events"
         return 1
     fi
+    
+    # Ensure OOM_COUNT is a clean number
+    OOM_COUNT=$(echo "$OOM_COUNT" | tr -d '[:space:]')
+    OOM_COUNT=${OOM_COUNT:-0}
+    
+    # -- Cache the result
+    _cache_write "$cache_name" "$OOM_COUNT"
     
     # -- Check if OOM killer has killed any processes
     if [[ $OOM_COUNT -gt 0 ]]; then
@@ -591,12 +629,37 @@ function init_check_oom () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_check_services
-# ==============================================
+# -- Set ZSHBOP_CHECK_SERVICES=0 to disable
+# -- Set ZSHBOP_CHECK_SERVICES_TTL to change cache TTL (default 86400 = 24h)
+# ===============================================
 function init_check_services () {
-    # -- Check system software versions
+    # -- Check if disabled
+    if [[ ${ZSHBOP_CHECK_SERVICES:-1} -eq 0 ]]; then
+        _debug "Service checks disabled via ZSHBOP_CHECK_SERVICES=0"
+        init_log
+        return 0
+    fi
+    
+    local cache_name="services"
+    local cache_ttl=${ZSHBOP_CHECK_SERVICES_TTL:-86400}  # Default 24 hours
+    
+    # -- Check cache validity
+    if _cache_valid "$cache_name" "$cache_ttl"; then
+        _debug "Using cached service check results"
+        # Output cached results
+        while IFS= read -r line; do
+            echo "$line"
+        done < <(_cache_read "$cache_name")
+        init_log
+        return 0
+    fi
+    
+    # -- Fresh service check
     _log "Checking system software versions"
+    local output=""
+    
     # -- Create an array of commands and versions
     typeset -A check_services
     check_services=(
@@ -606,7 +669,6 @@ function init_check_services () {
         [nginx]="nginx -v 2>&1"
         [litespeed]="litespeed -v"
         [redis-server]="redis-server --version"
-        
     )
 
     # -- Commands that we want to warn about if installed
@@ -615,11 +677,12 @@ function init_check_services () {
         [cloudflared]="cloudflared -v"        
     )
 
-
     # -- Check if each command is installed and print version
     for cmd in "${(k)check_services[@]}"; do
         if command -v $cmd &>/dev/null; then
-            _success "$cmd: $(eval ${check_services[$cmd]})"
+            local ver_output="$cmd: $(eval ${check_services[$cmd]})"
+            _success "$ver_output"
+            output+="${ver_output}\n"
         else
             _log "$cmd not installed"
         fi
@@ -635,25 +698,35 @@ function init_check_services () {
     # -- mysql
     if command -v mysqld &>/dev/null; then    
         _log "MySQL Server installed"
-        _success "MySQL: $(mysqld --version 2> /dev/null)"
+        local mysql_ver="MySQL: $(mysqld --version 2> /dev/null)"
+        _success "$mysql_ver"
+        output+="${mysql_ver}\n"
     else
         _log "MySQL Server not installed"
-        _warning "MySQL not installed, but could be using remote database"
     fi
 
-	# - Netdata    
+    # - Netdata    
     if [[ -f /opt/netdata/bin/netdata ]]; then
         export NETDATA_HOME="/opt/netdata/etc/netdata"
-    	_success "Netdata: located at /opt/netdata/bin and config at /opt/netdata/etc/netdata"
+        local netdata_msg="Netdata: located at /opt/netdata/bin and config at /opt/netdata/etc/netdata"
+        _success "$netdata_msg"
+        output+="${netdata_msg}\n"
     elif [[ -f /usr/sbin/netdata ]]; then
         export NETDATA_HOME="/etc/netdata"
-    	_success "Netdata: located at /usr/sbin/netdata and config at /etc/netdata"
+        local netdata_msg="Netdata: located at /usr/sbin/netdata and config at /etc/netdata"
+        _success "$netdata_msg"
+        output+="${netdata_msg}\n"
     else
-    	_warning "Netdata not installed"
+        _log "Netdata not installed"
     fi
 
     # -- cyberpanel
-    if (( $+commands[cyberpanel] )) && _success "Cyberpanel Installed." || _log "Cyberpanel not installed"
+    if (( $+commands[cyberpanel] )); then
+        _success "Cyberpanel Installed."
+        output+="Cyberpanel Installed.\n"
+    else
+        _log "Cyberpanel not installed"
+    fi
 
     # -- Check custom services if function exists
     if whence -f zb_init_check_services_custom > /dev/null; then
@@ -663,14 +736,18 @@ function init_check_services () {
         _debug "zb_init_check_services_custom is not defined"
     fi
 
-    # -- Docker
+    # -- Docker (not cached - status changes frequently)
     docker-checks
+    
+    # -- Save to cache
+    _cache_write "$cache_name" "$output"
+    
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_home_bin - Make sure $ZSHBOP_HOME/bin exists
-# ==============================================
+# ===============================================
 function init_home_bin () {
     # -- check if home bin exists
     if [[ -d $ZSHBOP_HOME/bin ]]; then
@@ -682,9 +759,9 @@ function init_home_bin () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_checks
-# ==============================================
+# ===============================================
 function init_checks () {
     # Source checks
     typeset -gA help_checks
@@ -703,15 +780,27 @@ function init_checks () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_kb
-# ==============================================
+# -- Set ZSHBOP_KB_LAZY=0 to disable lazy loading
+# ===============================================
 function init_kb () {
-    local KB_COUNT KB_TOTAL_OUT
-    typeset -A kb_totals        
+    # -- Always source kb.zsh for function definitions
     source "${ZSHBOP_ROOT}/lib/kb.zsh"
-    kb_init_topics
     kb_init_aliases
+    
+    # -- Check if lazy loading is enabled (default: enabled)
+    if [[ ${ZSHBOP_KB_LAZY:-1} -eq 1 ]]; then
+        _log "KB lazy loading enabled - topics will load on first use"
+        init_log
+        return 0
+    fi
+    
+    # -- Eager loading (ZSHBOP_KB_LAZY=0)
+    local KB_COUNT KB_TOTAL_OUT
+    typeset -A kb_totals
+    kb_init_topics
+    ZSHBOP_KB_LOADED=1
     
     # -- Count how many kb articles there are from array kb_topics
     KB_COUNT="$(echo $kb_topics | wc -w)"
@@ -734,9 +823,9 @@ function init_kb () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_detect_install_type
-# ==============================================
+# ===============================================
 function init_detect_install_type () {
     # -- Where am I installed? system? user? git?
     if [[ $ZSHBOP_ROOT == "/usr/local/sbin/zshbop" ]]; then
@@ -759,9 +848,9 @@ function init_detect_install_type () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_completion
-# ==============================================
+# ===============================================
 function init_completion () {
     _debug_all
     _log "Loading completion"
@@ -771,9 +860,9 @@ function init_completion () {
     compinit
     init_log
 }
-# ==============================================
+# ===============================================
 # -- init_software
-# ==============================================
+# ===============================================
 function init_software () {
     _debug_all    
     _log "Loading software from software/*.zsh"
@@ -790,9 +879,9 @@ function init_software () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_last
-# ==============================================
+# ===============================================
 function init_last () {
     _debug_all
     _log "Running last commands"
@@ -831,9 +920,9 @@ function init_last () {
 ###########################################################
 ###########################################################
 
-# ==============================================
+# ===============================================
 # -- init_mise - activate mise runtime manager if present
-# ==============================================
+# ===============================================
 function init_mise () {
     _debug_all
 
@@ -867,9 +956,9 @@ function init_mise () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_nvm - activate NVM (Node Version Manager) if enabled
-# ==============================================
+# ===============================================
 function init_nvm () {
     _debug_all
 
@@ -945,9 +1034,9 @@ function _nvm_lazy_load () {
     }
 }
 
-# ==============================================
+# ===============================================
 # -- init_basher - activate Basher package manager if present
-# ==============================================
+# ===============================================
 function init_basher () {
     _debug_all
 
@@ -988,27 +1077,45 @@ function init_basher () {
     init_log
 }
 
-# ==============================================
+# ===============================================
 # -- init_motd - initial scripts to run on login
-# ==============================================
+# ===============================================
 init_motd () {
 	# -- Start motd
-    _debug_all    
+    _debug_all
+    _start_boot_timer "motd:system"
     system
+    _finish_boot_timer "motd:system"
 
     # -- Check System
-    _loading "Checking System"    
-	init_check_services
+    _loading "Checking System"
+    _start_boot_timer "motd:check_services"
+    init_check_services
+    _finish_boot_timer "motd:check_services"
+    _start_boot_timer "motd:check_software"
     init_check_software
+    _finish_boot_timer "motd:check_software"
+    _start_boot_timer "motd:check_oom"
     init_check_oom
+    _finish_boot_timer "motd:check_oom"
+    _start_boot_timer "motd:raid_check"
     software-raid-check
+    _finish_boot_timer "motd:raid_check"
+    _start_boot_timer "motd:screen_sessions"
     screen-sessions
+    _finish_boot_timer "motd:screen_sessions"
+    _start_boot_timer "motd:detect_install"
     init_detect_install_type
+    _finish_boot_timer "motd:detect_install"
+    _start_boot_timer "motd:completion"
     init_completion
+    _finish_boot_timer "motd:completion"
     echo ""
 
     # -- Load motd
+    _start_boot_timer "motd:source_motd"
     source "${ZSHBOP_ROOT}/motd/motd.zsh"
+    _finish_boot_timer "motd:source_motd"
 
 	# -- Environment check
 	_loading3 "Run 'zshbop check' for system checks or 'zshbop report' for a system report"
@@ -1020,9 +1127,9 @@ init_motd () {
 
 
 
-# ==============================================
+# ===============================================
 # -- init_zshbop -- initialize zshbop
-# ==============================================
+# ===============================================
 function init_zshbop () {
     # Prevent double initialization (can happen with VS Code shell integration)
     # Allow re-init if ZSHBOP_RELOAD is set

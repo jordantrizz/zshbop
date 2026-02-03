@@ -5,9 +5,9 @@ typeset -gA help_bash
 _debug " -- Loading ${(%):-%N}"
 
 
-# =====================================
+# =============================================================================
 # -- bash-add-history
-# =====================================
+# ===============================================
 help_bash[bash-add-history]='Update $HOME/.bashrc or file to add history tracking'
 bash-add-history () {
     # Check if file was provided via $1

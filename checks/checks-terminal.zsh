@@ -4,9 +4,9 @@
 # -----------------------------------------------------------------------------------
 _debug " -- Loading ${(%):-%N}"
 
-# ==================================================
+# =============================================================================
 # -- terminal-checks
-# ==================================================
+# ===============================================
 help_checks[terminal-checks]='Run all checks for terminal environment'
 function terminal-checks () {
     terminal-check-detect
@@ -19,9 +19,9 @@ function terminal-checks () {
     esac
 }
 
-# ==================================================
+# ===============================================
 # -- terminal-check-detect () - Detects terminal emulator environment
-# ==================================================
+# ===============================================
 help_checks[terminal-check-detect]='Detects terminal emulator environment'
 function terminal-check-detect () {
     # Default to unknown
@@ -60,38 +60,15 @@ function terminal-check-detect () {
     _debug "Terminal detected: $ZSHBOP_TERMINAL"
 }
 
-# ==================================================
+# ===============================================
 # -- terminal-check-vscode () - Enables VSCode shell integration
-# ==================================================
+# ===============================================
 help_checks[terminal-check-vscode]='Enables VSCode shell integration if available'
 function terminal-check-vscode () {
-    # Check if code command is available or if we're in a VSCode IPC session
-    if (( $+commands[code] )); then
-        # code command available, use it to locate shell integration
-        local integration_path
-        integration_path="$(code --locate-shell-integration-path zsh 2>/dev/null)"
-        if [[ -n "$integration_path" && -f "$integration_path" ]]; then
-            source "$integration_path"
-            _debug "VSCode shell integration loaded from: $integration_path"
-        else
-            _debug "VSCode shell integration path not found"
-        fi
-    elif [[ -n "$VSCODE_IPC_HOOK_CLI" ]]; then
-        # In VSCode terminal but code command not in PATH (e.g., Remote-SSH)
-        # Try common integration paths
-        local integration_paths=(
-            "${HOME}/.vscode-server/bin/"*"/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-rc.zsh"
-            "${HOME}/.vscode-server/bin/"*"/out/vs/workbench/contrib/terminal/browser/media/shellIntegration-rc.zsh"
-        )
-        for path in $integration_paths; do
-            if [[ -f "$path" ]]; then
-                source "$path"
-                _debug "VSCode shell integration loaded from: $path"
-                return 0
-            fi
-        done
-        _debug "VSCode detected but shell integration not found (Remote-SSH session)"
-    fi
+    # VS Code automatically injects shell integration via VSCODE_SHELL_INTEGRATION
+    # Manual loading can conflict with p10k prompt, so we skip it
+    # If shell integration is needed, VS Code handles it automatically
+    _debug "VSCode detected - shell integration handled by VS Code automatically"
 }
 
 # Run terminal checks on load

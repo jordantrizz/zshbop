@@ -5,9 +5,9 @@ _debug " -- Loading ${(%):-%N}"
 help_files[git]='Git related commands'
 typeset -gA help_git
 
-# =====================================
+# =============================================================================
 # -- gc
-# =====================================
+# ===============================================
 help_git[gc]='Git commit + push'
 function _gc_replace (){
     if _cmd_exists gc; then
@@ -26,9 +26,9 @@ function _gc_replace (){
 }
 INIT_LAST_CORE+=("_gc_replace")
 
-# =====================================
+# ===============================================
 # -- glc
-# =====================================
+# ===============================================
 help_git[glc]='Glint commit and push'
 function glc () {
 	_cmd_exists glint
@@ -41,9 +41,9 @@ function glc () {
     fi
 }
 
-# =====================================
+# ===============================================
 # - gbdc
-# =====================================
+# ===============================================
 help_git[gbdc]='git branch diff on commits'
 function gbdc () {
     log_lines=${3:-5}
@@ -54,9 +54,9 @@ function gbdc () {
 	fi
 }
 
-# =====================================
+# ===============================================
 # -- git-config
-# =====================================
+# ===============================================
 help_git[git-config]='Configure git name and email'
 function git-config () {
         vared -p "Name? " -c GIT_NAME
@@ -67,17 +67,17 @@ function git-config () {
         git config --global --get user.name
 }
 
-# =====================================
+# ===============================================
 # -- grb
-# =====================================
+# ===============================================
 help_git[grb]='List git remote branches'
 function grb {
     git -P branch -r
 }
 
-# =====================================
+# ===============================================
 # -- grp
-# =====================================
+# ===============================================
 help_git[grp]='Pull down remote branches'
 function grp {
     git fetch --all
@@ -148,9 +148,9 @@ function gcab {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- gbdall - Git branch delete
-# =====================================
+# ===============================================
 help_git[gbdall]="Delete local and remote branch"
 # -- Check if gbd alias exists 
 function gbdall {
@@ -183,9 +183,9 @@ function _gbl_replace {
 }
 INIT_LAST_CORE+=("_gbl_replace")
 
-# =====================================
+# ===============================================
 # -- gtpush - Git tag push (optionally create a tag first)
-# =====================================
+# ===============================================
 help_git[gtpush]="Git tag push (optionally create tag first)"
 function gtpush {
     # Handle help flag
@@ -260,9 +260,9 @@ function gtpush {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- gtdelete - Git tag delete
-# =====================================
+# ===============================================
 help_git[gtdelete]="Delete local and remote tag"
 function gtdelete {
     if [[ $# -ne 1 ]]; then
@@ -275,9 +275,9 @@ function gtdelete {
     git push origin :refs/tags/$1
 }
 
-# =====================================
+# ===============================================
 # -- gpab - Git pull all branches
-# =====================================
+# ===============================================
 help_git[gpab]="Git pull all branches"
 function gpab {
     _loading "Pulling all branches"
@@ -288,18 +288,18 @@ function gpab {
     git pull --all
 }
 
-# =====================================
+# ===============================================
 # -- gpuab - Git push all branches
-# =====================================
+# ===============================================
 help_git[gpuab]="Git push all branches"
 function gpuab {
     _loading "Pushing all branches"
     git push --all -u
 }
 
-# =====================================
+# ===============================================
 # -- gpm - Git patch multiple
-# =====================================
+# ===============================================
 help_git[gpm]="Git patch multiple"
 function gpm {
     if [[ $# -ne 1 ]]; then
@@ -313,9 +313,9 @@ function gpm {
     git format-patch -1 $1 --stdout > multi_commit.patch
 }
 
-# =====================================
+# ===============================================
 # -- gpa - Git patch apply
-# =====================================
+# ===============================================
 help_git[gpa]="Git patch apply"
 function gpa {
     if [[ $# -ne 1 ]]; then
@@ -327,9 +327,9 @@ function gpa {
     git apply $1
 }
 
-# =====================================
+# ===============================================
 # -- grr - Git reset remote
-# =====================================
+# ===============================================
 help_git[grr]="Git reset remote"
 function grr {
     if [[ $# -ne 1 ]]; then
@@ -341,17 +341,17 @@ function grr {
     git reset --hard origin/$1
 }
 
-# =====================================
+# ===============================================
 # -- gl - Git log
-# =====================================
+# ===============================================
 help_git[gl]="Git log"
 function gl {
     git log
 }
 
-# =====================================
+# ===============================================
 # -- git-check
-# =====================================
+# ===============================================
 help_git[git-check]="Check for uncommitted changes and unpushed commits in all Git repositories"
 function git-check () {
     local GIT_DIR
@@ -372,9 +372,9 @@ function git-check () {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- git-check-repos
-# =====================================
+# ===============================================
 function git-check-repos () {
     local UNCOMMITED_CODE UNPUSHED_CODE
     if [[ -z $1 ]];then
@@ -416,9 +416,9 @@ function git-check-repos () {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- git-repos-updates
-# =====================================
+# ===============================================
 help_git[git-repos-updates]="Check for updates in all Git repositories"
 function git-repos-updates () {
     # -- git-repos-updates_do $GIT_PATH
@@ -484,27 +484,27 @@ function git-check-exit () {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- git-squash-commits
-# =====================================
+# ===============================================
 help_git[git-squash-commits]="Squash commits"
 function git-squash-commits () {
     GIT_LOG="$(git log --oneline)"
     git reset $(git commit-tree HEAD^{tree} -m "$GIT_LOG")
 }
 
-# =====================================
+# ===============================================
 # -- gtpull - Git tag pull
-# =====================================
+# ===============================================
 help_git[gtpull]="Pull tags from remote"
 function gtpull {
     _loading "Pulling tags from remote"
     git fetch --tags
 }
 
-# =====================================
+# ===============================================
 # -- gtlist - Git tag list local and remote
-# =====================================
+# ===============================================
 help_git[gtlist]="List tags"
 function gtlist {
     _loading "Listing tags"
@@ -513,9 +513,9 @@ function gtlist {
     git ls-remote --tags
 }
 
-# =====================================
+# ===============================================
 # -- gcapf - Git commit ammend push force
-# =====================================
+# ===============================================
 help_git[gcapf]="Commit ammend push force"
 function gcapf {
     _loading "Commit ammending"
@@ -524,9 +524,9 @@ function gcapf {
     git push --force
 }
 
-# =====================================
+# ===============================================
 # -- gprh - Git pull reset hard origin current branch
-# =====================================
+# ===============================================
 help_git[gprh]="Pull reset hard origin current branch"
 function gprh {
     _loading "Pulling"
@@ -535,9 +535,9 @@ function gprh {
     git reset --hard origin/$(git rev-parse --abbrev-ref HEAD)
 }
 
-# ==============================================================================
+# =============================================================================
 # -- gcldupe - Git commit log remove duplicates
-# ==============================================================================
+# =============================================================================
 help_git[gcldupe]="Remove duplicate commits from git log"
 function gcldupe () {
     local GIT_COMMIT="$1"
@@ -553,9 +553,9 @@ function gcldupe () {
     echo "$GIT_LOG"
 }
 
-# =====================================
+# ===============================================
 # -- git-ssh-key
-# =====================================
+# ===============================================
 help_git[git-ssh-key]="Generate SSH key for git to be used for github code deploy"
 function git-ssh-key () {
     local CURRENT_DIR_NAME=$(basename $(pwd))
@@ -591,9 +591,9 @@ function git-ssh-key () {
     cat $GIT_KEY_PATH.pub
 }
 
-# =====================================
+# ===============================================
 # -- git-config-defaults
-# =====================================
+# ===============================================
 help_git[git-config-defaults]="Set git config defaults."
 function git-config-defaults () {
     local GIT_LOAD_DEFAULTS="0"
@@ -636,9 +636,9 @@ function git-config-defaults () {
     git config --global alias.amend '!git add -A && git commit --amend --no-edit'
 }
 
-# =====================================
+# ===============================================
 # -- git-create-release
-# =====================================
+# ===============================================
 help_git[gh-create-release]="Create a GitHub release for the current tag; use -a/--all to create releases for all local tags missing on GitHub"
 function gh-create-release() {
     _loading "Creating GitHub release"
@@ -789,9 +789,9 @@ function gh-create-release() {
     gh release create "$tag" --title "$tag" --notes "$msg"
 }
 
-# =====================================
+# ===============================================
 # -- git-amend-clean
-# =====================================
+# ===============================================
 help_git[git-amend-clean]="Remove empty links and duplicates from the last commit message"
 git-amend-clean() {
   # Grab the last commit message
@@ -809,9 +809,9 @@ git-amend-clean() {
   git commit --amend -m "$cleaned_msg"
 }
 
-# =====================================
+# ===============================================
 # -- git-storage
-# =====================================
+# ===============================================
 help_git[git-storage]="Get git storage information"
 function git-storage() {
     # -- Check if git is installed
@@ -830,9 +830,9 @@ function git-storage() {
     numfmt --field=3 --to=iec
 }
 
-# =====================================
+# ===============================================
 # -- git-prune
-# =====================================
+# ===============================================
 help_git[git-prune]="Prune git repository"
 function git-prune() {
     _loading2 "Running git gc --aggressive"
@@ -843,9 +843,9 @@ function git-prune() {
     git prune
 }
 
-# ======================================
+# ===============================================
 # -- git-log-oneline
-# ======================================
+# ===============================================
 help_git[git-log-oneline]="Show git log in one line format with commit hash and message"
 function git-log-oneline() {
     GIT_COMMIT=${1}
@@ -863,9 +863,9 @@ function git-log-oneline() {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- git-squash-release
-# =====================================
+# ===============================================
 help_git[git-squash-release]="Squash all commits since the last tag and use deduplicated commit messages as the new commit message"
 function git-squash-release() {
     # Find the last tag

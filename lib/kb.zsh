@@ -4,6 +4,19 @@
 # -----------------------------------------------------------------------------------
 _debug_load
 
+# -- KB lazy loading flag
+typeset -g ZSHBOP_KB_LOADED=0
+
+# -- Ensure KB topics are loaded (for lazy loading)
+function _kb_ensure_loaded () {
+    if [[ $ZSHBOP_KB_LOADED -eq 1 ]]; then
+        return 0
+    fi
+    _debug "Lazy loading KB topics..."
+    kb_init_topics
+    ZSHBOP_KB_LOADED=1
+}
+
 # -- kbc
 alias kbc="kb -c"
 alias kbd="cd ${KB}"
@@ -16,10 +29,10 @@ function kb_init_aliases () {
     fi
 }
 
-# ==================================================
+# ===============================================
 # -- kb_usage
 # -- This function will print out the usage of the kb command
-# ==================================================
+# ===============================================
 function kb_usage () {
     _loading "KB Usage"
     echo "Usage: kb [options] <article>"
@@ -41,10 +54,10 @@ function kb_usage () {
     echo
 }
 
-# ==================================================
+# ===============================================
 # -- kb_list
 # -- This function will list all the KB articles
-# ==================================================
+# ===============================================
 function kb_list () {
     \ls $ZSH_ROOT/kb
     if [[ -d $ZBC/kb ]]; then				
@@ -53,14 +66,18 @@ function kb_list () {
     fi   
 }
 
-# ====================================================================================================
+# =============================================================================
 # -- kb - A built in knowledge base.
 # --
 # -- Usage:
 # -- kb <article>
-# ====================================================================================================
+# =============================================================================
 function kb () {
     _debugf "$funcstack[1] - ${@}"
+    
+    # -- Ensure KB topics are loaded (lazy loading)
+    _kb_ensure_loaded
+    
     local zparseopts_error=""
     zparseopts -D -E c=ARG_CAT d=ARG_CD s:=ARG_SEARCH h=ARG_HELP -help=ARG_HELP || zparseopts_error=$?    
     # Handle option parsing errors
@@ -140,10 +157,10 @@ function kb () {
 }
 
 
-# ==================================================
+# ===============================================
 # -- Init kb-topics.zsh
 # -- This function will create a multi dimensional array to store all the KB topics
-# ==================================================
+# ===============================================
 function kb_init_topics () {    
     # -- Check if kb directory exists
     if [[ -d $ZSHBOP_ROOT/kb ]]; then        
@@ -193,10 +210,10 @@ function kb_init_topics () {
     fi     
 }
 
-# ==================================================
+# ===============================================
 # -- kb_print_topics
 # -- This function will print out all the KB topics in a nice format
-# ==================================================
+# ===============================================
 function kb_print_topics () {
     local KB_TOPIC KB_OUTPUT OUTPUT_STYLE KB_TOPIC_DESC
     OUTPUT_STYLE=${1:-c}
@@ -243,10 +260,10 @@ function kb_print_topics () {
     fi    
 }
 
-# ==================================================
+# ===============================================
 # -- kb_search_title
 # -- This function will search for a KB articles title
-# ==================================================
+# ===============================================
 function kb_search_title () {
     local KB_SEARCH OUTPUT
     KB_SEARCH="$1"
@@ -264,10 +281,10 @@ function kb_search_title () {
     done
 }
 
-# ===================================================
+# ===============================================
 # -- kb_search_content
 # -- This function will search for a KB articles content
-# ===================================================
+# ===============================================
 fucntion kb_search_content () {
     local KB_SEARCH
     KB_SEARCH="$1"
@@ -287,10 +304,10 @@ fucntion kb_search_content () {
 
 
 
-# ==================================================
+# ===============================================
 # -- kb_set_md_reader
 # -- This function will set the MD_READER variable to the best available md reader
-# ==================================================
+# ===============================================
 kb_set_md_reader () {
     if [[ $MD_READER ]]; then
         _debug "MD_READER already set to $MD_READER"
@@ -309,10 +326,10 @@ kb_set_md_reader () {
     fi
 }
 
-# ==================================================
+# ===============================================
 # -- md-reader
 # -- This function will read a markdown file and display it in the best available md reader
-# ==================================================
+# ===============================================
 function md-reader () {
     MD_FILE="$1"
     if [[ $MD_READER == "cat" ]]; then
@@ -330,10 +347,10 @@ function md-reader () {
 	fi    
 }
 
-# ==================================================
+# ===============================================
 # -- md-reader-text
 # -- This function will read a markdown text and display it in the best available md reader
-# ==================================================
+# ===============================================
 md-reader-text () {
     MD_TEXT="$1"
     if [[ $MD_READER == "cat" ]]; then
@@ -353,10 +370,10 @@ md-reader-text () {
 }
 
 
-# ======================================================================================
+# =============================================================================
 # -- kb_auto_complete
 # -- This function will auto complete the kb command
-# ======================================================================================
+# =============================================================================
 function _kb  {    
     compadd $(kb _auto)
 }

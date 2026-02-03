@@ -40,9 +40,9 @@ function whatismyip () {
 # -- dhcp-lease-list
 help_network[dhcp-lease-list]="List all DHCP leases, included with dhcpd"
 
-# ==============================================================================
+# =============================================================================
 # -- network-ports-raw
-# ==============================================================================
+# =============================================================================
 help_network[network-ports]="List all network ports via /proc/net/tcp"
 function network-ports () {
 	_loading "Network Ports via /proc/net/tcp"

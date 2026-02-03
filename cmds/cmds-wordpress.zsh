@@ -1,6 +1,6 @@
-# =========================================================
+# =============================================================================
 # -- WordPress
-# =========================================================
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
 help_files[wordpress]='WordPress related commands'
 typeset -gA help_wordpress
@@ -8,15 +8,15 @@ help_files[wordpress_func]='WordPress internal functions'
 typeset -gA help_inc_wordpress
 
 
-# =========================================================
+# ===============================================
 # -- wp wrapper
-# =========================================================
+# ===============================================
 help_wordpress[wp]='Run wp-cli with --allow-root'
 alias wp="wp --allow-root"
 
-# =========================================================
+# ===============================================
 # -- _wp-cli-check
-# =========================================================
+# ===============================================
 help_inc_wordpress[_wp-cli-check]='Check if wp-cli is installed'
 _wp-cli-check () {
 	# Check if wp-cli is installed
@@ -27,14 +27,14 @@ _wp-cli-check () {
 	fi
 }
 
-# =========================================================
-# =========================================================
-# =========================================================
-# =========================================================
+# ===============================================
+# ===============================================
+# ===============================================
+# ===============================================
 
-# =========================================================
+# ===============================================
 # -- wp-db
-# =========================================================
+# ===============================================
 help_wordpress[wp-db]='Echo WordPress database credentials'
 wp-db () {
 	if [ -f wp-config.php ]; then
@@ -220,9 +220,9 @@ function wp-backupsite () {
 	fi
 }
 
-# =========================================================
+# ===============================================
 # -- wp-skip
-# =========================================================
+# ===============================================
 help_wordpress[wp-admin-email]='Update admin email'
 function wp-admin-email () {
 	_wp-admin-email-usage () {
@@ -260,9 +260,9 @@ function wp-cronshim () {
     chmod u+x cron-shim.sh
 }
 
-# =========================================================
+# ===============================================
 # -- wp-cli-install
-# =========================================================
+# ===============================================
 help_wordpress[wp-cli-install]='Install wp-cli'
 function wp-cli-install () {
     if [[ -f /usr/local/bin/wp ]]; then
@@ -279,26 +279,26 @@ function wp-cli-install () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- wp-profile
-# =========================================================
+# ===============================================
 help_wordpress[wp-profile]='Install wp-cli-profile-command module'
 function wp-profile () {
     wp package install wp-cli/profile-command
 }
 
-# =========================================================
+# ===============================================
 # -- wp-cli-find
-# =========================================================
+# ===============================================
 help_wordpress[wp-cli-find]='Find WordPress instances'
 function wp-cli-find () {
 	echo "Install wp-cli find-command"
 	echo "wp package install wp-cli/find-command:@stable"
 }
 
-# =========================================================
+# ===============================================
 # -- wp-find
-# =========================================================
+# ===============================================
 help_wordpress[wp-find]='Find WordPress instances'
 function wp-find () {
 	if [[ -z $1 ]]; then
@@ -318,9 +318,9 @@ function wp-find () {
 	done
 }
 
-# =========================================================
+# ===============================================
 # -- wp-find-check
-# =========================================================
+# ===============================================
 help_wordpress[wp-find-check]='Find WordPress instances and check for core file changes'
 function wp-find-check () {
 	if [[ -z $1 ]]; then
@@ -375,9 +375,9 @@ function wp-find-check () {
 	fi
 }
 
-# =========================================================
+# ===============================================
 # -- wp74
-# =========================================================
+# ===============================================
 help_wordpress[wp74]='Run wp-cli with PHP 7.4'
 function wp74 () {
 	[[ -f /usr/bin/php7.4 ]] && { /usr/bin/php7.4 /usr/local/bin/wp "$@" }
@@ -450,17 +450,17 @@ function wp-query-monitor() {
     esac
 }
 
-# =========================================================
+# ===============================================
 # -- wp-ajaxlog
-# =========================================================
+# ===============================================
 help_wordpress[wp-ajaxlog]='Pull down ajaxlog.php from github.com/managingwp/wordpress-code-snippets'
 function wp-ajaxlog () {
 	wget https://raw.githubusercontent.com/managingwp/wordpress-code-snippets/main/ajaxlog/ajaxlog.php
 }
 
-# =========================================================
+# ===============================================
 # -- wp-wordfence-scan
-# =========================================================
+# ===============================================
 help_wordpress[wp-wordfence-scan]='Run Wordfence CLI scan'
 function wp-wordfence-scan () {
 	local SEARCH_PATH=""
@@ -549,9 +549,9 @@ function wp-wordfence-scan () {
 	_wp-wordfence-scan-log ">>>>>>>>>>>> END OF RUN <<<<<<<<<<<<" 1
 }
 
-# =========================================================
+# ===============================================
 # -- wp-updates
-# =========================================================
+# ===============================================
 help_wordpress[wp-updates]='Check for WordPress updates'
 function wp-updates() {
     local SEARCH_PATH="$1"
@@ -793,9 +793,9 @@ function wp-updates() {
 	_wp-updates-log ">>>>>>>>>>>> END OF RUN <<<<<<<<<<<<" 1
 }
 
-# =========================================================
+# ===============================================
 # -- wp-delete-wp-themes
-# =========================================================
+# ===============================================
 help_wordpress[wp-delete-wp-themes]='Delete default WordPress themes'
 function wp-delete-wp-themes () {
     # Path to the WordPress themes directory
@@ -845,9 +845,9 @@ function wp-delete-wp-themes () {
     _success "Theme deletion completed."
 }
 
-# =========================================================
+# ===============================================
 # -- wp-domain
-# =========================================================
+# ===============================================
 help_wordpress[wp-domain]='Get domain name from WordPress site'
 function wp-domain () {
 	local SITE_PATH="$1"
@@ -866,9 +866,9 @@ function wp-domain () {
 	wp --allow-root option get siteurl --path="$SITE_PATH"
 }
 
-# =========================================================
+# ===============================================
 # -- wp-plugin-install
-# =========================================================
+# ===============================================
 help_wordpress[wp-plugin-install]='Install WordPress plugin'
 function wp-plugin-install () {
 	local PLUGIN_NAME="$1"
@@ -905,9 +905,9 @@ function wp-plugin-install () {
 
 }
 
-# =========================================================
+# ===============================================
 # -- wp-list-transients
-# =========================================================
+# ===============================================
 help_wordpress[wp-list-transients]='List all transients in wp_options table'
 function wp-list-transients () {
 	local SITE_PATH="$1"
@@ -927,9 +927,9 @@ function wp-list-transients () {
 	wp --allow-root transient list --path="$SITE_PATH"
 }
 
-# =========================================================
+# ===============================================
 # -- wp-delete-transients
-# =========================================================
+# ===============================================
 help_wordpress[wp-delete-transients]='Delete all transients in wp_options table'
 function wp-delete-transients () {
 	local SITE_PATH="$1"
@@ -949,9 +949,9 @@ function wp-delete-transients () {
 	wp --allow-root transient delete --all --path="$SITE_PATH"
 }
 
-# =========================================================
+# ===============================================
 # -- wp-list-transients-duplicate
-# =========================================================
+# ===============================================
 help_wordpress[wp-list-transients-duplicate]='List duplicate transients in wp_options table'
 function wp-list-transients-duplicate () {
 	local SITE_PATH="$1"
@@ -978,9 +978,9 @@ ORDER BY duplicate_count DESC;"
 
 }
 
-# =========================================================
+# ===============================================
 # -- wp-user-count
-# =========================================================
+# ===============================================
 help_wordpress[wp-user-count]='Count users in wp_users table'
 function wp-user-count () {
 	local SITE_PATH="$1"
@@ -1000,9 +1000,9 @@ function wp-user-count () {
 	fi
 }
 
-# =====================================
+# ===============================================
 # -- wp-memory-info
-# ===================================
+# ===============================================
 help_wordpress[wp-memory-info]='Get memory info from WordPress'
 wp-memory-info () {
 	local CURRENT_DIR="$(pwd)"
@@ -1038,9 +1038,9 @@ wp-memory-info () {
 	_wp-memory-info-usage
 
 }
-# =====================================
+# ===============================================
 # -- wp-site
-# =====================================
+# ===============================================
 help_wordpress[wp-site]='Get site information'
 function wp-site () {
 	local SITE_PATH="$1"

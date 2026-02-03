@@ -30,14 +30,12 @@ function sysfetch () {
         _debugf "fastfetch not found, using ${DEFAULT_SYSFETCH}"
         eval ${DEFAULT_SYSFETCH}
     else
-        # -- fastfetch is installed
-        _debugf "fastfetch succcess using for sysfetch and ${FASTFETCH_CONFIG}"
-        #fastfetch --structure Title:OS:Host --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g" | sed "s/\n/ - /g"
-        #fastfetch --structure Kernel:Uptime --logo none | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g"
-        _loading3 "$(fastfetch --structure Title:OS:Host --logo none | tr '\n' ' ')"
-        _loading3 "$(fastfetch --structure Kernel:Uptime --logo none | tr '\n' ' ')"
-        
-        #eval "${FASTFETCH_CMD} ${FASTFETCH_CONFIG}"
+        # -- fastfetch is installed - run once and split output for performance
+        _debugf "fastfetch success, running single call for sysfetch"
+        local ff_output
+        ff_output=$(fastfetch --structure Title:OS:Host:Kernel:Uptime --logo none)
+        _loading3 "$(echo "$ff_output" | head -3 | tr '\n' ' ')"
+        _loading3 "$(echo "$ff_output" | tail -2 | tr '\n' ' ')"
     fi
 }
 
@@ -83,9 +81,9 @@ _joe_ftyperc () {
 }
 
 
-# =========================================================
+# ===============================================
 # -- grepcidr3
-# =========================================================
+# ===============================================
 help_int[grepcidr3]='grepcidr3'
 function _check_grepcidr3 () {
     if [[ $MACHINE_OS == "linux" ]]; then

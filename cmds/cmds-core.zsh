@@ -1,7 +1,7 @@
-# ==============================================
+# =============================================================================
 # Core commands
 # Example help: help_wordpress[wp]='Generate phpinfo() file'
-# ==============================================
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
 
 # Init variables and arrays
@@ -9,9 +9,9 @@ help_files[core]='Core commands'
 typeset -gA help_core
 help_core[kb]='Knowledge Base'
 
-# =====================================
+# ===============================================
 # -- os - return os
-# =====================================
+# ===============================================
 help_core[os]='Return OS'
 function os () {
   echo "\$MACHINE_OS: $MACHINE_OS | \$MACHINE_OS2: $MACHINE_OS2"
@@ -29,9 +29,9 @@ function os () {
   echo "\$OS_INSTALL_DATE2: $OS_INSTALL_DATE2 | \$OS_INSTALL_METHOD2: $OS_INSTALL_METHOD2"
 }
 
-# =====================================
+# ===============================================
 # -- os - return os
-# =====================================
+# ===============================================
 help_core[os-short]='Return OS (short format)'
 function os-short () {
   local OUTPUT
@@ -43,29 +43,39 @@ function os-short () {
   echo $OUTPUT
 }
 
-# ====================================================================================================
+# =============================================================================
 # -- system
-# ====================================================================================================
+# =============================================================================
 help_core[system]='System Information'
 function system () {
     _loading "System Information"
 
     # -- OS specific motd
-    _loading3 $(os-short)   
+    _start_boot_timer "motd:os-short"
+    _loading3 $(os-short)
+    _finish_boot_timer "motd:os-short"
 
     # -- system details
+    _start_boot_timer "motd:sysfetch"
     sysfetch-motd
+    _finish_boot_timer "motd:sysfetch"
 
     # -- sysinfo
-    _loading3 $(cpu 0 1)    
+    _start_boot_timer "motd:cpu"
+    _loading3 $(cpu 0 1)
+    _finish_boot_timer "motd:cpu"
+    _start_boot_timer "motd:mem"
     _loading3 $(mem)
+    _finish_boot_timer "motd:mem"
+    _start_boot_timer "motd:check-system"
     zshbop_check-system
+    _finish_boot_timer "motd:check-system"
     echo ""
 }
 
-# ==================================================
+# ===============================================
 # -- debug-zshbop-loading
-# ==================================================
+# ===============================================
 help_core[debug-zshbop-loading]='Debug the _loading function system-wide'
 function debug-zshbop-loading () {
     echo "=== DEBUGGING ZSHBOP _loading FUNCTION SYSTEM-WIDE ==="

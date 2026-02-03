@@ -58,9 +58,9 @@ function curl-ua() {
     fi
 }
 
-# ==================================================
+# ===============================================
 # -- web-cache-control
-# ==================================================
+# ===============================================
 help_curl[web-cache-control]="Analyze HTTP caching headers for a URL"
 function web-cache-control () {
     local url headers

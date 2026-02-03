@@ -1,13 +1,13 @@
-# ==============================================================================
+# =============================================================================
 # -- file
-# ==============================================================================
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
 help_files[file]="Commands working with files in Linux" # Help file description
 typeset -gA help_file # Init help array.
 
-# =====================================
+# =============================================================================
 # -- Compare two directories
-# =====================================
+# ===============================================
 help_file[compare-dirs]="Compare two directories"
 function compare-dirs () {
     local DIR1=$1
@@ -21,9 +21,9 @@ function compare-dirs () {
     diff -rq "$DIR1" "$DIR2"
 }
 
-# =====================================
+# ===============================================
 # -- zipc
-# =====================================
+# ===============================================
 help_file[zipc]="Zip a directory"
 function zipc () {
     local DIR=$1
@@ -42,9 +42,9 @@ function zipc () {
     zip -r "$ZIPNAME" "$DIR"
 }
 
-# =====================================
+# ===============================================
 # -- gzip-files
-# =====================================
+# ===============================================
 help_file[gzip-files]="Gzip all files in a directory"
 gzip-files() {
     if [[ $1 == "-h" || $1 == "--help" || -z $1 ]]; then
@@ -57,9 +57,9 @@ gzip-files() {
     done
 }
 
-# =====================================
+# ===============================================
 # -- findk
-# =====================================
+# ===============================================
 help_file[findk]="Find a file with wildcard keywords, hardlinked and inode"
 findk () {
     local QUERY="" FOUND_FILES="" FOUND_FILES_COUNT=0 FOUND_FILES_TITLE="" FOUND_FILES_OUTPUT=""
@@ -88,17 +88,17 @@ findk () {
 
 }
 
-# =====================================
+# ===============================================
 # -- find-empty-dirs
-# =====================================
+# ===============================================
 help_file[find-empty-dirs]="Find empty directories"
 function find-empty-dirs () {
     find . -type d -empty
 }
 
-# =====================================
+# ===============================================
 # -- super-chown
-# =====================================
+# ===============================================
 help_file[super-chown]="Change ownership of files and directories"
 function super-chown () {
     _loading "Here are some good examples"
@@ -138,9 +138,9 @@ function super-chown () {
 
 }
 
-# =====================================
+# ===============================================
 # -- file-count
-# =====================================
+# ===============================================
 help_file[file-count]="Count files in a directory"
 help_file[file-count]="Count files in a directory"
 function file-count() {
@@ -186,9 +186,9 @@ function file-count() {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- strip-comments
-# =====================================
+# ===============================================
 help_file[strip-comments]="Strip comments from a file"
 function strip-comments() {
     if [[ -z $1 ]]; then
@@ -207,7 +207,7 @@ function strip-comments() {
     sed '/^\s*#/d;/^\s*$/d' $FILE
 }
 
-# ===================================
+# ===============================================
 # -- convert-all-heic.py
-# ===================================
+# ===============================================
 help_file[convert-all-heic.py]="Convert all HEIC in a directory"

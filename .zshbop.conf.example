@@ -33,6 +33,20 @@
 #export ZSHBOP_BASHER_DISABLE="1"  # Disable Basher auto-initialization (enabled by default if ~/.basher exists)
 
 # =================================================================================================
+# -- Knowledge Base (KB) Configuration
+# =================================================================================================
+#export ZSHBOP_KB_LAZY="1"  # Lazy load KB topics on first use (default, saves ~0.8s startup)
+#export ZSHBOP_KB_LAZY="0"  # Disable lazy loading - load KB topics at startup
+
+# =================================================================================================
+# -- Startup Checks Configuration
+# =================================================================================================
+#export ZSHBOP_CHECK_SERVICES="1"     # Enable service version checks (default)
+#export ZSHBOP_CHECK_SERVICES="0"     # Disable service version checks entirely
+#export ZSHBOP_CHECK_SERVICES_TTL="86400"  # Cache TTL in seconds (default 24 hours)
+#export ZSHBOP_OOM_CACHE_TTL="3600"   # OOM check cache TTL in seconds (default 1 hour)
+
+# =================================================================================================
 # -- Application settings
 # =================================================================================================
 

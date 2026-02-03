@@ -1,6 +1,6 @@
-# ==================================================
+# =============================================================================
 # domain commands
-# ==================================================
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
 typeset -gA help_domain
 help_files[domain]="Domain Name functions and commands."
@@ -111,9 +111,9 @@ function dom () {
 
 }
 
-# ==========================================
+# ===============================================
 # -- dom-strip
-# ==========================================
+# ===============================================
 help_domain[dom-strip]='Strip a domain name to the base domain if email or :// is present'
 function dom-strip () {
     local DOMAIN="$1"
@@ -141,9 +141,9 @@ function dom-strip () {
     echo $DOMAIN
 }
 
-#=========================================
+# ===============================================
 # -- dom-cf
-#=========================================
+# ===============================================
 help_domain[dom-cf]='Check domain on Cloudflare when proxied'
 dom-cf () {
     # -- _dom-cf-api $ENDPOINT
@@ -236,9 +236,9 @@ dom-cf () {
     fi
 }
 
-# ============================================
+# ===============================================
 # -- domain-info
-# =============================================
+# ===============================================
 help_domain[domain-info]='Check a domains name servers and www and a record and print them out'
 function domain-info () {
     _domain_info_usage () {
@@ -338,9 +338,9 @@ function domain-info () {
     echo ""
 }
 
-# ==========================================
+# ===============================================
 # -- domain
-# ==========================================
+# ===============================================
 help_domain[domain]='Check if a domain is available.'
 function domain () {
     _domain_usage () {
@@ -466,9 +466,9 @@ function domain-strip () {
     OUTPUT_DOMAIN_STRIP="$DOMAIN_INPUT"
 }
 
-# =====================================
+# ===============================================
 # -- check-dns-record
-# =====================================
+# ===============================================
 help_domain[check-dns-record]='Check a DNS record for A/CNAME/MX/TXT'
 function check-dns-record () {
     _check_dns_record_usage () {

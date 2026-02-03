@@ -63,3 +63,14 @@ function example-function () {
     # Function logic here
 }
 ```
+
+## Formatting Comments
+* Standardize divider widths (count of `=` characters):
+    * Major dividers (top-of-file / major sections): **77** `=`
+        * Canonical: `# =============================================================================`
+    * Section dividers (functions / subsections): **47** `=`
+        * Canonical: `# ===============================================`
+* Use the major divider for top-of-file headers and major file sections.
+* Use the section divider for function blocks and subsections.
+* Use `# -- function-name () - Brief description` for function headers.
+* 

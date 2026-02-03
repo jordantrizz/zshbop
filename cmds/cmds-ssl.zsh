@@ -156,9 +156,9 @@ gen-ssl-cert () {
 	openssl rsa -in cert.key -out key.pem
 }
 
-# ==================================================
+# ===============================================
 # -- certbot-gen-ssl
-# ==================================================
+# ===============================================
 help_ssl[certbot-gen-ssl]='Generate SSL certificate using Certbot DNS-01 manual challenge'
 certbot-gen-ssl () {
 	local domain email wildcard base_dir config_dir work_dir logs_dir certs_dir

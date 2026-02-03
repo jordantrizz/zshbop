@@ -4,9 +4,9 @@
 # -----------------------------------------------------------------------------------
 _debug " -- Loading ${(%):-%N}"
 
-# ==================================================
+# =============================================================================
 # -- docker-checks
-# ==================================================
+# ===============================================
 help_checks[docker-checks]='Run all checks for docker'
 function docker-checks () {
     # Check if docker is installed and then check if errors
@@ -15,9 +15,9 @@ function docker-checks () {
     fi
 }
 
-# ==================================================
+# ===============================================
 # -- docker-check-installed () - Checks if docker is installed
-# ==================================================
+# ===============================================
 help_checks[docker-check-installed]='Checks if docker is installed'
 function docker-check-installed () {
     # -- Docker
@@ -38,9 +38,9 @@ function docker-check-installed () {
     fi
 }
 
-# ==================================================
+# ===============================================
 # -- docker-check-errors () - Checks for docker containers with errors
-# ==================================================
+# ===============================================
 help_checks[docker-check-errors]='Checks for docker containers with errors'
 function docker-check-errors () {
     # -- Docker

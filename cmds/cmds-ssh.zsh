@@ -8,9 +8,9 @@ _debug " -- Loading ${(%):-%N}"
 help_files[ssh]='SSH related commands'
 typeset -gA help_ssh
 
-# ==================================================================
+# ===============================================
 # -- Setup completion for pk using _pk
-# ==================================================================
+# ===============================================
 compdef _pk pk
 function _pk () {
     # -- Get all public keys
@@ -19,10 +19,10 @@ function _pk () {
     _describe 'pk' SSHKEYS    
 }
 
-# ==================================================================
+# ===============================================
 # -- _pk_select_sshkeys_fzf $SSHKEY_FILES
 # -- List public keys with fzf
-# ==================================================================
+# ===============================================
 function _pk_select_sshkeys_fzf () {
     local SSHKEY_FILES=$1 
     local HEADERS="$(_loading "Listing public keys from ~/.ssh") \n Select a public key file"
@@ -35,10 +35,10 @@ function _pk_select_sshkeys_fzf () {
     fi
 }
 
-# ==================================================================
+# ===============================================
 # -- _pk_select_sshkeys_echo $SSHKEY_FILES_ARRAY
 # -- List public keys with echo
-# ==================================================================
+# ===============================================
 function _pk_select_sshkeys_echo () {
     local SSHKEY_FILES_ARRAY=($@)
     local COUNTER=1
@@ -50,14 +50,14 @@ function _pk_select_sshkeys_echo () {
     echo ""
 }
 
-# ==================================================================
-# ==================================================================
-# ==================================================================
+# ===============================================
+# ===============================================
+# ===============================================
 
-# ==================================================================
+# ===============================================
 # -- pk 
 # -- List public ssh-keys
-# ==================================================================
+# ===============================================
 help_ssh[pk]='List public ssh-keys'
 function pk () {
     local ACTION=$1 
@@ -139,10 +139,10 @@ function pk () {
 	# | xargs -L 1 -I {} sh -c 'echo {};cat {};_banner_grey '-----------------------------''
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-fingerprint
 # -- List public keys fingerprint 
-# ==================================================================
+# ===============================================
 help_ssh[ssh-fingerprint]='List SSH Key Fingerprint'
 ssh-fingerprint () { 
     # If you created using AWS console - openssl pkcs8 -in path_to_private_key -inform PEM -outform DER -topk8 -nocrypt | openssl sha1 -c
@@ -192,29 +192,29 @@ ssh-fingerprint () {
     fi
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-addkey
 # - Add SSH Key to keychain
-# ==================================================================
+# ===============================================
 help_ssh[ssh-addkey]='add ssh private key to keychain'
 ssh-addkey () {
         echo "-- Adding $1 to keychain"
         keychain -q --eval --agents ssh $HOME/.ssh/$1
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-keygen-ed25519
 # -- Generate ssh key as ed25519
-# ==================================================================
+# ===============================================
 help_ssh[ssh-keygen-ed25519]="Generate ssh key as ed25519"
 ssh-keygen-ed25519 () {
 	ssh-keygen -t ed25519
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-key-audit
 # -- Find all SSH Keys on System
-# ==================================================================
+# ===============================================
 help_ssh[ssh-key-audit]="Find all SSH Keys on System"
 ssh-key-audit () {
     $file=""
@@ -233,19 +233,19 @@ ssh-key-audit () {
     _banner_yellow "** END User SSH Keys                      *"
 }
 
-# ==================================================================
+# ===============================================
 # -- ak
 # -- Display ~/.ssh/authorized_keys
-# ==================================================================
+# ===============================================
 help_ssh[ak]="Display ~/.ssh/authorized_keys"
 ak () {
 	cat ~/.ssh/authorized_keys
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-key
 # -- Login with -o "IdentitiesOnly yes" when too may keys in keychain
-# ==================================================================
+# ===============================================
 help_ssh[ssh-key]='Login with -o "IdentitiesOnly yes" and select ssh key to use'
 function ssh-key () {
     local SSH_KEY_SELECTED
@@ -331,9 +331,9 @@ function ssh-key () {
     fi
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-clear-known-host
-# ==================================================================
+# ===============================================
 help_ssh[ssh-remove-kh]='Clear known_hosts file of specific line number'
 ssh-remove-kh () {
     local LINE=$1
@@ -346,9 +346,9 @@ ssh-remove-kh () {
     fi
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-get-pubkey-from-private
-# ==================================================================
+# ===============================================
 help_ssh[ssh-get-pubkey-from-private]='Get public key from private key'
 ssh-get-pubkey-from-private () {
     local SSHKEY_FILE=$1
@@ -361,17 +361,17 @@ ssh-get-pubkey-from-private () {
     fi
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-password - Force ssh password authentication versus default
-# ==================================================================
+# ===============================================
 help_ssh[ssh-password]='Force ssh password authentication versus default'
 ssh-password () {
         ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no ${@}    
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-config
-# ==================================================================
+# ===============================================
 help_ssh[ssh-config-view]='Print ssh config'
 ssh-config-view () {
     # -- Print ssh config and zbc ssh config and view with default $PAGER
@@ -383,9 +383,9 @@ ssh-config-view () {
     fi
 }
 
-# ==================================================================
+# ===============================================
 # -- ssh-config-edit
-# ==================================================================
+# ===============================================
 help_ssh[ssh-config-edit]='Edit ssh config'
 ssh-config-edit () {
     local SSH_CONFIG_FILE

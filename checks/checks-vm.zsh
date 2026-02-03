@@ -15,9 +15,9 @@ function vm-checks () {
     done
 }
 
-# ==============================================
+# ===============================================
 # -- check if in virtual environment
-# ==============================================
+# ===============================================
 help_checks[vm-check-detect]='Am I in a VM?'
 function vm-check-detect () {
     # Initialize VM variable
@@ -88,9 +88,9 @@ function vm-check-detect () {
 }
 
 
-# ==============================================
+# ===============================================
 # -- check if in virtual environment secondary method
-# ==============================================
+# ===============================================
 help_checks[vm-check-detect-2]='Am I in a VM2?'
 function vm-check-detect-2 () {
     _debug "Checking if in virtual environment"

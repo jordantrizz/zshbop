@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
-# =================================================================================================
+# =============================================================================
 # -- functions-internal.zsh -- Core functions for scripts
-# =================================================================================================
+# =============================================================================
 _debug_load
 
-# ===============================================
+# =============================================================================
 # -- Internal Functions
 # ===============================================
 
@@ -74,11 +74,11 @@ function colors-print () {
   done
 }
 
-# =========================================================
+# ===============================================
 # -- _require_pkg ($package) ($install)
 # --
 # -- Check to see if command exists and if not install
-# =========================================================
+# ===============================================
 help_int[_require_pkg]='Check if command exists and if not install using package manager'
 function _require_pkg () {
     local REQUIRE_PKG=$1 CHECK_PKG PKG_MANAGER PKG_INSTALL PACKAGE_INSTALLED INSTALL_PKG="${2:-1}"    
@@ -118,11 +118,11 @@ function _require_pkg () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- _requires_cmd ($command)
 # --
 # -- Check to see if $command is installed
-# =========================================================
+# ===============================================
 help_int[_requires_cmd]='Check to see if $command is installed'
 _requires_cmd () {
     _debug_all
@@ -146,9 +146,9 @@ _requires_cmd () {
     done
 }
 
-# =========================================================
+# ===============================================
 # -- _package_manager
-# =========================================================
+# ===============================================
 help_int[_package_manager]='Get package manager'
 function _package_manager () {
     if [[ $(which apt-get) ]]; then
@@ -171,9 +171,9 @@ function _package_manager () {
     fi    
 }
 
-# =========================================================
+# ===============================================
 # -- _package_installable
-# =========================================================
+# ===============================================
 help_int[_package_installable]='Check if package is installable'
 function _package_installable () {
     local PACKAGE=$1
@@ -188,9 +188,9 @@ function _package_installable () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- _package_installed
-# =========================================================
+# ===============================================
 help_int[_package_installed]='Check if package is installed'
 function _package_installed () {
     local PACKAGE=$1
@@ -205,11 +205,11 @@ function _package_installed () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- _cmd_exists
 # --
 # -- Returns 0 if command exists or 1 if command doesn't exist
-# =========================================================
+# ===============================================
 help_int[_cmd_exists]="Returns 0 if command exists or 1 if command doesn't exist, will never output data"
 function _cmd_exists () {
     CMD_EXISTS=""
@@ -228,11 +228,11 @@ function _cmd_exists () {
     return $CMD_EXISTS
 }
 
-# =========================================================
+# ===============================================
 # -- checkroot()
 # --
 # -- checkroot - check if running as root
-# =========================================================
+# ===============================================
 help_int[_checkroot]="Check if running as root"
 _checkroot () {     
     _debug_all    
@@ -245,11 +245,11 @@ _checkroot () {
     fi
 }
 
-# =========================================================
+# ===============================================
 # -- _if_marray - if in array.
 # -- _if_marray "$NEEDLE" $HAYSTACK[@] TEST
 # -- must use quotes, second argument is array without $
-# =========================================================
+# ===============================================
 help_int[_if_marray]="Check if value is in array"
 _if_marray () {
     local NEEDLE=$1 HAYSTACK=$2
@@ -268,13 +268,13 @@ _if_marray () {
     if [[ MARRAY_VALID == "1" ]] &&  return 1 || return 0
 }
 
-# =========================================================
+# ===============================================
 # -- _inarray - if in array.
 # -- _inarray $NEEDLE $DEBUG_OUTPUT "$HAYSTACK[@]""
 # -- returns - 0 if in array, 1 if not in array
 # --
 # -- Example: if _inarray $feature 0 "${FEATURE_ERROR[@]}"; then
-# =========================================================
+# ===============================================
 help_int[_inarray]="Check if value is in array"
 _inarray () {    
     local NEEDLE=$1 DEBUG_OUTPUT=$2 HAYSTACK=()
@@ -319,9 +319,9 @@ function _pipe_separate() {
     done
     echo ""
 }
-# =========================================================
+# ===============================================
 # _detect_host_type
-# =========================================================
+# ===============================================
 help_int[_detect_host_type]="Detect if host is physical or virtual"
 _detect_host_type() {
   local dmi_output
@@ -337,18 +337,18 @@ _detect_host_type() {
     echo "Unable to determine"
   fi
 }
-# =========================================================
+# ===============================================
 # -- _remove_last_line
-# =========================================================
+# ===============================================
 help_int[_remove_last_line]="Remove last line from string"
 function _remove_last_line () {
     local STRING="${@%$'\n'*}"
     echo "$STRING"
 }
 
-# =========================================================
+# ===============================================
 # -- os-alias - return alias if binary exists for os
-# =========================================================
+# ===============================================
 # TODO find other commands and use os-binary such as glint
 help_int[os-alias]='Return alias if binary exists for os'
 os-binary () {
@@ -430,16 +430,16 @@ os-binary () {
 	fi
 }
 
-# =========================================================
+# ===============================================
 # -- faketty - run command in a fake tty
-# =========================================================
+# ===============================================
 help_int[faketty]='Run command in a fake tty'
 faketty() {                       
     0</dev/null script --quiet --flush --return --command "$(printf "%q " "$@")" /dev/null
 }
-# =========================================================
+# ===============================================
 # -- grepcidr3
-# =========================================================
+# ===============================================
 help_int[grepcidr3]='grepcidr3'
 function _check_grepcidr3 () {
     if [[ $MACHINE_OS == "linux" ]]; then
@@ -457,9 +457,9 @@ function _check_grepcidr3 () {
 }
 _check_grepcidr3
 
-# =========================================================
+# ===============================================
 # -- remove ansi color
-# =========================================================
+# ===============================================
 help_int[remove-ansi]='Remove ansi color'
 function remove-ansi () {
   #sed -E "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g"
@@ -518,9 +518,9 @@ function _get-os-install-date {
 
 }
 
-# =========================================================
+# ===============================================
 # -- _seconds_to_human - convert seconds to human readable
-# =========================================================
+# ===============================================
 function _seconds_to_human () {
     local SECONDS=$1
 
@@ -560,17 +560,17 @@ function _seconds_to_human () {
     echo $HR_TIME
 }
 
-# =====================================
+# ===============================================
 # -- _stderr - send message to stderr
-# =====================================
+# ===============================================
 help_int[_stderr]='Send message to stderr'
 function _stderr () {
     echo "$@" >&2
 }
 
-# =====================================
+# ===============================================
 # -- _validate_ip
-# =====================================
+# ===============================================
 help_int[_validate_ip]='Validate IP address'
 function _validate_ip () {
     local IP=$1

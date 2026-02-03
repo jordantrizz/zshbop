@@ -150,9 +150,9 @@ function cpu-features() {
 }
 
 
-# ========================================
+# ===============================================
 # -- mem
-# ========================================
+# ===============================================
 help_system[mem]='Get memory information'
 function mem () {    
     if [[ $MACHINE_OS == "linux" ]]; then
@@ -187,9 +187,9 @@ sysinfo () {
     mem
 }
 
-# ========================================
+# ===============================================
 # -- mem-details - Get detailed memory hardware information
-# ========================================
+# ===============================================
 help_system[mem-details]='Get detailed memory hardware information including capabilities and bank details'
 function mem-details () {
     _loading "Getting detailed memory hardware information"
@@ -470,9 +470,9 @@ function mem-details () {
     _success "Memory hardware details retrieved successfully"
 }
 
-# ===========================================
+# ===============================================
 # -- count-files-directories - Count files and directories in a specified directory
-# ===========================================
+# ===============================================
 help_system[count-files-directories]='Count files and directories'
 function count-files-directories () {
     local target_dir="$1"
@@ -504,9 +504,9 @@ function count-files-directories () {
 
 }
 
-# ===========================================
+# ===============================================
 # -- disk-details - Get detailed disk hardware information
-# ===========================================
+# ===============================================
 help_system[disk-details]='Get detailed disk hardware information including type, serial number, size and brand'
 function disk-details () {
     _loading "Getting detailed disk hardware information"

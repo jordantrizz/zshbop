@@ -1,8 +1,12 @@
 #!/usr/bin/env zsh
-# =========================================================
+# =============================================================================
 # -- zshbop.zsh -- zshbop main file
 # -- 
-# =========================================================
+# =============================================================================
+
+# -- Reset init flag for new shell (prevents inheriting from parent)
+# The guard in init_zshbop will still catch double-sourcing within same session
+unset ZSHBOP_INITIALIZED
 
 # -- Include
 export ZSHBOP_ROOT=${0:a:h}

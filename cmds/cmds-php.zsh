@@ -24,21 +24,21 @@ help_php[phan.phar]='A static analyzer. PHP 8 checker.'
 # -- Functions
 # ------------
 
-# =====================================
+# ===============================================
 # -- phpinfo
-# =====================================
+# ===============================================
 help_php[php-info]='Generate phpinfo() file'
 alias php-info="echo '<?php phpinfo() ?>' > phpinfo.php"
 
-# =====================================
+# ===============================================
 # -- php-opcache
-# =====================================
+# ===============================================
 help_php[php-opcache]='Download opcache.php file for monitoring opcache usage.'
 alias php-opcache="sudo curl -o opcache.php https://raw.githubusercontent.com/amnuts/opcache-gui/master/index.php"
 
-# =====================================
+# ===============================================
 # -- php-strace
-# =====================================
+# ===============================================
 help_php[php-strace]='strace php-fpm pools'
 php-strace () {
 	if [[ -z $1 ]]; then
@@ -50,15 +50,15 @@ php-strace () {
 	strace -s 65555 -o php-fpm.strace-log -ttt -ff $(ps -auxwwf | grep "$1" | awk {' print $2 '} | paste -s | sed -e 's/\([0-9]\+\)/-p \1/g' -e 's/\t/ /g')
 }
 
-# =====================================
+# ===============================================
 # -- php-install
-# =====================================
+# ===============================================
 # TODO what is this about?
 help_php[php-install]='One liner for install PHP'
 
-# =====================================
+# ===============================================
 # -- php-redis-test
-# =====================================
+# ===============================================
 help_php[php-redis-test]='Creates a file called redis.php that tests redis via port and socket.'
 function php-redis-test () {
 
@@ -101,9 +101,9 @@ $tcpSocketRedis->close();
 EOF
 }
 
-# =====================================
+# ===============================================
 # -- php-timezones
-# =====================================
+# ===============================================
 help_php[php-timezones]='Print out PHP timezones'
 function php-timezones () {
     if (( $+commands[php] )); then        
@@ -118,9 +118,9 @@ function php-timezones () {
     fi
 }
 
-# =====================================
+# ===============================================
 # -- grep-php
-# =====================================
+# ===============================================
 help_php[grep-php]='Grep PHP files only'
 function grep-php () {
     grep -r --include=\*.php "$1" .

@@ -15,9 +15,9 @@ function zsh-checks () {
     done
 }
 
-# ==============================================
+# ===============================================
 # -- check zsh version
-# ==============================================
+# ===============================================
 help_checks[zsh-check-version]='Check zsh version'
 function zsh-check-version () {
 	# -- Check zsh version - https://scriptingosx.com/2019/11/comparing-version-strings-in-zsh/

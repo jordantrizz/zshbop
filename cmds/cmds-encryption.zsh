@@ -1,13 +1,13 @@
-# ==================================================
+# =============================================================================
 # -- encryption commands
-# ==================================================
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
 typeset -gA help_encryption
 help_files[encryption]="Encryption commands"
 
-# ==================================================
+# =============================================================================
 # -- cryptomator-check
-# ==================================================
+# ===============================================
 help_encryption[cryptomator-check]="Check if cryptomator-cli is installed"
 function cryptomator-check() {
     _loading "Checking if cryptomator-cli is installed"
@@ -20,9 +20,9 @@ function cryptomator-check() {
     fi
 }
 
-# ==================================================
+# ===============================================
 # -- cryptomator
-# ==================================================
+# ===============================================
 help_encryption[cryptomator]="Mount a Cryptomator vault"
 function cryptomator () {
     local ACTION=${1} VAULT_NAME=${2} VAULT_PATH=${3} MOUNT_POINT=${4}

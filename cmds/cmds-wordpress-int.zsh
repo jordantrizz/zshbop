@@ -1,15 +1,15 @@
-# =========================================================
+# =============================================================================
 # -- WordPress
-# =========================================================
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
 help_files[wordpress]='WordPress related commands'
 typeset -gA help_wordpress
 help_int[wordpress_func]='WordPress internal functions'
 typeset -gA help_int_wordpress
 
-# =========================================================
+# ===============================================
 # -- _wp-cli-check
-# =========================================================
+# ===============================================
 # Check if wp-cli is installed
 # Usage: _wp-cli-check
 help_int_wordpress[_wp-cli-check]='Check if wp-cli is installed'
@@ -22,9 +22,9 @@ _wp-cli-check () {
         fi
 }
 
-# =========================================================
+# ===============================================
 # -- _wp-install-check
-# =========================================================
+# ===============================================
 # Check if WordPress is installed
 # Usage: _wp-install-check
 help_int_wordpress[_wp-install-check]='Check if WordPress is installed'
