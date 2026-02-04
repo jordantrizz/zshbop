@@ -10,6 +10,9 @@ typeset -gA help_docker # Init help array.
 # ==============================================================================
 help_docker[dps]='Docker PS, either docker ps or dops'
 function _dps_replace () {
+    # Only run if docker is installed
+    (( $+commands[docker] )) || return 0
+    
     if _cmd_exists dops; then
         # Check if dps is an alias
         if [[ $(type dps) == "dps is an alias for docker ps" ]]; then

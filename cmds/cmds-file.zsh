@@ -207,6 +207,70 @@ function strip-comments() {
     sed '/^\s*#/d;/^\s*$/d' $FILE
 }
 
+# =====================================
+# -- catfiles
+# =====================================
+help_file[catfiles]="Cat all files in a directory recursively with filenames"
+function catfiles() {
+    local -a opts_help opts_ext opts_noheader
+    local dir ext
+
+    zparseopts -D -E -- h=opts_help -help=opts_help e:=opts_ext -ext:=opts_ext n=opts_noheader -no-header=opts_noheader
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: catfiles [options] [directory]"
+        echo ""
+        echo "Cat all files in a directory recursively, displaying filename headers."
+        echo ""
+        echo "Options:"
+        echo "  -h, --help        Show this help message"
+        echo "  -e, --ext <ext>   Only include files with this extension (e.g., -e txt)"
+        echo "  -n, --no-header   Don't show filename headers"
+        echo ""
+        echo "Arguments:"
+        echo "  directory         Directory to search (default: current directory)"
+        echo ""
+        echo "Examples:"
+        echo "  catfiles                    # Cat all files in current directory"
+        echo "  catfiles /path/to/dir       # Cat all files in specified directory"
+        echo "  catfiles -e zsh             # Cat only .zsh files"
+        echo "  catfiles -e txt -n          # Cat .txt files without headers"
+        return 0
+    fi
+
+    # Get directory from argument or use current directory
+    dir="${1:-.}"
+
+    # Check if directory exists
+    if [[ ! -d "$dir" ]]; then
+        _error "Directory '$dir' does not exist"
+        return 1
+    fi
+
+    # Get extension filter if provided
+    ext="${opts_ext[2]:-}"
+
+    # Build find command
+    local find_cmd="find \"$dir\" -type f"
+    if [[ -n "$ext" ]]; then
+        find_cmd+=" -name \"*.$ext\""
+    fi
+
+    # Execute and process files
+    eval "$find_cmd" | sort | while read -r file; do
+        # Skip binary files
+        if file "$file" | grep -q "text"; then
+            if [[ -z $opts_noheader ]]; then
+                echo ""
+                echo "================================================================================"
+                echo "== FILE: $file"
+                echo "================================================================================"
+            fi
+            cat "$file"
+        fi
+    done
+}
+
 # ===================================
 # -- convert-all-heic.py
 # ===================================

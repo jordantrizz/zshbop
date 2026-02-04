@@ -398,6 +398,10 @@ function pre_flight_check () {
             . /etc/os-release
             OS=$NAME
             VER=$VERSION_ID    
+        elif [ -f /etc/redhat-release ]; then
+            # Fallback for older RHEL/CentOS/CloudLinux systems without os-release
+            OS=$(cat /etc/redhat-release | awk '{print $1}')
+            VER=$(cat /etc/redhat-release | grep -oE '[0-9]+\.[0-9]+' | head -1)
         else
             _error "Can't detect OS"
             exit 1
