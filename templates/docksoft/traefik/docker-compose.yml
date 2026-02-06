@@ -1,24 +1,18 @@
 services:
   traefik:
-    image: traefik:v3.3
+    image: traefik:latest
     container_name: traefik
     restart: always
     ports:
       - "80:80"
       - "443:443"
+      - "127.0.0.1:8080:8080"
     volumes:
-      - ./traefik.yml:/traefik.yml:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
       - ./acme.json:/acme.json
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - proxy
-    labels:
-      - "traefik.enable=true"
-      # Dashboard
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.{{DOMAIN}}`)"
-      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
 networks:
   proxy:

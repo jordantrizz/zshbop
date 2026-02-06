@@ -1,9 +1,11 @@
 # AGENTS.md
 
 ## Project Notes
-* Always create a git commit message for each change made, use the format feat, fix, docs, style, refactor, perf, test, chore.
-* Use semantic versioning for releases, increment major, minor, patch as needed.
-* Maintain a changelog for each release, documenting new features, bug fixes, and improvements.
+
+- Don't create test files such as bash scripts or php scripts in the main codebase.
+- Always Generate a single line commit message after making changes.
+- Always use git kraken mcp to commit.
+- Ensure the git commit message uses the format feat:, fix:, docs:, refactor:, chore:
 
 ## ZSH Development Notes
 * Within ZSH using local within a loop will cause the variable to be echoed to stdout, so avoid using local in loops.

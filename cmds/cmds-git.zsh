@@ -866,8 +866,20 @@ function git-log-oneline() {
 # =====================================
 # -- git-squash-release
 # =====================================
-help_git[git-squash-release]="Squash all commits since the last tag and use deduplicated commit messages as the new commit message"
+help_git[git-squash-release]="Squash all commits since the last tag, prompt for minor/major version bump, tag and push"
 function git-squash-release() {
+    # Parse options
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: git-squash-release [-h|--help]"
+        echo ""
+        echo "Squash all commits since the last tag into a single release commit."
+        echo "Prompts for minor or major version bump, tags the release, and optionally pushes."
+        return 0
+    fi
+
     # Find the last tag
     local LAST_TAG
     LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
@@ -875,6 +887,27 @@ function git-squash-release() {
         _error "No tags found in this repository."
         return 1
     fi
+
+    # Parse the last tag into major.minor.patch
+    local TAG_CLEAN="${LAST_TAG#v}"
+    local TAG_MAJOR TAG_MINOR TAG_PATCH
+    TAG_MAJOR="${TAG_CLEAN%%.*}"
+    TAG_MINOR="${${TAG_CLEAN#*.}%%.*}"
+    TAG_PATCH="${TAG_CLEAN##*.}"
+
+    # Calculate minor and major bump versions
+    local MINOR_VERSION MAJOR_VERSION
+    MINOR_VERSION="${TAG_MAJOR}.${TAG_MINOR}.$(( TAG_PATCH + 1 ))"
+    MAJOR_VERSION="${TAG_MAJOR}.$(( TAG_MINOR + 1 )).0"
+
+    # Preserve prefix if original tag had one (e.g. v1.2.3)
+    local TAG_PREFIX=""
+    if [[ $LAST_TAG == v* ]]; then
+        TAG_PREFIX="v"
+    fi
+
+    local MINOR_TAG="${TAG_PREFIX}${MINOR_VERSION}"
+    local MAJOR_TAG="${TAG_PREFIX}${MAJOR_VERSION}"
 
     # Find the commit hash for the last tag
     local LAST_TAG_COMMIT
@@ -885,40 +918,76 @@ function git-squash-release() {
     COMMIT_MSGS=$(git log --oneline $LAST_TAG..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
 
     if [[ -z $COMMIT_MSGS ]]; then
-        _error "No commit messages found to squash."
+        _error "No commits found since $LAST_TAG. Nothing to squash."
         return 1
     fi
 
-    _loading "Squashing all commits since $LAST_TAG ($LAST_TAG_COMMIT) into one."
-    _loading2 "Commit messages to use:"
+    _loading "Last tag: $LAST_TAG ($LAST_TAG_COMMIT)"
+    _loading2 "Commits since $LAST_TAG:"
     echo "$COMMIT_MSGS"
+    echo ""
+
+    # Prompt for minor or major
+    _loading "Select release type:"
+    echo "  (i) minor  ($MINOR_TAG)"
+    echo "  (a) major  ($MAJOR_TAG)"
+    echo "  (c) cancel"
+    echo ""
+
+    local RELEASE_TAG
+    local REPLY
+    read -k 1 "REPLY?Select [i/a/c]: "
+    echo ""
+
+    case $REPLY in
+        i)
+            RELEASE_TAG="$MINOR_TAG"
+            _success "Selected minor release: $RELEASE_TAG"
+            ;;
+        a)
+            RELEASE_TAG="$MAJOR_TAG"
+            _success "Selected major release: $RELEASE_TAG"
+            ;;
+        *)
+            _warning "Cancelled."
+            return 0
+            ;;
+    esac
+
+    echo ""
 
     # Perform soft reset to last tag commit
+    _loading "Squashing all commits since $LAST_TAG into one..."
     git reset --soft $LAST_TAG_COMMIT
 
-    # Create commit message based on whether release number is provided
-    local FINAL_COMMIT_MSG
-    if [[ -n $RELEASE_NUMBER ]]; then
-        FINAL_COMMIT_MSG="Release $RELEASE_NUMBER
+    # Build commit message with release header
+    local FINAL_COMMIT_MSG="Release $RELEASE_TAG
 
 $COMMIT_MSGS"
-        _loading2 "Using release format with release number: $RELEASE_NUMBER"
-    else
-        FINAL_COMMIT_MSG="$COMMIT_MSGS"
-        _loading2 "Using standard format (no release number provided)"
-    fi
 
-    # Create a new commit with the deduplicated messages
+    # Create a new commit with the release message
     git commit -m "$FINAL_COMMIT_MSG"
+    _success "Created squashed commit for $RELEASE_TAG"
 
-    # Tag the commit if release number is provided
-    if [[ -n $RELEASE_NUMBER ]]; then
-        _loading "Tagging commit with release number: $RELEASE_NUMBER"
-        git tag "$RELEASE_NUMBER"
-        echo "\nAll commits since $LAST_TAG have been squashed and tagged as $RELEASE_NUMBER."
-        echo "You may need to push with --force and push tags: git push --force && git push --tags"
+    # Tag the release
+    _loading "Tagging commit as $RELEASE_TAG"
+    git tag "$RELEASE_TAG"
+    _success "Tagged as $RELEASE_TAG"
+
+    echo ""
+
+    # Ask if we should push
+    read -q "REPLY?Push tag and commit with --force? (y/n) "
+    echo ""
+
+    if [[ $REPLY == "y" ]]; then
+        _loading "Pushing with --force..."
+        git push --force
+        _loading "Pushing tags..."
+        git push --tags
+        _success "Release $RELEASE_TAG pushed successfully."
     else
-        echo "\nAll commits since $LAST_TAG have been squashed into one."
-        echo "You may need to push with --force: git push --force"
+        _warning "Not pushed. To push manually run:"
+        echo "  git push --force && git push --tags"
     fi
 }

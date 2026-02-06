@@ -4,14 +4,14 @@ services:
     container_name: uptime-kuma
     restart: always
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     volumes:
       - /srv/containers/uptime-kuma/data:/app/data
     networks:
       - proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.uptime-kuma.rule=Host(`uptime.{{DOMAIN}}`)"
+      - "traefik.http.routers.uptime-kuma.rule=Host(`{{FQDN}}`)"
       - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
       - "traefik.http.routers.uptime-kuma.tls.certresolver=letsencrypt"
       - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"

@@ -1,6 +1,6 @@
 # Traefik v3 Static Configuration
 api:
-  dashboard: true
+  dashboard: false
   insecure: true
 
 entryPoints:
@@ -27,6 +27,6 @@ certificatesResolvers:
   letsencrypt:
     acme:
       email: "{{EMAIL}}"
-      storage: "acme.json"
+      storage: "/acme.json"
       httpChallenge:
         entryPoint: web
