@@ -14,7 +14,11 @@ function terminal-checks () {
     # Run IDE-specific integrations
     case "$ZSHBOP_TERMINAL" in
         vscode)
-            terminal-check-vscode
+            if [[ "$ZSHBOP_DISABLE_VSCODE_SHELL" == "1" ]]; then
+                terminal-disable-vscode-shell
+            else
+                terminal-check-vscode
+            fi
             ;;
     esac
 }
@@ -65,6 +69,12 @@ function terminal-check-detect () {
 # ==================================================
 help_checks[terminal-check-vscode]='Enables VSCode shell integration if available'
 function terminal-check-vscode () {
+    # Allow users to opt out of VSCode shell integration (prompt or env conflicts)
+    if [[ "$ZSHBOP_DISABLE_VSCODE_SHELL" == "1" ]]; then
+        _debug "Skipping VSCode shell integration (ZSHBOP_DISABLE_VSCODE_SHELL=1)"
+        return 0
+    fi
+
     # Check if code command is available or if we're in a VSCode IPC session
     if (( $+commands[code] )); then
         # code command available, use it to locate shell integration
@@ -91,6 +101,38 @@ function terminal-check-vscode () {
             fi
         done
         _debug "VSCode detected but shell integration not found (Remote-SSH session)"
+    fi
+}
+
+# ==================================================
+# -- terminal-disable-vscode-shell () - Remove VSCode shell integration side effects
+# ==================================================
+help_checks[terminal-disable-vscode-shell]='Disable VSCode shell integration when requested'
+function terminal-disable-vscode-shell () {
+    _debug "Disabling VSCode shell integration per ZSHBOP_DISABLE_VSCODE_SHELL=1"
+
+    # Clear VSCode shell integration markers so downstream logic won’t re-enable it
+    unset VSCODE_SHELL_INTEGRATION
+    unset VSCODE_SHELL_INTEGRATION_VERSION
+
+    # Remove VSCode prompt hooks if they were already loaded
+    local hook
+    for hook in precmd_functions preexec_functions chpwd_functions; do
+        if typeset -p $hook &>/dev/null; then
+            local -a arr
+            eval "arr=(\${${hook}})"
+            arr=(${arr:#__vscode_*})
+            arr=(${arr:#vscode_*})
+            arr=(${arr:#__vscodeshell*})
+            eval "$hook=(\${arr})"
+        fi
+    done
+
+    # Restore p10k prompt if available
+    if (( ${+functions[prompt_powerlevel10k_setup]} )); then
+        prompt_powerlevel10k_setup
+    elif (( ${+functions[p10k]} )); then
+        p10k reload
     fi
 }
 

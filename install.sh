@@ -222,6 +222,14 @@ function check_package () {
 # -- _install_zsh - install zsh
 # ================================================
 function _install_zsh () {
+    # -- Default to package install on Ubuntu 22.x or 24.x
+    local VER_MAJOR="${VER%%.*}"
+    if [[ "$OS" == *"Ubuntu"* ]] && [[ "$VER_MAJOR" == "22" || "$VER_MAJOR" == "24" ]]; then
+        _loading "Detected $OS $VER - defaulting to package install"
+        _install_zsh_package
+        return
+    fi
+
     echo -n "Do you want to install zsh via (p)package or (b)inary? (p/b): "
     read ZSH_INSTALL
 

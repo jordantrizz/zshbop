@@ -297,3 +297,110 @@ function software_docker-ctop() {
 		_error "docker-ctop not supported on $MACHINE_OS"
 	fi
 }
+
+# ====================================================================================================
+# -- docker - Install Docker CE
+# ====================================================================================================
+help_software[docker]='Install Docker CE (Ubuntu 22/24)'
+function software_docker () {
+    # -- Parse options
+    local -a opts_help opts_dry_run
+    zparseopts -D -E -- h=opts_help -help=opts_help -dry-run=opts_dry_run
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: software docker [--dry-run]"
+        echo "  --dry-run   Preview commands without executing them"
+        echo ""
+        echo "Install Docker CE via the official Docker apt repository."
+        echo "Currently supports Ubuntu 22.04 and 24.04."
+        return 0
+    fi
+
+    # -- Dry run helper
+    local dry_run=0
+    [[ -n $opts_dry_run ]] && dry_run=1 && _notice "Dry run mode enabled -- no commands will be executed"
+
+    _run_cmd () {
+        if [[ $dry_run -eq 1 ]]; then
+            _loading3 "[dry-run] $*"
+        else
+            eval "$@"
+        fi
+    }
+
+    # -- OS gate
+    local ver_major="${MACHINE_OS_VERSION%%.*}"
+
+    if [[ $MACHINE_OS != "linux" ]]; then
+        _error "Docker CE install is only supported on Linux (detected: $MACHINE_OS)"
+        unset -f _run_cmd
+        return 1
+    fi
+
+    case "$MACHINE_OS_FLAVOUR" in
+        ubuntu)
+            if [[ "$ver_major" != "22" && "$ver_major" != "24" ]]; then
+                _error "Docker CE install supports Ubuntu 22/24 (detected: $MACHINE_OS_VERSION)"
+                unset -f _run_cmd
+                return 1
+            fi
+            ;;
+        # -- Future OS support can be added here
+        # debian)
+        #     ;;
+        *)
+            _error "Docker CE install not supported on $MACHINE_OS_FLAVOUR"
+            unset -f _run_cmd
+            return 1
+            ;;
+    esac
+
+    # -- Check if Docker is already installed
+    if (( $+commands[docker] )) && [[ $dry_run -eq 0 ]]; then
+        _warning "Docker is already installed ($(docker --version))"
+        _warning "To reinstall, first remove with: sudo apt-get remove docker-ce docker-ce-cli containerd.io docker-compose-plugin"
+        unset -f _run_cmd
+        return 0
+    fi
+
+    _loading "Installing Docker CE on $MACHINE_OS_FLAVOUR $MACHINE_OS_VERSION"
+
+    # -- Remove legacy Docker packages
+    _loading2 "Removing legacy Docker packages"
+    _run_cmd sudo apt-get remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
+
+    # -- Install prerequisites
+    _loading2 "Installing prerequisites"
+    _run_cmd sudo apt-get update
+    _run_cmd sudo apt-get install -y ca-certificates curl gnupg lsb-release
+
+    # -- Add Docker GPG key
+    _loading2 "Adding Docker official GPG key"
+    _run_cmd sudo install -m 0755 -d /etc/apt/keyrings
+    _run_cmd "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg"
+    _run_cmd sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+    # -- Add Docker apt repository
+    _loading2 "Adding Docker apt repository"
+    _run_cmd "echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null"
+
+    # -- Install Docker CE
+    _loading2 "Installing Docker CE packages"
+    _run_cmd sudo apt-get update
+    _run_cmd sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+    # -- Verify installation
+    if [[ $dry_run -eq 0 ]]; then
+        if (( $+commands[docker] )); then
+            _success "Docker CE installed successfully: $(docker --version)"
+        else
+            _error "Docker CE installation may have failed -- docker command not found"
+            unset -f _run_cmd
+            return 1
+        fi
+    else
+        _success "[dry-run] Docker CE install steps completed"
+    fi
+
+    unset -f _run_cmd
+}

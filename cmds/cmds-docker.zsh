@@ -18,14 +18,15 @@ function _dps_replace () {
         if [[ $(type dps) == "dps is an alias for docker ps" ]]; then
             _log "dps is an omz alias, removing"
             unalias dps
-            function dps () {                
-                dops $@
-            }
-        else
-            docker ps $@
         fi
+        function dps () {
+            dops $@
+        }
+    else
+        function dps () {
+            docker ps $@
+        }
     fi
-
 }
 INIT_LAST_CORE+=("_dps_replace")
 

@@ -464,17 +464,29 @@ zshbop_custom () {
 help_zshbop[custom-load]='Load zshbop custom config'
 zshbop_custom-load () {
 	if [[ $1 == "-q" ]]; then
-        [[ -f $HOME/.zshbop.conf ]] && source $HOME/.zshbop.conf
+        if [[ -f $HOME/.zshbop.conf ]]; then
+            source $HOME/.zshbop.conf
+            export ZSHBOP_CONF_LOADED=1
+        fi
     else
         # -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
         _log "Checking for $HOME/.zshbop.conf"
-        if [[ -f $HOME/.zshbop.conf ]]; then
+        if [[ -f $HOME/.zshbop.conf && -z $ZSHBOP_CONF_LOADED ]]; then
             ZSHBOP_CUSTOM_CFG="$HOME/.zshbop.conf"
             _log "Loaded custom zshbop config - $ZSHBOP_CUSTOM_CFG"
             source $ZSHBOP_CUSTOM_CFG
-        else
+            export ZSHBOP_CONF_LOADED=1
+        elif [[ ! -f $HOME/.zshbop.conf ]]; then
             _warning "No custom zshbop config found. Type zshbop custom for more information"
         fi
+    fi
+
+    # Source any additional custom files listed by the user
+    if typeset -p ZSHBOP_CUSTOM_SOURCES &>/dev/null; then
+        local src
+        for src in "${ZSHBOP_CUSTOM_SOURCES[@]}"; do
+            [[ -f $src ]] && source "$src"
+        done
     fi
 }
 

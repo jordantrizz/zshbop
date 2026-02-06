@@ -71,7 +71,22 @@
 # * If you use $ZBC, then zshbop will check if it's a git repository and update it when you 'update' zshbop
 # =================================================================================================
 #ZBC="$HOME/git/zshbop-custom"
-#source $ZBC/init.zsh
+#ZSHBOP_CUSTOM_SOURCES=(
+#    "$ZBC/init.zsh"
+#    # Add more custom files to source after core init
+#)
+
+# Example: defer sourcing to post-init via ZSHBOP_CUSTOM_SOURCES
+#ZSHBOP_CUSTOM_SOURCES+=("${GIT_HOME}/test/test.zsh")
+
+# -- Add more paths
+#export PATH=$PATH:$HOME/git/sitecachecheck
+PATH=$PATH:$HOME/.basher/bin
+
+# -- NVM Config
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 
 # =================================================================================================
 # =================================================================================================
@@ -79,7 +94,6 @@
 # =================================================================================================
 # =================================================================================================
 
-_debug "###########################################################"
-_debug "################ Loading .zshbop.conf ###################"
-_debug "###########################################################"
+# Uncomment for debugging .zshbop.conf loads
+# [[ -z $ZSHBOP_CONF_LOADED ]] && _debug "Loaded .zshbop.conf"
 

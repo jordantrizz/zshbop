@@ -1024,6 +1024,17 @@ init_motd () {
 # -- init_zshbop -- initialize zshbop
 # ==============================================
 function init_zshbop () {
+    # Load user overrides early (once) so flags (e.g., ZSHBOP_DISABLE_VSCODE_SHELL) are available
+    if [[ -z "$ZSHBOP_CONF_LOADED" && -f $HOME/.zshbop.conf ]]; then
+        source $HOME/.zshbop.conf
+        export ZSHBOP_CONF_LOADED=1
+    fi
+
+    # VS Code terminals often inherit ZSHBOP_INITIALIZED=1 from the parent; force a reload there
+    if [[ "$TERM_PROGRAM" == "vscode" || -n "$VSCODE_IPC_HOOK_CLI" ]]; then
+        export ZSHBOP_RELOAD="1"
+    fi
+
     # Prevent double initialization (can happen with VS Code shell integration)
     # Allow re-init if ZSHBOP_RELOAD is set
     if [[ -n "$ZSHBOP_INITIALIZED" && "$ZSHBOP_RELOAD" != "1" ]]; then
