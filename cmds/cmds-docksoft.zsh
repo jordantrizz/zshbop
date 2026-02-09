@@ -24,8 +24,50 @@ function _docksoft_load_conf () {
     fi
     source "$DOCKSOFT_CONF"
 
+    # Back-compat: older configs may not define a network.
+    typeset -g DOCKSOFT_NETWORK="${DOCKSOFT_NETWORK:-proxy}"
+
     # Ensure associative array exists even if config is old
     typeset -gA DOCKSOFT_PORTS
+    return 0
+}
+
+# ==============================================================================
+# -- _docksoft_detect_network () - Choose an existing proxy network if present
+# ==============================================================================
+function _docksoft_detect_network () {
+    # Prefer common Traefik network names if they already exist.
+    # Fall back to "proxy" (docksoft default) when nothing is found.
+    local candidate
+    for candidate in traefik-proxy traefik proxy; do
+        if docker network inspect "$candidate" &>/dev/null; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    echo "proxy"
+    return 0
+}
+
+# ==============================================================================
+# -- _docksoft_conf_ensure_network () - Persist DOCKSOFT_NETWORK into conf
+# ==============================================================================
+function _docksoft_conf_ensure_network () {
+    local network="$1"
+
+    [[ -n "$network" ]] || return 1
+    [[ -f "$DOCKSOFT_CONF" ]] || return 1
+
+    if grep -Eq '^DOCKSOFT_NETWORK=' "$DOCKSOFT_CONF"; then
+        return 0
+    fi
+
+    {
+        echo ""
+        echo "# Proxy network used by docksoft templates"
+        echo "DOCKSOFT_NETWORK=\"$network\""
+    } >> "$DOCKSOFT_CONF" 2>/dev/null
+
     return 0
 }
 
@@ -344,7 +386,7 @@ function _docksoft_usage () {
     echo "Usage: docksoft <command> [options]"
     echo ""
     echo "Commands:"
-    echo "  init                        Initialize docksoft (directories, network, config)"
+    echo "  init                        Initialize docksoft (directories, network, config; type 'skip' to bypass config)"
     echo "  list                        List available container templates"
     echo "  config                      Show current docksoft configuration"
     echo "  traefik-status [-r|--raw]   Show Traefik routers, services, and certificate status"
@@ -464,7 +506,11 @@ function _docksoft_init () {
         fi
     fi
 
-    # -- Create proxy Docker network
+    # -- Detect or create the Docker network used for reverse-proxy routing
+    # If a common Traefik network already exists, prefer it.
+    DOCKSOFT_NETWORK=$(_docksoft_detect_network)
+    _loading2 "Using Docker network: $DOCKSOFT_NETWORK"
+
     if docker network inspect "$DOCKSOFT_NETWORK" &>/dev/null; then
         _warning "Docker network '$DOCKSOFT_NETWORK' already exists"
     else
@@ -489,6 +535,7 @@ function _docksoft_init () {
         _loading3 "Mode: $DOCKSOFT_MODE"
         _loading3 "Domain: $DOCKSOFT_DOMAIN"
         _loading3 "Email: $DOCKSOFT_EMAIL"
+        _loading3 "Network: ${DOCKSOFT_NETWORK:-proxy}"
         local reconfig=""
         read "reconfig?Reconfigure? (y/N): "
         if [[ "$reconfig" != [yY] ]]; then
@@ -503,12 +550,21 @@ function _docksoft_init () {
     echo "           Domain is used directly (e.g., uptime.ohmyhi.net)"
     echo "  multi  - This server hosts multiple services"
     echo "           Services get subdomains (e.g., uptime.docker01.example.com)"
+    echo "  skip   - Skip configuration for now"
     echo ""
     local mode=""
-    while [[ "$mode" != "single" && "$mode" != "multi" ]]; do
-        read "mode?Enter mode (single/multi): "
+    while [[ "$mode" != "single" && "$mode" != "multi" && "$mode" != "skip" ]]; do
+        read "mode?Enter mode (single/multi/skip): "
+        mode="${mode:l}"
+
+        if [[ "$mode" == "skip" ]]; then
+            _warning "Skipping docksoft configuration (no domain/email written)."
+            _loading3 "Re-run 'docksoft init' to configure later."
+            return 0
+        fi
+
         if [[ "$mode" != "single" && "$mode" != "multi" ]]; then
-            _warning "Please enter 'single' or 'multi'"
+            _warning "Please enter 'single', 'multi', or 'skip'"
         fi
     done
 
@@ -548,12 +604,14 @@ function _docksoft_init () {
 DOCKSOFT_MODE="$mode"
 DOCKSOFT_DOMAIN="$base_domain"
 DOCKSOFT_EMAIL="$acme_email"
+DOCKSOFT_NETWORK="$DOCKSOFT_NETWORK"
 EOF
 
     _success "Configuration saved to $DOCKSOFT_CONF"
     _loading3 "Mode: $mode"
     _loading3 "Domain: $base_domain"
     _loading3 "Email: $acme_email"
+    _loading3 "Network: $DOCKSOFT_NETWORK"
 }
 
 # ==============================================================================
@@ -590,6 +648,12 @@ function _docksoft_deploy () {
         _error "docksoft config not found at $DOCKSOFT_CONF. Run 'docksoft init' first."
         return 1
     fi
+
+    # -- Ensure a network is set (back-compat) and persist it to state.
+    if [[ -z "$DOCKSOFT_NETWORK" ]]; then
+        DOCKSOFT_NETWORK=$(_docksoft_detect_network)
+    fi
+    _docksoft_conf_ensure_network "$DOCKSOFT_NETWORK" >/dev/null 2>&1
 
     # -- Check if template exists
     if [[ ! -d "$DOCKSOFT_TEMPLATES/$container_name" ]]; then
@@ -673,6 +737,12 @@ function _docksoft_deploy () {
         fi
     fi
 
+    # -- Replace {{NETWORK}} placeholder
+    if grep -rq '{{NETWORK}}' "$DOCKSOFT_CONTAINERS/$container_name/" 2>/dev/null; then
+        find "$DOCKSOFT_CONTAINERS/$container_name" -type f -exec sed -i "s/{{NETWORK}}/$DOCKSOFT_NETWORK/g" {} +
+        _loading3 "Replaced {{NETWORK}} with $DOCKSOFT_NETWORK"
+    fi
+
     # -- Allocate/track published host ports to avoid overlaps
     if [[ -f "$DOCKSOFT_CONTAINERS/$container_name/docker-compose.yml" ]]; then
         if ! _docksoft_allocate_ports_for_compose "$container_name" "$DOCKSOFT_CONTAINERS/$container_name/docker-compose.yml"; then
@@ -717,6 +787,7 @@ function _docksoft_show_config () {
     fi
     _loading2 "Domain: $DOCKSOFT_DOMAIN"
     _loading2 "Email: $DOCKSOFT_EMAIL"
+    _loading2 "Network: ${DOCKSOFT_NETWORK:-proxy}"
 
     # -- Show deployed containers
     _loading "Deployed containers"

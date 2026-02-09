@@ -1,0 +1,29 @@
+services:
+  prunemate:
+    image: anoniemerd/prunemate:latest
+    container_name: prunemate
+    restart: always
+    ports:
+      # Default host port per upstream docs is 7676; docksoft will auto-bump if already in use.
+      - "127.0.0.1:7676:8080"
+    volumes:
+      # PruneMate likely needs Docker access to prune resources.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Persist logs + config under docksoft's standard data directory.
+      - /srv/containers/prunemate/data/logs:/var/log
+      - /srv/containers/prunemate/data/config:/config
+    environment:
+      - PRUNEMATE_TZ=UTC
+      - PRUNEMATE_TIME_24H=true
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prunemate.rule=Host(`{{FQDN}}`)"
+      - "traefik.http.routers.prunemate.entrypoints=websecure"
+      - "traefik.http.routers.prunemate.tls.certresolver=letsencrypt"
+      - "traefik.http.services.prunemate.loadbalancer.server.port=8080"
+
+networks:
+  proxy:
+    external: true
