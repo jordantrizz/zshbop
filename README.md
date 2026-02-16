@@ -244,12 +244,15 @@ Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as ne
 | `ZSHBOP_ROOT`| Location of zshbop installation                            | String | Detected      |
 | `ZSHBOP_CUSTOM_SSHKEY` | Set a custom SSH key to be loaded | String | Detected |
 | `ZSHBOP_PLUGIN_MANAGER` | Override plugin manager, can be init_antidote or init_anitgen | String | init_antidote |
+| `ZSHBOP_PLUGIN_ZSH_AI_ENABLE` | Enable matheusml/zsh-ai plugin | 0 or 1 | 0 |
+| `ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE` | Enable marlonrichert/zsh-autocomplete plugin | 0 or 1 | 0 |
 | `ZSHBOP_GIT_CHECK` | zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code. | Number | 1 |
 | `GIT_HOME` | A location where you have all your git repositories. | String | $HOME/git |
 | `ZSHBOP_UPDATE_GIT` | Git Repositores to update when running zshbop update | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |
 | `ZSH_IP_PROVIDER` | IP Provider for zshbop | String | eg. ipinfo.io |
 | `ZSH_IP_API_KEY` | API Key for ip-info commmand | String | |
 | `ZSHBOP_TERMINAL` | Detected terminal environment (read-only) | String | vscode, iterm, wezterm, windows-terminal, unknown |
+| `ZSHBOP_DISABLE_VSCODE_SHELL` | Disable VSCode shell integration | 0 or 1 | Not set |
 | `ZSHBOP_NVM_ENABLE` | Enable NVM initialization (disabled by default) | 1 | Not set |
 | `ZSHBOP_NVM_LAZY` | Lazy load NVM on first use of nvm/node/npm/npx | 0 or 1 | 1 (when enabled) |
 | `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |

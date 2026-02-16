@@ -332,18 +332,60 @@ function init_plugins () {
 function init_antidote () {
 	# -- plugin config
 	export AUTO_LS_CHPWD="false"
+
+    local antidote_plugins_source="${ZBR}/.zsh_plugins.txt"
+    local antidote_plugins_effective="${ZSHBOP_CACHE_DIR}/.zsh_plugins.effective.txt"
+    local antidote_plugins_tmp="${ZSHBOP_CACHE_DIR}/.zsh_plugins.tmp.txt"
+
+    cp "${antidote_plugins_source}" "${antidote_plugins_effective}"
+
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AI_ENABLE}" == "1" ]]; then
+        _log "Antidote: enabling matheusml/zsh-ai"
+    else
+        _log "Antidote: disabling matheusml/zsh-ai (set ZSHBOP_PLUGIN_ZSH_AI_ENABLE=1 to enable)"
+        awk '!/^[[:space:]]*matheusml\/zsh-ai([[:space:]]|$)/ { print }' "${antidote_plugins_effective}" > "${antidote_plugins_tmp}"
+        mv "${antidote_plugins_tmp}" "${antidote_plugins_effective}"
+    fi
+
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE}" == "1" ]]; then
+        _log "Antidote: enabling marlonrichert/zsh-autocomplete"
+        awk '
+            BEGIN { found = 0 }
+            /^[[:space:]]*#[[:space:]]*marlonrichert\/zsh-autocomplete([[:space:]]|$)/ {
+                print "marlonrichert/zsh-autocomplete"
+                found = 1
+                next
+            }
+            /^[[:space:]]*marlonrichert\/zsh-autocomplete([[:space:]]|$)/ {
+                print "marlonrichert/zsh-autocomplete"
+                found = 1
+                next
+            }
+            { print }
+            END {
+                if (found == 0) {
+                    print "marlonrichert/zsh-autocomplete"
+                }
+            }
+        ' "${antidote_plugins_effective}" > "${antidote_plugins_tmp}"
+        mv "${antidote_plugins_tmp}" "${antidote_plugins_effective}"
+    else
+        _log "Antidote: disabling marlonrichert/zsh-autocomplete (set ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE=1 to enable)"
+        awk '!/^[[:space:]]*marlonrichert\/zsh-autocomplete([[:space:]]|$)/ { print }' "${antidote_plugins_effective}" > "${antidote_plugins_tmp}"
+        mv "${antidote_plugins_tmp}" "${antidote_plugins_effective}"
+    fi
 	
 	# -- load antidote
 	_log "Loading antidote"
 	zstyle ':antidote:bundle' use-friendly-names 'yes' # remove slashes and user friendly names
-	zstyle ':antidote:bundle' file "${ZBR}/.zsh_plugins.txt"
+    zstyle ':antidote:bundle' file "${antidote_plugins_effective}"
 
     # for H-S-MW
     zstyle :plugin:history-search-multi-word reset-prompt-protect 1
     zstyle ":history-search-multi-word" page-size "8"
 
 	export ANTIDOTE_DIR="${ZBR}/antidote"
-	export ANTIDOTE_PLUGINS="${ZBR}/.zsh_plugins.txt"
+    export ANTIDOTE_PLUGINS="${antidote_plugins_effective}"
 	export ANTIDOTE_STATIC="${ZSHBOP_CACHE_DIR}/.zsh_plugins.zsh"
     export ANTIDOTE_HOME="${ZSHBOP_HOME}/antidote"
 	_debug "ANTIDOTE_PLUGINS: $ANTIDOTE_PLUGINS ANTIDOTE_STATIC:$ANTIDOTE_STATIC"

@@ -1,0 +1,38 @@
+{
+  "schedule_enabled": true,
+  "frequency": "daily",
+  "time": "03:00",
+  "day_of_week": "mon",
+  "day_of_month": 1,
+  "prune_containers": true,
+  "prune_images": true,
+  "prune_networks": true,
+  "prune_volumes": true,
+  "prune_build_cache": true,
+  "docker_hosts": [],
+  "notifications": {
+    "provider": "gotify",
+    "gotify": {
+      "enabled": false,
+      "url": "",
+      "token": ""
+    },
+    "ntfy": {
+      "enabled": false,
+      "url": "",
+      "topic": "",
+      "token": ""
+    },
+    "discord": {
+      "enabled": false,
+      "webhook_url": ""
+    },
+    "telegram": {
+      "enabled": false,
+      "bot_token": "",
+      "chat_id": ""
+    },
+    "priority": "medium",
+    "only_on_changes": true
+  }
+}

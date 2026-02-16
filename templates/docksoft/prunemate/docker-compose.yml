@@ -15,15 +15,6 @@ services:
     environment:
       - PRUNEMATE_TZ=UTC
       - PRUNEMATE_TIME_24H=true
-    networks:
-      - proxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prunemate.rule=Host(`{{FQDN}}`)"
-      - "traefik.http.routers.prunemate.entrypoints=websecure"
-      - "traefik.http.routers.prunemate.tls.certresolver=letsencrypt"
-      - "traefik.http.services.prunemate.loadbalancer.server.port=8080"
+      - PRUNEMATE_AUTH_USER=admin
+      - PRUNEMATE_AUTH_PASSWORD_HASH={{PRUNEMATE_AUTH_PASSWORD_HASH}}
 
-networks:
-  proxy:
-    external: true

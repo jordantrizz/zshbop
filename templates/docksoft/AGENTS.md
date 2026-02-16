@@ -49,6 +49,10 @@ Use:
 ### Traefik labels
 All non-traefik templates assume Traefik is deployed and can route by hostname.
 
+Exception:
+- `prunemate` is intentionally localhost-only and is **not** exposed via Traefik labels.
+- Keep its published port bound to `127.0.0.1`.
+
 Typical pattern:
 - Enable Traefik for the container
 - Route by `Host(`{{FQDN}}`)`
@@ -75,7 +79,7 @@ If the container needs persistence, mount volumes under that path, e.g.:
 
 ## Quick Checklist (when adding a new template)
 - Folder name matches the deploy command: `docksoft <folder-name>`
-- `docker-compose.yml` uses the `proxy` network and Traefik labels
+- `docker-compose.yml` uses the `proxy` network and Traefik labels (unless intentionally localhost-only, like `prunemate`)
 - Uses only `{{FQDN}}`, `{{DOMAIN}}`, `{{EMAIL}}` placeholders
 - Any published ports are explicit and numeric (so allocator can rewrite)
 - Persistent volumes live under `/srv/containers/<folder-name>/data`

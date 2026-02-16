@@ -480,7 +480,10 @@ function _docksoft_init () {
 
     # -- Create containers directory
     if [[ -d "$DOCKSOFT_CONTAINERS" ]]; then
-        _warning "Containers directory already exists: $DOCKSOFT_CONTAINERS"
+        _error "Containers directory already exists: $DOCKSOFT_CONTAINERS"
+        _warning "Stopping to protect existing container data."
+        _loading3 "Use a different path or move/backup existing data before running 'docksoft init'."
+        return 1
     else
         _loading2 "Creating containers directory: $DOCKSOFT_CONTAINERS"
         mkdir -p "$DOCKSOFT_CONTAINERS"

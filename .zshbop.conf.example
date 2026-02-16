@@ -15,10 +15,28 @@
 #export ZSHBOP_GIT_CHECK="1" # -- zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code.
 #export GIT_HOME="$HOME/git" # -- A location where you have all your git repositories.
 #ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik) # -- Git Repositores to update when running zshbop update
-#export -p ZSHBOP_UPDATE_GIT > /dev/null
+ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
+
+# =================================================================================================
+# -- IP Information Provider Configuration
+# * If you want to use the IP information provider features, set your provider and API keys
+# =================================================================================================
 #export ZSHBOP_IP_PROVIDER="ipinfo.io"
 #export ZSHBOP_IP_API_KEY=""
 #export ZSHBOP_IP_SCAM="" # API key for scamalytics.com
+
+# =================================================================================================
+# -- Additional omz plugins
+# =================================================================================================
+#plugins+=('universalarchive')
+
+# =================================================================================================
+# -- Antidote ZSH Plugins
+# =================================================================================================
+#export ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE="0" # -- Enable marlonrichert/zsh-autocomplete plugin
+#export ZSHBOP_PLUGIN_ZSH_AI_ENABLE="0" # -- Enable matheusml/zsh-ai plugin (requires AI provider API key)
+#export ZSH_AI_PROVIDER="gemini"
+#export GEMINI_API_KEY=""
 
 # =================================================================================================
 # -- NVM (Node Version Manager) Configuration
@@ -27,20 +45,23 @@
 #export ZSHBOP_NVM_LAZY="1"    # Lazy load NVM on first use (default when enabled, set to 0 for immediate load)
 #export NVM_DIR="$HOME/.nvm"   # Override NVM directory location
 
-# =================================================================================================
-# -- Basher (Shell Package Manager) Configuration
-# =================================================================================================
-#export ZSHBOP_BASHER_DISABLE="1"  # Disable Basher auto-initialization (enabled by default if ~/.basher exists)
 
 # =================================================================================================
 # -- Application settings
 # =================================================================================================
 
+# ===============================================
 # -- Exbin
+# ===============================================
 #export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting
 #export EXBIN_HOST="" # Exbin host, for netcat just the hostname and for api the full URL
 #export EXBIN_PORT="" # If you don't use the standard 9999 port for exbin.
 #export EXBIN
+
+# ===============================================
+# -- Basher (Shell Package Manager) Configuration
+# ===============================================
+#export ZSHBOP_BASHER_DISABLE="1"  # Disable Basher auto-initialization (enabled by default if ~/.basher exists)
 
 # =================================================================================================
 # -- Customizations - Add your customizations below
@@ -59,11 +80,6 @@
 #function init_custom_startup () {
 #
 #}
-
-# =================================================================================================
-# -- Additional omz plugins
-# =================================================================================================
-#plugins+=('universalarchive')
 
 # =================================================================================================
 # -- Custom zshbop directory
@@ -96,4 +112,3 @@ export NVM_DIR="$HOME/.nvm"
 
 # Uncomment for debugging .zshbop.conf loads
 # [[ -z $ZSHBOP_CONF_LOADED ]] && _debug "Loaded .zshbop.conf"
-
