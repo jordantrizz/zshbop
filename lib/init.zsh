@@ -121,14 +121,21 @@ init_add_path_dirs () {
 init_add_path () {
     _debug_all
     _debugf "Adding $1 to \$PATH"
-    # Check if $1 already in $PATH
-    if [[ $PATH == *$1* ]]; then
-        _debugf "Error - $1 already in \$PATH"
-    else
-        export PATH=$PATH:$1
-        _debugf "Success - Added $1 to \$PATH"        
-        _debugf "PATH has $(echo $PATH | tr ':' '\n' | wc -l) paths"
-    fi
+
+    local PATH_ENTRY
+    for PATH_ENTRY in ${(s/:/)1}; do
+        [[ -z "$PATH_ENTRY" ]] && continue
+
+        if (( ${path[(Ie)$PATH_ENTRY]} )); then
+            _debugf "Error - $PATH_ENTRY already in \$PATH"
+        else
+            path+=("$PATH_ENTRY")
+            _debugf "Success - Added $PATH_ENTRY to \$PATH"
+        fi
+    done
+
+    typeset -gU path PATH
+    _debugf "PATH has ${#path[@]} paths"
     init_log
 }
 
@@ -139,7 +146,8 @@ init_add_path () {
 init_fix_path () {
     _debug_all
     _debugf "Fixing \$PATH"
-    export PATH=$(echo $PATH | tr ':' '\n' | awk '!x[$0]++' | tr '\n' ':')
+    typeset -gU path PATH
+    path=("${(@s/:/)PATH}")
     _debugf "Fixed \$PATH"
     init_log
 }

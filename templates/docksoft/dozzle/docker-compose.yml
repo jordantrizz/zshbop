@@ -1,7 +1,7 @@
 services:
   dozzle:
     image: amir20/dozzle:latest
-    container_name: dozzle
+    container_name: {{CONTAINER_NAME}}
     restart: always
     ports:
       - "127.0.0.1:9999:8080"
@@ -11,10 +11,10 @@ services:
       - {{NETWORK}}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dozzle.rule=Host(`{{FQDN}}`)"
-      - "traefik.http.routers.dozzle.entrypoints=websecure"
-      - "traefik.http.routers.dozzle.tls.certresolver=letsencrypt"
-      - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.rule=Host(`{{FQDN}}`)"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.entrypoints=websecure"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.{{CONTAINER_NAME}}.loadbalancer.server.port=8080"
 
 networks:
   {{NETWORK}}:

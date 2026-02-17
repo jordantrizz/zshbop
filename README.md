@@ -39,6 +39,7 @@ Table of Contents
   - [Using zshbop Configuration File](#using-zshbop-configuration-file)
     - [Configuration Options](#configuration-options)
     - [Exbin](#exbin)
+    - [Internal Variables](#internal-variables)
   - [Custom Startup Scripts](#custom-startup-scripts)
 - [Installation Notes](#installation-notes)
   - [Operating System Installation Notes](#operating-system-installation-notes)
@@ -236,7 +237,13 @@ bash -c "$(curl -fsSL https://gist.githubusercontent.com/romkatv/aa7a70fe656d8b6
 # Configuration and Customization
 You can create a custom configuration file to override zshbop settings and variables. This is useful if you want to use a different plugin manager or override zshbop settings.
 ## Using zshbop Configuration File
-Copy ```.zshbop.config.example``` to ```$HOME/.zshbop.config``` and modify as needed.
+Copy ```.zshbop.conf.example``` to ```$HOME/.zshbop.conf``` and modify as needed.
+
+For PATH changes in ```$HOME/.zshbop.conf```, use direct PATH edits (for example: ```PATH="$PATH:$HOME/my/bin"```) because this file is loaded before helper commands are available. Use ```add-path``` interactively after startup.
+
+When ```ZBC``` is set in your config, zshbop will automatically:
+- Set ```ZBC_ROOT``` to the same value as ```$ZBC```
+- Add ```$ZBC/zbc.zsh``` to ```ZSHBOP_CUSTOM_SOURCES``` (deduplicated)
 
 ### Configuration Options
 | Variable        	| Description                                                | Values                     	| Default     	 |
@@ -277,7 +284,7 @@ These variables are set internally by zshbop and are available for use in script
 ##  Custom Startup Scripts
 You can create a custom startup script to run when zshbop starts. This is useful if you want to run a script that's not included in zshbop.
 
-Uncomment the following in ```$HOME/.zshbop.config```
+Uncomment the following in ```$HOME/.zshbop.conf```
 
 ```
 function init_custom_startup () {

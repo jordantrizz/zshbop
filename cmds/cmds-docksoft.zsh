@@ -50,6 +50,27 @@ function _docksoft_detect_network () {
 }
 
 # ==============================================================================
+# -- _docksoft_name_is_taken () - Check if instance name collides
+# ==============================================================================
+function _docksoft_name_is_taken () {
+    local candidate_name="$1"
+
+    [[ -z "$candidate_name" ]] && return 1
+
+    if [[ -d "$DOCKSOFT_CONTAINERS/$candidate_name" ]]; then
+        return 0
+    fi
+
+    if (( $+commands[docker] )); then
+        if docker ps -a --format '{{.Names}}' 2>/dev/null | grep -Fxq "$candidate_name"; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+# ==============================================================================
 # -- _docksoft_conf_ensure_network () - Persist DOCKSOFT_NETWORK into conf
 # ==============================================================================
 function _docksoft_conf_ensure_network () {
@@ -379,6 +400,78 @@ function _docksoft_compute_fqdn () {
 }
 
 # ==============================================================================
+# -- _docksoft_domain_label_count () - Count labels in a hostname
+# ==============================================================================
+function _docksoft_domain_label_count () {
+    local host="$1"
+
+    if [[ -z "$host" ]]; then
+        echo 0
+        return 0
+    fi
+
+    echo "$host" | awk -F'.' '{print NF}'
+    return 0
+}
+
+# ==============================================================================
+# -- _docksoft_hyphenate_fqdn () - Merge leading labels until 3 remain
+# ==============================================================================
+function _docksoft_hyphenate_fqdn () {
+    local fqdn="$1"
+    local label_count
+    local first_label=""
+    local remaining=""
+    local second_label=""
+    local trailing=""
+
+    label_count=$(_docksoft_domain_label_count "$fqdn")
+    while (( label_count > 3 )); do
+        first_label="${fqdn%%.*}"
+        remaining="${fqdn#*.}"
+        second_label="${remaining%%.*}"
+        trailing="${remaining#*.}"
+
+        if [[ "$trailing" == "$remaining" ]]; then
+            break
+        fi
+
+        fqdn="${first_label}-${second_label}.${trailing}"
+        label_count=$(_docksoft_domain_label_count "$fqdn")
+    done
+
+    echo "$fqdn"
+    return 0
+}
+
+# ==============================================================================
+# -- _docksoft_remove_host_label_fqdn () - Remove second label from deep FQDN
+# ==============================================================================
+function _docksoft_remove_host_label_fqdn () {
+    local fqdn="$1"
+    local first_label=""
+    local remainder_after_first=""
+    local remainder_after_second=""
+
+    if (( $(_docksoft_domain_label_count "$fqdn") < 4 )); then
+        echo "$fqdn"
+        return 0
+    fi
+
+    first_label="${fqdn%%.*}"
+    remainder_after_first="${fqdn#*.}"
+    remainder_after_second="${remainder_after_first#*.}"
+
+    if [[ "$remainder_after_second" == "$remainder_after_first" ]]; then
+        echo "$fqdn"
+        return 0
+    fi
+
+    echo "${first_label}.${remainder_after_second}"
+    return 0
+}
+
+# ==============================================================================
 # -- _docksoft_usage () - Print docksoft usage
 # ==============================================================================
 function _docksoft_usage () {
@@ -408,6 +501,7 @@ function _docksoft_usage () {
     echo "  docksoft list"
     echo "  docksoft traefik"
     echo "  docksoft uptime-kuma"
+    echo "  docksoft n8n"
     echo "  docksoft uptime-kuma --domain custom.example.com   # override FQDN"
     echo ""
     _docksoft_list
@@ -621,7 +715,8 @@ EOF
 # -- _docksoft_deploy () - Deploy a container from template
 # ==============================================================================
 function _docksoft_deploy () {
-    local container_name="$1"
+    local template_name="$1"
+    local container_name="$template_name"
     shift
 
     # -- Parse deploy options
@@ -632,7 +727,7 @@ function _docksoft_deploy () {
     [[ -n $opts_email ]] && override_email="${opts_email[-1]}"
     [[ -n $opts_domain ]] && override_domain="${opts_domain[-1]}"
 
-    _loading "Deploying container: $container_name"
+    _loading "Deploying container: $template_name"
 
     # -- Check if Docker is installed
     if (( ! $+commands[docker] )); then
@@ -659,39 +754,74 @@ function _docksoft_deploy () {
     _docksoft_conf_ensure_network "$DOCKSOFT_NETWORK" >/dev/null 2>&1
 
     # -- Check if template exists
-    if [[ ! -d "$DOCKSOFT_TEMPLATES/$container_name" ]]; then
-        _error "No template found for '$container_name'"
+    if [[ ! -d "$DOCKSOFT_TEMPLATES/$template_name" ]]; then
+        _error "No template found for '$template_name'"
         _loading2 "Run 'docksoft list' to see available templates"
         return 1
     fi
 
     # -- Check if traefik is deployed (required for all containers except traefik itself)
     # Consider it deployed only if the compose file exists.
-    if [[ "$container_name" != "traefik" ]] && [[ ! -f "$DOCKSOFT_CONTAINERS/traefik/docker-compose.yml" ]]; then
+    if [[ "$template_name" != "traefik" ]] && [[ ! -f "$DOCKSOFT_CONTAINERS/traefik/docker-compose.yml" ]]; then
         _error "Traefik is not deployed. Deploy traefik first: docksoft traefik"
         return 1
     fi
 
-    # -- Check if container already exists
-    if [[ -d "$DOCKSOFT_CONTAINERS/$container_name" ]]; then
-        if [[ -f "$DOCKSOFT_CONTAINERS/$container_name/docker-compose.yml" ]]; then
-            _warning "Container '$container_name' already exists at $DOCKSOFT_CONTAINERS/$container_name"
-        else
-            _warning "Folder exists but docker-compose.yml is missing: $DOCKSOFT_CONTAINERS/$container_name"
-            _loading3 "If this is a partial deploy, remove the folder and re-run docksoft"
+    # -- Check if instance name already exists and prompt for a new one
+    local prompted_for_new_name=0
+    local new_name=""
+    while _docksoft_name_is_taken "$container_name"; do
+        if [[ -d "$DOCKSOFT_CONTAINERS/$container_name" ]]; then
+            if [[ -f "$DOCKSOFT_CONTAINERS/$container_name/docker-compose.yml" ]]; then
+                _warning "Container '$container_name' already exists at $DOCKSOFT_CONTAINERS/$container_name"
+            else
+                _warning "Folder exists but docker-compose.yml is missing: $DOCKSOFT_CONTAINERS/$container_name"
+                _loading3 "If this is a partial deploy, remove the folder and re-run docksoft"
+            fi
         fi
-        return 1
+
+        if docker ps -a --format '{{.Names}}' 2>/dev/null | grep -Fxq "$container_name"; then
+            _warning "A Docker container named '$container_name' already exists"
+        fi
+
+        read "new_name?Enter a new container name: "
+        if [[ -z "$new_name" ]]; then
+            _warning "Container name cannot be empty"
+            continue
+        fi
+
+        if ! echo "$new_name" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9_.-]*$'; then
+            _warning "Invalid name. Use letters, numbers, dot, underscore, or hyphen"
+            continue
+        fi
+
+        container_name="$new_name"
+        prompted_for_new_name=1
+    done
+
+    if [[ $prompted_for_new_name -eq 1 ]]; then
+        _loading3 "Using instance name: $container_name"
     fi
 
     # -- Read template's docksoft.conf for subdomain prefix
     local tpl_subdomain="$container_name"
-    if [[ -f "$DOCKSOFT_TEMPLATES/$container_name/docksoft.conf" ]]; then
-        source "$DOCKSOFT_TEMPLATES/$container_name/docksoft.conf"
+    if [[ -f "$DOCKSOFT_TEMPLATES/$template_name/docksoft.conf" ]]; then
+        source "$DOCKSOFT_TEMPLATES/$template_name/docksoft.conf"
         [[ -n "$DOCKSOFT_SUBDOMAIN" ]] && tpl_subdomain="$DOCKSOFT_SUBDOMAIN"
+    fi
+
+    # -- If deploy name was changed due to conflict, use the new instance name
+    # as subdomain to avoid FQDN overlap between multiple instances.
+    if [[ $prompted_for_new_name -eq 1 ]]; then
+        tpl_subdomain="$container_name"
     fi
 
     # -- Compute FQDN
     local fqdn=""
+    local fqdn_label_count=0
+    local hyphenated_fqdn=""
+    local hostless_fqdn=""
+    local fqdn_action=""
     if [[ -n "$override_domain" ]]; then
         # -- User explicitly overrode the domain
         fqdn="$override_domain"
@@ -704,19 +834,67 @@ function _docksoft_deploy () {
         _loading3 "Computed FQDN ($DOCKSOFT_MODE mode): $fqdn"
     fi
 
+    # -- If FQDN is deeper than a single wildcard level, prompt user.
+    # Example overlap risk: n8n-dev.docker01.example.com
+    fqdn_label_count=$(_docksoft_domain_label_count "$fqdn")
+    if (( fqdn_label_count > 3 )); then
+        hyphenated_fqdn=$(_docksoft_hyphenate_fqdn "$fqdn")
+        hostless_fqdn=$(_docksoft_remove_host_label_fqdn "$fqdn")
+        _warning "FQDN '$fqdn' has ${fqdn_label_count} labels and may not match Cloudflare wildcard coverage"
+        _loading3 "Choose proceed, hyphenate, or drop host label"
+        _loading3 "Proceed: $fqdn"
+        _loading3 "Hyphenate: $hyphenated_fqdn"
+        _loading3 "Drop host label: $hostless_fqdn"
+
+        while true; do
+            read "fqdn_action?Choose FQDN [p/h/d/cancel] (h): "
+            fqdn_action="${fqdn_action:l}"
+
+            case "$fqdn_action" in
+                ""|h|hyphenate)
+                    fqdn="$hyphenated_fqdn"
+                    _loading3 "Using hyphenated FQDN: $fqdn"
+                    break
+                    ;;
+                d|drop)
+                    fqdn="$hostless_fqdn"
+                    _loading3 "Using hostless FQDN: $fqdn"
+                    break
+                    ;;
+                p|proceed)
+                    _loading3 "Proceeding with FQDN: $fqdn"
+                    break
+                    ;;
+                c|cancel)
+                    _warning "Deployment cancelled"
+                    return 1
+                    ;;
+                *)
+                    _warning "Please enter 'p', 'h', 'd', or 'cancel'"
+                    ;;
+            esac
+        done
+    fi
+
     # -- Determine email
     local email="${override_email:-$DOCKSOFT_EMAIL}"
 
     # -- Copy template to containers directory
     _loading2 "Copying template to $DOCKSOFT_CONTAINERS/$container_name"
-    cp -r "$DOCKSOFT_TEMPLATES/$container_name" "$DOCKSOFT_CONTAINERS/$container_name"
+    cp -r "$DOCKSOFT_TEMPLATES/$template_name" "$DOCKSOFT_CONTAINERS/$container_name"
     if [[ $? -ne 0 ]]; then
-        _error "Failed to copy template for '$container_name'"
+        _error "Failed to copy template for '$template_name'"
         return 1
     fi
 
     # -- Remove template's docksoft.conf from deployed copy
     rm -f "$DOCKSOFT_CONTAINERS/$container_name/docksoft.conf"
+
+    # -- Replace {{CONTAINER_NAME}} placeholder
+    if grep -rq '{{CONTAINER_NAME}}' "$DOCKSOFT_CONTAINERS/$container_name/" 2>/dev/null; then
+        find "$DOCKSOFT_CONTAINERS/$container_name" -type f -exec sed -i "s/{{CONTAINER_NAME}}/$container_name/g" {} +
+        _loading3 "Replaced {{CONTAINER_NAME}} with $container_name"
+    fi
 
     # -- Replace {{FQDN}} placeholder
     if grep -rq '{{FQDN}}' "$DOCKSOFT_CONTAINERS/$container_name/" 2>/dev/null; then

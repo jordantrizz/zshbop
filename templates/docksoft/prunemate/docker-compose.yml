@@ -1,7 +1,7 @@
 services:
   prunemate:
     image: anoniemerd/prunemate:latest
-    container_name: prunemate
+    container_name: {{CONTAINER_NAME}}
     restart: always
     ports:
       # Default host port per upstream docs is 7676; docksoft will auto-bump if already in use.
@@ -10,8 +10,8 @@ services:
       # PruneMate likely needs Docker access to prune resources.
       - /var/run/docker.sock:/var/run/docker.sock
       # Persist logs + config under docksoft's standard data directory.
-      - /srv/containers/prunemate/data/logs:/var/log
-      - /srv/containers/prunemate/data/config:/config
+      - /srv/containers/{{CONTAINER_NAME}}/data/logs:/var/log
+      - /srv/containers/{{CONTAINER_NAME}}/data/config:/config
     environment:
       - PRUNEMATE_TZ=UTC
       - PRUNEMATE_TIME_24H=true

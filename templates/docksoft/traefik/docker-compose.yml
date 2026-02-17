@@ -1,7 +1,7 @@
 services:
   traefik:
     image: traefik:latest
-    container_name: traefik
+    container_name: {{CONTAINER_NAME}}
     restart: always
     ports:
       - "80:80"

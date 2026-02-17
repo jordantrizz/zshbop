@@ -2,6 +2,7 @@
 
 ## Project Notes
 * Always create a git commit message for each change made, use the format feat, fix, docs, style, refactor, perf, test, chore.
+* Use Git Kraken to git commit and push changes to the repository, avoid using the command line for git operations.
 * Use semantic versioning for releases, increment major, minor, patch as needed.
 * Maintain a changelog for each release, documenting new features, bug fixes, and improvements.
 * For authoring docksoft container templates, follow: `templates/docksoft/AGENTS.md`

@@ -1,0 +1,38 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: {{CONTAINER_NAME}}
+    restart: always
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - /srv/containers/{{CONTAINER_NAME}}/data:/home/node/.n8n
+    environment:
+      - N8N_ENCRYPTION_KEY={{N8N_ENCRYPTION_KEY}}
+      - N8N_HOST={{FQDN}}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://{{FQDN}}/
+      - GENERIC_TIMEZONE=UTC
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      # SMTP settings (optional)
+      # - N8N_SMTP_HOST=smtp.example.com
+      # - N8N_SMTP_PORT=587
+      # - N8N_SMTP_USER=your-user
+      # - N8N_SMTP_PASS=your-password
+      # - N8N_SMTP_SENDER=n8n@example.com
+      # - N8N_SMTP_SSL=false
+      # - N8N_SMTP_STARTTLS=true
+    networks:
+      - {{NETWORK}}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.rule=Host(`{{FQDN}}`)"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.entrypoints=websecure"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.{{CONTAINER_NAME}}.loadbalancer.server.port=5678"
+
+networks:
+  {{NETWORK}}:
+    external: true

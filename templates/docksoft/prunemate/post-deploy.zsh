@@ -1,7 +1,7 @@
-compose_file="$DOCKSOFT_CONTAINERS/prunemate/docker-compose.yml"
-credentials_file="$DOCKSOFT_CONTAINERS/prunemate/admin-credentials.txt"
-default_config_source="$DOCKSOFT_CONTAINERS/prunemate/config.json"
-runtime_config_dir="$DOCKSOFT_DATA/prunemate/data/config"
+compose_file="$DOCKSOFT_CONTAINERS/{{CONTAINER_NAME}}/docker-compose.yml"
+credentials_file="$DOCKSOFT_CONTAINERS/{{CONTAINER_NAME}}/admin-credentials.txt"
+default_config_source="$DOCKSOFT_CONTAINERS/{{CONTAINER_NAME}}/config.json"
+runtime_config_dir="$DOCKSOFT_DATA/{{CONTAINER_NAME}}/data/config"
 runtime_config_file="$runtime_config_dir/config.json"
 
 if (( ! $+commands[docker] )); then

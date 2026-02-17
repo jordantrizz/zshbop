@@ -469,7 +469,7 @@ zshbop_custom-load () {
             export ZSHBOP_CONF_LOADED=1
         fi
     else
-        # -- Check for $HOME/.zshbop.config, load last to allow overwritten core functions
+        # -- Check for $HOME/.zshbop.conf, load last to allow overwritten core functions
         _log "Checking for $HOME/.zshbop.conf"
         if [[ -f $HOME/.zshbop.conf && -z $ZSHBOP_CONF_LOADED ]]; then
             ZSHBOP_CUSTOM_CFG="$HOME/.zshbop.conf"
@@ -478,6 +478,15 @@ zshbop_custom-load () {
             export ZSHBOP_CONF_LOADED=1
         elif [[ ! -f $HOME/.zshbop.conf ]]; then
             _warning "No custom zshbop config found. Type zshbop custom for more information"
+        fi
+    fi
+
+    # If custom directory is set, map legacy ZBC -> ZBC_ROOT and auto-source zbc.zsh
+    if [[ -n $ZBC ]]; then
+        export ZBC_ROOT="$ZBC"
+        typeset -ga ZSHBOP_CUSTOM_SOURCES
+        if (( ${ZSHBOP_CUSTOM_SOURCES[(Ie)$ZBC/zbc.zsh]} == 0 )); then
+            ZSHBOP_CUSTOM_SOURCES+=("$ZBC/zbc.zsh")
         fi
     fi
 

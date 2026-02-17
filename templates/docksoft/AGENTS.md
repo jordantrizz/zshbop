@@ -23,6 +23,7 @@ This is used in **multi** mode to compute the deployed FQDN as `<subdomain>.<bas
 
 ## Supported Placeholders
 During deploy, docksoft replaces these placeholders anywhere in the deployed files:
+- `{{CONTAINER_NAME}}` (the final container instance name selected for this deployment)
 - `{{FQDN}}` (the computed/overridden FQDN for this service)
 - `{{DOMAIN}}` (the base domain from docksoft config)
 - `{{EMAIL}}` (docksoft email, or override)

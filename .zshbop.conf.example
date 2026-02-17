@@ -6,62 +6,28 @@
 # =================================================================================================
 
 # =================================================================================================
-# -- ZSHBOP Configuration
-# Default configuration options that can be overriden
+# -- ZSHBOP Core Configuration
 # =================================================================================================
 #export ZSHBOP_ROOT="" # -- Override ZSHBOP Installation directory
 #export ZSHBOP_CUSTOM_SSHKEY="" # -- Set a custom SSH key to be loaded
 #export ZSHBOP_PLUGIN_MANAGER="init_antidote" # -- Override plugin manager, can be init_antidote or init_antigen
-#export ZSHBOP_GIT_CHECK="1" # -- zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code.
 #export GIT_HOME="$HOME/git" # -- A location where you have all your git repositories.
-#ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik) # -- Git Repositores to update when running zshbop update
-ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
 
-# =================================================================================================
-# -- IP Information Provider Configuration
-# * If you want to use the IP information provider features, set your provider and API keys
-# =================================================================================================
-#export ZSHBOP_IP_PROVIDER="ipinfo.io"
-#export ZSHBOP_IP_API_KEY=""
-#export ZSHBOP_IP_SCAM="" # API key for scamalytics.com
+# -- ZSHBOP Features Configuration
+#export ZSHBOP_GIT_CHECK="1" # -- zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code.
+#export ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
 
-# =================================================================================================
-# -- Additional omz plugins
-# =================================================================================================
-#plugins+=('universalarchive')
-
-# =================================================================================================
-# -- Antidote ZSH Plugins
-# =================================================================================================
-#export ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE="0" # -- Enable marlonrichert/zsh-autocomplete plugin
-#export ZSHBOP_PLUGIN_ZSH_AI_ENABLE="0" # -- Enable matheusml/zsh-ai plugin (requires AI provider API key)
-#export ZSH_AI_PROVIDER="gemini"
-#export GEMINI_API_KEY=""
-
-# =================================================================================================
-# -- NVM (Node Version Manager) Configuration
-# =================================================================================================
-#export ZSHBOP_NVM_ENABLE="1"  # Enable NVM initialization (disabled by default)
-#export ZSHBOP_NVM_LAZY="1"    # Lazy load NVM on first use (default when enabled, set to 0 for immediate load)
-#export NVM_DIR="$HOME/.nvm"   # Override NVM directory location
-
-
-# =================================================================================================
-# -- Application settings
-# =================================================================================================
-
-# ===============================================
-# -- Exbin
-# ===============================================
+# -- ZSHBOP Exbin
 #export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting
 #export EXBIN_HOST="" # Exbin host, for netcat just the hostname and for api the full URL
 #export EXBIN_PORT="" # If you don't use the standard 9999 port for exbin.
 #export EXBIN
 
-# ===============================================
-# -- Basher (Shell Package Manager) Configuration
-# ===============================================
-#export ZSHBOP_BASHER_DISABLE="1"  # Disable Basher auto-initialization (enabled by default if ~/.basher exists)
+# -- ZSHBOP IP Geolocation Provider
+# * If you want to use the IP information provider features, set your provider and API keys
+#export ZSHBOP_IP_PROVIDER="ipinfo.io"
+#export ZSHBOP_IP_API_KEY=""
+#export ZSHBOP_IP_SCAM="" # API key for scamalytics.com
 
 # =================================================================================================
 # -- Customizations - Add your customizations below
@@ -69,40 +35,68 @@ ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
 # * If you create a kb dir in $ZBC it will be included in kb
 # =================================================================================================
 
-# -- Add more paths
-#export PATH=$PATH:$HOME/git/sitecachecheck
+# ===============================================
+# -- Additional omz plugins
+# ===============================================
+#plugins+=('universalarchive' 'git')
 
-# =================================================================================================
-# -- Custom startup function
-# * Define _init_custom_startup to run your code when ZSHBOP starts.
-# =================================================================================================
+# ===============================================
+# -- Antidote ZSH Plugins
+# ===============================================
+#export ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE="0" # -- Enable marlonrichert/zsh-autocomplete plugin
+#export ZSHBOP_PLUGIN_ZSH_AI_ENABLE="0" # -- Enable matheusml/zsh-ai plugin (requires AI provider API key)
+#export ZSH_AI_PROVIDER="gemini"
+#export GEMINI_API_KEY=""
+
+# ===============================================
+# -- NVM (Node Version Manager) Configuration
+# ===============================================
+#export ZSHBOP_NVM_ENABLE="1"  # Enable NVM initialization (disabled by default)
+#export ZSHBOP_NVM_LAZY="1"    # Lazy load NVM on first use (default when enabled, set to 0 for immediate load)
+#export NVM_DIR="$HOME/.nvm"   # Override NVM directory location
+
+# ===============================================
+# -- Basher (Shell Package Manager) Configuration
+# ===============================================
+#export ZSHBOP_BASHER_DISABLE="1"  # Disable Basher auto-initialization (enabled by default if ~/.basher exists)
+
+# ===============================================
+# -- ZSHBOP Git Repositories to Update
+# ===============================================
+export -p ZSHBOP_UPDATE_GIT > /dev/null
+#ZSHBOP_UPDATE_GIT=(${HOME}/git/cloudflare-cli ${GIT_HOME}/plik) # -- Git Repositores to update when running zshbop update
+
+# ===============================================
+# -- ZSHBOP Custom startup function
+# Define _init_custom_startup to run your code when ZSHBOP starts.
+# Note, this runs near the end of startup after core, plugins, and custom sources are loaded.
+# ===============================================
 
 #function init_custom_startup () {
 #
 #}
 
-# =================================================================================================
-# -- Custom zshbop directory
-# * Setup custom directory for scripts and other configuration, source any files you require.
-# * If you use $ZBC, then zshbop will check if it's a git repository and update it when you 'update' zshbop
-# =================================================================================================
-#ZBC="$HOME/git/zshbop-custom"
-#ZSHBOP_CUSTOM_SOURCES=(
-#    "$ZBC/init.zsh"
-#    # Add more custom files to source after core init
-#)
+# ===============================================
+# -- ZSHBOP Custom directory
+# Custom scripts and code to be sourced by ZSHBOP.
+# If a git repository, will be updated you 'update' zshbop
+# Must have a zbc.sh file in the root to be auto-sourced
+# ===============================================
+export ZBC="$HOME/git/zshbop-custom"
 
-# Example: defer sourcing to post-init via ZSHBOP_CUSTOM_SOURCES
+# ===============================================
+# -- ZSHBOP Custom Sources
+# Add any custom zsh scripts you want to be loaded on zshbop startup
+# These will be loaded after zshbop core and plugins are loaded
+# ===============================================
 #ZSHBOP_CUSTOM_SOURCES+=("${GIT_HOME}/test/test.zsh")
 
+# ===============================================
 # -- Add more paths
-#export PATH=$PATH:$HOME/git/sitecachecheck
-PATH=$PATH:$HOME/.basher/bin
-
-# -- NVM Config
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
+# .zshbop.conf loads before helper commands like add-path are available.
+# Add paths directly here and zshbop startup will de-duplicate PATH entries.
+# ===============================================
+# PATH="$PATH:$HOME/git/sitecachecheck"
 
 # =================================================================================================
 # =================================================================================================
