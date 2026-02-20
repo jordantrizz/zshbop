@@ -8,6 +8,7 @@ _debug " -- Loading ${(%):-%N}"
 help_files[core]='Core commands'
 typeset -gA help_core
 help_core[kb]='Knowledge Base'
+help_core[antidote-debug]='Generate antidote/auto-ls debug report'
 
 # =====================================
 # -- os - return os
@@ -224,4 +225,146 @@ function mise-uvx-check () {
 
     _warning "uvx command not found in PATH"
     return 1
+}
+
+# ==================================================
+# -- antidote-debug
+# ==================================================
+function antidote-debug () {
+    local -a opts_help opts_output
+    zparseopts -D -E -- h=opts_help -help=opts_help o:=opts_output -output:=opts_output
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: antidote-debug [-h|--help] [-o|--output <path>]"
+        return 0
+    fi
+
+    local timestamp output_file output_arg output_dir plugin_file filter_pattern
+    timestamp="$(date +%Y%m%d-%H%M%S 2>/dev/null)"
+    [[ -z "$timestamp" ]] && timestamp="unknown-time"
+
+    output_file="${ZSHBOP_ROOT}/debug/antidote-debug-${timestamp}.log"
+
+    if [[ -n ${opts_output[-1]} ]]; then
+        output_arg="${opts_output[-1]}"
+        if [[ "$output_arg" == --output=* ]]; then
+            output_arg="${output_arg#--output=}"
+        fi
+        if [[ "$output_arg" != "-o" && "$output_arg" != "--output" && -n "$output_arg" ]]; then
+            output_file="$output_arg"
+        fi
+    fi
+
+    output_dir="$(dirname "$output_file" 2>/dev/null)"
+    if [[ -n "$output_dir" ]]; then
+        mkdir -p "$output_dir" 2>/dev/null || true
+    fi
+
+    if ! : > "$output_file" 2>/dev/null; then
+        _error "antidote-debug: unable to write output file $output_file"
+        return 1
+    fi
+
+    plugin_file="${ZSHBOP_ROOT}/.zsh_plugins.txt"
+    filter_pattern='auto-ls|autosuggestions|syntax-highlighting|ohmyzsh|H-S-MW'
+
+    {
+        echo "=== antidote-debug report ==="
+        echo ""
+        echo "1) Runtime info"
+        echo "date: $(date 2>/dev/null || echo "WARNING: date unavailable")"
+        echo "host: $(hostname 2>/dev/null || echo "WARNING: hostname unavailable")"
+        echo "user: $(whoami 2>/dev/null || echo "WARNING: whoami unavailable")"
+        echo "pwd: $PWD"
+        echo "shell: $SHELL"
+        echo "zsh version: $ZSH_VERSION"
+        echo ""
+        echo "2) Env"
+        echo "TERM_PROGRAM=${TERM_PROGRAM:-}"
+        echo "VSCODE_IPC_HOOK_CLI=${VSCODE_IPC_HOOK_CLI:-}"
+        echo "ZSHBOP_RELOAD=${ZSHBOP_RELOAD:-}"
+        echo "ZSHBOP_INITIALIZED=${ZSHBOP_INITIALIZED:-}"
+        echo "ZSHBOP_TERMINAL=${ZSHBOP_TERMINAL:-}"
+        echo ""
+        echo "3) zshbop vars"
+        echo "ZSHBOP_PLUGIN_MANAGER=${ZSHBOP_PLUGIN_MANAGER:-}"
+        echo "ZSHBOP_ROOT=${ZSHBOP_ROOT:-}"
+        echo "ZB_LOG=${ZB_LOG:-}"
+        echo ""
+        echo "4) .zsh_plugins.txt with line numbers"
+        if [[ -f "$plugin_file" ]]; then
+            if (( $+commands[nl] )); then
+                nl -ba "$plugin_file"
+            elif (( $+commands[awk] )); then
+                awk '{printf "%6d  %s\\n", NR, $0}' "$plugin_file"
+            else
+                echo "WARNING: nl/awk unavailable, showing raw file"
+                cat "$plugin_file" 2>/dev/null || echo "WARNING: unable to read $plugin_file"
+            fi
+        else
+            echo "WARNING: missing file $plugin_file"
+        fi
+        echo ""
+        echo "5) antidote checks"
+        echo "whence -a antidote:"
+        whence -a antidote 2>/dev/null || echo "WARNING: whence failed for antidote"
+        if (( $+commands[antidote] )); then
+            echo "antidote home:"
+            antidote home 2>/dev/null || echo "WARNING: antidote home failed"
+            echo "antidote list:"
+            antidote list 2>/dev/null || echo "WARNING: antidote list failed"
+        else
+            echo "WARNING: antidote command not found"
+        fi
+        echo ""
+        echo "6) antidote load excerpt"
+        if [[ -f "$plugin_file" ]]; then
+            grep -inE "$filter_pattern" "$plugin_file" 2>/dev/null || echo "WARNING: no matches in $plugin_file"
+        else
+            echo "WARNING: missing file $plugin_file"
+        fi
+        if (( $+commands[antidote] )) && [[ -f "$plugin_file" ]]; then
+            antidote load < "$plugin_file" 2>/dev/null | grep -inE "$filter_pattern" 2>/dev/null || echo "WARNING: no matches in antidote load output"
+        elif (( $+commands[antidote] )); then
+            echo "WARNING: missing file $plugin_file, cannot inspect antidote load output"
+        else
+            echo "WARNING: antidote command not found, cannot inspect antidote load output"
+        fi
+        echo ""
+        echo "7) auto-ls checks"
+        echo "AUTO_LS_CHPWD=${AUTO_LS_CHPWD:-}"
+        if typeset -p AUTO_LS_COMMANDS >/dev/null 2>&1; then
+            typeset -p AUTO_LS_COMMANDS
+        else
+            echo "WARNING: AUTO_LS_COMMANDS not set"
+        fi
+        echo "whence -f _detect_ls:"
+        whence -f _detect_ls 2>/dev/null || echo "WARNING: _detect_ls not found"
+        echo "whence -f auto-ls-color:"
+        whence -f auto-ls-color 2>/dev/null || echo "WARNING: auto-ls-color not found"
+        echo "alias ls:"
+        alias ls 2>/dev/null || echo "WARNING: alias ls not set"
+        echo ""
+        echo "8) key/widget/hook checks"
+        if [[ -o interactive ]]; then
+            echo "bindkey '^M':"
+            bindkey '^M' 2>/dev/null || echo "WARNING: bindkey '^M' failed"
+            echo "zle matches (accept-line|auto-ls|autosuggest):"
+            if zle -la >/dev/null 2>&1; then
+                zle -la 2>/dev/null | grep -iE 'accept-line|auto-ls|autosuggest' || echo "WARNING: no zle matches found"
+            else
+                echo "WARNING: zle not available"
+            fi
+        else
+            echo "WARNING: non-interactive shell; skipping bindkey/zle checks"
+        fi
+        if typeset -p chpwd_functions >/dev/null 2>&1; then
+            typeset -p chpwd_functions
+        else
+            echo "WARNING: chpwd_functions not set"
+        fi
+    } >> "$output_file" 2>&1
+
+    _success "antidote-debug report written to $output_file"
+    return 0
 }

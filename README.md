@@ -20,6 +20,8 @@ Table of Contents
     - [zshbop Quick Commands](#zshbop-quick-commands)
     - [zshbop Commands](#zshbop-commands)
   - [Debugging](#debugging)
+    - [Antidote Debug Report](#antidote-debug-report)
+  - [Terminal Initialization Behavior](#terminal-initialization-behavior)
 - [Installation](#installation)
   - [Install Guided](#install-guided)
   - [Install Usage](#install-usage)
@@ -140,6 +142,31 @@ These commands are shortened aliases for zshbop commands
 ## Debugging
 You can use the function `zbdebug` on the CLI and `_debugf` within any function to print out debug information.
 
+### Antidote Debug Report
+Use `antidote-debug` to generate a full runtime report for antidote, auto-ls, widget bindings, and shell init state.
+
+```bash
+antidote-debug
+```
+
+Default output path:
+
+```bash
+$ZSHBOP_ROOT/debug/antidote-debug-YYYYmmdd-HHMMSS.log
+```
+
+Optional custom output path:
+
+```bash
+antidote-debug -o /tmp/antidote-debug.log
+```
+
+Help:
+
+```bash
+antidote-debug -h
+```
+
 ### mise / uvx troubleshooting
 If `mise list` shows `uv` but `uvx` is not found by other tools, run:
 
@@ -155,6 +182,14 @@ zbdebug os-binary
 ```
 
 The function `os-binary` has a `_debugf "No binary specified"` which is printed out when `zbdebug` is called with the argument `os-binary`.
+
+## Terminal Initialization Behavior
+- VSCode shells are detected when `TERM_PROGRAM=vscode` or `VSCODE_IPC_HOOK_CLI` is set.
+- In VSCode, zshbop forces the reload path so shell integration/re-source events still execute the expected initialization path.
+- In normal shells, initialization runs once per shell and later re-sources are skipped unless reload is explicitly requested.
+- If `AUTO_LS_CHPWD=false`, auto-listing happens on Enter (`accept-line`) rather than on directory change hooks.
+- To troubleshoot, check: `echo $TERM_PROGRAM`, `echo $VSCODE_IPC_HOOK_CLI`, `echo $ZSHBOP_RELOAD`, `echo $ZSHBOP_INITIALIZED`.
+- To opt out of VSCode shell-specific behavior, set `ZSHBOP_DISABLE_VSCODE_SHELL=1` in your config before initialization.
 
 # Installation
 
