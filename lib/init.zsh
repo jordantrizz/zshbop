@@ -349,6 +349,26 @@ function init_antidote () {
 
     if [[ "${ZSHBOP_PLUGIN_ZSH_AI_ENABLE}" == "1" ]]; then
         _log "Antidote: enabling matheusml/zsh-ai"
+        awk '
+            BEGIN { found = 0 }
+            /^[[:space:]]*#[[:space:]]*matheusml\/zsh-ai([[:space:]]|$)/ {
+                print "matheusml/zsh-ai"
+                found = 1
+                next
+            }
+            /^[[:space:]]*matheusml\/zsh-ai([[:space:]]|$)/ {
+                print "matheusml/zsh-ai"
+                found = 1
+                next
+            }
+            { print }
+            END {
+                if (found == 0) {
+                    print "matheusml/zsh-ai"
+                }
+            }
+        ' "${antidote_plugins_effective}" > "${antidote_plugins_tmp}"
+        mv "${antidote_plugins_tmp}" "${antidote_plugins_effective}"
     else
         _log "Antidote: disabling matheusml/zsh-ai (set ZSHBOP_PLUGIN_ZSH_AI_ENABLE=1 to enable)"
         awk '!/^[[:space:]]*matheusml\/zsh-ai([[:space:]]|$)/ { print }' "${antidote_plugins_effective}" > "${antidote_plugins_tmp}"
@@ -381,6 +401,20 @@ function init_antidote () {
         _log "Antidote: disabling marlonrichert/zsh-autocomplete (set ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE=1 to enable)"
         awk '!/^[[:space:]]*marlonrichert\/zsh-autocomplete([[:space:]]|$)/ { print }' "${antidote_plugins_effective}" > "${antidote_plugins_tmp}"
         mv "${antidote_plugins_tmp}" "${antidote_plugins_effective}"
+    fi
+
+    local -a enabled_zsh_plugins
+
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AI_ENABLE}" == "1" ]] && grep -Eq '^[[:space:]]*matheusml/zsh-ai([[:space:]]|$)' "${antidote_plugins_effective}"; then
+        enabled_zsh_plugins+=("zsh-ai")
+    fi
+
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE}" == "1" ]] && grep -Eq '^[[:space:]]*marlonrichert/zsh-autocomplete([[:space:]]|$)' "${antidote_plugins_effective}"; then
+        enabled_zsh_plugins+=("zsh-autocomplete")
+    fi
+
+    if (( ${#enabled_zsh_plugins[@]} > 0 )); then
+        _loading2 "Enabled plugins: ${enabled_zsh_plugins[*]}"
     fi
 	
 	# -- load antidote
@@ -884,6 +918,64 @@ function init_last () {
 # ==============================================
 # -- init_mise - activate mise runtime manager if present
 # ==============================================
+function _init_mise_ensure_uvx_symlink () {
+    local mise_bin
+    if command -v mise >/dev/null 2>&1; then
+        mise_bin="$(command -v mise)"
+    elif [[ -x "$HOME/.local/bin/mise" ]]; then
+        mise_bin="$HOME/.local/bin/mise"
+    else
+        _debug "mise not found while checking uvx symlink"
+        return 0
+    fi
+
+    local resolved_uvx
+    resolved_uvx="$($mise_bin which uvx 2>/dev/null)"
+    if [[ $? -ne 0 || -z "$resolved_uvx" ]]; then
+        _debug "uvx is not available via mise; skipping ~/bin/uvx symlink"
+        return 0
+    fi
+
+    if ! mkdir -p "$HOME/bin" 2>/dev/null; then
+        _warning "Unable to create $HOME/bin for uvx symlink"
+        return 1
+    fi
+
+    local link_path
+    link_path="$HOME/bin/uvx"
+
+    local target
+    local shim_target
+    shim_target="$HOME/.local/share/mise/shims/uvx"
+    if [[ -x "$shim_target" || -L "$shim_target" ]]; then
+        target="$shim_target"
+    else
+        target="$resolved_uvx"
+    fi
+
+    if [[ -e "$link_path" && ! -L "$link_path" ]]; then
+        _warning "$link_path exists and is not a symlink; leaving as-is"
+        return 1
+    fi
+
+    if [[ -L "$link_path" ]]; then
+        local current_target
+        current_target="$(readlink "$link_path" 2>/dev/null)"
+        if [[ "$current_target" == "$target" ]]; then
+            _debug "uvx symlink already correct: $link_path -> $target"
+            return 0
+        fi
+    fi
+
+    if ln -sfn "$target" "$link_path" 2>/dev/null; then
+        _success "Linked $link_path -> $target"
+        return 0
+    fi
+
+    _warning "Failed to create $link_path symlink"
+    return 1
+}
+
 function init_mise () {
     _debug_all
 
@@ -910,7 +1002,17 @@ function init_mise () {
     activate_out="$($mise_bin activate zsh 2>/dev/null)"
     if [[ $? -eq 0 && -n "$activate_out" ]]; then
         eval "$activate_out"
-        _success "mise activated"
+        local hook_env_out
+        hook_env_out="$($mise_bin hook-env -s zsh 2>/dev/null)"
+        if [[ $? -eq 0 ]]; then
+            if [[ -n "$hook_env_out" ]]; then
+                eval "$hook_env_out"
+            fi
+            _init_mise_ensure_uvx_symlink
+            _success "mise activated"
+        else
+            _warning "mise activated but hook-env failed"
+        fi
     else
         _warning "mise activation failed"
     fi

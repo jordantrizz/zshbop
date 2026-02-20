@@ -14,6 +14,7 @@ function terminal-checks () {
     # Run IDE-specific integrations
     case "$ZSHBOP_TERMINAL" in
         vscode)
+            _loading3 "Detected Visual Studio Code shell"
             if [[ "$ZSHBOP_DISABLE_VSCODE_SHELL" == "1" ]]; then
                 terminal-disable-vscode-shell
             else

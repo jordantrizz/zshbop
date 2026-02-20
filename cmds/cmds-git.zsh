@@ -27,6 +27,39 @@ function _gc_replace (){
 INIT_LAST_CORE+=("_gc_replace")
 
 # =====================================
+# -- gc shortcuts
+# =====================================
+help_git[gc-todo]='Commit and push TODO.md only'
+function gc-todo () {
+    local COMMIT_MESSAGE="${*:-docs: Updated TODO.md}"
+
+    if [[ ! -f TODO.md ]]; then
+        _error "TODO.md not found in current directory"
+        return 1
+    fi
+
+    _loading "Committing TODO.md only"
+    git add TODO.md || return 1
+    git commit -m "$COMMIT_MESSAGE" -- TODO.md || return 1
+    git push
+}
+
+help_git[gc-agent]='Commit and push AGENTS.md only'
+function gc-agent () {
+    local COMMIT_MESSAGE="${*:-docs: Updated AGENTS.md}"
+
+    if [[ ! -f AGENTS.md ]]; then
+        _error "AGENTS.md not found in current directory"
+        return 1
+    fi
+
+    _loading "Committing AGENTS.md only"
+    git add AGENTS.md || return 1
+    git commit -m "$COMMIT_MESSAGE" -- AGENTS.md || return 1
+    git push
+}
+
+# =====================================
 # -- glc
 # =====================================
 help_git[glc]='Glint commit and push'
@@ -490,7 +523,7 @@ function git-check-exit () {
 help_git[git-squash-commits]="Squash commits"
 function git-squash-commits () {
     GIT_LOG="$(git log --oneline)"
-    git reset $(git commit-tree HEAD^{tree} -m "$GIT_LOG")
+    git reset $(git commit-tree 'HEAD^{tree}' -m "$GIT_LOG")
 }
 
 # =====================================
@@ -977,6 +1010,116 @@ $COMMIT_MSGS"
     echo ""
 
     # Ask if we should push
+    read -q "REPLY?Push tag and commit with --force? (y/n) "
+    echo ""
+
+    if [[ $REPLY == "y" ]]; then
+        _loading "Pushing with --force..."
+        git push --force
+        _loading "Pushing tags..."
+        git push --tags
+        _success "Release $RELEASE_TAG pushed successfully."
+    else
+        _warning "Not pushed. To push manually run:"
+        echo "  git push --force && git push --tags"
+    fi
+}
+
+# =====================================
+# -- git-do-release
+# =====================================
+help_git[git-do-release]="Prepend Release <version> to current commit message, tag, and optionally push"
+function git-do-release() {
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: git-do-release [-h|--help]"
+        echo ""
+        echo "Prepend the current HEAD commit message with: Release <version>."
+        echo "Prompts for minor or major version bump, tags the release, and optionally pushes."
+        return 0
+    fi
+
+    local LAST_TAG
+    LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+    if [[ -z $LAST_TAG ]]; then
+        _error "No tags found in this repository."
+        return 1
+    fi
+
+    local TAG_CLEAN="${LAST_TAG#v}"
+    local TAG_MAJOR TAG_MINOR TAG_PATCH
+    TAG_MAJOR="${TAG_CLEAN%%.*}"
+    TAG_MINOR="${${TAG_CLEAN#*.}%%.*}"
+    TAG_PATCH="${TAG_CLEAN##*.}"
+
+    local MINOR_VERSION MAJOR_VERSION
+    MINOR_VERSION="${TAG_MAJOR}.${TAG_MINOR}.$(( TAG_PATCH + 1 ))"
+    MAJOR_VERSION="${TAG_MAJOR}.$(( TAG_MINOR + 1 )).0"
+
+    local TAG_PREFIX=""
+    if [[ $LAST_TAG == v* ]]; then
+        TAG_PREFIX="v"
+    fi
+
+    local MINOR_TAG="${TAG_PREFIX}${MINOR_VERSION}"
+    local MAJOR_TAG="${TAG_PREFIX}${MAJOR_VERSION}"
+
+    _loading "Last tag: $LAST_TAG"
+    _loading2 "HEAD commit: $(git rev-parse --short HEAD)"
+    echo ""
+
+    _loading "Select release type:"
+    echo "  (i) minor  ($MINOR_TAG)"
+    echo "  (a) major  ($MAJOR_TAG)"
+    echo "  (c) cancel"
+    echo ""
+
+    local RELEASE_TAG
+    local REPLY
+    read -k 1 "REPLY?Select [i/a/c]: "
+    echo ""
+
+    case $REPLY in
+        i)
+            RELEASE_TAG="$MINOR_TAG"
+            _success "Selected minor release: $RELEASE_TAG"
+            ;;
+        a)
+            RELEASE_TAG="$MAJOR_TAG"
+            _success "Selected major release: $RELEASE_TAG"
+            ;;
+        *)
+            _warning "Cancelled."
+            return 0
+            ;;
+    esac
+
+    echo ""
+
+    local CURRENT_COMMIT_MSG
+    CURRENT_COMMIT_MSG=$(git log -1 --pretty=%B)
+    if [[ -z $CURRENT_COMMIT_MSG ]]; then
+        _error "Could not read current commit message from HEAD."
+        return 1
+    fi
+
+    local HEADER_VERSION="${RELEASE_TAG#v}"
+    local FINAL_COMMIT_MSG="Release $HEADER_VERSION
+
+$CURRENT_COMMIT_MSG"
+
+    _loading "Updating current commit message with release header..."
+    git commit --amend -m "$FINAL_COMMIT_MSG"
+    _success "Updated commit message for $RELEASE_TAG"
+
+    _loading "Tagging commit as $RELEASE_TAG"
+    git tag "$RELEASE_TAG"
+    _success "Tagged as $RELEASE_TAG"
+
+    echo ""
+
     read -q "REPLY?Push tag and commit with --force? (y/n) "
     echo ""
 

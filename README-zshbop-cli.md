@@ -45,6 +45,12 @@ sudo ln -s /path/to/zshbop/zshbop-cli /usr/local/bin/zshbop-cli
 
 # List Docker networks
 ./zshbop-cli docker-networks
+
+# List all WHMCS clients and expiry date
+./zshbop-cli whmcs-expiry-list -c /path/to/whmcs/configuration.php
+
+# Update one WHMCS client expiry date
+./zshbop-cli whmcs-expiry-set -c /path/to/whmcs/configuration.php -i 112 -y 2029 -m 10
 ```
 
 ### Discovery and Help
@@ -115,6 +121,7 @@ The CLI provides access to commands from these categories:
 - **redis** - Redis database management
 - **ssl** - SSL certificate management
 - **system** - System monitoring and management
+- **whmcs** - WHMCS billing database utilities
 - **wordpress** - WordPress management tools
 
 ## Troubleshooting

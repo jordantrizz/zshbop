@@ -1,18 +1,10 @@
-# --
-# replace commands
-#
-# Example help: help_template[test]='Generate phpinfo() file'
-#
-# --
+# =============================================================================
+# -- AWS
+# =============================================================================
 _debug " -- Loading ${(%):-%N}"
-
-# What help file is this?
 help_files[aws]="AWS Commands and scripts"
-
-# - Init help array
 typeset -gA help_aws
 
-_debug " -- Loading ${(%):-%N}"
 
 # --------------------------------------------------
 # -- aws-cli

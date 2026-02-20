@@ -158,3 +158,70 @@ function debug-zshbop-loading () {
     echo "   You can try this alternative:"
     echo '   function _loading_alt () { echo "\$bg[yellow]\$fg[black] * \${@}\${RSC}"; echo "[LOAD] \$*" >> "\${ZB_LOG:-/tmp/alt.log}"; }'
 }
+
+# ==================================================
+# -- mise-uvx-check
+# ==================================================
+help_core[mise-uvx-check]='Check uvx symlink health for mise integration'
+function mise-uvx-check () {
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: mise-uvx-check [-h|--help]"
+        return 0
+    fi
+
+    local link_path
+    link_path="$HOME/bin/uvx"
+
+    local expected_target
+    expected_target="$HOME/.local/share/mise/shims/uvx"
+
+    if (( $+commands[mise] )); then
+        _success "mise detected: $(command -v mise)"
+    else
+        _warning "mise not found in PATH"
+        return 1
+    fi
+
+    local resolved_uvx
+    resolved_uvx="$(mise which uvx 2>/dev/null)"
+    if [[ -n "$resolved_uvx" ]]; then
+        _success "mise reports uvx: $resolved_uvx"
+    else
+        _warning "mise does not have uvx active (try: mise use -g uv@latest)"
+        return 1
+    fi
+
+    if [[ -L "$link_path" ]]; then
+        local current_target
+        current_target="$(readlink "$link_path" 2>/dev/null)"
+        if [[ "$current_target" == "$expected_target" ]]; then
+            _success "uvx symlink healthy: $link_path -> $current_target"
+        else
+            _warning "uvx symlink points to $current_target (expected $expected_target)"
+            return 1
+        fi
+    elif [[ -e "$link_path" ]]; then
+        _warning "$link_path exists but is not a symlink"
+        return 1
+    else
+        _warning "$link_path is missing"
+        return 1
+    fi
+
+    if (( $+commands[uvx] )); then
+        _success "uvx command resolves: $(command -v uvx)"
+        uvx --version >/dev/null 2>&1
+        if [[ $? -eq 0 ]]; then
+            _success "uvx runtime check passed"
+            return 0
+        fi
+        _warning "uvx command found but failed to execute"
+        return 1
+    fi
+
+    _warning "uvx command not found in PATH"
+    return 1
+}

@@ -99,6 +99,7 @@ These commands are available as just commands in the shell
 * `init` - Initialize zshbop
 * `kb` - Knowledge Base
 * `motd` - Print out motd
+* `mise-uvx-check` - Check `mise`/`uvx` symlink health for `~/bin/uvx`
 * `os` - Return OS
 * `report` - Print out errors and warnings
 * `repos` - Install popular github.com repositories.
@@ -138,6 +139,15 @@ These commands are shortened aliases for zshbop commands
 
 ## Debugging
 You can use the function `zbdebug` on the CLI and `_debugf` within any function to print out debug information.
+
+### mise / uvx troubleshooting
+If `mise list` shows `uv` but `uvx` is not found by other tools, run:
+
+```bash
+mise-uvx-check
+```
+
+This validates that `uvx` is active in `mise`, `~/bin/uvx` is symlinked correctly, and `uvx` executes.
 
 ```
 zbdebug os-binary
