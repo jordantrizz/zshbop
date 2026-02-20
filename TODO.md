@@ -2,6 +2,9 @@
 
 ## Current
 
+### Issue with auto-ls normal shell
+* Normal shell auto-ls is not working, works in a vscode shell
+
 ### Error PVE
  * Checking System
 init_check_services:5: no matches found: [pveversion]=pveversion 2>/dev/null
