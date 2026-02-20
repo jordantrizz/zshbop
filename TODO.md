@@ -2,16 +2,14 @@
 
 ## Current
 
-### Issue with auto-ls normal shell
-* Normal shell auto-ls is not working, works in a vscode shell
-
-### Error PVE
- * Checking System
-init_check_services:5: no matches found: [pveversion]=pveversion 2>/dev/null
-
 ### README.md revamp and Documentation
-* Look at keeping README.md slim and moving all documentation elsehwere.
-* Whats a good method to provide documentation so it's pleasant to read and navigate on github.
+Option B (best “real docs site”): GitHub Pages + MkDocs (Material) or Docusaurus
+Best when: docs are sizable and you want search, sidebar nav, great UX.
+MkDocs + Material is the quickest path to “pleasant” (clean theme, strong navigation, search).
+Docusaurus is great if you want a more “product docs” feel (versioned docs, blog, etc.).
+Workflow:
+Docs live in repo (often /docs), build via CI, publish to GitHub Pages.
+README links to the hosted docs site + the /docs folder for source.
 
 ## Testing
 * whmcs commands
