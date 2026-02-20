@@ -685,18 +685,18 @@ function init_check_services () {
     typeset -A check_services
     check_services=(
         # -- system
-        [pveversion]="pveversion 2>/dev/null"        
-        [mongod]="mongod --version | head -1"
-        [nginx]="nginx -v 2>&1"
-        [litespeed]="litespeed -v"
-        [redis-server]="redis-server --version"
+        pveversion "pveversion 2>/dev/null"
+        mongod "mongod --version | head -1"
+        nginx "nginx -v 2>&1"
+        litespeed "litespeed -v"
+        redis-server "redis-server --version"
         
     )
 
     # -- Commands that we want to warn about if installed
     typeset -A warn_commands
     warn_commands=(
-        [cloudflared]="cloudflared -v"        
+        cloudflared "cloudflared -v"
     )
 
 
@@ -1308,8 +1308,8 @@ function init_zshbop () {
     done
     _debug "========================================="
     
-    # Mark as initialized to prevent double init
-    export ZSHBOP_INITIALIZED=1
+    # Mark as initialized for this shell only (do not export to child shells)
+    ZSHBOP_INITIALIZED=1
     
     init_log
 }
