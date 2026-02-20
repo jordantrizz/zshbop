@@ -349,12 +349,42 @@ function antidote-debug () {
         if [[ -o interactive ]]; then
             echo "bindkey '^M':"
             bindkey '^M' 2>/dev/null || echo "WARNING: bindkey '^M' failed"
+            echo "zle -lL accept-line:"
+            zle -lL accept-line 2>/dev/null || echo "WARNING: zle -lL accept-line failed"
+            echo "zle -lL auto-ls:"
+            zle -lL auto-ls 2>/dev/null || echo "WARNING: zle -lL auto-ls failed"
             echo "zle matches (accept-line|auto-ls|autosuggest):"
             if zle -la >/dev/null 2>&1; then
                 zle -la 2>/dev/null | grep -iE 'accept-line|auto-ls|autosuggest' || echo "WARNING: no zle matches found"
             else
                 echo "WARNING: zle not available"
             fi
+            echo ""
+            echo "9) widget owner analysis"
+            local accept_line_widget auto_ls_widget
+            accept_line_widget="$(zle -lL accept-line 2>/dev/null | awk '{print $4}')"
+            auto_ls_widget="$(zle -lL auto-ls 2>/dev/null | awk '{print $4}')"
+
+            echo "accept-line widget target: ${accept_line_widget:-UNKNOWN}"
+            echo "auto-ls widget target: ${auto_ls_widget:-UNKNOWN}"
+
+            if [[ -n "$accept_line_widget" ]]; then
+                echo "whence -f ${accept_line_widget}:"
+                whence -f "$accept_line_widget" 2>/dev/null || echo "WARNING: could not resolve $accept_line_widget"
+            fi
+
+            if [[ -n "$auto_ls_widget" ]]; then
+                echo "whence -f ${auto_ls_widget}:"
+                whence -f "$auto_ls_widget" 2>/dev/null || echo "WARNING: could not resolve $auto_ls_widget"
+            fi
+
+            if [[ -n "$accept_line_widget" && "$accept_line_widget" != "auto-ls" && "$accept_line_widget" != "$auto_ls_widget" ]]; then
+                echo "WARNING: accept-line is not directly bound to auto-ls"
+                echo "WARNING: another plugin likely owns Enter and may bypass auto-ls"
+            fi
+
+            echo "functions likely affecting Enter/widgets:"
+            whence -f _zsh_ai_accept_line _zsh_autosuggest_bound_1_auto-ls autosuggest-accept 2>/dev/null || true
         else
             echo "WARNING: non-interactive shell; skipping bindkey/zle checks"
         fi
