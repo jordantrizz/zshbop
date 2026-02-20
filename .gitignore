@@ -9,3 +9,4 @@ zsh-personal
 repos/*
 zshbop.code-workspace
 .idea
+debug/
