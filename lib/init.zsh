@@ -335,6 +335,43 @@ function init_plugins () {
 }
 
 # ==============================================
+# -- Configure zsh-ai Enter-key behavior
+# ==============================================
+function init_zsh_ai_enter_behavior () {
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AI_ENABLE}" != "1" ]]; then
+        return 0
+    fi
+
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE}" == "1" ]]; then
+        _log "zsh-ai accept-line integration enabled"
+        return 0
+    fi
+
+    autoload -Uz add-zsh-hook
+
+    _zshbop_restore_accept_line_widget() {
+        local accept_line_target
+        accept_line_target="$(zle -lL accept-line 2>/dev/null | awk '{print $4}')"
+
+        if [[ "$accept_line_target" == _zsh_ai* ]]; then
+            if whence -f auto-ls >/dev/null 2>&1; then
+                zle -N accept-line auto-ls
+                _log "zsh-ai accept-line override disabled (accept-line -> auto-ls)"
+            else
+                zle -N accept-line .accept-line
+                _log "zsh-ai accept-line override disabled (accept-line -> .accept-line)"
+            fi
+        fi
+
+        add-zsh-hook -d precmd _zshbop_restore_accept_line_widget
+    }
+
+    add-zsh-hook precmd _zshbop_restore_accept_line_widget
+    _log "zsh-ai enabled without Enter hook (set ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE=1 to allow)"
+    return 0
+}
+
+# ==============================================
 # -- Initialize antidote plugin manager
 # ==============================================
 function init_antidote () {
@@ -1243,6 +1280,7 @@ function init_zshbop () {
         _start_boot_timer "init_omz_plugins"; init_omz_plugins     # -- Init OhMyZSH plugins
     fi
     _start_boot_timer "init_plugins"; init_plugins         # -- Init plugins (needed for p10k prompt)
+    _start_boot_timer "init_zsh_ai_enter_behavior"; init_zsh_ai_enter_behavior
     _start_boot_timer "init_os"; init_os              # -- Init os defaults # TODO Needs to be refactored    
     _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
     _start_boot_timer "init_app_config"; init_app_config      # -- Init config

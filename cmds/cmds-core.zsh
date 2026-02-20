@@ -288,6 +288,8 @@ function antidote-debug () {
         echo ""
         echo "3) zshbop vars"
         echo "ZSHBOP_PLUGIN_MANAGER=${ZSHBOP_PLUGIN_MANAGER:-}"
+        echo "ZSHBOP_PLUGIN_ZSH_AI_ENABLE=${ZSHBOP_PLUGIN_ZSH_AI_ENABLE:-}"
+        echo "ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE=${ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE:-}"
         echo "ZSHBOP_ROOT=${ZSHBOP_ROOT:-}"
         echo "ZB_LOG=${ZB_LOG:-}"
         echo ""
