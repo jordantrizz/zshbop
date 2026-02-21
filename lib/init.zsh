@@ -953,7 +953,8 @@ function init_last () {
 ###########################################################
 
 # ==============================================
-# -- init_mise - activate mise runtime manager if present
+# -- _init_mise_ensure_uvx_symlink 
+# -- Ensure that if mise is present and uvx is available, we have a ~/bin/uvx symlink for it
 # ==============================================
 function _init_mise_ensure_uvx_symlink () {
     local mise_bin
@@ -1013,6 +1014,10 @@ function _init_mise_ensure_uvx_symlink () {
     return 1
 }
 
+
+# ==============================================
+# -- init_mise - activate mise runtime manager if present
+# ==============================================
 function init_mise () {
     _debug_all
 
