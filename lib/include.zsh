@@ -61,6 +61,7 @@ export SCRIPT_DIR=${0:a:h} # -- Current working directory
 export ZSHBOP_CACHE_DIR="${ZSHBOP_HOME}/.zshbop_cache"
 export ZSHBOP_PLUGIN_MANAGER="init_antidote"
 export ZSHBOP_PLUGIN_ZSH_AI_ENABLE="0"
+export ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE="0"
 export ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE="0"
 export ZSH_ROOT="${ZSHBOP_ROOT}" # -- Converting from ZSH_ROOT to ZSHBOP_ROOT
 export ZBR="${ZSHBOP_ROOT}" # -- Short hand $ZSHBOP_ROOT

@@ -38,6 +38,7 @@
 * Return success/failure: `return 0` (success), `return 1` (failure)
 
 ## Example Function Template
+* Use the following function template for new commands, ensuring to include option parsing, command checks, and appropriate output functions for user feedback.
 ```zsh
 # ==================================================
 # -- example-function () - Brief description
@@ -65,3 +66,17 @@ function example-function () {
     # Function logic here
 }
 ```
+
+## Comments
+* For internal funtions make sure the following is above each the function line
+```
+# ==============================================
+# -- init_mise - activate mise runtime manager if present
+# ==============================================
+```
+* If too long add a new line like so
+```
+# ==============================================
+# -- _init_mise_ensure_uvx_symlink
+# -- Ensure that if mise is present and uvx is available, we have a ~/bin/uvx symlink for it
+# ==============================================

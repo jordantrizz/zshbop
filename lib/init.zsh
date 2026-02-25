@@ -335,6 +335,43 @@ function init_plugins () {
 }
 
 # ==============================================
+# -- Configure zsh-ai Enter-key behavior
+# ==============================================
+function init_zsh_ai_enter_behavior () {
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AI_ENABLE}" != "1" ]]; then
+        return 0
+    fi
+
+    if [[ "${ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE}" == "1" ]]; then
+        _log "zsh-ai accept-line integration enabled"
+        return 0
+    fi
+
+    autoload -Uz add-zsh-hook
+
+    _zshbop_restore_accept_line_widget() {
+        local accept_line_target
+        accept_line_target="$(zle -lL accept-line 2>/dev/null | awk '{print $4}')"
+
+        if [[ "$accept_line_target" == _zsh_ai* ]]; then
+            if whence -f auto-ls >/dev/null 2>&1; then
+                zle -N accept-line auto-ls
+                _log "zsh-ai accept-line override disabled (accept-line -> auto-ls)"
+            else
+                zle -N accept-line .accept-line
+                _log "zsh-ai accept-line override disabled (accept-line -> .accept-line)"
+            fi
+        fi
+
+        add-zsh-hook -d precmd _zshbop_restore_accept_line_widget
+    }
+
+    add-zsh-hook precmd _zshbop_restore_accept_line_widget
+    _log "zsh-ai enabled without Enter hook (set ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE=1 to allow)"
+    return 0
+}
+
+# ==============================================
 # -- Initialize antidote plugin manager
 # ==============================================
 function init_antidote () {
@@ -685,18 +722,18 @@ function init_check_services () {
     typeset -A check_services
     check_services=(
         # -- system
-        [pveversion]="pveversion 2>/dev/null"        
-        [mongod]="mongod --version | head -1"
-        [nginx]="nginx -v 2>&1"
-        [litespeed]="litespeed -v"
-        [redis-server]="redis-server --version"
+        pveversion "pveversion 2>/dev/null"
+        mongod "mongod --version | head -1"
+        nginx "nginx -v 2>&1"
+        litespeed "litespeed -v"
+        redis-server "redis-server --version"
         
     )
 
     # -- Commands that we want to warn about if installed
     typeset -A warn_commands
     warn_commands=(
-        [cloudflared]="cloudflared -v"        
+        cloudflared "cloudflared -v"
     )
 
 
@@ -916,7 +953,8 @@ function init_last () {
 ###########################################################
 
 # ==============================================
-# -- init_mise - activate mise runtime manager if present
+# -- _init_mise_ensure_uvx_symlink 
+# -- Ensure that if mise is present and uvx is available, we have a ~/bin/uvx symlink for it
 # ==============================================
 function _init_mise_ensure_uvx_symlink () {
     local mise_bin
@@ -976,6 +1014,10 @@ function _init_mise_ensure_uvx_symlink () {
     return 1
 }
 
+
+# ==============================================
+# -- init_mise - activate mise runtime manager if present
+# ==============================================
 function init_mise () {
     _debug_all
 
@@ -1182,10 +1224,8 @@ function init_zshbop () {
         export ZSHBOP_CONF_LOADED=1
     fi
 
-    # VS Code terminals often inherit ZSHBOP_INITIALIZED=1 from the parent; force a reload there
-    if [[ "$TERM_PROGRAM" == "vscode" || -n "$VSCODE_IPC_HOOK_CLI" ]]; then
-        export ZSHBOP_RELOAD="1"
-    fi
+    # VS Code terminals can re-source startup files via shell integration.
+    # Do not force reload here; allow full initialization unless reload was explicitly requested.
 
     # Prevent double initialization (can happen with VS Code shell integration)
     # Allow re-init if ZSHBOP_RELOAD is set
@@ -1243,6 +1283,7 @@ function init_zshbop () {
         _start_boot_timer "init_omz_plugins"; init_omz_plugins     # -- Init OhMyZSH plugins
     fi
     _start_boot_timer "init_plugins"; init_plugins         # -- Init plugins (needed for p10k prompt)
+    _start_boot_timer "init_zsh_ai_enter_behavior"; init_zsh_ai_enter_behavior
     _start_boot_timer "init_os"; init_os              # -- Init os defaults # TODO Needs to be refactored    
     _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
     _start_boot_timer "init_app_config"; init_app_config      # -- Init config
@@ -1252,8 +1293,10 @@ function init_zshbop () {
     _log "Loaded zshbop functions: $ZSHBOP_LOAD"
     echo ""
      
-    # -- Load custom then commands dependant on custom    
-    _start_boot_timer "init_sshkeys"; init_sshkeys         # -- Init ssh keys
+    # -- Load custom then commands dependant on custom
+    if [[ $IS_RELOAD == "0" ]]; then
+        _start_boot_timer "init_sshkeys"; init_sshkeys         # -- Init ssh keys
+    fi
     _start_boot_timer "init_kb"; init_kb              # -- Init Knowledge Base
 
     # -- Check if init_custom_startup is defined as a function and then execute it    
@@ -1308,8 +1351,8 @@ function init_zshbop () {
     done
     _debug "========================================="
     
-    # Mark as initialized to prevent double init
-    export ZSHBOP_INITIALIZED=1
+    # Mark as initialized for this shell only (do not export to child shells)
+    ZSHBOP_INITIALIZED=1
     
     init_log
 }
