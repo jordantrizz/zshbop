@@ -55,6 +55,14 @@ function cpu () {
         CPU_THREADS=$(lscpu | awk '/^CPU\(s\)/{print $2}')
         CPU_MODEL=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
         echo "CPU: $CPU_MODEL - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ} || $CPU_CHECK"
+    elif [[ $MACHINE_OS == "mac" ]]; then
+        CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || sysctl -n hw.model 2>/dev/null)
+        CPU_CORES=$(sysctl -n hw.physicalcpu 2>/dev/null)
+        CPU_THREADS=$(sysctl -n hw.logicalcpu 2>/dev/null)
+        CPU_MHZ=$(sysctl -n hw.cpufrequency 2>/dev/null | awk '{printf "%.0f", $1/1000000}')
+        [[ -z $CPU_MHZ ]] && CPU_MHZ="N/A"
+        echo "CPU: $CPU_MODEL - ${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ} MHz"
+        return 0
     else
         _error "system-specs not implemented for $MACHINE_OS" 0
         return 1
