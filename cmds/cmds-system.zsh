@@ -60,6 +60,8 @@ function cpu () {
         CPU_CORES=$(sysctl -n hw.physicalcpu 2>/dev/null)
         CPU_THREADS=$(sysctl -n hw.logicalcpu 2>/dev/null)
         CPU_MHZ=$(sysctl -n hw.cpufrequency 2>/dev/null | awk '{printf "%.0f", $1/1000000}')
+        # -- Apple Silicon doesn't expose hw.cpufrequency; use P-core max freq instead
+        [[ -z $CPU_MHZ ]] && CPU_MHZ=$(sysctl -n hw.perflevel0.maxfreq 2>/dev/null | awk '{printf "%.0f", $1/1000000}')
         [[ -z $CPU_MHZ ]] && CPU_MHZ="N/A"
         echo "CPU: $CPU_MODEL - ${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ} MHz"
         return 0
