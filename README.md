@@ -86,6 +86,10 @@ zshbop is a frankenstien project to improve my own workflow. It utilizes a numbe
     * AWS
     * curl
     * php
+
+  ## Docksoft Templates
+
+  The `docksoft` scaffolding includes container templates such as `traefik`, `uptime-kuma`, `n8n`, `dozzle`, `prunemate`, and `dashy`.
     
 ## Branches
 

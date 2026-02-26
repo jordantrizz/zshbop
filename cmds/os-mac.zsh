@@ -37,11 +37,6 @@ function mac-flush-dns () {
 export AUTO_LS_COMMANDS=('color' git-status)
 auto-ls-color () { \ls -aG;echo "\n"; }
 
-# -- check_diskspace
-check_diskspace_mac () {
-	linux-checkdiskspace
-}
-
 # -- interfaces
 function interfaces_mac () {
     local OUTPUT
@@ -98,14 +93,22 @@ function show_swap_mac() {
 
 # -- check mac diskspace
 check_diskspace_mac () {
-    # TODO create this function
-    local usage=$(df -h / | awk 'NR==2{print $5}' | sed 's/%//')
-    local used=$(df -h / | awk 'NR==2{print $3}')
-    local free=$(df -h / | awk 'NR==2{print $4}')
-
-    echo "Disk usage: $used used, $free free"
-
-    if [ "$usage" -gt 90 ]; then
-    echo "Warning: Disk usage is above 90%!"
-    fi
+    local ALERT="98"
+    local DISKSPACE_ERROR=0
+    # devfs = device filesystems, map = autofs mounts, /dev/disk*s*s* = nested APFS partition schemes
+    local DF_COMMAND=$(df -H 2>/dev/null | grep -vE '^Filesystem|devfs|map |/dev/disk[0-9]+s[0-9]+s[0-9]+' | awk '{ print $5 " " $1 }')
+    local DISKUSAGE=("${(@f)${DF_COMMAND}}")
+    for OUT in ${DISKUSAGE[@]}; do
+        local PERCENTAGE=$(echo "$OUT" | awk '{ print $1}' | cut -d'%' -f1)
+        local PARTITION=$(echo "$OUT" | awk '{ print $2 }')
+        local FIRSTMSG="Checking $PARTITION with $PERCENTAGE%"
+        if [[ $PERCENTAGE -ge $ALERT ]]; then
+            _notice "$FIRSTMSG.."
+            _error "Space issue on ${PARTITION} (${PERCENTAGE}%)"
+            DISKSPACE_ERROR=1
+        else
+            _log "$FIRSTMSG.. - no issue."
+        fi
+    done
+    [[ $DISKSPACE_ERROR == 1 ]] && _error "Disk space issue found, please check." || _success "No disk space issue found."
 }

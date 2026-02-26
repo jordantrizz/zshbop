@@ -1,0 +1,21 @@
+services:
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: {{CONTAINER_NAME}}
+    restart: always
+    ports:
+      - "127.0.0.1:4000:8080"
+    volumes:
+      - /srv/containers/{{CONTAINER_NAME}}/data:/app/user-data
+    networks:
+      - {{NETWORK}}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.rule=Host(`{{FQDN}}`)"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.entrypoints=websecure"
+      - "traefik.http.routers.{{CONTAINER_NAME}}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.{{CONTAINER_NAME}}.loadbalancer.server.port=8080"
+
+networks:
+  {{NETWORK}}:
+    external: true

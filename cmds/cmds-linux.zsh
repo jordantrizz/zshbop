@@ -275,6 +275,8 @@ help_linux[check-diskspace]="Check diskspace based on OS"
 check-diskspace () {
 	if [[ $MACHINE_OS == "linux" ]]; then
 		linux-checkdiskspace
+	elif [[ $MACHINE_OS == "mac" ]]; then
+		check_diskspace_mac
 	else
 		_error "check-diskspace not supported on $MACHINE_OS"
 	fi

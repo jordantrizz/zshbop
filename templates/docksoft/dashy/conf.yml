@@ -1,0 +1,19 @@
+pageInfo:
+  title: Dashy
+  description: Dashy Dashboard
+
+appConfig:
+  theme: colorful
+  auth:
+    users:
+      - user: admin
+        hash: {{DASHY_ADMIN_PASSWORD_HASH}}
+        type: admin
+
+sections:
+  - name: Docksoft
+    items:
+      - title: Dashy Docs
+        description: Dashy documentation
+        icon: fas fa-book
+        url: https://dashy.to/docs

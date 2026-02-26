@@ -502,6 +502,7 @@ function _docksoft_usage () {
     echo "  docksoft traefik"
     echo "  docksoft uptime-kuma"
     echo "  docksoft n8n"
+    echo "  docksoft dashy"
     echo "  docksoft uptime-kuma --domain custom.example.com   # override FQDN"
     echo ""
     _docksoft_list
