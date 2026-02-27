@@ -900,55 +900,228 @@ function git-log-oneline() {
 # -- git-squash-release
 # =====================================
 help_git[git-squash-release]="Squash all commits since the last tag, prompt for minor/major version bump, tag and push"
-function git-squash-release() {
-    # Parse options
-    local -a opts_help
-    zparseopts -D -E -- h=opts_help -help=opts_help
 
-    if [[ -n $opts_help ]]; then
-        echo "Usage: git-squash-release [-h|--help]"
-        echo ""
-        echo "Squash all commits since the last tag into a single release commit."
-        echo "Prompts for minor or major version bump, tags the release, and optionally pushes."
+# ==============================================
+# -- _git_update_wp_theme_version
+# -- Update detected WordPress theme style.css Version: header to the selected release version
+# ==============================================
+function _git_update_wp_theme_version () {
+    local RELEASE_TAG="$1"
+    local RELEASE_VERSION="${RELEASE_TAG#v}"
+    local WP_THEME_FILE
+
+    WP_THEME_FILE=$(grep -RIl --include='style.css' '^[[:space:]]*Theme Name:' . 2>/dev/null | head -n 1)
+    if [[ -z $WP_THEME_FILE ]]; then
+        _debug "No WordPress theme detected. Skipping style.css version update."
         return 0
     fi
 
-    # Find the last tag
+    if ! grep -qi '^[[:space:]]*Version:' "$WP_THEME_FILE"; then
+        _warning "WordPress theme detected but Version header not found in $WP_THEME_FILE"
+        return 0
+    fi
+
+    if ! sed -i -E "s|^[[:space:]]*Version:[[:space:]]*.*$|Version: ${RELEASE_VERSION}|" "$WP_THEME_FILE"; then
+        _error "Failed to update WordPress theme version in $WP_THEME_FILE"
+        return 1
+    fi
+
+    git add "$WP_THEME_FILE"
+    _success "Updated WordPress theme version to $RELEASE_VERSION in $WP_THEME_FILE"
+    return 0
+}
+
+# ==============================================
+# -- _git_update_version_file
+# -- Update VERSION file to selected release version (without leading v)
+# ==============================================
+function _git_update_version_file () {
+    local RELEASE_TAG="$1"
+    local RELEASE_VERSION="${RELEASE_TAG#v}"
+
+    if [[ ! -f VERSION ]]; then
+        _debug "No VERSION file found. Skipping VERSION update."
+        return 0
+    fi
+
+    echo "$RELEASE_VERSION" > VERSION || {
+        _error "Failed to update VERSION file"
+        return 1
+    }
+
+    git add VERSION
+    _success "Updated VERSION file to $RELEASE_VERSION"
+    return 0
+}
+
+function git-squash-release() {
+    # Parse options
+    local -a opts_help opts_detect
+    zparseopts -D -E -- h=opts_help -help=opts_help d=opts_detect -detect=opts_detect
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: git-squash-release [-h|--help] [-d|--detect]"
+        echo ""
+        echo "Squash all commits since the last tag into a single release commit."
+        echo "Prompts for minor or major version bump, tags the release, and optionally pushes."
+        echo "Use -d to run preflight detections only (no git changes)."
+        return 0
+    fi
+
+    local DETECT_ONLY=0
+    if [[ -n $opts_detect ]]; then
+        DETECT_ONLY=1
+    fi
+
+    local DETECTION_FAILED=0
     local LAST_TAG
+    local LAST_TAG_COMMIT
+    local TAG_CLEAN TAG_MAJOR TAG_MINOR TAG_PATCH
+    local MINOR_VERSION MAJOR_VERSION
+    local TAG_PREFIX=""
+    local MINOR_TAG MAJOR_TAG
+    local COMMIT_MSGS
+    local COMMIT_COUNT
+
+    _loading "Running git-squash-release detections..."
+
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        _success "[PASS] Inside a git repository"
+    else
+        _error "[FAIL] Inside a git repository"
+        DETECTION_FAILED=1
+    fi
+
+    if git rev-parse --verify HEAD >/dev/null 2>&1; then
+        _success "[PASS] Repository has at least one commit"
+    else
+        _error "[FAIL] Repository has at least one commit"
+        DETECTION_FAILED=1
+    fi
+
     LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
-    if [[ -z $LAST_TAG ]]; then
-        _error "No tags found in this repository."
+    if [[ -n $LAST_TAG ]]; then
+        _success "[PASS] Found latest tag: $LAST_TAG"
+    else
+        _error "[FAIL] Found latest tag"
+        DETECTION_FAILED=1
+    fi
+
+    if [[ -n $LAST_TAG ]]; then
+        LAST_TAG_COMMIT=$(git rev-list -n 1 "$LAST_TAG" 2>/dev/null)
+        if [[ -n $LAST_TAG_COMMIT ]]; then
+            _success "[PASS] Resolved latest tag to commit: $LAST_TAG_COMMIT"
+        else
+            _error "[FAIL] Resolved latest tag to commit"
+            DETECTION_FAILED=1
+        fi
+    fi
+
+    if [[ -n $LAST_TAG ]]; then
+        TAG_CLEAN="${LAST_TAG#v}"
+        if [[ "$TAG_CLEAN" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            _success "[PASS] Latest tag is semver compatible: $LAST_TAG"
+        else
+            _error "[FAIL] Latest tag is semver compatible (expected vX.Y.Z or X.Y.Z, got $LAST_TAG)"
+            DETECTION_FAILED=1
+        fi
+    fi
+
+    if [[ -n $LAST_TAG ]]; then
+        COMMIT_COUNT=$(git rev-list --count "$LAST_TAG..HEAD" 2>/dev/null)
+        if [[ -n $COMMIT_COUNT && $COMMIT_COUNT -gt 0 ]]; then
+            _success "[PASS] Commits found since $LAST_TAG: $COMMIT_COUNT"
+        else
+            _error "[FAIL] Commits found since $LAST_TAG"
+            DETECTION_FAILED=1
+        fi
+    fi
+
+    if [[ -z "$(git status --porcelain 2>/dev/null)" ]]; then
+        _success "[PASS] Working tree is clean"
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] Working tree is clean"
+        else
+            _error "[FAIL] Working tree is clean"
+            DETECTION_FAILED=1
+        fi
+    fi
+
+    if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+        _success "[PASS] Current branch has an upstream configured"
+    else
+        _error "[FAIL] Current branch has an upstream configured"
+        DETECTION_FAILED=1
+    fi
+
+    if [[ -f VERSION ]]; then
+        _success "[PASS] VERSION file exists"
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] VERSION file exists"
+        else
+            _error "[FAIL] VERSION file exists"
+        fi
+    fi
+
+    local WP_PLUGIN_FILE
+    WP_PLUGIN_FILE=$(grep -RIl --include='*.php' '^[[:space:]]*Plugin Name:' . 2>/dev/null | head -n 1)
+    if [[ -n $WP_PLUGIN_FILE ]]; then
+        _success "[PASS] WordPress plugin detected: $WP_PLUGIN_FILE"
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] WordPress plugin not detected"
+        else
+            _error "[FAIL] WordPress plugin not detected"
+        fi
+    fi
+
+    local WP_THEME_FILE
+    WP_THEME_FILE=$(grep -RIl --include='style.css' '^[[:space:]]*Theme Name:' . 2>/dev/null | head -n 1)
+    if [[ -n $WP_THEME_FILE ]]; then
+        _success "[PASS] WordPress theme detected: $WP_THEME_FILE"
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] WordPress theme not detected"
+        else
+            _error "[FAIL] WordPress theme not detected"
+        fi
+    fi
+
+    if [[ $DETECT_ONLY -eq 1 ]]; then
+        if [[ $DETECTION_FAILED -eq 0 ]]; then
+            _success "All detections passed."
+            return 0
+        fi
+        _error "Detection run failed. Fix failed checks before running release squash."
+        return 1
+    fi
+
+    if [[ $DETECTION_FAILED -ne 0 ]]; then
+        _error "Preflight checks failed. Run git-squash-release -d to inspect and fix failures."
         return 1
     fi
 
     # Parse the last tag into major.minor.patch
-    local TAG_CLEAN="${LAST_TAG#v}"
-    local TAG_MAJOR TAG_MINOR TAG_PATCH
     TAG_MAJOR="${TAG_CLEAN%%.*}"
     TAG_MINOR="${${TAG_CLEAN#*.}%%.*}"
     TAG_PATCH="${TAG_CLEAN##*.}"
 
     # Calculate minor and major bump versions
-    local MINOR_VERSION MAJOR_VERSION
     MINOR_VERSION="${TAG_MAJOR}.${TAG_MINOR}.$(( TAG_PATCH + 1 ))"
     MAJOR_VERSION="${TAG_MAJOR}.$(( TAG_MINOR + 1 )).0"
 
     # Preserve prefix if original tag had one (e.g. v1.2.3)
-    local TAG_PREFIX=""
     if [[ $LAST_TAG == v* ]]; then
         TAG_PREFIX="v"
     fi
 
-    local MINOR_TAG="${TAG_PREFIX}${MINOR_VERSION}"
-    local MAJOR_TAG="${TAG_PREFIX}${MAJOR_VERSION}"
-
-    # Find the commit hash for the last tag
-    local LAST_TAG_COMMIT
-    LAST_TAG_COMMIT=$(git rev-list -n 1 $LAST_TAG)
+    MINOR_TAG="${TAG_PREFIX}${MINOR_VERSION}"
+    MAJOR_TAG="${TAG_PREFIX}${MAJOR_VERSION}"
 
     # Get deduplicated commit messages since the last tag
-    local COMMIT_MSGS
-    COMMIT_MSGS=$(git log --oneline $LAST_TAG..HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
+    COMMIT_MSGS=$(git log --oneline "$LAST_TAG..HEAD" | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
 
     if [[ -z $COMMIT_MSGS ]]; then
         _error "No commits found since $LAST_TAG. Nothing to squash."
@@ -992,6 +1165,8 @@ function git-squash-release() {
     # Perform soft reset to last tag commit
     _loading "Squashing all commits since $LAST_TAG into one..."
     git reset --soft $LAST_TAG_COMMIT
+    _git_update_version_file "$RELEASE_TAG" || return 1
+    _git_update_wp_theme_version "$RELEASE_TAG" || return 1
 
     # Build commit message with release header
     local FINAL_COMMIT_MSG="Release $RELEASE_TAG
@@ -1109,6 +1284,9 @@ function git-do-release() {
     local FINAL_COMMIT_MSG="Release $HEADER_VERSION
 
 $CURRENT_COMMIT_MSG"
+
+    _git_update_version_file "$RELEASE_TAG" || return 1
+    _git_update_wp_theme_version "$RELEASE_TAG" || return 1
 
     _loading "Updating current commit message with release header..."
     git commit --amend -m "$FINAL_COMMIT_MSG"

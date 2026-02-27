@@ -1,6 +1,9 @@
 # TODO
 
 ## Current
+### ZeroByte
+* Fore zerobyte, you don't need to generate a admin-credentials.txt
+* For the BASE_URL= it should be the containers address and port https://127.0.0.1:4096
 
 ### README.md revamp and Documentation
 Option B (best “real docs site”): GitHub Pages + MkDocs (Material) or Docusaurus

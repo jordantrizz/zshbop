@@ -212,6 +212,60 @@ ssh-keygen-ed25519 () {
 }
 
 # ==================================================================
+# -- ssh-gen-temp
+# -- Generate temporary ed25519 keypair and print private/public keys
+# ==================================================================
+help_ssh[ssh-gen-temp]='Generate temporary ed25519 keypair and print private/public keys'
+ssh-gen-temp () {
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: ssh-gen-temp [-h|--help]"
+        echo "Generates a temporary ED25519 keypair, prints private and public keys, then removes temporary files."
+        return 0
+    fi
+
+    if (( ! $+commands[ssh-keygen] )); then
+        _error "ssh-keygen command not found"
+        return 1
+    fi
+
+    local TMP_KEY_FILE
+    TMP_KEY_FILE=$(mktemp "${TMPDIR:-/tmp}/ssh-gen-temp.XXXXXX")
+
+    if [[ -z $TMP_KEY_FILE ]]; then
+        _error "Failed to create temporary key path"
+        return 1
+    fi
+
+    _ssh_gen_temp_cleanup () {
+        rm -f "$TMP_KEY_FILE" "$TMP_KEY_FILE.pub"
+    }
+
+    rm -f "$TMP_KEY_FILE"
+    trap _ssh_gen_temp_cleanup EXIT INT TERM
+
+    if ! command ssh-keygen -q -t ed25519 -N "" -C "" -f "$TMP_KEY_FILE" >/dev/null 2>&1; then
+        _error "Failed to generate temporary SSH keypair"
+        trap - EXIT INT TERM
+        _ssh_gen_temp_cleanup
+        return 1
+    fi
+
+    echo "-----BEGIN TEMPORARY OPENSSH PRIVATE KEY-----"
+    cat "$TMP_KEY_FILE"
+    echo "-----END TEMPORARY OPENSSH PRIVATE KEY-----"
+    echo ""
+    echo "-----BEGIN TEMPORARY SSH PUBLIC KEY-----"
+    cat "$TMP_KEY_FILE.pub"
+    echo "-----END TEMPORARY SSH PUBLIC KEY-----"
+
+    trap - EXIT INT TERM
+    _ssh_gen_temp_cleanup
+}
+
+# ==================================================================
 # -- ssh-key-audit
 # -- Find all SSH Keys on System
 # ==================================================================
