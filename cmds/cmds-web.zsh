@@ -32,6 +32,229 @@ curl-ttfb () {
 help_web[curl-ttfb2]='Curl to get TTFB or Time To First Byte from https://github.com/jaygooby/ttfb.sh updated 2021. Allows for multiple requests.'
 alias curl-ttfb2="ttfb2"
 
+# -- get-site-llm
+help_web[get-site-llm]='Check llm.txt/llms.txt endpoints and markdown negotiation support for a site'
+get-site-llm () {
+    local _usage='Usage: get-site-llm [-h|--help] <domain-or-url>'
+    local ARG_HELP
+    local zparseopts_error=0
+
+    zparseopts -D -E h=ARG_HELP -help=ARG_HELP || zparseopts_error=$?
+
+    if (( zparseopts_error )); then
+        _error "Invalid options"
+        echo "$_usage"
+        return 1
+    fi
+
+    if (( ${#ARG_HELP} )); then
+        echo "$_usage"
+        echo "Checks for /llm.txt, /llms.txt, /.well-known/llm.txt, /.well-known/llms.txt"
+        echo "Outputs first 20 lines of first successful LLM file response"
+        echo "Checks markdown support via Accept: text/markdown and validates markdown header (#)"
+        return 0
+    fi
+
+    if [[ -z "$1" ]]; then
+        echo "$_usage"
+        return 1
+    fi
+
+    _cmd_exists curl
+    if [[ $? != 0 ]]; then
+        _error "curl is required"
+        return 1
+    fi
+
+    local raw_input="$1"
+    local input_url="$raw_input"
+    local input_no_scheme host_with_path host page_path
+    local active_base=""
+    local llm_found=0
+    local md_supported=0
+    local md_header_found=0
+    local first_nonempty_line=""
+    local status_code=""
+    local content_type=""
+    local markdown_tokens=""
+    local content_signal=""
+    local vary_header=""
+    local base_url=""
+    local llm_path=""
+    local llm_url=""
+    local markdown_url=""
+    local curl_rc=0
+    local claude_ua="Mozilla/5.0 (compatible; ClaudeBot/1.0; +https://www.anthropic.com/bot)"
+
+    local -a candidate_paths
+    local -a candidate_bases
+
+    candidate_paths=(
+        "/llm.txt"
+        "/llms.txt"
+        "/.well-known/llm.txt"
+        "/.well-known/llms.txt"
+    )
+
+    local tmp_headers tmp_body
+    tmp_headers=$(mktemp) || { _error "Unable to create temp file"; return 1; }
+    tmp_body=$(mktemp) || { rm -f "$tmp_headers"; _error "Unable to create temp file"; return 1; }
+
+    # Normalize input to host + optional page path
+    [[ "$input_url" == *" "* ]] && input_url=${input_url%% *}
+    if [[ "$input_url" != http://* && "$input_url" != https://* ]]; then
+        input_url="https://$input_url"
+    fi
+
+    input_no_scheme=${input_url#http://}
+    input_no_scheme=${input_no_scheme#https://}
+    input_no_scheme=${input_no_scheme%%\?*}
+    input_no_scheme=${input_no_scheme%%\#*}
+
+    host_with_path="$input_no_scheme"
+    host=${host_with_path%%/*}
+    host=${host#www.}
+
+    if [[ -z "$host" ]]; then
+        _error "Could not parse host from input: $raw_input"
+        rm -f "$tmp_headers" "$tmp_body"
+        return 1
+    fi
+
+    if [[ "$host_with_path" == */* ]]; then
+        page_path="/${host_with_path#*/}"
+    else
+        page_path="/"
+    fi
+
+    page_path=${page_path%%\?*}
+    page_path=${page_path%%\#*}
+    [[ -z "$page_path" ]] && page_path="/"
+
+    candidate_bases=("https://$host" "http://$host")
+
+    _loading "Checking LLM endpoints for $host"
+    for base_url in ${candidate_bases[@]}; do
+        for llm_path in ${candidate_paths[@]}; do
+            llm_url="${base_url}${llm_path}"
+            : > "$tmp_headers"
+            : > "$tmp_body"
+            curl -L -sS --max-time 20 -D "$tmp_headers" -o "$tmp_body" "$llm_url" >/dev/null 2>&1
+            curl_rc=$?
+            [[ $curl_rc -ne 0 ]] && continue
+
+            status_code=$(awk 'toupper($1) ~ /^HTTP\// {c=$2} END {print c}' "$tmp_headers")
+            if [[ "$status_code" == 2* && -s "$tmp_body" ]]; then
+                _success "Found LLM file: $llm_url (HTTP $status_code)"
+                _loading "Top 20 lines"
+                head -n 20 "$tmp_body"
+                echo ""
+                active_base="$base_url"
+                llm_found=1
+                break
+            fi
+        done
+        (( llm_found == 1 )) && break
+    done
+
+    if (( llm_found == 0 )); then
+        _warning "No LLM file found at: /llm.txt, /llms.txt, /.well-known/llm.txt, /.well-known/llms.txt"
+        active_base="https://$host"
+    fi
+
+    markdown_url="${active_base}${page_path}"
+    _loading "Checking markdown negotiation for $markdown_url"
+    : > "$tmp_headers"
+    : > "$tmp_body"
+    curl -L -sS --max-time 20 \
+        -H "Accept: text/markdown, text/plain;q=0.9, */*;q=0.1" \
+        -D "$tmp_headers" \
+        -o "$tmp_body" \
+        "$markdown_url" >/dev/null 2>&1
+    curl_rc=$?
+
+    if [[ $curl_rc -ne 0 ]]; then
+        _warning "Unable to test markdown negotiation for $markdown_url"
+        rm -f "$tmp_headers" "$tmp_body"
+        return 0
+    fi
+
+    status_code=$(awk 'toupper($1) ~ /^HTTP\// {c=$2} END {print c}' "$tmp_headers")
+    if [[ "$status_code" == "403" ]]; then
+        _warning "Received HTTP 403 for markdown check. Retrying with Claude user-agent"
+        : > "$tmp_headers"
+        : > "$tmp_body"
+        curl -L -sS --max-time 20 \
+            -A "$claude_ua" \
+            -H "Accept: text/markdown, text/plain;q=0.9, */*;q=0.1" \
+            -D "$tmp_headers" \
+            -o "$tmp_body" \
+            "$markdown_url" >/dev/null 2>&1
+        curl_rc=$?
+        if [[ $curl_rc -ne 0 ]]; then
+            _warning "Retry failed for markdown negotiation"
+            rm -f "$tmp_headers" "$tmp_body"
+            return 1
+        fi
+        status_code=$(awk 'toupper($1) ~ /^HTTP\// {c=$2} END {print c}' "$tmp_headers")
+        if [[ "$status_code" == "403" ]]; then
+            _error "Markdown check blocked (HTTP 403) even with Claude user-agent"
+            rm -f "$tmp_headers" "$tmp_body"
+            return 1
+        fi
+    fi
+
+    if [[ "$status_code" != "200" ]]; then
+        _warning "Markdown check did not return HTTP 200 (got ${status_code:-unknown})"
+        rm -f "$tmp_headers" "$tmp_body"
+        return 1
+    fi
+
+    content_type=$(awk -F': ' 'tolower($1)=="content-type" {print tolower($2)}' "$tmp_headers" | tail -n 1 | tr -d '\r')
+    markdown_tokens=$(awk -F': ' 'tolower($1)=="x-markdown-tokens" {print $2}' "$tmp_headers" | tail -n 1 | tr -d '\r')
+    content_signal=$(awk -F': ' 'tolower($1)=="content-signal" {print $2}' "$tmp_headers" | tail -n 1 | tr -d '\r')
+    vary_header=$(awk -F': ' 'tolower($1)=="vary" {print tolower($2)}' "$tmp_headers" | tail -n 1 | tr -d '\r')
+
+    if [[ "$status_code" == 2* ]]; then
+        if [[ "$content_type" == *"text/markdown"* || -n "$markdown_tokens" ]]; then
+            md_supported=1
+        fi
+    fi
+
+    first_nonempty_line=$(grep -m 1 -E '[^[:space:]]' "$tmp_body")
+    if [[ "$first_nonempty_line" == \#* ]]; then
+        md_header_found=1
+    fi
+
+    if (( md_supported == 1 )); then
+        _success "Markdown response detected for $markdown_url"
+        if (( md_header_found == 1 )); then
+            _success "Markdown header found (first non-empty line starts with #)"
+        else
+            _warning "Markdown detected but first non-empty line is not a markdown header (#...)"
+            if [[ -n "$content_type" ]]; then
+                _loading2 "markdown header: content-type: $content_type"
+            fi
+            if [[ -n "$markdown_tokens" ]]; then
+                _loading2 "markdown header: x-markdown-tokens: $markdown_tokens"
+            fi
+            _loading2 "Top 20 lines"
+            head -n 20 "$tmp_body"
+        fi
+    else
+        _warning "No markdown response detected for $markdown_url"
+        if (( md_header_found == 1 )); then
+            _loading2 "Response appears markdown-like (header found)"
+        fi
+    fi
+
+    [[ -n "$content_type" ]] && _log "content-type: $content_type"
+    [[ -n "$markdown_tokens" ]] && _log "x-markdown-tokens: $markdown_tokens"
+    [[ -n "$content_signal" ]] && _log "content-signal: $content_signal"
+    [[ -n "$vary_header" ]] && _log "vary: $vary_header"
+    rm -f "$tmp_headers" "$tmp_body"
+}
+
 # -- image-opt
 # Optimize PNG/GIF/JPEG images using pngcrush, gifsicle, and jpegtran.
 # - Auto-detects type by file extension unless -t is provided

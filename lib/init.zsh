@@ -1227,9 +1227,10 @@ function init_zshbop () {
     # VS Code terminals can re-source startup files via shell integration.
     # Do not force reload here; allow full initialization unless reload was explicitly requested.
 
-    # Prevent double initialization (can happen with VS Code shell integration)
+    # Prevent double initialization in the same shell process
     # Allow re-init if ZSHBOP_RELOAD is set
-    if [[ -n "$ZSHBOP_INITIALIZED" && "$ZSHBOP_RELOAD" != "1" ]]; then
+    # Guard against inherited exported ZSHBOP_INITIALIZED from parent shells
+    if [[ "$ZSHBOP_INITIALIZED" == "1" && "$ZSHBOP_INITIALIZED_PID" == "$$" && "$ZSHBOP_RELOAD" != "1" ]]; then
         _debug "init_zshbop: Already initialized, skipping (set ZSHBOP_RELOAD=1 to force)"
         return 0
     fi
@@ -1353,6 +1354,7 @@ function init_zshbop () {
     
     # Mark as initialized for this shell only (do not export to child shells)
     ZSHBOP_INITIALIZED=1
+    ZSHBOP_INITIALIZED_PID=$$
     
     init_log
 }
