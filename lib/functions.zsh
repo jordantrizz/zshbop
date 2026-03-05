@@ -16,7 +16,7 @@ help_zshbop_quick[zbr]='Reload zshbop'
 alias zbr="zshbop_reload"
 # zbuf
 help_zshbop_quick[zbuf]='Update and reset zshbop'
-alias zbuf="git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT pull;git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$ZSHBOP_BRANCH"
+alias zbuf="git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch origin $ZSHBOP_BRANCH;git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$ZSHBOP_BRANCH"
 
 # zb
 help_zshbop_quick[zb]='zshbop main command'
@@ -306,31 +306,52 @@ help_zshbop[update]='Update zshbop'
 zshbop_update () {
     _log "${funcstack[1]}:start"
 	_debug_all
+    local CURRENT_BRANCH=""
+    local CURRENT_COMMIT=""
+
+    _loading "Updater v2 - Pulling latest changes"
+
+    # -- Validate zshbop root and get branch state from git (not shell cache)
+    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --is-inside-work-tree > /dev/null 2>&1
+    [[ $? -ge "1" ]] && { _error "Invalid zshbop repository at $ZSHBOP_ROOT"; return 1 }
+
+    CURRENT_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD)
+    [[ $? -ge "1" ]] && { _error "Failed to detect current branch"; return 1 }
+
+    # Keep runtime vars fresh for output and downstream commands.
+    export ZSHBOP_BRANCH="$CURRENT_BRANCH"
+    CURRENT_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD)
+    [[ $? -ge "1" ]] && { _error "Failed to detect current commit"; return 1 }
+    export ZSHBOP_COMMIT="$CURRENT_COMMIT"
+
     _loading "Updating zshbop - $(zshbop_version)"
 
-    # -- Fetch first
-    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch
+    # -- Safety check before any destructive action.
+    if [[ -n "$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT status --porcelain --untracked-files=all)" ]]; then
+        _error "You have uncommitted changes, please commit or stash them before updating"
+        return 1
+    fi
+
+    # -- Only allow updater on release branches.
+    if [[ "$CURRENT_BRANCH" != "main" ]] && [[ "$CURRENT_BRANCH" != "next-release" ]]; then
+        _error "Updater only supports main and next-release branches. Current branch: $CURRENT_BRANCH"
+        return 1
+    fi
+
+    # -- Force-sync from origin to avoid merge/rebase divergence paths.
+    _loading2 "Pulling zshbop updates"
+    _loading3 "Fetching $CURRENT_BRANCH"
+    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch origin $CURRENT_BRANCH
     [[ $? -ge "1" ]] && { _error "Failed to fetch latest changes"; return 1 }
 
-    # -- Pull zshbop down from git using current branch
-    _loading2 "Pulling zshbop updates"
-    if [[ $ZSHBOP_BRANCH == 'develop' ]]; then
-    	_debugf "Detected old branch name develop"
-        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT checkout dev
-        [[ $? -ge "1" ]] && { _error "Failed to checkout dev branch"; return 1 }
-        _loading3 "Resetting to origin/dev"
-        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/dev
-        [[ $? -ge "1" ]] && { _error "Failed to reset to origin/dev"; return 1 }
-    else
-        _loading3 "Fetching $ZSHBOP_BRANCH"
-        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch
-        [[ $? -ge "1" ]] && { _error "Failed to fetch latest changes"; return 1 }
+    _loading3 "Resetting to origin/$CURRENT_BRANCH"
+    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$CURRENT_BRANCH
+    [[ $? -ge "1" ]] && { _error "Failed to reset to origin/$CURRENT_BRANCH"; return 1 }
 
-        _loading3 "Resetting to origin/$ZSHBOP_BRANCH"
-        git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$ZSHBOP_BRANCH
-        # -- Check if reset was successful
-        [[ $? -ge "1" ]] && { _error "Failed to reset to origin/$ZSHBOP_BRANCH"; return 1 }
-   fi
+    CURRENT_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD)
+    [[ $? -ge "1" ]] && { _error "Failed to detect updated commit"; return 1 }
+    export ZSHBOP_COMMIT="$CURRENT_COMMIT"
+
     echo ""
 
     # Update repos    

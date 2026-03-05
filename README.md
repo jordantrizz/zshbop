@@ -143,6 +143,11 @@ These commands are shortened aliases for zshbop commands
 * `zb update` - Update zshbop
 * `zb version` - Get version information
 
+Updater behavior notes:
+* `zb update`/`zbu` now runs Updater v2 force-sync flow (`fetch` + `reset --hard`) to avoid merge/rebase divergence prompts.
+* Updates are only allowed on `main` and `next-release`.
+* If uncommitted changes are present (tracked or untracked), update exits and asks you to commit or stash first.
+
 ## Debugging
 You can use the function `zbdebug` on the CLI and `_debugf` within any function to print out debug information.
 
