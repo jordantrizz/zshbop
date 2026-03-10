@@ -1066,7 +1066,8 @@ function git-squash-release() {
     fi
 
     local WP_PLUGIN_FILE
-    WP_PLUGIN_FILE=$(grep -RIl --include='*.php' '^[[:space:]]*Plugin Name:' . 2>/dev/null | head -n 1)
+    # Allow standard plugin docblock header lines like "* Plugin Name:" and case variations.
+    WP_PLUGIN_FILE=$(grep -RIl -i --include='*.php' '^[[:space:]]*\*?[[:space:]]*Plugin Name[[:space:]]*:' . 2>/dev/null | head -n 1)
     if [[ -n $WP_PLUGIN_FILE ]]; then
         _success "[PASS] WordPress plugin detected: $WP_PLUGIN_FILE"
     else
