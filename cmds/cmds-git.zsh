@@ -1066,15 +1066,27 @@ function git-squash-release() {
     fi
 
     local WP_PLUGIN_FILE
-    # Allow standard plugin docblock header lines like "* Plugin Name:" and case variations.
+    local WP_PLUGIN_FALLBACK_FILE
+    local REPO_BASENAME
+
+    # Tier 1: Detect a standard WordPress plugin header in any PHP file.
     WP_PLUGIN_FILE=$(grep -RIl -i --include='*.php' '^[[:space:]]*\*?[[:space:]]*Plugin Name[[:space:]]*:' . 2>/dev/null | head -n 1)
+
     if [[ -n $WP_PLUGIN_FILE ]]; then
-        _success "[PASS] WordPress plugin detected: $WP_PLUGIN_FILE"
+        _success "[PASS] WordPress plugin detected (header): $WP_PLUGIN_FILE"
     else
-        if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] WordPress plugin not detected"
+        # Tier 2: Fallback to <repo-dir-name>.php in repository root.
+        REPO_BASENAME="${PWD:t}"
+        WP_PLUGIN_FALLBACK_FILE="./${REPO_BASENAME}.php"
+
+        if [[ -f $WP_PLUGIN_FALLBACK_FILE ]]; then
+            _success "[PASS] WordPress plugin detected (fallback filename): $WP_PLUGIN_FALLBACK_FILE"
         else
-            _error "[FAIL] WordPress plugin not detected"
+            if [[ $DETECT_ONLY -eq 1 ]]; then
+                _warning "[FAIL] WordPress plugin not detected (no Plugin Name header and no ${REPO_BASENAME}.php in repo root)"
+            else
+                _error "[FAIL] WordPress plugin not detected (no Plugin Name header and no ${REPO_BASENAME}.php in repo root)"
+            fi
         fi
     fi
 
