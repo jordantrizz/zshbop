@@ -1102,6 +1102,53 @@ function git-squash-release() {
         fi
     fi
 
+    local CURRENT_VERSION
+    local CURRENT_VERSION_SOURCE
+    local VERSION_HEADER_FILE
+    CURRENT_VERSION=""
+    CURRENT_VERSION_SOURCE=""
+
+    # Tier 1: VERSION file (first non-empty line).
+    if [[ -f VERSION ]]; then
+        CURRENT_VERSION=$(grep -m 1 -E '[^[:space:]]' VERSION 2>/dev/null | tr -d '[:space:]')
+        if [[ -n $CURRENT_VERSION ]]; then
+            CURRENT_VERSION_SOURCE="VERSION"
+        fi
+    fi
+
+    # Tier 2: WordPress plugin Version header.
+    if [[ -z $CURRENT_VERSION ]]; then
+        VERSION_HEADER_FILE="$WP_PLUGIN_FILE"
+        if [[ -z $VERSION_HEADER_FILE && -n $WP_PLUGIN_FALLBACK_FILE && -f $WP_PLUGIN_FALLBACK_FILE ]]; then
+            VERSION_HEADER_FILE="$WP_PLUGIN_FALLBACK_FILE"
+        fi
+
+        if [[ -n $VERSION_HEADER_FILE ]]; then
+            CURRENT_VERSION=$(grep -i -m 1 '^[[:space:]]*\*\{0,1\}[[:space:]]*Version[[:space:]]*:' "$VERSION_HEADER_FILE" 2>/dev/null | sed -E 's/^[[:space:]]*\*?[[:space:]]*Version[[:space:]]*:[[:space:]]*//' | sed -E 's/[[:space:]]+$//')
+            if [[ -n $CURRENT_VERSION ]]; then
+                CURRENT_VERSION_SOURCE="plugin header ($VERSION_HEADER_FILE)"
+            fi
+        fi
+    fi
+
+    # Tier 3: WordPress theme Version header.
+    if [[ -z $CURRENT_VERSION && -n $WP_THEME_FILE ]]; then
+        CURRENT_VERSION=$(grep -i -m 1 '^[[:space:]]*Version[[:space:]]*:' "$WP_THEME_FILE" 2>/dev/null | sed -E 's/^[[:space:]]*Version[[:space:]]*:[[:space:]]*//' | sed -E 's/[[:space:]]+$//')
+        if [[ -n $CURRENT_VERSION ]]; then
+            CURRENT_VERSION_SOURCE="theme header ($WP_THEME_FILE)"
+        fi
+    fi
+
+    if [[ -n $CURRENT_VERSION ]]; then
+        _success "[PASS] Current version detected from ${CURRENT_VERSION_SOURCE}: ${CURRENT_VERSION}"
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] Current version not detected (checked VERSION file, plugin Version header, and theme Version header)"
+        else
+            _error "[FAIL] Current version not detected (checked VERSION file, plugin Version header, and theme Version header)"
+        fi
+    fi
+
     if [[ $DETECT_ONLY -eq 1 ]]; then
         if [[ $DETECTION_FAILED -eq 0 ]]; then
             _success "All detections passed."
