@@ -485,18 +485,20 @@ zshbop_custom () {
 help_zshbop[custom-load]='Load zshbop custom config'
 zshbop_custom-load () {
 	if [[ $1 == "-q" ]]; then
-        if [[ -f $HOME/.zshbop.conf ]]; then
+        if [[ -f $HOME/.zshbop.conf && ( "$ZSHBOP_CONF_LOADED" != "1" || "$ZSHBOP_CONF_LOADED_PID" != "$$" ) ]]; then
             source $HOME/.zshbop.conf
             export ZSHBOP_CONF_LOADED=1
+            export ZSHBOP_CONF_LOADED_PID=$$
         fi
     else
         # -- Check for $HOME/.zshbop.conf, load last to allow overwritten core functions
         _log "Checking for $HOME/.zshbop.conf"
-        if [[ -f $HOME/.zshbop.conf && -z $ZSHBOP_CONF_LOADED ]]; then
+        if [[ -f $HOME/.zshbop.conf && ( "$ZSHBOP_CONF_LOADED" != "1" || "$ZSHBOP_CONF_LOADED_PID" != "$$" ) ]]; then
             ZSHBOP_CUSTOM_CFG="$HOME/.zshbop.conf"
             _log "Loaded custom zshbop config - $ZSHBOP_CUSTOM_CFG"
             source $ZSHBOP_CUSTOM_CFG
             export ZSHBOP_CONF_LOADED=1
+            export ZSHBOP_CONF_LOADED_PID=$$
         elif [[ ! -f $HOME/.zshbop.conf ]]; then
             _warning "No custom zshbop config found. Type zshbop custom for more information"
         fi

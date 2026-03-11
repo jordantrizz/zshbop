@@ -1218,10 +1218,13 @@ init_motd () {
 # -- init_zshbop -- initialize zshbop
 # ==============================================
 function init_zshbop () {
-    # Load user overrides early (once) so flags (e.g., ZSHBOP_DISABLE_VSCODE_SHELL) are available
-    if [[ -z "$ZSHBOP_CONF_LOADED" && -f $HOME/.zshbop.conf ]]; then
+    # Load user overrides early (once per shell process) so flags
+    # (e.g., ZSHBOP_DISABLE_VSCODE_SHELL) are available.
+    # This avoids inherited exported flags from parent shells skipping config.
+    if [[ -f $HOME/.zshbop.conf && ( "$ZSHBOP_CONF_LOADED" != "1" || "$ZSHBOP_CONF_LOADED_PID" != "$$" ) ]]; then
         source $HOME/.zshbop.conf
         export ZSHBOP_CONF_LOADED=1
+        export ZSHBOP_CONF_LOADED_PID=$$
     fi
 
     # VS Code terminals can re-source startup files via shell integration.
