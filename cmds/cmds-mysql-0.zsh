@@ -510,12 +510,13 @@ mysql-ps () {
 help_mysql[mysql-myisam2innodb]="Convert MyISAM to Innodb"
 function mysql-myisam2innodb () {
 	_mysql-myisam2innodb-usage () {
-		echo "Usage: mysql-myisam2innodb [-d<database>|-a] -b"
+		echo "Usage: mysql-myisam2innodb [-d <database>|-a] [-b|-sb]"
 		echo "Commands:"
 		echo "  -d <database>  - Convert MyISAM tables to InnoDB in a specific database"
 		echo "  -a             - Convert MyISAM tables to InnoDB in all databases"
 		echo "Options:"
-		echo "  -sb             - Skip backup"
+		echo "  -b             - Backup database before converting without prompting"
+		echo "  -sb            - Skip backup"
 	}
 
 	_mysql-myisam2innodb-get-tables () {
@@ -535,8 +536,11 @@ function mysql-myisam2innodb () {
 
 	_mysql-myisam2innodb-convert () {
 		DATABASE=$1
-		# Backup Database?
-		if [[ $SKIP_BACKUP == 0 ]]; then
+		# Backup database before converting based on the selected mode.
+		if [[ $AUTO_BACKUP == 1 ]]; then
+			_loading2 "Backing up database (${DATABASE}) before converting..."
+			mysql-backup-db -d $DATABASE
+		elif [[ $SKIP_BACKUP == 0 ]]; then
 			_loading2 "Backup database (${DATABASE}) before converting? [y/n]"
 			read REPLY
 			if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -561,12 +565,20 @@ function mysql-myisam2innodb () {
 
 	local DATABASE MODE
 	local MYISAM_DATABASES=()
+	local AUTO_BACKUP=0
 	local SKIP_BACKUP=0
 
-	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL sb=ARG_SKIP_BACKUP	
+	zparseopts -D -E d:=ARG_DATABASE a=ARG_ALL b=ARG_BACKUP sb=ARG_SKIP_BACKUP	
 	[[ $ARG_DATABASE  ]] && DATABASE=${ARG_DATABASE[2]}
 	[[ $ARG_ALL ]] && MODE="all" || MODE="single"
+	[[ $ARG_BACKUP ]] && AUTO_BACKUP=1
 	[[ $ARG_SKIP_BACKUP ]] && SKIP_BACKUP=1
+
+	[[ $AUTO_BACKUP == 1 ]] && [[ $SKIP_BACKUP == 1 ]] && {
+		_mysql-myisam2innodb-usage
+		_error "Please specify only one backup option, -b or -sb"
+		return 1
+	}
 	
 	[[ -z $MODE ]] && { _mysql-myisam2innodb-usage; _error "Please specify an option to use, -d or -a"; return 1; }
 
@@ -775,4 +787,3 @@ function mysql-backup-mydumper () {
 		_error "Backup of ${DATABASE} failed"
 	fi
 }
-

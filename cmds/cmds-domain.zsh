@@ -107,6 +107,8 @@ function dom () {
         domain-spf $DOMAIN_CLEAN
         echo ""
         domain-dmarc $DOMAIN_CLEAN 0
+        echo ""
+        domain-dkim $DOMAIN_CLEAN
     fi
 
 }
@@ -651,6 +653,47 @@ function domain-dmarc () {
             _loading "DMARC Tools"
             echo "DMARC Policy Validator: https://vamsoft.com/support/tools/dmarc-policy-validator"
         fi
+    fi
+}
+
+# -- domain-dkim
+help_domain[domain-dkim]='Check common DKIM selectors for a domain'
+function domain-dkim () {
+    local DOMAIN="$1" DKIM_QUERY DKIM_RECORDS DKIM_SELECTOR
+    local FOUND_DKIM=0
+    local -a DKIM_SELECTORS
+
+    domain-strip "$DOMAIN" 1 >> /dev/null
+    DOMAIN=$OUTPUT_DOMAIN_STRIP
+    DKIM_SELECTORS=("default" "selector1" "selector2" "google" "k1" "dkim")
+
+    _loading "Checking $DOMAIN for DKIM records"
+
+    for DKIM_SELECTOR in "${DKIM_SELECTORS[@]}"; do
+        DKIM_QUERY="$DKIM_SELECTOR._domainkey.$DOMAIN"
+        DKIM_RECORDS=$(dig +short TXT $DKIM_QUERY)
+
+        if [[ -n $DKIM_RECORDS ]]; then
+            if [[ $FOUND_DKIM -eq 0 ]]; then
+                _success "DKIM records found for $DOMAIN"
+            fi
+            FOUND_DKIM=1
+
+            echo "$DKIM_RECORDS" | while read -r line; do
+                if [[ -n $line ]]; then
+                    echo "  -> Selector: $DKIM_SELECTOR"
+                    echo "     -> $line"
+                fi
+            done
+        fi
+    done
+
+    if [[ $FOUND_DKIM -eq 0 ]]; then
+        _error "No DKIM records found for $DOMAIN"
+        _loading2 "Selectors checked: ${DKIM_SELECTORS[*]}"
+        _warning "DKIM selectors vary by provider; this check is not definitive and should not be fully trusted."
+    else
+        _warning "Only common selectors were checked; this DKIM output may be incomplete and should not be fully trusted."
     fi
 }
 

@@ -138,7 +138,7 @@ function gh-repos () {
 			print -r -- "$(date +%s)" >| "$CACHE_ORGS_TS"
 		fi
 
-		GH_ORGS=(${(f)$(print -r -- "$ORGS_JSON" | jq -r '.[].login' 2>/dev/null)})
+		GH_ORGS=(${(f)"$(print -r -- "$ORGS_JSON" | jq -r '.[].login' 2>/dev/null)"})
 		if [[ $? != "0" ]]; then
 			_error "Unable to parse organization response"
 			return 1

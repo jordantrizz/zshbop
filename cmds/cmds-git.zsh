@@ -1066,14 +1066,27 @@ function git-squash-release() {
     fi
 
     local WP_PLUGIN_FILE
-    WP_PLUGIN_FILE=$(grep -RIl --include='*.php' '^[[:space:]]*Plugin Name:' . 2>/dev/null | head -n 1)
+    local WP_PLUGIN_FALLBACK_FILE
+    local REPO_BASENAME
+
+    # Tier 1: Detect a standard WordPress plugin header in any PHP file.
+    WP_PLUGIN_FILE=$(grep -RIl -i --include='*.php' '^[[:space:]]*\*?[[:space:]]*Plugin Name[[:space:]]*:' . 2>/dev/null | head -n 1)
+
     if [[ -n $WP_PLUGIN_FILE ]]; then
-        _success "[PASS] WordPress plugin detected: $WP_PLUGIN_FILE"
+        _success "[PASS] WordPress plugin detected (header): $WP_PLUGIN_FILE"
     else
-        if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] WordPress plugin not detected"
+        # Tier 2: Fallback to <repo-dir-name>.php in repository root.
+        REPO_BASENAME="${PWD:t}"
+        WP_PLUGIN_FALLBACK_FILE="./${REPO_BASENAME}.php"
+
+        if [[ -f $WP_PLUGIN_FALLBACK_FILE ]]; then
+            _success "[PASS] WordPress plugin detected (fallback filename): $WP_PLUGIN_FALLBACK_FILE"
         else
-            _error "[FAIL] WordPress plugin not detected"
+            if [[ $DETECT_ONLY -eq 1 ]]; then
+                _warning "[FAIL] WordPress plugin not detected (no Plugin Name header and no ${REPO_BASENAME}.php in repo root)"
+            else
+                _error "[FAIL] WordPress plugin not detected (no Plugin Name header and no ${REPO_BASENAME}.php in repo root)"
+            fi
         fi
     fi
 
@@ -1086,6 +1099,53 @@ function git-squash-release() {
             _warning "[FAIL] WordPress theme not detected"
         else
             _error "[FAIL] WordPress theme not detected"
+        fi
+    fi
+
+    local CURRENT_VERSION
+    local CURRENT_VERSION_SOURCE
+    local VERSION_HEADER_FILE
+    CURRENT_VERSION=""
+    CURRENT_VERSION_SOURCE=""
+
+    # Tier 1: VERSION file (first non-empty line).
+    if [[ -f VERSION ]]; then
+        CURRENT_VERSION=$(grep -m 1 -E '[^[:space:]]' VERSION 2>/dev/null | tr -d '[:space:]')
+        if [[ -n $CURRENT_VERSION ]]; then
+            CURRENT_VERSION_SOURCE="VERSION"
+        fi
+    fi
+
+    # Tier 2: WordPress plugin Version header.
+    if [[ -z $CURRENT_VERSION ]]; then
+        VERSION_HEADER_FILE="$WP_PLUGIN_FILE"
+        if [[ -z $VERSION_HEADER_FILE && -n $WP_PLUGIN_FALLBACK_FILE && -f $WP_PLUGIN_FALLBACK_FILE ]]; then
+            VERSION_HEADER_FILE="$WP_PLUGIN_FALLBACK_FILE"
+        fi
+
+        if [[ -n $VERSION_HEADER_FILE ]]; then
+            CURRENT_VERSION=$(grep -i -m 1 '^[[:space:]]*\*\{0,1\}[[:space:]]*Version[[:space:]]*:' "$VERSION_HEADER_FILE" 2>/dev/null | sed -E 's/^[[:space:]]*\*?[[:space:]]*Version[[:space:]]*:[[:space:]]*//' | sed -E 's/[[:space:]]+$//')
+            if [[ -n $CURRENT_VERSION ]]; then
+                CURRENT_VERSION_SOURCE="plugin header ($VERSION_HEADER_FILE)"
+            fi
+        fi
+    fi
+
+    # Tier 3: WordPress theme Version header.
+    if [[ -z $CURRENT_VERSION && -n $WP_THEME_FILE ]]; then
+        CURRENT_VERSION=$(grep -i -m 1 '^[[:space:]]*Version[[:space:]]*:' "$WP_THEME_FILE" 2>/dev/null | sed -E 's/^[[:space:]]*Version[[:space:]]*:[[:space:]]*//' | sed -E 's/[[:space:]]+$//')
+        if [[ -n $CURRENT_VERSION ]]; then
+            CURRENT_VERSION_SOURCE="theme header ($WP_THEME_FILE)"
+        fi
+    fi
+
+    if [[ -n $CURRENT_VERSION ]]; then
+        _success "[PASS] Current version detected from ${CURRENT_VERSION_SOURCE}: ${CURRENT_VERSION}"
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] Current version not detected (checked VERSION file, plugin Version header, and theme Version header)"
+        else
+            _error "[FAIL] Current version not detected (checked VERSION file, plugin Version header, and theme Version header)"
         fi
     fi
 
