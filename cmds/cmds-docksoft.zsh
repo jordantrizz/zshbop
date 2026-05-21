@@ -37,7 +37,7 @@ function _docksoft_usage () {
     echo "  init                        Initialize docksoft (directories, network, config; type 'skip' to bypass config)"
     echo "  list                        List available container templates"
     echo "  config                      Show current docksoft configuration"
-    echo "  traefik-status [-r|--raw]   Show Traefik routers, services, and certificate status"
+    echo "  traefik-status [-r|--raw]   Alias for traefik-status"
     echo "  <container> [options]       Deploy a container from templates"
     echo ""
     echo "Options:"

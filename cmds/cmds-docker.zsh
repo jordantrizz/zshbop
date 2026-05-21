@@ -5,6 +5,8 @@ _debug " -- Loading ${(%):-%N}"
 help_files[docker]="Docker commands" # Help file description
 typeset -gA help_docker # Init help array.
 
+help_docker[dockcheck.sh]='Check if docker containers need updates and updated them'
+
 # ==============================================================================
 # dps
 # ==============================================================================

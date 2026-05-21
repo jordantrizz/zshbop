@@ -78,6 +78,22 @@
     print "$hostname"
   }
 
+    _p9k_hostname_fqdn_detect() {
+      local hostname_fqdn=""
+
+      _debugf "Starting FQDN hostname detection"
+      hostname_fqdn=$(hostname -f 2>/dev/null)
+      _debugf "hostname -f returned: '$hostname_fqdn'"
+
+      if [[ -z "$hostname_fqdn" ]] || [[ "$hostname_fqdn" == "localhost" ]]; then
+        _debugf "hostname -f unavailable or unusable"
+        print ""
+        return 0
+      fi
+
+      print "$hostname_fqdn"
+    }
+
   zmodload zsh/langinfo
   if [[ ${langinfo[CODESET]:-} != (utf|UTF)(-|)8 ]]; then
     local LC_ALL=${${(@M)$(locale -a):#*.(utf|UTF)(-|)8}[1]:-en_US.UTF-8}
@@ -712,17 +728,23 @@
   # Fix for %M not providing a fully qualified hostname
   # Uses _p9k_hostname_detect function with fallback logic
   HOSTNAME=$(_p9k_hostname_detect)
+  typeset -gx PL_HOSTNAMEF=$(_p9k_hostname_fqdn_detect)
+  typeset -g PL_DISPLAY_HOSTNAME="$HOSTNAME"
+
+  if [[ "$HOSTNAME" != *.* ]] && [[ -n "$PL_HOSTNAMEF" ]]; then
+	PL_DISPLAY_HOSTNAME="$PL_HOSTNAMEF"
+  fi
   
   if (( ${+HIDE_HOSTNAME} )); then
-	HOSTNAME="hidden"
+	PL_DISPLAY_HOSTNAME="hidden"
   fi
   
   # Context format when running with privileges: user@hostname.
-  typeset -g POWERLEVEL9K_CONTEXT_ROOT_TEMPLATE="%n@$HOSTNAME"
+  typeset -g POWERLEVEL9K_CONTEXT_ROOT_TEMPLATE="%n@$PL_DISPLAY_HOSTNAME"
   # Context format when in SSH without privileges: user@hostname.
-  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_TEMPLATE="%n@$HOSTNAME"
+  typeset -g POWERLEVEL9K_CONTEXT_{REMOTE,REMOTE_SUDO}_TEMPLATE="%n@$PL_DISPLAY_HOSTNAME"
   # Default context format (no privileges, no SSH): user@hostname.
-  typeset -g POWERLEVEL9K_CONTEXT_TEMPLATE="%n@$HOSTNAME"
+  typeset -g POWERLEVEL9K_CONTEXT_TEMPLATE="%n@$PL_DISPLAY_HOSTNAME"
 
   # Don't show context unless running with privileges or in SSH.
   # Tip: Remove the next line to always show context.

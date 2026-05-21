@@ -47,9 +47,18 @@ function _docksoft_deploy () {
         return 1
     fi
 
+    # -- Read template metadata used to control deploy behavior
+    local tpl_subdomain="$container_name"
+    local tpl_requires_traefik="true"
+    if [[ -f "$DOCKSOFT_TEMPLATES/$template_name/docksoft.conf" ]]; then
+        source "$DOCKSOFT_TEMPLATES/$template_name/docksoft.conf"
+        [[ -n "$DOCKSOFT_SUBDOMAIN" ]] && tpl_subdomain="$DOCKSOFT_SUBDOMAIN"
+        [[ -n "$DOCKSOFT_REQUIRES_TRAEFIK" ]] && tpl_requires_traefik="$DOCKSOFT_REQUIRES_TRAEFIK"
+    fi
+
     # -- Check if traefik is deployed (required for all containers except traefik itself)
     # Consider it deployed only if the compose file exists.
-    if [[ "$template_name" != "traefik" ]] && [[ ! -f "$DOCKSOFT_CONTAINERS/traefik/docker-compose.yml" ]]; then
+    if [[ "$template_name" != "traefik" ]] && [[ "$tpl_requires_traefik" == "true" ]] && [[ ! -f "$DOCKSOFT_CONTAINERS/traefik/docker-compose.yml" ]]; then
         _error "Traefik is not deployed. Deploy traefik first: docksoft traefik"
         return 1
     fi
@@ -88,13 +97,6 @@ function _docksoft_deploy () {
 
     if [[ $prompted_for_new_name -eq 1 ]]; then
         _loading3 "Using instance name: $container_name"
-    fi
-
-    # -- Read template's docksoft.conf for subdomain prefix
-    local tpl_subdomain="$container_name"
-    if [[ -f "$DOCKSOFT_TEMPLATES/$template_name/docksoft.conf" ]]; then
-        source "$DOCKSOFT_TEMPLATES/$template_name/docksoft.conf"
-        [[ -n "$DOCKSOFT_SUBDOMAIN" ]] && tpl_subdomain="$DOCKSOFT_SUBDOMAIN"
     fi
 
     # -- If deploy name was changed due to conflict, use the new instance name

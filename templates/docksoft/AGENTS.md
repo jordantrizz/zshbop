@@ -18,8 +18,12 @@ Notes:
 ## `docksoft.conf` Convention
 If present, `docksoft.conf` can set:
 - `DOCKSOFT_SUBDOMAIN="<subdomain>"`
+- `DOCKSOFT_REQUIRES_TRAEFIK="true|false"`
 
 This is used in **multi** mode to compute the deployed FQDN as `<subdomain>.<base_domain>`.
+
+`DOCKSOFT_REQUIRES_TRAEFIK` defaults to `true`. Set it to `false` for internal-only
+services that should deploy without a Traefik prerequisite.
 
 ## Supported Placeholders
 During deploy, docksoft replaces these placeholders anywhere in the deployed files:

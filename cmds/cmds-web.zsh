@@ -32,6 +32,955 @@ curl-ttfb () {
 help_web[curl-ttfb2]='Curl to get TTFB or Time To First Byte from https://github.com/jaygooby/ttfb.sh updated 2021. Allows for multiple requests.'
 alias curl-ttfb2="ttfb2"
 
+# ==============================================
+# -- _http_test_color_code - return ANSI color code for a result level
+# ==============================================
+function _http_test_color_code () {
+    local level="$1"
+
+    if [[ ! -t 1 ]]; then
+        return 0
+    fi
+
+    case "$level" in
+        PASS)
+            printf '\033[32m'
+            ;;
+        WARN|SKIP)
+            printf '\033[33m'
+            ;;
+        FAIL)
+            printf '\033[31m'
+            ;;
+        INFO)
+            printf '\033[36m'
+            ;;
+        *)
+            ;;
+    esac
+}
+
+# ==============================================
+# -- _http_test_reset_code - return ANSI reset code when stdout is a terminal
+# ==============================================
+function _http_test_reset_code () {
+    if [[ -t 1 ]]; then
+        printf '\033[0m'
+    fi
+}
+
+# ==============================================
+# -- _http_test_format_status - format a summary status with optional color
+# ==============================================
+function _http_test_format_status () {
+    local label="$1"
+    local color_value=""
+    local reset_value=""
+
+    color_value=$(_http_test_color_code "$label")
+    reset_value=$(_http_test_reset_code)
+
+    if [[ -n "$color_value" ]]; then
+        printf '%b%-8s%b' "$color_value" "$label" "$reset_value"
+    else
+        printf '%-8s' "$label"
+    fi
+}
+
+# ==============================================
+# -- _http_test_print_line - print a colored status line when stdout is a terminal
+# ==============================================
+function _http_test_print_line () {
+    local level="$1"
+    local label="$2"
+    local message="$3"
+    local color_value=""
+    local color_reset=""
+
+    color_value=$(_http_test_color_code "$level")
+    color_reset=$(_http_test_reset_code)
+
+    if [[ -n "$color_value" ]]; then
+        printf "%b[%-4s]%b %s\n" "$color_value" "$label" "$color_reset" "$message"
+    else
+        printf "[%-4s] %s\n" "$label" "$message"
+    fi
+}
+
+# ==============================================
+# -- _http_test_print_section - print a section header for http-test output
+# ==============================================
+function _http_test_print_section () {
+    local title="$1"
+    local color_value=""
+    local color_reset=""
+
+    color_value=$(_http_test_color_code "INFO")
+    color_reset=$(_http_test_reset_code)
+
+    echo ""
+    if [[ -n "$color_value" ]]; then
+        printf "%b%s%b\n" "$color_value" "== ${title} ==" "$color_reset"
+    else
+        echo "== ${title} =="
+    fi
+}
+
+# ==============================================
+# -- _http_test_record_result - store summary status/detail in associative arrays
+# ==============================================
+function _http_test_record_result () {
+    local key="$1"
+    local result_status="$2"
+    local detail="$3"
+
+    HTTP_TEST_SUMMARY_STATUS[$key]="$result_status"
+    HTTP_TEST_SUMMARY_DETAIL[$key]="$detail"
+    HTTP_TEST_SUMMARY_ORDER+=("$key")
+}
+
+# ==============================================
+# -- _http_test_update_exit_state - track the highest severity seen
+# ==============================================
+function _http_test_update_exit_state () {
+    local result_status="$1"
+
+    if [[ "$result_status" == "FAIL" ]]; then
+        HTTP_TEST_EXIT_CODE=2
+    elif [[ "$result_status" == "WARN" && $HTTP_TEST_EXIT_CODE -lt 2 ]]; then
+        HTTP_TEST_EXIT_CODE=1
+    fi
+}
+
+# ==============================================
+# -- _http_test_warn_missing_dep - warn once for optional missing dependencies
+# ==============================================
+function _http_test_warn_missing_dep () {
+    local dep_name="$1"
+    local message="$2"
+
+    if [[ -z "${HTTP_TEST_MISSING_DEPS[$dep_name]}" ]]; then
+        HTTP_TEST_MISSING_DEPS[$dep_name]=1
+        _http_test_print_line "WARN" "WARN" "$message"
+    fi
+}
+
+# ==============================================
+# -- _http_test_parse_url - normalize the user-provided URL into globals
+# ==============================================
+function _http_test_parse_url () {
+    local input_value="$1"
+    local normalized_input="$input_value"
+    local rest_value=""
+    local authority_value=""
+    local host_port_value=""
+    local path_value="/"
+    local scheme_value=""
+    local port_value=""
+
+    HTTP_TEST_INPUT_SCHEME=""
+    HTTP_TEST_INPUT_HOST=""
+    HTTP_TEST_INPUT_PORT=""
+    HTTP_TEST_INPUT_PATH_QUERY="/"
+    HTTP_TEST_INPUT_HAS_SCHEME=0
+    HTTP_TEST_INPUT_HAS_PORT=0
+
+    normalized_input=${normalized_input%%\#*}
+
+    if [[ "$normalized_input" == (#b)([[:alpha:]][[:alnum:]+.-]#)://(*) ]]; then
+        scheme_value="${match[1]:l}"
+        rest_value="${match[2]}"
+        HTTP_TEST_INPUT_HAS_SCHEME=1
+    else
+        rest_value="$normalized_input"
+    fi
+
+    authority_value="$rest_value"
+    if [[ "$rest_value" == */* ]]; then
+        authority_value="${rest_value%%/*}"
+        path_value="/${rest_value#*/}"
+    fi
+
+    [[ -z "$path_value" ]] && path_value="/"
+    host_port_value="$authority_value"
+
+    if [[ "$host_port_value" == \[*\]* ]]; then
+        HTTP_TEST_INPUT_HOST="${host_port_value%%]*}]"
+        HTTP_TEST_INPUT_HOST="${HTTP_TEST_INPUT_HOST#[}"
+        if [[ "$host_port_value" == *]:* ]]; then
+            port_value="${host_port_value##*:}"
+            HTTP_TEST_INPUT_HAS_PORT=1
+        fi
+    else
+        HTTP_TEST_INPUT_HOST="${host_port_value%%:*}"
+        if [[ "$host_port_value" == *:* ]]; then
+            port_value="${host_port_value##*:}"
+            HTTP_TEST_INPUT_HAS_PORT=1
+        fi
+    fi
+
+    if [[ -z "$HTTP_TEST_INPUT_HOST" ]]; then
+        return 1
+    fi
+
+    HTTP_TEST_INPUT_SCHEME="$scheme_value"
+    HTTP_TEST_INPUT_PORT="$port_value"
+    HTTP_TEST_INPUT_PATH_QUERY="$path_value"
+    return 0
+}
+
+# ==============================================
+# -- _http_test_build_target_url - build a normalized URL for a scheme
+# ==============================================
+function _http_test_build_target_url () {
+    local scheme_value="$1"
+    local host_value="$HTTP_TEST_INPUT_HOST"
+    local port_segment=""
+
+    if (( HTTP_TEST_INPUT_HAS_PORT )); then
+        port_segment=":${HTTP_TEST_INPUT_PORT}"
+    fi
+
+    printf "%s://%s%s%s" "$scheme_value" "$host_value" "$port_segment" "$HTTP_TEST_INPUT_PATH_QUERY"
+}
+
+# ==============================================
+# -- _http_test_curl_supports_http3 - return success when curl advertises HTTP3
+# ==============================================
+function _http_test_curl_supports_http3 () {
+    if [[ -n "$HTTP_TEST_HTTP3_SUPPORT_CACHE" ]]; then
+        [[ "$HTTP_TEST_HTTP3_SUPPORT_CACHE" == "1" ]]
+        return $?
+    fi
+
+    if curl --version 2>/dev/null | grep -qi 'HTTP3'; then
+        HTTP_TEST_HTTP3_SUPPORT_CACHE="1"
+        return 0
+    fi
+
+    HTTP_TEST_HTTP3_SUPPORT_CACHE="0"
+    return 1
+}
+
+# ==============================================
+# -- _http_test_build_resolve_args - emit curl --resolve arguments for host override
+# ==============================================
+function _http_test_build_resolve_args () {
+    if [[ -n "$HTTP_TEST_IP_OVERRIDE" ]]; then
+        printf -- "--resolve\n%s:80:%s\n--resolve\n%s:443:%s\n" \
+            "$HTTP_TEST_INPUT_HOST" "$HTTP_TEST_IP_OVERRIDE" "$HTTP_TEST_INPUT_HOST" "$HTTP_TEST_IP_OVERRIDE"
+    fi
+}
+
+# ==============================================
+# -- _http_test_collect_headers - run curl HEAD request and store output in globals
+# ==============================================
+function _http_test_collect_headers () {
+    local protocol_flag="$1"
+    local target_url="$2"
+    local verbose_mode="$3"
+    local insecure_mode="$4"
+    local tmp_headers=""
+    local tmp_verbose=""
+    local curl_exit=0
+    local -a curl_args
+    local -a resolve_args
+
+    HTTP_TEST_LAST_HEADERS=""
+    HTTP_TEST_LAST_VERBOSE=""
+    HTTP_TEST_LAST_PROTOCOL=""
+    HTTP_TEST_LAST_STATUS=""
+    HTTP_TEST_LAST_REDIRECT=""
+    HTTP_TEST_LAST_TIME=""
+    HTTP_TEST_LAST_REMOTE_IP=""
+    HTTP_TEST_LAST_EFFECTIVE_URL=""
+    HTTP_TEST_LAST_ERROR=""
+
+    tmp_headers=$(mktemp) || {
+        HTTP_TEST_LAST_ERROR="Unable to create temporary file"
+        return 1
+    }
+
+    tmp_verbose=$(mktemp) || {
+        rm -f "$tmp_headers"
+        HTTP_TEST_LAST_ERROR="Unable to create temporary file"
+        return 1
+    }
+
+    resolve_args=()
+    if [[ -n "$HTTP_TEST_IP_OVERRIDE" ]]; then
+        resolve_args=(
+            "--resolve" "${HTTP_TEST_INPUT_HOST}:80:${HTTP_TEST_IP_OVERRIDE}"
+            "--resolve" "${HTTP_TEST_INPUT_HOST}:443:${HTTP_TEST_IP_OVERRIDE}"
+        )
+    fi
+    curl_args=(
+        "$protocol_flag"
+        "--silent"
+        "--show-error"
+        "--location"
+        "--max-redirs" "10"
+        "--max-time" "10"
+        "--connect-timeout" "10"
+        "--head"
+        "--dump-header" "$tmp_headers"
+        "--output" "/dev/null"
+        "--write-out" "__HTTP_TEST__|%{http_code}|%{time_total}|%{redirect_url}|%{http_version}|%{remote_ip}|%{url_effective}"
+    )
+
+    if [[ "$insecure_mode" == "1" ]]; then
+        curl_args+=("--insecure")
+    fi
+
+    if (( ${#resolve_args[@]} > 0 )); then
+        curl_args+=("${resolve_args[@]}")
+    fi
+
+    curl_args+=("$target_url")
+
+    HTTP_TEST_LAST_PROTOCOL="$protocol_flag"
+    HTTP_TEST_LAST_VERBOSE=$(curl "${curl_args[@]}" 2>"$tmp_verbose")
+    curl_exit=$?
+
+    if [[ -s "$tmp_headers" ]]; then
+        HTTP_TEST_LAST_HEADERS=$(<"$tmp_headers")
+    fi
+    if [[ -s "$tmp_verbose" && "$verbose_mode" == "1" ]]; then
+        HTTP_TEST_LAST_VERBOSE+=$'\n'
+        HTTP_TEST_LAST_VERBOSE+=$(<"$tmp_verbose")
+    fi
+    if [[ -s "$tmp_verbose" && $curl_exit -ne 0 && -z "$HTTP_TEST_LAST_ERROR" ]]; then
+        HTTP_TEST_LAST_ERROR=$(tail -n 1 "$tmp_verbose")
+    fi
+
+    rm -f "$tmp_headers" "$tmp_verbose"
+
+    if [[ $curl_exit -ne 0 ]]; then
+        [[ -z "$HTTP_TEST_LAST_ERROR" ]] && HTTP_TEST_LAST_ERROR="curl exited with code $curl_exit"
+        return $curl_exit
+    fi
+
+    HTTP_TEST_LAST_STATUS=$(echo "$HTTP_TEST_LAST_VERBOSE" | awk -F'|' '/^__HTTP_TEST__/ {print $2; exit}')
+    HTTP_TEST_LAST_TIME=$(echo "$HTTP_TEST_LAST_VERBOSE" | awk -F'|' '/^__HTTP_TEST__/ {print $3; exit}')
+    HTTP_TEST_LAST_REDIRECT=$(echo "$HTTP_TEST_LAST_VERBOSE" | awk -F'|' '/^__HTTP_TEST__/ {print $4; exit}')
+    HTTP_TEST_LAST_HTTP_VERSION=$(echo "$HTTP_TEST_LAST_VERBOSE" | awk -F'|' '/^__HTTP_TEST__/ {print $5; exit}')
+    HTTP_TEST_LAST_REMOTE_IP=$(echo "$HTTP_TEST_LAST_VERBOSE" | awk -F'|' '/^__HTTP_TEST__/ {print $6; exit}')
+    HTTP_TEST_LAST_EFFECTIVE_URL=$(echo "$HTTP_TEST_LAST_VERBOSE" | awk -F'|' '/^__HTTP_TEST__/ {print $7; exit}')
+    HTTP_TEST_LAST_VERBOSE=$(echo "$HTTP_TEST_LAST_VERBOSE" | sed '/^__HTTP_TEST__/d')
+    return 0
+}
+
+# ==============================================
+# -- _http_test_header_value - return the last matching header value
+# ==============================================
+function _http_test_header_value () {
+    local header_name="$1"
+    printf "%s\n" "$HTTP_TEST_LAST_HEADERS" | awk -F':' -v name="$header_name" '
+        BEGIN { IGNORECASE = 1 }
+        $0 ~ /^[[:space:]]*HTTP\// { next }
+        tolower($1) == tolower(name) {
+            sub(/^[^:]*:[[:space:]]*/, "", $0)
+            value=$0
+        }
+        END { gsub(/\r/, "", value); print value }
+    '
+}
+
+# ==============================================
+# -- run_test_http1 - test HTTP/1.1 headers for a URL
+# ==============================================
+function run_test_http1 () {
+    local target_url="$1"
+    local summary_key="$2"
+    local insecure_mode="$3"
+    local result_status="PASS"
+    local detail=""
+
+    _http_test_collect_headers "--http1.1" "$target_url" "$HTTP_TEST_VERBOSE" "$insecure_mode"
+    if [[ $? -ne 0 ]]; then
+        result_status="FAIL"
+        detail="HTTP/1.1 request failed for $target_url: ${HTTP_TEST_LAST_ERROR:-timeout or connection error}"
+    elif [[ -z "$HTTP_TEST_LAST_STATUS" || "$HTTP_TEST_LAST_STATUS" == "000" ]]; then
+        result_status="FAIL"
+        detail="HTTP/1.1 request returned no valid status for $target_url"
+    else
+        detail="HTTP/1.1 status ${HTTP_TEST_LAST_STATUS:-unknown} in ${HTTP_TEST_LAST_TIME:-n/a}s"
+        if [[ "$HTTP_TEST_LAST_STATUS" == 3* && -n "$HTTP_TEST_LAST_REDIRECT" ]]; then
+            detail+=" redirect -> $HTTP_TEST_LAST_REDIRECT"
+        fi
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+
+    HTTP_TEST_CAPTURED_HEADERS[http1]="$HTTP_TEST_LAST_HEADERS"
+    HTTP_TEST_CAPTURED_VERBOSE[http1]="$HTTP_TEST_LAST_VERBOSE"
+}
+
+# ==============================================
+# -- run_test_http2 - test HTTP/2 headers for a URL
+# ==============================================
+function run_test_http2 () {
+    local target_url="$1"
+    local summary_key="$2"
+    local insecure_mode="$3"
+    local result_status="PASS"
+    local detail=""
+
+    _http_test_collect_headers "--http2" "$target_url" "$HTTP_TEST_VERBOSE" "$insecure_mode"
+    if [[ $? -ne 0 ]]; then
+        result_status="FAIL"
+        detail="HTTP/2 request failed for $target_url: ${HTTP_TEST_LAST_ERROR:-timeout or connection error}"
+    elif [[ -z "$HTTP_TEST_LAST_STATUS" || "$HTTP_TEST_LAST_STATUS" == "000" ]]; then
+        result_status="FAIL"
+        detail="HTTP/2 request returned no valid status for $target_url"
+    else
+        if [[ "$HTTP_TEST_LAST_HTTP_VERSION" != "2" ]]; then
+            result_status="WARN"
+            detail="HTTP/2 not negotiated for $target_url (reported version ${HTTP_TEST_LAST_HTTP_VERSION:-unknown})"
+        else
+            detail="HTTP/2 negotiated for $target_url with status ${HTTP_TEST_LAST_STATUS:-unknown} in ${HTTP_TEST_LAST_TIME:-n/a}s"
+        fi
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+
+    HTTP_TEST_CAPTURED_HEADERS[http2]="$HTTP_TEST_LAST_HEADERS"
+    HTTP_TEST_CAPTURED_VERBOSE[http2]="$HTTP_TEST_LAST_VERBOSE"
+}
+
+# ==============================================
+# -- run_test_http3 - test HTTP/3 headers for a URL when curl supports it
+# ==============================================
+function run_test_http3 () {
+    local target_url="$1"
+    local summary_key="$2"
+    local insecure_mode="$3"
+    local result_status="PASS"
+    local detail=""
+
+    if ! _http_test_curl_supports_http3; then
+        result_status="SKIP"
+        detail="HTTP/3 not supported by local curl build"
+        _http_test_record_result "$summary_key" "$result_status" "$detail"
+        _http_test_print_line "$result_status" "$result_status" "$detail"
+        return 0
+    fi
+
+    _http_test_collect_headers "--http3" "$target_url" "$HTTP_TEST_VERBOSE" "$insecure_mode"
+    if [[ $? -ne 0 ]]; then
+        result_status="FAIL"
+        detail="HTTP/3 request failed for $target_url: ${HTTP_TEST_LAST_ERROR:-timeout or connection error}"
+    elif [[ -z "$HTTP_TEST_LAST_STATUS" || "$HTTP_TEST_LAST_STATUS" == "000" ]]; then
+        result_status="FAIL"
+        detail="HTTP/3 request returned no valid status for $target_url"
+    else
+        if [[ "$HTTP_TEST_LAST_HTTP_VERSION" != "3" ]]; then
+            result_status="WARN"
+            detail="HTTP/3 not negotiated for $target_url (reported version ${HTTP_TEST_LAST_HTTP_VERSION:-unknown})"
+        else
+            detail="HTTP/3 negotiated for $target_url with status ${HTTP_TEST_LAST_STATUS:-unknown} in ${HTTP_TEST_LAST_TIME:-n/a}s"
+        fi
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+
+    HTTP_TEST_CAPTURED_HEADERS[http3]="$HTTP_TEST_LAST_HEADERS"
+    HTTP_TEST_CAPTURED_VERBOSE[http3]="$HTTP_TEST_LAST_VERBOSE"
+}
+
+# ==============================================
+# -- check_headers - validate response headers for duplicates and malformed fields
+# ==============================================
+function check_headers () {
+    local header_block="$1"
+    local summary_key="$2"
+    local result_status="PASS"
+    local detail="No header issues detected"
+    local issue_count=0
+    local line_value=""
+    local header_name=""
+    local header_value=""
+    local header_key=""
+    typeset -A seen_headers
+    local -a issues
+
+    while IFS= read -r line_value; do
+        line_value=${line_value%$'\r'}
+        [[ -z "$line_value" ]] && continue
+        [[ "$line_value" == HTTP/* ]] && continue
+        [[ "$line_value" != *:* ]] && continue
+
+        header_name="${line_value%%:*}"
+        header_value="${line_value#*:}"
+        header_value="${header_value#${header_value%%[![:space:]]*}}"
+        header_key="${header_name:l}"
+
+        if [[ -n "${seen_headers[$header_key]}" ]]; then
+            issues+=("duplicate header ${header_name}: ${header_value}")
+            (( issue_count++ ))
+        else
+            seen_headers[$header_key]=1
+        fi
+
+        if [[ "$header_name" != "${header_name##[[:space:]]#}" || "$header_name" != "${header_name%%[[:space:]]#}" || "$header_name" == *" "* ]]; then
+            issues+=("invalid whitespace in header name ${header_name}")
+            (( issue_count++ ))
+        fi
+
+        if [[ ! "$header_name" =~ '^[!#$%&'"'"'*+.^_`|~0-9A-Za-z-]+$' ]]; then
+            issues+=("invalid token characters in header name ${header_name}")
+            (( issue_count++ ))
+        fi
+
+        if [[ "$header_value" == "" ]]; then
+            issues+=("empty header value for ${header_name}")
+            (( issue_count++ ))
+        fi
+
+        if [[ "${header_name:l}" == "set-cookie" ]]; then
+            if [[ "${header_value%%;*}" != *=* ]]; then
+                issues+=("malformed Set-Cookie ${header_value}")
+                (( issue_count++ ))
+            fi
+        fi
+    done <<< "$header_block"
+
+    if (( issue_count > 0 )); then
+        result_status="FAIL"
+        detail="${issue_count} header issue(s): ${issues[*]}"
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+}
+
+# ==============================================
+# -- check_redirects - follow redirects and flag loops or mixed-scheme chains
+# ==============================================
+function check_redirects () {
+    local target_url="$1"
+    local summary_key="$2"
+    local insecure_mode="$3"
+    local result_status="PASS"
+    local detail="No redirects"
+    local current_url="$target_url"
+    local redirect_url=""
+    local hop_status_code=""
+    local previous_scheme=""
+    local current_scheme=""
+    local mixed_scheme=0
+    local loop_detected=0
+    local hop_count=0
+    typeset -A seen_urls
+    while (( hop_count < 10 )); do
+        if [[ -n "${seen_urls[$current_url]}" ]]; then
+            loop_detected=1
+            break
+        fi
+        seen_urls[$current_url]=1
+
+        _http_test_collect_headers "--http1.1" "$current_url" "0" "$insecure_mode"
+        if [[ $? -ne 0 ]]; then
+            result_status="FAIL"
+            detail="Redirect chain failed for $current_url: ${HTTP_TEST_LAST_ERROR:-timeout or connection error}"
+            _http_test_record_result "$summary_key" "$result_status" "$detail"
+            _http_test_update_exit_state "$result_status"
+            _http_test_print_line "$result_status" "$result_status" "$detail"
+            return 0
+        fi
+
+        hop_status_code="${HTTP_TEST_LAST_STATUS:-000}"
+        redirect_url="$HTTP_TEST_LAST_REDIRECT"
+        current_scheme="${current_url%%:*}"
+        if [[ -n "$previous_scheme" && "$previous_scheme" != "$current_scheme" ]]; then
+            mixed_scheme=1
+        fi
+        previous_scheme="$current_scheme"
+        _http_test_print_line "INFO" "HOP" "HEAD ${current_url} -> ${hop_status_code}"
+        (( hop_count++ ))
+
+        if [[ "$hop_status_code" != 3* || -z "$redirect_url" ]]; then
+            break
+        fi
+        current_url="$redirect_url"
+    done
+
+    detail="${hop_count} redirect hop(s) checked"
+    if (( loop_detected )); then
+        result_status="FAIL"
+        detail+="; redirect loop detected"
+    elif (( hop_count == 10 )) && [[ "$hop_status_code" == 3* && -n "$redirect_url" ]]; then
+        result_status="WARN"
+        detail+="; redirect limit reached"
+    elif (( mixed_scheme )); then
+        result_status="WARN"
+        detail+="; chain mixes http and https"
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+}
+
+# ==============================================
+# -- check_tls - inspect negotiated TLS version and certificate basics for HTTPS targets
+# ==============================================
+function check_tls () {
+    local target_url="$1"
+    local summary_key="$2"
+    local insecure_mode="$3"
+    local result_status="PASS"
+    local detail=""
+    local s_client_output=""
+    local openssl_output=""
+    local cert_enddate=""
+    local cert_subject=""
+    local cert_san=""
+    local tls_version=""
+    local expiry_epoch=""
+    local now_epoch=""
+    local days_left=""
+    local host_name="$HTTP_TEST_INPUT_HOST"
+    local connect_target="$HTTP_TEST_INPUT_HOST"
+
+    if [[ "$target_url" != https://* ]]; then
+        _http_test_record_result "$summary_key" "SKIP" "TLS checks skipped for non-HTTPS target"
+        _http_test_print_line "SKIP" "SKIP" "TLS checks skipped for non-HTTPS target"
+        return 0
+    fi
+
+    if (( ! $+commands[openssl] )); then
+        _http_test_warn_missing_dep "openssl" "openssl not installed; TLS details reduced"
+        tls_version=$(_http_test_header_value "strict-transport-security")
+        if [[ -n "$tls_version" ]]; then
+            detail="HSTS present but openssl unavailable for deeper TLS inspection"
+            result_status="WARN"
+        else
+            detail="openssl unavailable; unable to inspect TLS certificate details"
+            result_status="WARN"
+        fi
+        _http_test_record_result "$summary_key" "$result_status" "$detail"
+        _http_test_update_exit_state "$result_status"
+        _http_test_print_line "$result_status" "$result_status" "$detail"
+        return 0
+    fi
+
+    if [[ -n "$HTTP_TEST_IP_OVERRIDE" ]]; then
+        connect_target="$HTTP_TEST_IP_OVERRIDE"
+    fi
+
+    s_client_output=$(echo | openssl s_client -connect "${connect_target}:443" -servername "$HTTP_TEST_INPUT_HOST" 2>/dev/null)
+    openssl_output=$(printf "%s\n" "$s_client_output" | openssl x509 -noout -enddate -subject -ext subjectAltName 2>/dev/null)
+    if [[ -z "$openssl_output" ]]; then
+        result_status="FAIL"
+        detail="Unable to read certificate via openssl for ${connect_target}:443"
+        _http_test_record_result "$summary_key" "$result_status" "$detail"
+        _http_test_update_exit_state "$result_status"
+        _http_test_print_line "$result_status" "$result_status" "$detail"
+        return 0
+    fi
+
+    cert_enddate=$(printf "%s\n" "$openssl_output" | awk -F'=' '/^notAfter=/ {print $2; exit}')
+    cert_subject=$(printf "%s\n" "$openssl_output" | awk -F'=' '/^subject=/ {print $2; exit}')
+    cert_san=$(printf "%s\n" "$openssl_output" | awk 'BEGIN { capture = 0 } /X509v3 Subject Alternative Name/ { capture = 1; next } capture == 1 { gsub(/^[[:space:]]+/, "", $0); print; exit }')
+    tls_version=$(printf "%s\n" "$s_client_output" | awk -F': *' '/Protocol[[:space:]]*:/ {print $2; exit}')
+    [[ -z "$tls_version" ]] && tls_version="unknown"
+
+    if [[ "$tls_version" == "TLSv1" || "$tls_version" == "TLSv1.0" || "$tls_version" == "TLSv1.1" ]]; then
+        result_status="WARN"
+    fi
+
+    if [[ -n "$cert_enddate" ]]; then
+        expiry_epoch=$(date -j -f "%b %e %T %Y %Z" "$cert_enddate" +%s 2>/dev/null)
+        now_epoch=$(date +%s)
+        if [[ -n "$expiry_epoch" ]]; then
+            days_left=$(( (expiry_epoch - now_epoch) / 86400 ))
+            if (( expiry_epoch < now_epoch )); then
+                result_status="FAIL"
+                detail="Certificate expired on ${cert_enddate}"
+            elif (( days_left < 30 )) && [[ "$result_status" != "FAIL" ]]; then
+                result_status="WARN"
+                detail="Certificate expires in ${days_left} day(s) on ${cert_enddate}"
+            fi
+        fi
+    fi
+
+    if [[ "$cert_subject" != *"CN=${host_name}"* && "$cert_san" != *"DNS:${host_name}"* ]]; then
+        result_status="FAIL"
+        detail="Certificate CN/SAN does not match ${host_name}"
+    fi
+
+    if [[ -z "$detail" ]]; then
+        detail="TLS ${tls_version}; certificate valid for ${host_name}; expires ${cert_enddate:-unknown}"
+    else
+        detail+="; TLS ${tls_version}; subject ${cert_subject:-unknown}"
+    fi
+
+    if [[ -n "$(_http_test_header_value strict-transport-security)" ]]; then
+        detail+="; HSTS present"
+    else
+        if [[ "$result_status" == "PASS" ]]; then
+            result_status="WARN"
+        fi
+        detail+="; HSTS missing"
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+}
+
+# ==============================================
+# -- check_dns - print A and AAAA DNS resolution, noting any IP override
+# ==============================================
+function check_dns () {
+    local summary_key="$1"
+    local result_status="PASS"
+    local detail=""
+    local a_records=""
+    local aaaa_records=""
+
+    if (( $+commands[dig] )); then
+        a_records=$(dig +short A "$HTTP_TEST_INPUT_HOST" | paste -sd ',' -)
+        aaaa_records=$(dig +short AAAA "$HTTP_TEST_INPUT_HOST" | paste -sd ',' -)
+    elif (( $+commands[nslookup] )); then
+        _http_test_warn_missing_dep "dig" "dig not installed; falling back to nslookup for DNS data"
+        a_records=$(nslookup -query=A "$HTTP_TEST_INPUT_HOST" 2>/dev/null | awk '/^Address: / {print $2}' | paste -sd ',' -)
+        aaaa_records=$(nslookup -query=AAAA "$HTTP_TEST_INPUT_HOST" 2>/dev/null | awk '/^Address: / {print $2}' | paste -sd ',' -)
+    else
+        result_status="WARN"
+        detail="Neither dig nor nslookup is available; DNS details unavailable"
+        _http_test_record_result "$summary_key" "$result_status" "$detail"
+        _http_test_update_exit_state "$result_status"
+        _http_test_print_line "$result_status" "$result_status" "$detail"
+        return 0
+    fi
+
+    [[ -z "$a_records" ]] && a_records="none"
+    [[ -z "$aaaa_records" ]] && aaaa_records="none"
+    detail="A=${a_records} AAAA=${aaaa_records}"
+    if [[ -n "$HTTP_TEST_IP_OVERRIDE" ]]; then
+        detail+="; testing via IP override: ${HTTP_TEST_IP_OVERRIDE}"
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+}
+
+# ==============================================
+# -- detect_cdn - look for Cloudflare/CDN response headers
+# ==============================================
+function detect_cdn () {
+    local header_block="$1"
+    local summary_key="$2"
+    local result_status="PASS"
+    local detail="No obvious CDN headers detected"
+    local server_header=""
+    local cf_ray=""
+    local served_by=""
+
+    HTTP_TEST_LAST_HEADERS="$header_block"
+    server_header=$(_http_test_header_value server)
+    cf_ray=$(_http_test_header_value cf-ray)
+    served_by=$(_http_test_header_value x-served-by)
+
+    if [[ -n "$cf_ray" || "${server_header:l}" == *cloudflare* || -n "$served_by" ]]; then
+        result_status="WARN"
+        detail="CDN detected"
+        [[ -n "$cf_ray" ]] && detail+="; CF-Ray=${cf_ray}"
+        [[ -n "$server_header" ]] && detail+="; Server=${server_header}"
+        [[ -n "$served_by" ]] && detail+="; x-served-by=${served_by}"
+        detail+="; use --ip <origin_ip> to test origin directly"
+    fi
+
+    _http_test_record_result "$summary_key" "$result_status" "$detail"
+    _http_test_update_exit_state "$result_status"
+    _http_test_print_line "$result_status" "$result_status" "$detail"
+}
+
+# ==============================================
+# -- print_summary - print the final summary table for http-test
+# ==============================================
+function print_summary () {
+    local summary_key=""
+    local result_status=""
+    local detail=""
+    local formatted_status=""
+
+    _http_test_print_section "SUMMARY"
+    printf "%-8s  %-24s %s\n" "STATUS" "CHECK" "DETAIL"
+    printf "%-8s  %-24s %s\n" "------" "-----" "------"
+    for summary_key in "${HTTP_TEST_SUMMARY_ORDER[@]}"; do
+        result_status="${HTTP_TEST_SUMMARY_STATUS[$summary_key]}"
+        detail="${HTTP_TEST_SUMMARY_DETAIL[$summary_key]}"
+        formatted_status=$(_http_test_format_status "$result_status")
+        printf "%b  %-24s %s\n" "$formatted_status" "$summary_key" "$detail"
+    done
+}
+
+# ==============================================
+# -- http-test - perform HTTP, DNS, redirect, and TLS diagnostics for a URL
+# ==============================================
+help_web[http-test]='Perform HTTP diagnostics for a URL across HTTP/1.1, HTTP/2, HTTP/3, redirects, TLS, DNS, and CDN headers'
+function http-test () {
+    local usage_text="Usage: http-test <url> [--ip <ip_address>] [--verbose] [--help]"
+    local target_input=""
+    local target_url=""
+    local target_scheme=""
+    local insecure_mode="0"
+    local summary_prefix=""
+    local -a schemes_to_test
+
+    if (( ! $+commands[curl] )); then
+        _error "curl is required for http-test"
+        return 2
+    fi
+
+    HTTP_TEST_VERBOSE=0
+    HTTP_TEST_IP_OVERRIDE=""
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help)
+                echo "$usage_text"
+                echo ""
+                echo "Arguments:"
+                echo "  <url>           Required. URL or hostname to test"
+                echo "  --ip <address>  Override DNS resolution using curl --resolve"
+                echo "  --verbose       Show verbose curl and response header output"
+                return 0
+                ;;
+            -v|--verbose)
+                HTTP_TEST_VERBOSE=1
+                ;;
+            --ip)
+                shift
+                if [[ -z "$1" ]]; then
+                    _error "--ip requires an address"
+                    echo "$usage_text"
+                    return 2
+                fi
+                HTTP_TEST_IP_OVERRIDE="$1"
+                ;;
+            --ip=*)
+                HTTP_TEST_IP_OVERRIDE="${1#--ip=}"
+                ;;
+            --*)
+                _error "Unknown option: $1"
+                echo "$usage_text"
+                return 2
+                ;;
+            *)
+                if [[ -z "$target_input" ]]; then
+                    target_input="$1"
+                else
+                    _error "Unexpected argument: $1"
+                    echo "$usage_text"
+                    return 2
+                fi
+                ;;
+        esac
+        shift
+    done
+
+    if [[ -z "$target_input" ]]; then
+        echo "$usage_text"
+        return 2
+    fi
+
+    typeset -gA HTTP_TEST_SUMMARY_STATUS
+    typeset -gA HTTP_TEST_SUMMARY_DETAIL
+    typeset -gA HTTP_TEST_MISSING_DEPS
+    typeset -gA HTTP_TEST_CAPTURED_HEADERS
+    typeset -gA HTTP_TEST_CAPTURED_VERBOSE
+    typeset -ga HTTP_TEST_SUMMARY_ORDER
+    HTTP_TEST_SUMMARY_STATUS=()
+    HTTP_TEST_SUMMARY_DETAIL=()
+    HTTP_TEST_MISSING_DEPS=()
+    HTTP_TEST_CAPTURED_HEADERS=()
+    HTTP_TEST_CAPTURED_VERBOSE=()
+    HTTP_TEST_SUMMARY_ORDER=()
+    HTTP_TEST_HTTP3_SUPPORT_CACHE=""
+    HTTP_TEST_EXIT_CODE=0
+
+    if ! _http_test_parse_url "$target_input"; then
+        _error "Unable to parse URL: $target_input"
+        return 2
+    fi
+
+    if (( HTTP_TEST_INPUT_HAS_PORT )) && (( HTTP_TEST_INPUT_HAS_SCHEME )); then
+        schemes_to_test=("$HTTP_TEST_INPUT_SCHEME")
+    else
+        schemes_to_test=(http https)
+    fi
+
+    _http_test_print_section "HTTP TEST"
+    _http_test_print_line "INFO" "INFO" "Host: ${HTTP_TEST_INPUT_HOST}"
+    if [[ -n "$HTTP_TEST_IP_OVERRIDE" ]]; then
+        _http_test_print_line "INFO" "INFO" "testing via IP override: ${HTTP_TEST_IP_OVERRIDE}"
+    fi
+
+    check_dns "dns"
+
+    for target_scheme in "${schemes_to_test[@]}"; do
+        target_url=$(_http_test_build_target_url "$target_scheme")
+        summary_prefix="${target_scheme}"
+        insecure_mode="0"
+        HTTP_TEST_CAPTURED_HEADERS=()
+        HTTP_TEST_CAPTURED_VERBOSE=()
+
+        if [[ "$target_scheme" == "https" && -n "$HTTP_TEST_IP_OVERRIDE" ]]; then
+            insecure_mode="1"
+            _http_test_print_line "WARN" "WARN" "HTTPS origin override enables --insecure for self-signed certificates"
+        fi
+
+        _http_test_print_section "$target_scheme://${HTTP_TEST_INPUT_HOST}"
+        run_test_http1 "$target_url" "${summary_prefix}-http1" "$insecure_mode"
+        check_headers "$HTTP_TEST_CAPTURED_HEADERS[http1]" "${summary_prefix}-headers-http1"
+
+        run_test_http2 "$target_url" "${summary_prefix}-http2" "$insecure_mode"
+        check_headers "$HTTP_TEST_CAPTURED_HEADERS[http2]" "${summary_prefix}-headers-http2"
+
+        run_test_http3 "$target_url" "${summary_prefix}-http3" "$insecure_mode"
+        if [[ -n "$HTTP_TEST_CAPTURED_HEADERS[http3]" ]]; then
+            check_headers "$HTTP_TEST_CAPTURED_HEADERS[http3]" "${summary_prefix}-headers-http3"
+        fi
+
+        check_redirects "$target_url" "${summary_prefix}-redirects" "$insecure_mode"
+        detect_cdn "$HTTP_TEST_CAPTURED_HEADERS[http2]$'\n'$HTTP_TEST_CAPTURED_HEADERS[http1]" "${summary_prefix}-cdn"
+
+        if [[ "$target_scheme" == "https" ]]; then
+            check_tls "$target_url" "${summary_prefix}-tls" "$insecure_mode"
+        fi
+
+        if (( HTTP_TEST_VERBOSE )); then
+            if [[ -n "$HTTP_TEST_CAPTURED_HEADERS[http1]" ]]; then
+                _http_test_print_section "Verbose HTTP/1.1 Headers"
+                printf "%s\n" "$HTTP_TEST_CAPTURED_HEADERS[http1]"
+            fi
+            if [[ -n "$HTTP_TEST_CAPTURED_HEADERS[http2]" ]]; then
+                _http_test_print_section "Verbose HTTP/2 Headers"
+                printf "%s\n" "$HTTP_TEST_CAPTURED_HEADERS[http2]"
+            fi
+            if [[ -n "$HTTP_TEST_CAPTURED_VERBOSE[http2]" ]]; then
+                _http_test_print_section "Verbose curl output"
+                printf "%s\n" "$HTTP_TEST_CAPTURED_VERBOSE[http2]"
+            fi
+        fi
+    done
+
+    print_summary
+    return $HTTP_TEST_EXIT_CODE
+}
+
 # -- get-site-llm
 help_web[get-site-llm]='Check llm.txt/llms.txt endpoints and markdown negotiation support for a site'
 get-site-llm () {

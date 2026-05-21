@@ -109,6 +109,7 @@ These commands are available as just commands in the shell
 * `os` - Return OS
 * `report` - Print out errors and warnings
 * `repos` - Install popular github.com repositories.
+* `traefik-status` - Show Traefik routers, services, and certificate status
 
 ### zshbop Quick Commands
 These commands are shortened aliases for zshbop commands

@@ -437,25 +437,6 @@ help_int[faketty]='Run command in a fake tty'
 faketty() {                       
     0</dev/null script --quiet --flush --return --command "$(printf "%q " "$@")" /dev/null
 }
-# =========================================================
-# -- grepcidr3
-# =========================================================
-help_int[grepcidr3]='grepcidr3'
-function _check_grepcidr3 () {
-    if [[ $MACHINE_OS == "linux" ]]; then
-        alias grepcidr3="grepcidr3_linux"
-    fi
-
-    if [[ $MACHINE_OS == "mac" ]]; then
-        _cmd_exists grepcidr3
-        if [[ $? == "1" ]]; then
-            echo "test"
-            function grepcidr3 () { _error "grepcidr3 not installed, install using mac ports"; }
-            return 1
-        fi
-    fi
-}
-_check_grepcidr3
 
 # =========================================================
 # -- remove ansi color

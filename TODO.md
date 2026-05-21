@@ -2,6 +2,97 @@
 
 ## Current
 
+### Docksoft
+
+* Implement dozzle as a docksoft option to install.
+* Implement watchtower from nickfedor/watchtower:latest with a README.md that talks about WATCHTOWER_NOTIFICATION_URL=slack:// configuration. Also prompt to add slack webhook url and add it to the environment section. Also add a blurb about the format.
+
+### Docksoft nfty
+* Implement nfty as a docksoft option to install.
+* Add in the subscriber.py file.
+```
+❯ cat subscriber.py
+import os
+import json
+import requests
+
+NTFY_URL   = os.environ["NTFY_URL"]
+TOPIC      = os.environ["NTFY_TOPIC"]
+SLACK_URL  = os.environ["SLACK_WEBHOOK_URL"]
+
+def forward_to_slack(message: dict):
+    title   = message.get("title", "ntfy notification")
+    body    = message.get("message", "")
+    topic   = message.get("topic", TOPIC)
+    payload = {
+        "text": f"*[{topic}]* {title}\n{body}"
+    }
+    requests.post(SLACK_URL, json=payload)
+
+def main():
+    url = f"{NTFY_URL}/{TOPIC}/json"
+    print(f"Subscribing to {url} ...")
+    with requests.get(url, stream=True) as r:
+        r.raise_for_status()
+        for line in r.iter_lines():
+            if line:
+                msg = json.loads(line)
+                if msg.get("event") == "message":
+                    forward_to_slack(msg)
+
+if __name__ == "__main__":
+    main()# 
+```
+* Add in a server.xml
+* Here's an example docker-compose.yml
+```
+services:
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command: serve
+    environment:
+      - NTFY_BASE_URL=http://ntfy:80              # Internal or public base URL
+      - NTFY_UPSTREAM_BASE_URL=https://ntfy.sh    # Optional: enable Firebase push (remove if self-contained)
+      - NTFY_AUTH_DEFAULT_ACCESS=deny-all         # Restrict access; use 'read-write' for open
+    volumes:
+      - /var/container/nfty/ntfy-cache:/var/cache/ntfy
+      - /var/container/nfty/ntfy-config:/etc/ntfy
+      - ./server.yml:/etc/ntfy/server.yml:ro # Mount your config file
+    ports:
+      - "127.0.0.1:8081:80"      # Expose externally if needed; omit to keep internal only
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  ntfy-to-slack:
+    image: python:3.12-slim
+    container_name: ntfy-to-slack
+    restart: unless-stopped
+    depends_on:
+      - ntfy
+    environment:
+      - NTFY_URL=http://ntfy:80
+      - NTFY_TOPIC=alerts                         # Topic(s) to subscribe to
+      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/
+    volumes:
+      - ./subscriber.py:/app/subscriber.py:ro
+    working_dir: /app
+    command: >
+      sh -c "pip install requests --quiet &&
+             python subscriber.py"
+    networks:
+      - proxy
+
+volumes:
+  ntfy-cache:
+  ntfy-config:
+
+networks:
+  proxy:
+    external: true
+```
+
 ### Updater Improvements
 * I need to version the updater, right now it should be v2.
 * When updating print out "Updater v2 - Pulling latest changes" before "Updating zshbop - zshbop Version: 4.1.1/main/275310f2a5cfc88a859fc537da7e6e920f66c7ae"

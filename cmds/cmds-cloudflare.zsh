@@ -99,15 +99,17 @@ function cf-ip () {
 
     function _cf_ip_check_ip () {
         local QUIET="$1"
-        # -- Check if IP is a Cloudflare IP using grepcidr3        
-        GREPCIDR3=$(grepcidr3 -D $IP <(cat $HOME/tmp/cloudflare-ips.txt))        
-        if [[ -n $GREPCIDR3 ]]; then        
-            [[ $QUIET == "0" ]] && _success "$IP is a Cloudflare IP matched $GREPCIDR3"
-            return 0
-        else
-            [[ $QUIET == "0" ]] && _error "$IP is not a Cloudflare IP"
-            return 1
+        local GREPCIDR3
+        # -- Check if IP is a Cloudflare IP using grepcidr3
+        if GREPCIDR3=$(grepcidr3 -D $IP <(cat $HOME/tmp/cloudflare-ips.txt)); then
+            if [[ -n $GREPCIDR3 && $GREPCIDR3 != *not\ installed* ]]; then
+                [[ $QUIET == "0" ]] && _success "$IP is a Cloudflare IP matched $GREPCIDR3"
+                return 0
+            fi
         fi
+
+        [[ $QUIET == "0" ]] && _error "$IP is not a Cloudflare IP"
+        return 1
     }
 
 

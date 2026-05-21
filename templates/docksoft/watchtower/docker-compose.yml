@@ -1,13 +1,15 @@
 services:
   watchtower:
-    image: containrrr/watchtower:latest
+    image: nickfedor/watchtower:latest
     container_name: {{CONTAINER_NAME}}
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
       - TZ=UTC
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_ROLLING_RESTART=true
       - WATCHTOWER_POLL_INTERVAL=86400
+      - {{WATCHTOWER_NOTIFICATIONS_LINE}}
+      - {{WATCHTOWER_SLACK_HOOK_LINE}}
