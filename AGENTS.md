@@ -1,29 +1,32 @@
 # AGENTS.md
 
 ## Project Notes
-* Always create a git commit message for each change made, use the format feat, fix, docs, style, refactor, perf, test, chore.
-* Use Git Kraken to git commit and push changes to the repository, avoid using the command line for git operations.
-* Use semantic versioning for releases, increment major, minor, patch as needed.
+
+* Always create and print out a git commit message for each change made, use the format feat, fix, docs, style, refactor, perf, test, chore
 * Maintain a changelog for each release, documenting new features, bug fixes, and improvements.
 * For authoring docksoft container templates, follow: `templates/docksoft/AGENTS.md`
 
 ## ZSH Development Notes
+
 * Within ZSH using local within a loop will cause the variable to be echoed to stdout, so avoid using local in loops.
 * Always use zparseopts for parsing options in functions.
 * Always provide a one line git commit message when making a change, ensure you use feat:, fix:, docs:, style:, refactor:, perf:, test:, chore: as prefixes.
 
 ## File Naming Conventions
+
 * Check files: `checks/checks-<environment>.zsh` (e.g., `checks-docker.zsh`, `checks-terminal.zsh`)
 * Command files: `cmds/cmds-<category>.zsh` (e.g., `cmds-core.zsh`, `cmds-git.zsh`)
 * Library files: `lib/<name>.zsh` (e.g., `lib/init.zsh`, `lib/functions.zsh`)
 
 ## Help Array Patterns
+
 * Register functions in help arrays for discoverability:
   * `help_checks[function-name]='Description'` for check functions
   * `help_core[function-name]='Description'` for core commands
   * `help_<category>[function-name]='Description'` for category-specific commands
 
 ## Output Functions
+
 * `_success "message"` - Green success message
 * `_warning "message"` - Yellow warning message
 * `_error "message"` - Red error message

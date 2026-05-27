@@ -9,6 +9,7 @@ help_files[core]='Core commands'
 typeset -gA help_core
 help_core[kb]='Knowledge Base'
 help_core[antidote-debug]='Generate antidote/auto-ls debug report'
+help_core[whichx]='Resolve alias/function/builtin/command/path details'
 
 # =====================================
 # -- os - return os
@@ -399,4 +400,72 @@ function antidote-debug () {
 
     _success "antidote-debug report written to $output_file"
     return 0
+}
+
+# ==================================================
+# -- whichx
+# ==================================================
+function whichx () {
+    local -a opts_help opts_verbose
+    zparseopts -D -E -- h=opts_help -help=opts_help v=opts_verbose -verbose=opts_verbose
+
+    if [[ -n $opts_help || $# -eq 0 ]]; then
+        echo "Usage: whichx [-h|--help] [-v|--verbose] <name-or-path> [more-names-or-paths ...]"
+        echo ""
+        echo "Resolves aliases, functions, builtins, PATH commands, and direct paths."
+        echo "Examples:"
+        echo "  whichx monit-scripts"
+        echo "  whichx ls"
+        echo "  whichx ./scripts/monit-scripts"
+        return 0
+    fi
+
+    local item whence_output type_output first_line abs_path
+    local status=0
+
+    for item in "$@"; do
+        echo ""
+        _loading "Inspecting: $item"
+
+        # If the input looks like a path, inspect the file system object directly.
+        if [[ "$item" == */* ]]; then
+            if [[ -e "$item" ]]; then
+                abs_path="${item:A}"
+                if [[ -d "$item" ]]; then
+                    _success "Path exists and is a directory: $abs_path"
+                elif [[ -x "$item" ]]; then
+                    _success "Path exists and is executable: $abs_path"
+                else
+                    _warning "Path exists but is not executable: $abs_path"
+                    status=1
+                fi
+
+                if [[ -f "$item" ]]; then
+                    IFS= read -r first_line < "$item"
+                    if [[ "$first_line" == '#!'* ]]; then
+                        echo "  shebang: ${first_line#\#!}"
+                    fi
+                fi
+            else
+                _warning "Path not found: $item"
+                status=1
+            fi
+        fi
+
+        whence_output="$(whence -vas -- "$item" 2>/dev/null)"
+        if [[ -n "$whence_output" ]]; then
+            echo "$whence_output"
+            if [[ -n $opts_verbose ]]; then
+                type_output="$(type -a -- "$item" 2>/dev/null)"
+                if [[ -n "$type_output" ]]; then
+                    echo "$type_output"
+                fi
+            fi
+        else
+            _warning "No alias/function/builtin/PATH command named '$item'"
+            status=1
+        fi
+    done
+
+    return $status
 }

@@ -44,3 +44,19 @@ function zsh-list-comps() {
     printf "%-32s %s\n" $command $completions
   done
 }
+
+# ==============================================
+# -- _zshbop_bind_menu_complete_tab
+# -- Bind Tab late so autosuggestions wraps the final widget once
+# ==============================================
+function _zshbop_bind_menu_complete_tab () {
+  [[ $- != *i* ]] && return 0
+
+  export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+  bindkey '^I' menu-complete
+
+  if whence -f _zsh_autosuggest_bind_widgets >/dev/null 2>&1; then
+    _zsh_autosuggest_bind_widgets
+  fi
+}
+INIT_LAST_CORE+=("_zshbop_bind_menu_complete_tab")

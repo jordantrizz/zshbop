@@ -12,9 +12,20 @@ alias domaincheck="domaincheck.sh"
 # -- bin/domain-info
 help_domain[domain-info]='Check a domains name servers and www and a record and print them out'
 
-# --- dom
+# ==========================================
+# -- dom - check domain availability and DNS records
+# ==========================================
 help_domain[dom]='Check a domains availability, www, mx etc'
 function dom () {
+    # Parse options with zparseopts
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: dom [-h|--help] <domain>"
+        return 0
+    fi
+
     # Check if dig and whois are present
     _cmd_exists dig
     [[ $? -eq 1 ]] && { _error "dig is not installed"; return 1; }

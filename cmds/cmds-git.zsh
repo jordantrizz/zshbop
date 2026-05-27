@@ -8,7 +8,7 @@ typeset -gA help_git
 # =====================================
 # -- gc
 # =====================================
-help_git[gc]='Git commit + push'
+help_git[gc]='Git commit only'
 function _gc_replace (){
     if _cmd_exists gc; then
         # Check if gc is an alias
@@ -19,12 +19,50 @@ function _gc_replace (){
     fi
     function gc () {
         _loading "Committing using git, consider using glc"
-        git add *
-        git commit -am "$*"
-        git push
+        git commit -m "$*"
     }    
 }
 INIT_LAST_CORE+=("_gc_replace")
+
+# =====================================
+# -- gcp
+# =====================================
+help_git[gcp]='Git add, commit, and push'
+function _gcp_replace () {
+    if _cmd_exists gcp; then
+        # Check if gcp is an alias
+        if [[ $(type gcp) == gcp\ is\ an\ alias\ for* ]]; then
+            _log "gcp is an omz alias, removing"
+            unalias gcp
+        fi
+    fi
+    function gcp () {
+        local -a opts_help opts_version
+        zparseopts -D -E -- h=opts_help -help=opts_help v=opts_version -version=opts_version
+
+        if [[ -n $opts_help ]]; then
+            echo "Usage: gcp [-h|--help] [-v|--version] <commit-message>"
+            return 0
+        fi
+
+        if [[ -n $opts_version ]]; then
+            echo "gcp: Git add, commit, and push"
+            return 0
+        fi
+
+        if [[ $# -eq 0 ]]; then
+            _error "Commit message required"
+            echo "Usage: gcp [-h|--help] [-v|--version] <commit-message>"
+            return 1
+        fi
+
+        _loading "Adding, committing, and pushing using git"
+        git add -A
+        git commit -m "$*"
+        git push
+    }
+}
+INIT_LAST_CORE+=("_gcp_replace")
 
 # =====================================
 # -- gc shortcuts
@@ -954,6 +992,29 @@ function _git_update_version_file () {
     return 0
 }
 
+# ==============================================
+# -- _git_commit_release_version_bump
+# -- Create a temporary version bump commit that will be folded into the final release commit
+# ==============================================
+function _git_commit_release_version_bump () {
+    local RELEASE_TAG="$1"
+    local RELEASE_VERSION="${RELEASE_TAG#v}"
+    local BUMP_COMMIT_MSG="chore: bump version to ${RELEASE_VERSION}"
+
+    if git diff --cached --quiet --exit-code; then
+        _debug "No staged version changes detected. Skipping temporary version bump commit."
+        return 0
+    fi
+
+    if ! git commit -m "$BUMP_COMMIT_MSG"; then
+        _error "Failed to create temporary version bump commit"
+        return 1
+    fi
+
+    _success "Created temporary version bump commit: $BUMP_COMMIT_MSG"
+    return 0
+}
+
 function git-squash-release() {
     # Parse options
     local -a opts_help opts_detect
@@ -1222,11 +1283,13 @@ function git-squash-release() {
 
     echo ""
 
-    # Perform soft reset to last tag commit
-    _loading "Squashing all commits since $LAST_TAG into one..."
-    git reset --soft $LAST_TAG_COMMIT
     _git_update_version_file "$RELEASE_TAG" || return 1
     _git_update_wp_theme_version "$RELEASE_TAG" || return 1
+    _git_commit_release_version_bump "$RELEASE_TAG" || return 1
+
+    # Perform soft reset to last tag commit
+    _loading "Squashing all commits since $LAST_TAG into one..."
+    git reset --soft $LAST_TAG_COMMIT || return 1
 
     # Build commit message with release header
     local FINAL_COMMIT_MSG="Release $RELEASE_TAG

@@ -2,6 +2,9 @@
 
 ## Current
 
+### Variables
+* $ZSHBOP should be the root folder.
+
 ### Docksoft
 
 * Implement dozzle as a docksoft option to install.

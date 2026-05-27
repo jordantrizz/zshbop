@@ -181,7 +181,28 @@ print(f"  HTTP Services: {get_value(services, \"total\")} total, {get_value(serv
     routers=$(_traefik_status_api_get "$TRAEFIK_API" "/http/routers" 2>/dev/null)
     if [[ -n "$routers" ]]; then
         if (( has_jq )); then
-            echo "$routers" | jq -r '.[] | "  [\(.status // "unknown")] \(.name) tls=\(if .tls == null then "no" else "yes" end) ep=\(.entryPoints // ["none"] | join(",")) svc=\(.service // "unknown") mw=\(.middlewares // [] | join(",")) rule=\(.rule // "no rule")"' 2>/dev/null
+            echo "$routers" | jq -r '
+                map(
+                    . as $router
+                    | (($router.entryPoints // ["none"])[]) as $ep
+                    | {
+                        ep: $ep,
+                        tls: (if $router.tls == null then "no" else "yes" end),
+                        router: $router
+                    }
+                )
+                | sort_by(.ep, .tls, .router.name)
+                | group_by(.ep)[]
+                | "  ep=\(.[0].ep)",
+                  (
+                    group_by(.tls)[]
+                    | "    tls=\(.[0].tls)",
+                                        (
+                                                sort_by(.router.name)[]
+                                                | "      [\(.router.status // "unknown")] \(.router.name) svc=\(.router.service // "unknown") mw=\(.router.middlewares // [] | join(",")) rule=\(.router.rule // "no rule")"
+                                        )
+                  )
+            ' 2>/dev/null
         elif (( has_python )); then
             print -r -- "$routers" | python3 -c '
 import json
@@ -192,15 +213,29 @@ try:
 except Exception:
     sys.exit(0)
 
+grouped = {}
 for router in data or []:
-    status = router.get("status", "unknown")
-    name = router.get("name", "unknown")
-    rule = router.get("rule", "no rule")
-    entrypoints = ",".join(router.get("entryPoints") or ["none"])
+    entrypoints = router.get("entryPoints") or ["none"]
     tls = "yes" if router.get("tls") is not None else "no"
-    service = router.get("service", "unknown")
-    middlewares = ",".join(router.get("middlewares") or [])
-    print(f"  [{status}] {name} tls={tls} ep={entrypoints} svc={service} mw={middlewares} rule={rule}")
+    for ep in entrypoints:
+        if ep not in grouped:
+            grouped[ep] = {"no": [], "yes": []}
+        grouped[ep][tls].append(router)
+
+for ep in sorted(grouped):
+    print(f"  ep={ep}")
+    for tls in ("no", "yes"):
+        routers = sorted(grouped[ep][tls], key=lambda item: item.get("name", "unknown"))
+        if not routers:
+            continue
+        print(f"    tls={tls}")
+        for router in routers:
+            status = router.get("status", "unknown")
+            name = router.get("name", "unknown")
+            rule = router.get("rule", "no rule")
+            service = router.get("service", "unknown")
+            middlewares = ",".join(router.get("middlewares") or [])
+            print(f"      [{status}] {name} svc={service} mw={middlewares} rule={rule}")
 '
         fi
     else
