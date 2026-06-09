@@ -310,6 +310,7 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 | `ZSHBOP_PLUGIN_ZSH_AI_ENABLE` | Enable matheusml/zsh-ai plugin | 0 or 1 | 0 |
 | `ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE` | Allow zsh-ai to own Enter (`accept-line`) for `# query` mode; when 0, `zsh-ai "query"` still works without Enter hook override | 0 or 1 | 0 |
 | `ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE` | Enable marlonrichert/zsh-autocomplete plugin | 0 or 1 | 0 |
+| `ZSHBOP_ANTIDOTE_BUNDLES` | Additional antidote bundles (GitHub repos like `owner/repo`) appended to the plugin list | Array | () |
 | `ZSHBOP_GIT_CHECK` | zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code. | Number | 1 |
 | `GIT_HOME` | A location where you have all your git repositories. | String | $HOME/git |
 | `ZSHBOP_UPDATE_GIT` | Git Repositores to update when running zshbop update | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |

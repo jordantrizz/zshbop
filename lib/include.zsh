@@ -72,6 +72,7 @@ export RUN_REPORT="0"
 # Only set ZSHBOP_RELOAD to 0 if not already set (preserve reload flag across exec zsh)
 [[ -z "$ZSHBOP_RELOAD" ]] && export ZSHBOP_RELOAD="0"
 typeset -a ZSHBOP_UPDATE_GIT=()
+typeset -ga ZSHBOP_ANTIDOTE_BUNDLES=() # -- Additional antidote bundles from .zshbop.conf
 export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository 
 typeset -a ZSHBOP_LOAD=()
 export ZSHBOP_TEMP="$HOME/tmp"
