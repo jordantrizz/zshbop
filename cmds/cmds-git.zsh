@@ -1017,11 +1017,11 @@ function _git_commit_release_version_bump () {
 
 function git-squash-release() {
     # Parse options
-    local -a opts_help opts_detect opts_force opts_squash
-    zparseopts -D -E -- h=opts_help -help=opts_help d=opts_detect -detect=opts_detect f=opts_force -force=opts_force s=opts_squash -squash=opts_squash
+    local -a opts_help opts_detect opts_force opts_squash opts_init
+    zparseopts -D -E -- h=opts_help -help=opts_help d=opts_detect -detect=opts_detect f=opts_force -force=opts_force s=opts_squash -squash=opts_squash i=opts_init -init=opts_init
 
     if [[ -n $opts_help ]]; then
-        echo "Usage: git-squash-release [-h|--help] [-d|--detect] [-f|--force] [-s|--squash]"
+        echo "Usage: git-squash-release [-h|--help] [-d|--detect] [-f|--force] [-s|--squash] [-i|--init]"
         echo ""
         echo "Squash all commits since the last tag into a single release commit."
         echo ""
@@ -1030,6 +1030,8 @@ function git-squash-release() {
         echo "  -f, --force     Bypass preflight checks and proceed anyway"
         echo "  -s, --squash    Squash commits since last tag without tagging or version bump"
         echo "                  (uses first line + commit ID of each squashed commit)"
+        echo "  -i, --init      Squash entire commit history from the first commit into one commit"
+        echo "                  (no tag or version required)"
         echo ""
         echo "Default mode prompts for minor or major version bump, tags the release,"
         echo "and optionally pushes."
@@ -1039,6 +1041,7 @@ function git-squash-release() {
     local DETECT_ONLY=0
     local FORCE=0
     local SQUASH_ONLY=0
+    local INIT=0
     if [[ -n $opts_detect ]]; then
         DETECT_ONLY=1
     fi
@@ -1047,6 +1050,9 @@ function git-squash-release() {
     fi
     if [[ -n $opts_squash ]]; then
         SQUASH_ONLY=1
+    fi
+    if [[ -n $opts_init ]]; then
+        INIT=1
     fi
 
     local DETECTION_FAILED=0
@@ -1245,6 +1251,41 @@ function git-squash-release() {
             _error "Preflight checks failed. Run git-squash-release -d to inspect and fix failures."
             return 1
         fi
+    fi
+
+    # -- Init mode: squash entire commit history from the first commit --
+    if [[ $INIT -eq 1 ]]; then
+        _loading2 "Init mode: squashing entire commit history"
+
+        local ROOT_COMMIT
+        ROOT_COMMIT=$(git rev-list --max-parents=0 HEAD 2>/dev/null)
+
+        if [[ -z $ROOT_COMMIT ]]; then
+            _error "Could not find root commit"
+            return 1
+        fi
+
+        # Get all commit messages (root to HEAD)
+        local ALL_COMMIT_MSGS
+        ALL_COMMIT_MSGS=$(git log --oneline HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
+
+        _loading "Root commit: $ROOT_COMMIT"
+        _loading2 "All commits:"
+        echo "$ALL_COMMIT_MSGS"
+        echo ""
+
+        # Perform soft reset to the root commit
+        _loading "Squashing all commits into one..."
+        git reset --soft "$ROOT_COMMIT" || return 1
+
+        # Create a single squashed commit
+        local FINAL_COMMIT_MSG="Initial commit
+
+$ALL_COMMIT_MSGS"
+
+        git commit -m "$FINAL_COMMIT_MSG"
+        _success "Created squashed initial commit (entire history squashed)"
+        return 0
     fi
 
     # Parse the last tag into major.minor.patch
