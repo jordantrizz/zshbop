@@ -1099,3 +1099,94 @@ function zshbop-boot () {
 
     return 0
 }
+
+# =========================================================
+# -- _zshbop_opencode_parse - Parse opencode AI response
+# -- Reads raw response from stdin, outputs parsed command.
+# -- Usage: echo "$response" | _zshbop_opencode_parse <query>
+# =========================================================
+function _zshbop_opencode_parse () {
+    local query="$1"
+    local text
+    text="$(cat)"
+
+    # Trim leading/trailing whitespace
+    text="${text##[[:space:]]##}"
+    text="${text%%[[:space:]]##}"
+
+    # Remove query prefix if echoed back (case-insensitive)
+    local qlow="${(L)query}"
+    local tlow="${(L)text}"
+    if [[ "$tlow" == "$qlow"* ]]; then
+        text="${text:${#query}}"
+        text="${text##[[:space:]]##}"
+    fi
+
+    # Check for markdown code block ```...```
+    if [[ "$text" == *'```'* ]]; then
+        local after_open="${text#*\`\`\`}"
+        # Skip optional language tag (first short line after ```)
+        local first_newline="${after_open%%$'\n'*}"
+        if [[ ${#first_newline} -lt 20 ]]; then
+            after_open="${after_open#*$'\n'}"
+        fi
+        # Extract up to closing ```
+        text="${after_open%%\`\`\`*}"
+        text="${text##[[:space:]]##}"
+        text="${text%%[[:space:]]##}"
+        echo "$text"
+        return 0
+    fi
+
+    # Check for inline code `...`
+    if [[ "$text" == *'`'* ]]; then
+        local after_first="${text#*\`}"
+        text="${after_first%%\`*}"
+        text="${text##[[:space:]]##}"
+        text="${text%%[[:space:]]##}"
+        if [[ -n "$text" ]]; then
+            echo "$text"
+            return 0
+        fi
+    fi
+
+    # Fallback: first non-empty line that isn't the query
+    local first_line=''
+    while IFS= read -r line; do
+        line="${line##[[:space:]]##}"
+        line="${line%%[[:space:]]##}"
+        if [[ -n "$line" ]]; then
+            local llow="${(L)line}"
+            if [[ "$llow" != "$qlow" ]]; then
+                first_line="$line"
+                break
+            fi
+        fi
+    done <<< "$text"
+
+    if [[ -n "$first_line" ]]; then
+        echo "$first_line"
+    else
+        echo "$text"
+    fi
+}
+
+# =========================================================
+# -- _zshbop_opencode_query - Generate a shell command via opencode
+# -- Usage: _zshbop_opencode_query <natural language query>
+# -- Outputs the generated command to stdout.
+# =========================================================
+help_int[_zshbop_opencode_query]='Generate a shell command via opencode AI'
+function _zshbop_opencode_query () {
+    if ! (( $+commands[opencode] )); then
+        _error "opencode is not installed"
+        return 1
+    fi
+
+    local model="${OPENCODE_MODEL:-opencode/deepseek-v4-flash-free}"
+    local query="$*"
+
+    opencode run --model "$model" \
+        "You are a shell command generator. Only output the raw command, nothing else. No explanations, no execution. Task: $query" 2>/dev/null | \
+        _zshbop_opencode_parse "$query"
+}

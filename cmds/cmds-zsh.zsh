@@ -53,7 +53,32 @@ function _zshbop_bind_menu_complete_tab () {
   [[ $- != *i* ]] && return 0
 
   export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-  bindkey '^I' menu-complete
+
+  if (( $+commands[opencode] )) && whence -f _zshbop_opencode_query >/dev/null 2>&1; then
+    # Integrate opencode AI: handle # lines with shared query function,
+    # fall through to menu-complete for normal completion.
+    function _zshbop_tab_handler() {
+      if [[ "$BUFFER" == \#* ]]; then
+        local prompt="${BUFFER#\#}"
+        prompt="${prompt#"${prompt%%[![:space:]]*}"}"
+        local cmd
+        cmd="$(_zshbop_opencode_query "$prompt")"
+        if [[ -n "$cmd" ]]; then
+          BUFFER="$cmd"
+          CURSOR=$#cmd
+        else
+          zle kill-whole-line
+        fi
+        zle reset-prompt
+      else
+        zle menu-complete
+      fi
+    }
+    zle -N _zshbop_tab_handler
+    bindkey '^I' _zshbop_tab_handler
+  else
+    bindkey '^I' menu-complete
+  fi
 
   if whence -f _zsh_autosuggest_bind_widgets >/dev/null 2>&1; then
     _zsh_autosuggest_bind_widgets
