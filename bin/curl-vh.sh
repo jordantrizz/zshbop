@@ -46,16 +46,8 @@ do_show_ssl () {
         _warning "Could not determine SSL/TLS version"
     fi
 
-    # -- Show certificate issuer and subject CNs
-    _loading "Certificate details via openssl"
-    CERT_INFO=$(openssl s_client -connect ${DOMAIN}:${PORT} -servername ${DOMAIN} </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -ext subjectAltName 2>/dev/null)
-    if [[ -n $CERT_INFO ]]; then
-        echo "$CERT_INFO" | while IFS= read -r line; do
-            _success "$line"
-        done
-    else
-        _warning "Could not retrieve certificate details"
-    fi
+    # -- Show certificate chain CN+ for all certs
+    do_show_cert_chain_cn
 
     # -- Show response headers
     _loading "Response headers"
@@ -65,6 +57,9 @@ do_show_ssl () {
 # -- do_show_ssl_verbose
 do_show_ssl_verbose () {
     _loading "Full SSL/TLS data for ${DOMAIN}:${PORT} via ${SERVERIP}"
+
+    # -- Show concise CN+ summary for all certs in chain
+    do_show_cert_chain_cn
 
     # -- Full verbose curl SSL output
     _loading "Curl SSL connection details"
@@ -92,8 +87,70 @@ do_curl (){
         _loading "Getting SSL certificate information from openssl"
         openssl s_client -connect $DOMAIN:443 </dev/null 2>/dev/null | openssl x509 -noout -text | grep DNS:
     else
-        eval "curl --head --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} ${EXTRA_ARGS} -k 2>&1"
+        do_show_cert_chain_cn
+        eval "curl --resolve ${DOMAIN}:${PORT}:${SERVERIP} ${URL} ${EXTRA_ARGS} -k 2>&1"
     fi
+}
+
+# ==============================================
+# -- do_show_cert_chain_cn
+# -- Extract Common Name (CN) and Subject Alternative Names (SANs/DNS)
+# -- from every certificate in the SSL chain
+# ==============================================
+do_show_cert_chain_cn () {
+    # -- Guard: openssl is required
+    if ! (( $+commands[openssl] )); then
+        _debug "openssl not available, skipping certificate chain CN+"
+        return 1
+    fi
+
+    _loading "Certificate CN+ for ${DOMAIN}:${PORT}"
+
+    local tmpdir=$(mktemp -d)
+    local cert_num=0
+
+    # -- Get full cert chain and split into individual PEM files via awk
+    openssl s_client -showcerts -connect ${DOMAIN}:${PORT} -servername ${DOMAIN} </dev/null 2>/dev/null | \
+        awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' | \
+        awk 'BEGIN { c=0 } /-----BEGIN CERTIFICATE-----/ { c++; f="'"$tmpdir"'/cert." c ".pem"; print > f; next } { print >> f }'
+
+    # -- Process the first (leaf) cert only
+    for certfile in "$tmpdir"/cert.1.pem(N); do
+        if [[ ! -f "$certfile" ]]; then
+            continue
+        fi
+        cert_num=1
+
+        # -- Extract Common Name (CN)
+        local subject=$(openssl x509 -in "$certfile" -noout -subject 2>/dev/null)
+        local cn=$(echo "$subject" | sed -n 's/.*CN = \([^,]*\).*/\1/p')
+        if [[ -n "$cn" ]]; then
+            _success "CN: ${cn}"
+        else
+            _warning "CN: (not found)"
+        fi
+
+        # -- Extract Subject Alternative Names (SANs / DNS entries)
+        local sans=$(openssl x509 -in "$certfile" -noout -ext subjectAltName 2>/dev/null | \
+            grep -o 'DNS:[^,]*' | sed 's/DNS://' | tr '\n' ' ')
+        if [[ -n "$sans" ]]; then
+            _echo "SANs: ${sans}"
+        fi
+
+        # -- Extract Issuer CN
+        local issuer=$(openssl x509 -in "$certfile" -noout -issuer 2>/dev/null)
+        local issuer_cn=$(echo "$issuer" | sed -n 's/.*CN = \([^,]*\).*/\1/p')
+        if [[ -n "$issuer_cn" ]]; then
+            _echo "Issuer: ${issuer_cn}"
+        fi
+    done
+
+    if [[ $cert_num -eq 0 ]]; then
+        _warning "No certificates found in chain"
+    fi
+
+    # -- Cleanup
+    rm -rf "$tmpdir"
 }
 
 ALLARGS="$@"

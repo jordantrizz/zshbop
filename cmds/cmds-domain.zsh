@@ -18,13 +18,113 @@ help_domain[domain-info]='Check a domains name servers and www and a record and 
 help_domain[dom]='Check a domains availability, www, mx etc'
 function dom () {
     # Parse options with zparseopts
-    local -a opts_help
-    zparseopts -D -E -- h=opts_help -help=opts_help
+    local -a opts_help opts_compact
+    zparseopts -D -E -- h=opts_help -help=opts_help c=opts_compact -compact=opts_compact
 
     if [[ -n $opts_help ]]; then
-        echo "Usage: dom [-h|--help] <domain>"
+        echo "Usage: dom [-h|--help] [-c|--compact] <domain>"
         return 0
     fi
+
+    _dom_join_lines () {
+        local text="$1"
+        echo "$text" | awk 'NF { gsub(/"/, "", $0); printf "%s%s", sep, $0; sep=", " } END { if (NR == 0) printf "NOT_FOUND" }'
+    }
+
+    _dom_join_lines_cf_tagged () {
+        local text="$1"
+        local line output sep
+
+        output=""
+        sep=""
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+
+            if [[ "$line" =~ '^([0-9]{1,3}\.){3}[0-9]{1,3}$' ]] || [[ "$line" =~ '^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$' ]]; then
+                if cf-ip -q "$line" >/dev/null 2>&1; then
+                    line+=" (${fg[yellow]}CF${reset_color})"
+                fi
+            fi
+
+            output+="${sep}${line}"
+            sep=", "
+        done <<< "$text"
+
+        [[ -z "$output" ]] && echo "NOT_FOUND" || echo "$output"
+    }
+
+    _dom_compact_row () {
+        local key="$1"
+        local value="$2"
+        [[ -z "$value" ]] && value="NOT_FOUND"
+        printf "%-11s : %s\n" "$key" "$value"
+    }
+
+    _dom_compact_summary () {
+        local domain_name="$1"
+        local whois_out is_available registrar registrar_url created expiry
+        local ns_records apex_records www_records mx_records
+        local spf_record dmarc_record dkim_records dkim_selector dkim_query dkim_value
+        local -a dkim_selectors
+
+        whois_out=$(whois "$domain_name" 2>/dev/null)
+
+        echo "$whois_out" | egrep -q '^No match|^NOT FOUND|^Not fo|AVAILABLE|^No Data Fou|has not been regi|No entri'
+        is_available=$?
+
+        echo "+--------------------------------------------------+"
+        _dom_compact_row "DOMAIN" "$domain_name"
+        if [[ $is_available -eq 0 ]]; then
+            _dom_compact_row "STATUS" "AVAILABLE"
+            echo "+--------------------------------------------------+"
+            return 1
+        fi
+
+        _dom_compact_row "STATUS" "REGISTERED"
+        registrar=$(echo "$whois_out" | egrep -im1 'Registrar:' | sed -E 's/^[[:space:]]*Registrar:[[:space:]]*//I')
+        registrar_url=$(echo "$whois_out" | egrep -im1 'Registrar URL:' | sed -E 's/^[[:space:]]*Registrar URL:[[:space:]]*//I')
+        created=$(echo "$whois_out" | egrep -im1 'Creation Date:|Created On:' | sed -E 's/^[[:space:]]*(Creation Date:|Created On:)[[:space:]]*//I')
+        expiry=$(echo "$whois_out" | egrep -im1 'Expiry Date:|Registry Expiry Date:|Expiration Date:' | sed -E 's/^[[:space:]]*(Expiry Date:|Registry Expiry Date:|Expiration Date:)[[:space:]]*//I')
+
+        ns_records=$(dig +short NS "$domain_name")
+        apex_records=$(dig +short "$domain_name")
+        www_records=$(dig +short "www.$domain_name")
+        mx_records=$(dig +short MX "$domain_name")
+        spf_record=$(dig +short TXT "$domain_name" | grep 'v=spf1')
+        dmarc_record=$(dig +short TXT "_dmarc.$domain_name" | tr -d '"')
+
+        dkim_selectors=("default" "selector1" "selector2" "google" "k1" "dkim")
+        dkim_records=""
+        for dkim_selector in "${dkim_selectors[@]}"; do
+            dkim_query="$dkim_selector._domainkey.$domain_name"
+            dkim_value=$(dig +short TXT "$dkim_query")
+            if [[ -n "$dkim_value" ]]; then
+                if [[ -n "$dkim_records" ]]; then
+                    dkim_records+=$'\n'
+                fi
+                dkim_records+="$dkim_selector"
+            fi
+        done
+
+        echo "+---------------------- WHOIS ---------------------+"
+        _dom_compact_row "REGISTRAR" "$registrar"
+        _dom_compact_row "REG-URL" "$registrar_url"
+        _dom_compact_row "CREATED" "$created"
+        _dom_compact_row "EXPIRY" "$expiry"
+
+        echo "+----------------------- DNS ----------------------+"
+        _dom_compact_row "DNS NS" "$(_dom_join_lines "$ns_records")"
+        _dom_compact_row "DNS APEX" "$(_dom_join_lines_cf_tagged "$apex_records")"
+        _dom_compact_row "DNS WWW" "$(_dom_join_lines_cf_tagged "$www_records")"
+        _dom_compact_row "DNS MX" "$(_dom_join_lines "$mx_records")"
+
+        echo "+---------------------- AUTH ----------------------+"
+        _dom_compact_row "AUTH SPF" "$(_dom_join_lines "$spf_record")"
+        _dom_compact_row "AUTH DMARC" "$(_dom_join_lines "$dmarc_record")"
+        _dom_compact_row "AUTH DKIM" "$(_dom_join_lines "$dkim_records")"
+        echo "+--------------------------------------------------+"
+        return 0
+    }
 
     # Check if dig and whois are present
     _cmd_exists dig
@@ -35,6 +135,7 @@ function dom () {
     # -- _check_subdomain function - Check if domain is a subdomain and prompt user
     _check_subdomain () {
         local INPUT_DOMAIN="$1"
+        local AUTO_BASE="${2:=0}"
         local DOT_COUNT=$(echo "$INPUT_DOMAIN" | tr -cd '.' | wc -c)
         
         # Handle special cases for known multi-part TLDs
@@ -47,16 +148,22 @@ function dom () {
                 _debugf "Stripped DOMAIN: $BASE_DOMAIN"
                 
                 # Ask user if they want to check the base domain
-                _warning "Domain is a sub-domain, check base domain $BASE_DOMAIN? [y/n] "
-                read -q "REPLY"                
-                echo ""
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                if [[ $AUTO_BASE == "1" ]]; then
                     DOMAIN_CLEAN=$BASE_DOMAIN
-                    _warning "Checking base domain: $DOMAIN_CLEAN"
+                    _debugf "Compact mode enabled, using base domain: $DOMAIN_CLEAN"
                     return 0
                 else
-                    check-dns-record $DOMAIN_CLEAN
-                    return 1
+                    _warning "Domain is a sub-domain, check base domain $BASE_DOMAIN? [y/n] "
+                    read -q "REPLY"
+                    echo ""
+                    if [[ $REPLY =~ ^[Yy]$ ]]; then
+                        DOMAIN_CLEAN=$BASE_DOMAIN
+                        _warning "Checking base domain: $DOMAIN_CLEAN"
+                        return 0
+                    else
+                        check-dns-record $DOMAIN_CLEAN
+                        return 1
+                    fi
                 fi
             fi
         else
@@ -67,16 +174,22 @@ function dom () {
                 _debugf "Stripped DOMAIN: $BASE_DOMAIN"
                 
                 # Ask user if they want to check the base domain
-                _warning "Domain is a sub-domain, check base domain $BASE_DOMAIN? [y/n] "
-                read -q "REPLY"                
-                echo ""
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                if [[ $AUTO_BASE == "1" ]]; then
                     DOMAIN_CLEAN=$BASE_DOMAIN
-                    _warning "Checking base domain: $DOMAIN_CLEAN"
+                    _debugf "Compact mode enabled, using base domain: $DOMAIN_CLEAN"
                     return 0
                 else
-                    check-dns-record $DOMAIN_CLEAN
-                    return 1
+                    _warning "Domain is a sub-domain, check base domain $BASE_DOMAIN? [y/n] "
+                    read -q "REPLY"
+                    echo ""
+                    if [[ $REPLY =~ ^[Yy]$ ]]; then
+                        DOMAIN_CLEAN=$BASE_DOMAIN
+                        _warning "Checking base domain: $DOMAIN_CLEAN"
+                        return 0
+                    else
+                        check-dns-record $DOMAIN_CLEAN
+                        return 1
+                    fi
                 fi
             fi
         fi
@@ -86,7 +199,7 @@ function dom () {
     local DOMAIN="$1"
     local DOMAIN_CLEAN
     # -- Check if domain is set
-    [[ -z $DOMAIN ]] && _error "Please specify a domain name"
+    [[ -z $DOMAIN ]] && { _error "Please specify a domain name"; return 1; }
 
     _loading "Checking domain $DOMAIN"
 
@@ -104,8 +217,15 @@ function dom () {
     fi
     
     # -- Check if domain is a subdomain and handle user choice
-    if ! _check_subdomain "$DOMAIN_CLEAN"; then
+    local COMPACT_MODE="0"
+    [[ -n $opts_compact ]] && COMPACT_MODE="1"
+    if ! _check_subdomain "$DOMAIN_CLEAN" "$COMPACT_MODE"; then
         return 1
+    fi
+
+    if [[ $COMPACT_MODE == "1" ]]; then
+        _dom_compact_summary "$DOMAIN_CLEAN"
+        return $?
     fi
     
     # -- Run domain on the domain

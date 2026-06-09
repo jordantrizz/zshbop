@@ -2,7 +2,7 @@
 
 ## Project Notes
 
-* Always create and print out a git commit message for each change made, use the format feat, fix, docs, style, refactor, perf, test, chore
+* Always generate and print out a git commit message for each change made, use the format feat, fix, docs, style, refactor, perf, test, chore at the end of a session to summarize the changes.
 * Maintain a changelog for each release, documenting new features, bug fixes, and improvements.
 * For authoring docksoft container templates, follow: `templates/docksoft/AGENTS.md`
 

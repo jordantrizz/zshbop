@@ -8,6 +8,7 @@ _debug " -- Loading ${(%):-%N}"
 
 # - Init help array
 typeset -gA help_ssl
+help_files[ssl]='SSL related commands'
 
 # -- ssl-check
 help_ssl[ssl-check]='Check SSL Certificate on host'
