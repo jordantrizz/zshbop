@@ -1017,21 +1017,36 @@ function _git_commit_release_version_bump () {
 
 function git-squash-release() {
     # Parse options
-    local -a opts_help opts_detect
-    zparseopts -D -E -- h=opts_help -help=opts_help d=opts_detect -detect=opts_detect
+    local -a opts_help opts_detect opts_force opts_squash
+    zparseopts -D -E -- h=opts_help -help=opts_help d=opts_detect -detect=opts_detect f=opts_force -force=opts_force s=opts_squash -squash=opts_squash
 
     if [[ -n $opts_help ]]; then
-        echo "Usage: git-squash-release [-h|--help] [-d|--detect]"
+        echo "Usage: git-squash-release [-h|--help] [-d|--detect] [-f|--force] [-s|--squash]"
         echo ""
         echo "Squash all commits since the last tag into a single release commit."
-        echo "Prompts for minor or major version bump, tags the release, and optionally pushes."
-        echo "Use -d to run preflight detections only (no git changes)."
+        echo ""
+        echo "Options:"
+        echo "  -d, --detect    Run preflight detections only (no git changes)"
+        echo "  -f, --force     Bypass preflight checks and proceed anyway"
+        echo "  -s, --squash    Squash commits since last tag without tagging or version bump"
+        echo "                  (uses first line + commit ID of each squashed commit)"
+        echo ""
+        echo "Default mode prompts for minor or major version bump, tags the release,"
+        echo "and optionally pushes."
         return 0
     fi
 
     local DETECT_ONLY=0
+    local FORCE=0
+    local SQUASH_ONLY=0
     if [[ -n $opts_detect ]]; then
         DETECT_ONLY=1
+    fi
+    if [[ -n $opts_force ]]; then
+        FORCE=1
+    fi
+    if [[ -n $opts_squash ]]; then
+        SQUASH_ONLY=1
     fi
 
     local DETECTION_FAILED=0
@@ -1064,8 +1079,12 @@ function git-squash-release() {
     if [[ -n $LAST_TAG ]]; then
         _success "[PASS] Found latest tag: $LAST_TAG"
     else
-        _error "[FAIL] Found latest tag"
-        DETECTION_FAILED=1
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] Found latest tag"
+        else
+            _error "[FAIL] Found latest tag"
+            DETECTION_FAILED=1
+        fi
     fi
 
     if [[ -n $LAST_TAG ]]; then
@@ -1215,13 +1234,17 @@ function git-squash-release() {
             _success "All detections passed."
             return 0
         fi
-        _error "Detection run failed. Fix failed checks before running release squash."
+        _warning "Some checks did not pass. Review the [FAIL] messages above and address them before running git-squash-release without -d."
         return 1
     fi
 
     if [[ $DETECTION_FAILED -ne 0 ]]; then
-        _error "Preflight checks failed. Run git-squash-release -d to inspect and fix failures."
-        return 1
+        if [[ $FORCE -eq 1 ]]; then
+            _warning "Preflight checks failed but --force set, proceeding anyway..."
+        else
+            _error "Preflight checks failed. Run git-squash-release -d to inspect and fix failures."
+            return 1
+        fi
     fi
 
     # Parse the last tag into major.minor.patch
@@ -1254,72 +1277,90 @@ function git-squash-release() {
     echo "$COMMIT_MSGS"
     echo ""
 
-    # Prompt for minor or major
-    _loading "Select release type:"
-    echo "  (i) minor  ($MINOR_TAG)"
-    echo "  (a) major  ($MAJOR_TAG)"
-    echo "  (c) cancel"
-    echo ""
+    if [[ $SQUASH_ONLY -eq 1 ]]; then
+        # -- Squash-only mode: squash commits without tagging or version bump --
+        _loading2 "Squash-only mode: no version bump or tagging"
 
-    local RELEASE_TAG
-    local REPLY
-    read -k 1 "REPLY?Select [i/a/c]: "
-    echo ""
+        # Perform soft reset to last tag commit
+        _loading "Squashing all commits since $LAST_TAG into one..."
+        git reset --soft $LAST_TAG_COMMIT || return 1
 
-    case $REPLY in
-        i)
-            RELEASE_TAG="$MINOR_TAG"
-            _success "Selected minor release: $RELEASE_TAG"
-            ;;
-        a)
-            RELEASE_TAG="$MAJOR_TAG"
-            _success "Selected major release: $RELEASE_TAG"
-            ;;
-        *)
-            _warning "Cancelled."
-            return 0
-            ;;
-    esac
-
-    echo ""
-
-    _git_update_version_file "$RELEASE_TAG" || return 1
-    _git_update_wp_theme_version "$RELEASE_TAG" || return 1
-    _git_commit_release_version_bump "$RELEASE_TAG" || return 1
-
-    # Perform soft reset to last tag commit
-    _loading "Squashing all commits since $LAST_TAG into one..."
-    git reset --soft $LAST_TAG_COMMIT || return 1
-
-    # Build commit message with release header
-    local FINAL_COMMIT_MSG="Release $RELEASE_TAG
+        # Build commit message with squash header
+        local FINAL_COMMIT_MSG="Squash commits since $LAST_TAG
 
 $COMMIT_MSGS"
 
-    # Create a new commit with the release message
-    git commit -m "$FINAL_COMMIT_MSG"
-    _success "Created squashed commit for $RELEASE_TAG"
-
-    # Tag the release
-    _loading "Tagging commit as $RELEASE_TAG"
-    git tag "$RELEASE_TAG"
-    _success "Tagged as $RELEASE_TAG"
-
-    echo ""
-
-    # Ask if we should push
-    read -q "REPLY?Push tag and commit with --force? (y/n) "
-    echo ""
-
-    if [[ $REPLY == "y" ]]; then
-        _loading "Pushing with --force..."
-        git push --force
-        _loading "Pushing tags..."
-        git push --tags
-        _success "Release $RELEASE_TAG pushed successfully."
+        # Create a new commit with the squash message
+        git commit -m "$FINAL_COMMIT_MSG"
+        _success "Created squashed commit (squash-only, no tag created)"
     else
-        _warning "Not pushed. To push manually run:"
-        echo "  git push --force && git push --tags"
+        # -- Standard release flow: prompt for version, tag, and optionally push --
+        _loading "Select release type:"
+        echo "  (i) minor  ($MINOR_TAG)"
+        echo "  (a) major  ($MAJOR_TAG)"
+        echo "  (c) cancel"
+        echo ""
+
+        local RELEASE_TAG
+        local REPLY
+        read -k 1 "REPLY?Select [i/a/c]: "
+        echo ""
+
+        case $REPLY in
+            i)
+                RELEASE_TAG="$MINOR_TAG"
+                _success "Selected minor release: $RELEASE_TAG"
+                ;;
+            a)
+                RELEASE_TAG="$MAJOR_TAG"
+                _success "Selected major release: $RELEASE_TAG"
+                ;;
+            *)
+                _warning "Cancelled."
+                return 0
+                ;;
+        esac
+
+        echo ""
+
+        _git_update_version_file "$RELEASE_TAG" || return 1
+        _git_update_wp_theme_version "$RELEASE_TAG" || return 1
+        _git_commit_release_version_bump "$RELEASE_TAG" || return 1
+
+        # Perform soft reset to last tag commit
+        _loading "Squashing all commits since $LAST_TAG into one..."
+        git reset --soft $LAST_TAG_COMMIT || return 1
+
+        # Build commit message with release header
+        local FINAL_COMMIT_MSG="Release $RELEASE_TAG
+
+$COMMIT_MSGS"
+
+        # Create a new commit with the release message
+        git commit -m "$FINAL_COMMIT_MSG"
+        _success "Created squashed commit for $RELEASE_TAG"
+
+        # Tag the release
+        _loading "Tagging commit as $RELEASE_TAG"
+        git tag "$RELEASE_TAG"
+        _success "Tagged as $RELEASE_TAG"
+
+        echo ""
+
+        # Ask if we should push
+        read -q "REPLY?Push tag and commit with --force? (y/n) "
+        echo ""
+
+        if [[ $REPLY == "y" ]]; then
+            _loading "Pushing with --force..."
+            git push --force
+            _loading "Pushing tags..."
+            git push --tags
+            _success "Release $RELEASE_TAG pushed successfully."
+        else
+            _warning "Not pushed. To push manually run:"
+            echo "  git push --force && git push --tags"
+        fi
     fi
 }
 
