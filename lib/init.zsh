@@ -453,6 +453,19 @@ function init_antidote () {
     if (( ${#enabled_zsh_plugins[@]} > 0 )); then
         _loading2 "Enabled plugins: ${enabled_zsh_plugins[*]}"
     fi
+
+    # -- Append user-specified antidote bundles from ZSHBOP_ANTIDOTE_BUNDLES
+    if (( ${#ZSHBOP_ANTIDOTE_BUNDLES[@]} > 0 )); then
+        _log "Antidote: adding user bundles from ZSHBOP_ANTIDOTE_BUNDLES"
+        local _bundle
+        for _bundle in "${ZSHBOP_ANTIDOTE_BUNDLES[@]}"; do
+            if ! grep -Eq "^[[:space:]]*${_bundle}([[:space:]]|$)" "${antidote_plugins_effective}"; then
+                echo "${_bundle}" >> "${antidote_plugins_effective}"
+                _log "  Added: ${_bundle}"
+            fi
+        done
+        unset _bundle
+    fi
 	
 	# -- load antidote
 	_log "Loading antidote"

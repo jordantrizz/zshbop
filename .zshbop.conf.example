@@ -43,10 +43,14 @@
 # ===============================================
 # -- Antidote ZSH Plugins
 # ===============================================
+# -- Additional antidote bundles (GitHub repos or other antidote-compatible sources)
+# ZSHBOP_ANTIDOTE_BUNDLES+=("chhlga/zsh-opencode-plugin")
+# ZSHBOP_ANTIDOTE_BUNDLES+=("another/repo")
 #export ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE="0" # -- Enable marlonrichert/zsh-autocomplete plugin
 #export ZSHBOP_PLUGIN_ZSH_AI_ENABLE="0" # -- Enable matheusml/zsh-ai plugin (requires AI provider API key)
 #export ZSH_AI_PROVIDER="gemini"
 #export GEMINI_API_KEY=""
+
 
 # ===============================================
 # -- NVM (Node Version Manager) Configuration

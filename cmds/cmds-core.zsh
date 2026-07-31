@@ -469,3 +469,33 @@ function whichx () {
 
     return $status
 }
+
+# ==============================================
+# -- oc-ai - Generate shell commands using AI via opencode
+# -- Usage: oc-ai <natural language query>
+# -- Example: oc-ai list all files sorted by size
+# ==============================================
+help_core[oc-ai]='Generate shell commands using AI via opencode'
+function oc-ai () {
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: oc-ai [-h|--help] <natural language query>"
+        echo "Generate shell commands using AI via opencode."
+        echo ""
+        echo "Examples:"
+        echo "  oc-ai list all files sorted by modification time"
+        echo "  oc-ai kill all processes using port 8080"
+        echo "  oc-ai find all .log files modified in the last day"
+        return 0
+    fi
+
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: oc-ai <natural language query>"
+        echo "Example: oc-ai list all files sorted by size"
+        return 1
+    fi
+
+    _zshbop_opencode_query "$@"
+}
