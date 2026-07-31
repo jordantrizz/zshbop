@@ -491,3 +491,311 @@ function cf-cloudflared-fixes () {
     _loading2 "Sysctl parameters for cloudflared have been set and applied."
     
 }
+
+# ==============================================================================
+# -- cf-radar -- Look up a domain via Cloudflare Radar API
+# ==============================================================================
+help_cloudflare[cf-radar]='Look up a domain via Cloudflare Radar API'
+function cf-radar () {
+    local ARG_HELP ARG_LIMIT ARG_DATE_RANGE ARG_RAW DOMAIN
+    
+    zparseopts -D -E -F -- \
+        h=ARG_HELP -help=ARG_HELP \
+        l:=ARG_LIMIT -limit:=ARG_LIMIT \
+        d:=ARG_DATE_RANGE -date-range:=ARG_DATE_RANGE \
+        r=ARG_RAW -raw=ARG_RAW
+    
+    if [[ -n $ARG_HELP ]]; then
+        echo "Usage: cf-radar [-h|--help] [-l|--limit <n>] [-d|--date-range <range>] [-r|--raw] <domain>"
+        echo ""
+        echo "Look up a domain via Cloudflare Radar API"
+        echo ""
+        echo "Options:"
+        echo "  -l, --limit <n>       Limit results (default: 10)"
+        echo "  -d, --date-range <r>   Date range (default: 1d, e.g., 1d, 7d, 30d)"
+        echo "  -r, --raw              Output raw JSON response"
+        echo "  -h, --help             Show this help"
+        return 0
+    fi
+    
+    # Get positional argument (domain)
+    DOMAIN="$1"
+    
+    if [[ -z $DOMAIN ]]; then
+        _error "No domain specified"
+        echo "Usage: cf-radar [-h|--help] [-l|--limit <n>] [-d|--date-range <range>] [-r|--raw] <domain>"
+        return 1
+    fi
+    
+    # Check for Cloudflare credentials
+    local AUTH_METHOD=""
+    if [[ -n $CLOUDFLARE_RADAR ]]; then
+        AUTH_METHOD="bearer"
+    elif [[ -n $CLOUDFLARE_EMAIL && -n $CLOUDFLARE_API_KEY ]]; then
+        AUTH_METHOD="legacy"
+    else
+        _error "No Cloudflare credentials found. Set one of:"
+        _error ""
+        _error "  Method 1 — API Token (recommended):"
+        _error "    export CLOUDFLARE_RADAR=\"your-api-token\""
+        _error "    Create at https://dash.cloudflare.com/profile/api-tokens"
+        _error "    Permissions: Account > Radar > Read"
+        _error ""
+        _error "  Method 2 — Global API Key (legacy):"
+        _error "    export CLOUDFLARE_EMAIL=\"your@email.com\""
+        _error "    export CLOUDFLARE_API_KEY=\"your-global-api-key\""
+        return 1
+    fi
+    
+    # Check if jq is available
+    if (( ! $+commands[jq] )); then
+        _error "jq is required for JSON parsing. Install it with: brew install jq"
+        return 1
+    fi
+    
+    # Set defaults
+    local LIMIT="${ARG_LIMIT[2]:-10}"
+    local DATE_RANGE="${ARG_DATE_RANGE[2]:-1d}"
+    local API_BASE="https://api.cloudflare.com/client/v4"
+    
+    _loading "Querying Cloudflare Radar for domain: $DOMAIN"
+    _loading2 "Date range: $DATE_RANGE, Limit: $LIMIT"
+    
+    # Call the API
+    local RESPONSE
+    if [[ $AUTH_METHOD == "bearer" ]]; then
+        RESPONSE=$(curl -s "${API_BASE}/radar/dns/top/locations?domain=${DOMAIN}&dateRange=${DATE_RANGE}&limit=${LIMIT}&format=json" \
+            -H "Authorization: Bearer ${CLOUDFLARE_RADAR}")
+    else
+        RESPONSE=$(curl -s "${API_BASE}/radar/dns/top/locations?domain=${DOMAIN}&dateRange=${DATE_RANGE}&limit=${LIMIT}&format=json" \
+            -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+            -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
+    fi
+    
+    # Check for curl error
+    if [[ $? -ne 0 ]]; then
+        _error "Failed to connect to Cloudflare Radar API"
+        return 1
+    fi
+    
+    # Check API response success
+    local API_SUCCESS
+    API_SUCCESS=$(echo "$RESPONSE" | jq -r '.success // false')
+    
+    # If bearer auth failed and legacy creds are available, retry with legacy
+    if [[ $API_SUCCESS != "true" && $AUTH_METHOD == "bearer" && -n $CLOUDFLARE_EMAIL && -n $CLOUDFLARE_API_KEY ]]; then
+        _warning "Bearer auth failed, retrying with Global API Key..."
+        AUTH_METHOD="legacy"
+        RESPONSE=$(curl -s "${API_BASE}/radar/dns/top/locations?domain=${DOMAIN}&dateRange=${DATE_RANGE}&limit=${LIMIT}&format=json" \
+            -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+            -H "X-Auth-Key: ${CLOUDFLARE_API_KEY}")
+        API_SUCCESS=$(echo "$RESPONSE" | jq -r '.success // false')
+    fi
+    
+    if [[ $API_SUCCESS != "true" ]]; then
+        local ERRORS ERROR_CODE
+        ERRORS=$(echo "$RESPONSE" | jq -r '.errors[]? | .message // "Unknown error"' 2>/dev/null)
+        ERROR_CODE=$(echo "$RESPONSE" | jq -r '.errors[]? | .code // ""' 2>/dev/null)
+        if [[ -n $ERRORS ]]; then
+            _error "Cloudflare Radar API error (code $ERROR_CODE): $ERRORS"
+            if [[ $ERROR_CODE == "9106" && $AUTH_METHOD == "bearer" ]]; then
+                _error ""
+                _error "Your CLOUDFLARE_RADAR token doesn't appear to be a valid API Token."
+                _error "Ensure you're using a scoped API Token (40+ chars), not a Global API Key (32 chars)."
+                _error "Create one at: https://dash.cloudflare.com/profile/api-tokens"
+                _error "Or use CLOUDFLARE_EMAIL + CLOUDFLARE_API_KEY for legacy auth."
+            fi
+        else
+            _error "Cloudflare Radar API request failed"
+            _error "Response: $(echo "$RESPONSE" | jq -c '.' 2>/dev/null || echo "$RESPONSE")"
+        fi
+        return 1
+    fi
+    
+    # Check if we have results
+    local RESULTS_COUNT
+    RESULTS_COUNT=$(echo "$RESPONSE" | jq '.result.top_0 | length // 0')
+    
+    if [[ $RESULTS_COUNT -eq 0 ]]; then
+        _warning "No DNS query data found for domain: $DOMAIN"
+        return 0
+    fi
+    
+    # Get metadata
+    local START_TIME END_TIME
+    START_TIME=$(echo "$RESPONSE" | jq -r '.result.meta.dateRange[0].startTime // "N/A"')
+    END_TIME=$(echo "$RESPONSE" | jq -r '.result.meta.dateRange[0].endTime // "N/A"')
+    
+    if [[ -n $ARG_RAW ]]; then
+        # Output raw JSON
+        echo "$RESPONSE" | jq '.'
+    else
+        # Formatted output
+        _success "DNS query distribution for $DOMAIN"
+        _loading2 "Period: $(echo $START_TIME | cut -d'T' -f1) to $(echo $END_TIME | cut -d'T' -f1)"
+        
+        local COUNTRY PCT RANK=1
+        echo "$RESPONSE" | jq -r '.result.top_0[] | "\(.clientCountryName)|\(.value)"' | while IFS='|' read COUNTRY PCT; do
+            printf "  %3d. %-25s %s%%\n" "$RANK" "$COUNTRY" "$PCT"
+            RANK=$((RANK + 1))
+        done
+    fi
+}
+
+# ==============================================================================
+# -- cf-dns -- Look up DNS info for a domain via 1.1.1.1 DNS-over-HTTPS + WHOIS
+# ==============================================================================
+help_cloudflare[cf-dns]='Look up nameservers, registrar, and expiry date for a domain'
+function cf-dns () {
+    local ARG_HELP ARG_RAW DOMAIN
+
+    zparseopts -D -E -- \
+        h=ARG_HELP -help=ARG_HELP \
+        r=ARG_RAW -raw=ARG_RAW
+
+    if [[ -n $ARG_HELP ]]; then
+        echo "Usage: cf-dns [-h|--help] [-r|--raw] <domain>"
+        echo ""
+        echo "Look up nameservers (via 1.1.1.1 DoH), registrar and expiry date (via WHOIS)"
+        echo ""
+        echo "Options:"
+        echo "  -r, --raw    Output raw JSON and WHOIS responses"
+        echo "  -h, --help   Show this help"
+        return 0
+    fi
+
+    DOMAIN="$1"
+
+    if [[ -z $DOMAIN ]]; then
+        _error "No domain specified"
+        echo "Usage: cf-dns [-h|--help] [-r|--raw] <domain>"
+        return 1
+    fi
+
+    # -- Validate domain format
+    if [[ ! "$DOMAIN" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,63})+$ ]]; then
+        _error "Invalid domain format: $DOMAIN"
+        return 1
+    fi
+
+    # -- Check for required tools
+    if (( ! $+commands[curl] )); then
+        _error "curl is required. Install it with: apt install curl"
+        return 1
+    fi
+    if (( ! $+commands[whois] )); then
+        _error "whois is required. Install it with: apt install whois  or  brew install whois"
+        return 1
+    fi
+    if (( ! $+commands[jq] )); then
+        _error "jq is required. Install it with: brew install jq  or  apt install jq"
+        return 1
+    fi
+
+    _loading "Looking up DNS info for: $DOMAIN"
+
+    # -- 1. Nameservers via Cloudflare DNS-over-HTTPS (1.1.1.1)
+    _loading2 "Querying nameservers via 1.1.1.1 DoH..."
+    local DOH_URL="https://one.one.one.one/dns-query?name=${DOMAIN}&type=NS"
+    local NS_RESPONSE
+    NS_RESPONSE=$(curl -s -H "Accept: application/dns-json" "$DOH_URL")
+
+    if [[ $? -ne 0 || -z $NS_RESPONSE ]]; then
+        _error "Failed to query DNS-over-HTTPS endpoint"
+        return 1
+    fi
+
+    local NS_STATUS
+    NS_STATUS=$(echo "$NS_RESPONSE" | jq -r '.Status')
+
+    if [[ -n $ARG_RAW ]]; then
+        echo ""
+        _loading "Raw DoH response:"
+        echo "$NS_RESPONSE" | jq '.'
+    fi
+
+    _success "Nameservers:"
+    if [[ $NS_STATUS -eq 0 ]]; then
+        local NS_COUNT=0
+        echo "$NS_RESPONSE" | jq -r '.Answer[]? | select(.type == 2) | .data' | while read -r ns; do
+            ns="${ns%.}"
+            NS_COUNT=$((NS_COUNT + 1))
+            printf "  %d. %s\n" "$NS_COUNT" "$ns"
+        done
+        if [[ $NS_COUNT -eq 0 ]]; then
+            _warning "  No NS records found"
+        fi
+    elif [[ $NS_STATUS -eq 3 ]]; then
+        _warning "  Domain does not exist (NXDOMAIN)"
+    else
+        _warning "  DNS query returned status $NS_STATUS"
+    fi
+
+    # -- 2. Registrar and expiry date via WHOIS
+    _loading2 "Querying WHOIS for registrar and expiry date..."
+    local WHOIS_RESPONSE
+    WHOIS_RESPONSE=$(whois "$DOMAIN" 2>/dev/null)
+
+    if [[ $? -ne 0 || -z $WHOIS_RESPONSE ]]; then
+        _error "WHOIS lookup failed for $DOMAIN"
+        return 1
+    fi
+
+    if [[ -n $ARG_RAW ]]; then
+        echo ""
+        _loading "Raw WHOIS output (first 60 lines):"
+        echo "$WHOIS_RESPONSE" | head -60
+    fi
+
+    # -- Extract registrar
+    local REGISTRAR
+    REGISTRAR=$(echo "$WHOIS_RESPONSE" | grep -i -m1 "Registrar:" | sed 's/^[[:space:]]*[Rr]egistrar:[[:space:]]*//' | head -1)
+    if [[ -z $REGISTRAR ]]; then
+        REGISTRAR=$(echo "$WHOIS_RESPONSE" | grep -i -m1 "Sponsoring Registrar:" | sed 's/^[[:space:]]*[Ss]ponsoring [Rr]egistrar:[[:space:]]*//' | head -1)
+    fi
+    if [[ -z $REGISTRAR ]]; then
+        REGISTRAR="N/A"
+    fi
+    _success "Registrar: $REGISTRAR"
+
+    # -- Extract expiry date (try multiple field name patterns for different TLDs)
+    local EXPIRY
+    for pattern in \
+        "Registry Expiry Date:" \
+        "Expiry Date:" \
+        "Expiration Date:" \
+        "Expire Date:" \
+        "Domain Expiration Date:" \
+        "Domain Expiry Date:" \
+        "paid-till:" \
+        "domain_expiration_date:"; do
+        EXPIRY=$(grep -i -m1 "$pattern" <<<"$WHOIS_RESPONSE" | sed "s/^[[:space:]]*${pattern}[[:space:]]*//" | head -1)
+        if [[ -n $EXPIRY ]]; then
+            break
+        fi
+    done
+    if [[ -z $EXPIRY ]]; then
+        EXPIRY="N/A"
+    fi
+    _success "Expiry Date: $EXPIRY"
+
+    # -- Also extract creation date as a bonus
+    local CREATED
+    for pattern in \
+        "Creation Date:" \
+        "Created Date:" \
+        "Created On:" \
+        "Domain Registration Date:" \
+        "created:" \
+        "domain_created_date:"; do
+        CREATED=$(grep -i -m1 "$pattern" <<<"$WHOIS_RESPONSE" | sed "s/^[[:space:]]*${pattern}[[:space:]]*//" | head -1)
+        if [[ -n $CREATED ]]; then
+            break
+        fi
+    done
+    if [[ -n $CREATED ]]; then
+        _loading2 "Created: $CREATED"
+    fi
+
+    return 0
+}

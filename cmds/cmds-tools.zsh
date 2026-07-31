@@ -58,6 +58,20 @@ if [[ $? == "1" ]]; then
 	}
 fi
 
+# ===============================================
+# -- mdv - terminal markdown viewer
+# ===============================================
+help_tools[mdv]='Terminal markdown viewer (pip install mdv)'
+_cmd_exists mdv
+if [[ $? == "1" ]]; then
+    _log "mdv not installed"
+    function mdv () {
+        _debug "mdv not installed"
+        _notice "mdv is not installed. Run 'software mdv' to install the markdown viewer."
+        return 1
+    }
+fi
+
 # =================================================================================================
 # -- geekbench-run
 # =================================================================================================
@@ -74,7 +88,14 @@ geekbench-run () {
 
 	# Run geekbench
 	_loading "Running geekbench"
-	/tmp/Geekbench-6.3.0-Linux/geekbench_x86_64
+	# -- Use arch-agnostic geekbench6 wrapper (auto-detects x86_64 vs arm64)
+	if [[ -x /tmp/Geekbench-6.3.0-Linux/geekbench6 ]]; then
+	    /tmp/Geekbench-6.3.0-Linux/geekbench6
+	elif [[ $MACHINE_OS2 == "linux-arm64" && -x /tmp/Geekbench-6.3.0-Linux/geekbench_arm64 ]]; then
+	    /tmp/Geekbench-6.3.0-Linux/geekbench_arm64
+	else
+	    /tmp/Geekbench-6.3.0-Linux/geekbench_x86_64
+	fi
 }
 
 # ===============================================

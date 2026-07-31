@@ -361,7 +361,8 @@ os-binary () {
         echo "Will create an alias for the binary if it exists for the current OS"
         echo ""
         echo "OS Matching"
-        echo "Linux: linux_x86_64"
+        echo "Linux AMD: linux_x86_64"
+        echo "Linux ARM: linux_arm64"
         echo "Mac: mac_x86_64"
         echo "Mac ARM: mac_arm64"
         echo "Mac Universal: mac"
@@ -370,6 +371,7 @@ os-binary () {
         echo "os-binary glint"
         echo "  Possible binaries:"
         echo "    - glint_linux_x86_64"
+        echo "    - glint_linux_arm64"
         echo "    - glint_mac_x86_64"
         echo "    - glint_mac_arm64"
         echo "    - glint_mac"
@@ -390,7 +392,13 @@ os-binary () {
 	
 	if [[ $MACHINE_OS == "linux" ]]; then
 		_debugf "Detected OS linux"
-		OS_BINARY_TAG="linux_x86_64"
+		if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+			_debugf "Detected linux arm64"
+			OS_BINARY_TAG="linux_arm64"
+		else
+			_debugf "Detected linux x86_64"
+			OS_BINARY_TAG="linux_x86_64"
+		fi
 	elif [[ $MACHINE_OS == "mac" ]]; then
         if [[ $MACHINE_OS2 = "mac-arm" ]]; then
             _debugf "Detected OS mac arm64"

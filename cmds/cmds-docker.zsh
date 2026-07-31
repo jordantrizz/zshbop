@@ -37,7 +37,16 @@ INIT_LAST_CORE+=("_dps_replace")
 # ==============================================================================
 help_docker[dops]='Mikescher/better-docker-ps'
 function dops () {
-    dops_linux-amd64-static $@
+    if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+        if (( $+commands[dops_linux-arm64] )); then
+            dops_linux-arm64 $@
+        else
+            _error "dops not available for ARM64 (binary missing)"
+            return 1
+        fi
+    else
+        dops_linux-amd64 $@
+    fi
 }
 
 # -- dc

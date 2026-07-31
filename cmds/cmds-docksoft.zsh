@@ -25,6 +25,7 @@ typeset -gA DOCKSOFT_PORTS
 [[ -f "${ZSHBOP_ROOT}/cmds/cmds-docksoft-init.zsh" ]] && source "${ZSHBOP_ROOT}/cmds/cmds-docksoft-init.zsh"
 [[ -f "${ZSHBOP_ROOT}/cmds/cmds-docksoft-deploy.zsh" ]] && source "${ZSHBOP_ROOT}/cmds/cmds-docksoft-deploy.zsh"
 [[ -f "${ZSHBOP_ROOT}/cmds/cmds-docksoft-status.zsh" ]] && source "${ZSHBOP_ROOT}/cmds/cmds-docksoft-status.zsh"
+[[ -f "${ZSHBOP_ROOT}/cmds/cmds-docksoft-labels.zsh" ]] && source "${ZSHBOP_ROOT}/cmds/cmds-docksoft-labels.zsh"
 
 # ==============================================================================
 # -- _docksoft_usage () - Print docksoft usage
@@ -38,6 +39,7 @@ function _docksoft_usage () {
     echo "  list                        List available container templates"
     echo "  config                      Show current docksoft configuration"
     echo "  traefik-status [-r|--raw]   Alias for traefik-status"
+    echo "  gen-labels [options] <fqdn> Generate Traefik Docker labels for a service"
     echo "  <container> [options]       Deploy a container from templates"
     echo ""
     echo "Options:"
@@ -47,7 +49,7 @@ function _docksoft_usage () {
     echo ""
     echo "Modes (set during init):"
     echo "  single  - Server runs one service (domain used as-is)"
-    echo "            e.g., uptime.ohmyhi.net -> uptime.ohmyhi.net"
+    echo "            e.g., server.example.com -> server.example.com"
     echo "  multi   - Server hosts multiple services (subdomain.domain)"
     echo "            e.g., docker01.example.com -> uptime.docker01.example.com"
     echo ""
@@ -61,6 +63,7 @@ function _docksoft_usage () {
     echo "  docksoft zerobyte"
     echo "  docksoft watchtower"
     echo "  docksoft uptime-kuma --domain custom.example.com   # override FQDN"
+    echo "  docksoft gen-labels uptime.example.com -p 3001    # generate Traefik labels"
     echo ""
     _docksoft_list
 }
@@ -95,6 +98,9 @@ function docksoft () {
             ;;
         config)
             _docksoft_show_config
+            ;;
+        gen-labels)
+            _docksoft_gen_labels "$@"
             ;;
         traefik-status)
             _docksoft_traefik_status "$@"

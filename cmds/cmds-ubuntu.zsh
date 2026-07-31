@@ -520,6 +520,77 @@ EOF
 }
 
 # ==================================================
+# -- ubuntu-flush-dns
+# ==================================================
+help_ubuntu[ubuntu-flush-dns]='Flush local DNS cache on Ubuntu'
+function ubuntu-flush-dns () {
+    local -a opts_help
+    local cache_flushed=0
+    local cache_attempted=0
+
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: ubuntu-flush-dns [-h|--help]"
+        echo
+        echo "Flush local DNS caches on Ubuntu."
+        echo "Supports systemd-resolved, nscd, and dnsmasq when available."
+        return 0
+    fi
+
+    if (( $+commands[resolvectl] )); then
+        cache_attempted=1
+        _loading "Flushing DNS cache with resolvectl..."
+        if sudo resolvectl flush-caches; then
+            _success "Flushed DNS cache with resolvectl."
+            cache_flushed=1
+        else
+            _warning "Failed to flush DNS cache with resolvectl."
+        fi
+    elif (( $+commands[systemd-resolve] )); then
+        cache_attempted=1
+        _loading "Flushing DNS cache with systemd-resolve..."
+        if sudo systemd-resolve --flush-caches; then
+            _success "Flushed DNS cache with systemd-resolve."
+            cache_flushed=1
+        else
+            _warning "Failed to flush DNS cache with systemd-resolve."
+        fi
+    fi
+
+    if (( $+commands[systemctl] )) && systemctl is-active --quiet nscd 2>/dev/null; then
+        cache_attempted=1
+        _loading2 "Restarting nscd..."
+        if sudo systemctl restart nscd; then
+            _success "Restarted nscd."
+            cache_flushed=1
+        else
+            _warning "Failed to restart nscd."
+        fi
+    fi
+
+    if (( $+commands[systemctl] )) && systemctl is-active --quiet dnsmasq 2>/dev/null; then
+        cache_attempted=1
+        _loading2 "Restarting dnsmasq..."
+        if sudo systemctl restart dnsmasq; then
+            _success "Restarted dnsmasq."
+            cache_flushed=1
+        else
+            _warning "Failed to restart dnsmasq."
+        fi
+    fi
+
+    if [[ $cache_flushed -eq 0 ]]; then
+        if [[ $cache_attempted -eq 1 ]]; then
+            _error "Unable to flush the detected DNS cache service."
+            return 1
+        fi
+        _warning "No supported local DNS cache service detected."
+        return 1
+    fi
+}
+
+# ==================================================
 # -- ubuntu-check-restart
 # ==================================================
 help_ubuntu[ubuntu-check-restart]='Check if a system restart is required'

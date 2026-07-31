@@ -47,7 +47,11 @@ function sysfetch-motd () {
 }
 
 # -- tran - https://github.com/abdfnx/tran/releases
-alias tran="tran_linux_amd64"
+if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+    alias tran="tran_linux_arm64"
+else
+    alias tran="tran_linux_amd64"
+fi
 
 # -- check if nala is installed
 check_nala () {
@@ -107,7 +111,6 @@ _check_grepcidr3
 # ===============================================
 # -- _detect_ls
 # ===============================================
-DEFAULT_EXA="${EXA_CMD} --long --all --group"
 function _detect_ls () {
     local LS_CMD="ls"
     
@@ -124,23 +127,6 @@ function _detect_ls () {
             alias ls="eza -al"
             return 0
         fi
-    fi
-
-    # Next check if we have exa
-    _debugf "Checking for exa"
-    os-binary exa
-    if [[ $? == "0" ]]; then
-        _debugf "exa success, using exa for ls alias"    
-        EXA_RETURN=$(exa -al)
-        if [[ $? -gt "0" ]]; then
-            _debugf "exa failed, skipping"
-        else
-            _debugf "exa success, using exa for ls alias"
-            alias ls="exa -al"
-            return 0
-        fi
-    else
-        _debugf "exa failed, skipping"
     fi
 
     # Default to ls

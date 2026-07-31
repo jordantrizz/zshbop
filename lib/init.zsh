@@ -194,7 +194,16 @@ init_detectos () {
         fi
     fi
 
-    # -- Check for WSL and set as MACHINE_OS2
+    # -- Check if arm64 or x86_64 for linux
+    if [[ $MACHINE_OS == "linux" ]]; then
+        if [[ $(uname -m) =~ "arm64|aarch64" ]]; then
+            MACHINE_OS2="linux-arm64"
+        else
+            MACHINE_OS2="linux-x86_64"
+        fi
+    fi
+
+    # -- Check for WSL and set as MACHINE_OS2 (overwrites linux arch)
     if [[ $(uname -r) =~ "Microsoft" || $(uname -r) =~ "microsoft" ]]; then
         MACHINE_OS2="wsl"
     fi

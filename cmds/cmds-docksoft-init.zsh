@@ -65,10 +65,16 @@ function _docksoft_init () {
 
     # -- Create containers directory
     if [[ -d "$DOCKSOFT_CONTAINERS" ]]; then
-        _error "Containers directory already exists: $DOCKSOFT_CONTAINERS"
-        _warning "Stopping to protect existing container data."
+        _warning "Containers directory already exists: $DOCKSOFT_CONTAINERS"
         _loading3 "Use a different path or move/backup existing data before running 'docksoft init'."
-        return 1
+        echo -n "Proceed with existing directory? [y/N] "
+        read -q response
+        echo
+        if [[ "$response" != "y" ]]; then
+            _error "Init aborted by user."
+            return 1
+        fi
+        _loading2 "Using existing containers directory: $DOCKSOFT_CONTAINERS"
     else
         _loading2 "Creating containers directory: $DOCKSOFT_CONTAINERS"
         mkdir -p "$DOCKSOFT_CONTAINERS"
@@ -135,7 +141,7 @@ function _docksoft_init () {
     # -- Ask for deployment mode
     _loading2 "Deployment mode"
     echo "  single - This server runs one primary service"
-    echo "           Domain is used directly (e.g., uptime.ohmyhi.net)"
+    echo "           Domain is used directly (e.g., server.example.com)"
     echo "  multi  - This server hosts multiple services"
     echo "           Services get subdomains (e.g., uptime.docker01.example.com)"
     echo "  skip   - Skip configuration for now"
@@ -161,7 +167,7 @@ function _docksoft_init () {
     if [[ "$mode" == "single" ]]; then
         _loading2 "Base domain"
         echo "  For single mode, this is the server's hostname"
-        echo "  e.g., uptime.ohmyhi.net or myserver.example.com"
+        echo "  e.g., server.example.com or myserver.example.com"
     else
         _loading2 "Base domain"
         echo "  For multi mode, services will be created as <service>.<domain>"

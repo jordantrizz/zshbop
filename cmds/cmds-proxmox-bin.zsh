@@ -37,7 +37,7 @@ function proxmox_init () {
     [[ -z $NET ]] && NET="vmbr0" || NET=$NET[2]
     [[ -z $STORAGE ]] && STORAGE="local" || STORAGE=$STORAGE[2]
     [[ -z $DISKSIZE ]] && DISKSIZE="20" || DISKSIZE=$DISKSIZE[2]
-    [[ -z $OS_RELEASE ]] && OS_RELEASE="noble" || OS_RELEASE=$OS_RELEASE[2]
+    [[ -z $OS_RELEASE ]] && OS_RELEASE="latest" || OS_RELEASE=$OS_RELEASE[2]
     [[ -z $DHCP_NET ]] || DHCP_NET=$DHCP_NET[2]
     [[ -z $TEMP_DIR ]] && TEMP_DIR="/tmp" || TEMP_DIR=$TEMP_DIR[2]
     [[ -z $SSH_KEY ]] && SSH_KEY="$HOME/.ssh/id_rsa.pub" || SSH_KEY=$SSH_KEY[2]
@@ -54,6 +54,9 @@ function proxmox_init () {
 
     # -- Convert DISKSIZE to MB
     DISKSIZE=$(_proxmox_disk_gb2mb $DISKSIZE)
+
+    # -- Resolve OS_RELEASE (e.g. "latest" -> actual codename)
+    OS_RELEASE=$(_proxmox_resolve_os "$OS_RELEASE") || return 1
 
     _debugf "ALL_ARGS: $ALL_ARGS"
     _debugf "DEBUG: $DEBUG"
@@ -173,7 +176,7 @@ Command Options:
         -network <network>        Network bridge to use (Default: vmbr0)
         -storage <storage>        Storage location (Autodetect)
         -disksize <disksize>      Disk size in GB (Default: 20)
-        -os <os>                  bionic,focal,jammy, noble (Default: jammy)
+        -os <os>                  bionic,focal,jammy,noble,latest (Default: latest)
         -dhcpnet [dhcpnet]        If you have a local network with dhcp, the bridge it's on.
         -tempdir [tempdir]        Setup temporary directory for download for cloudimage, optional.
         -sshkey [sshkey]          SSH key to add to VM, optional. (Default: ~/.ssh/id_rsa.pub)
@@ -189,7 +192,7 @@ Command Options:
 
   createtemp <options>
   --------------------
-    -os <os>                  bionic,focal,jammy,noble default jammy
+    -os <os>                  bionic,focal,jammy,noble,latest (Default: latest)
     -bridge <bridge>          Network bridge to use, default vmbr0
     -storage <storage>        Storage location, default local-lvm
     -vmid <vmid>              VM ID to use, default 9000
@@ -201,10 +204,11 @@ Command Options:
     -ip [ip]                  IP address to use (Default: dhcp)
 
   OS:
-    Ubuntu 24.04 LTS = noble
-    Ubuntu 22.04 LTS = jammy
-    Ubuntu 20.04.4 LTS = focal
-    Ubuntu 18.04.6 LTS = bionic
+    latest                  = Newest available Ubuntu LTS (resolved automatically)
+    Ubuntu 24.04 LTS        = noble
+    Ubuntu 22.04 LTS        = jammy
+    Ubuntu 20.04.4 LTS      = focal
+    Ubuntu 18.04.6 LTS      = bionic
     "
 }
 
@@ -312,6 +316,47 @@ function _proxmox_get_storage () {
     fi
 }
 
+# ===================================================================
+# -- _proxmox_resolve_os
+# -- Resolve "latest" to the newest available Ubuntu LTS codename.
+# -- When adding new LTS releases, prepend the codename to the list.
+# ===================================================================
+function _proxmox_resolve_os () {
+    local os_release
+    os_release=$1
+
+    # -- If not "latest", pass through unchanged
+    if [[ $os_release != "latest" ]]; then
+        echo "$os_release"
+        return 0
+    fi
+
+    _loading2 "Resolving latest Ubuntu LTS release"
+
+    # -- Ordered newest-first list of Ubuntu LTS codenames.
+    # -- curl HEAD check ensures only releases actually available on
+    # -- cloud-images.ubuntu.com are considered; if the newest isn't
+    # -- published yet, we fall through to the next.
+    local -a lts_codenames
+    lts_codenames=("noble" "jammy" "focal" "bionic")
+
+    local codename
+    for codename in "${lts_codenames[@]}"; do
+        local check_url="https://cloud-images.ubuntu.com/${codename}/current/"
+        if curl --output /dev/null --silent --head --fail --connect-timeout 5 "$check_url"; then
+            _loading3 "Latest available LTS: ${codename}"
+            echo "$codename"
+            return 0
+        fi
+        _loading4 "${codename} not available, trying next..."
+    done
+
+    # -- Fallback: nothing available, return the first codename anyway
+    _warning "Could not verify any LTS release on cloud-images.ubuntu.com, falling back to ${lts_codenames[1]}"
+    echo "${lts_codenames[1]}"
+    return 0
+}
+
 # -------------------------------------------------------------------
 # -- _proxmox_download_cloudimage $OS_RELEASE
 # -------------------------------------------------------------------
@@ -320,7 +365,7 @@ function _proxmox_download_cloudimage () {
     OS_RELEASE=$1
     # -- Check if $OS_RELEASE is valid
     _loading2 "Checking if $OS_RELEASE is a valid OS"
-    AVAIL_OS=("focal" "bionic" "jammy" "noble")
+    AVAIL_OS=("noble" "jammy" "focal" "bionic")
     _if_marray "$OS_RELEASE" AVAIL_OS
     if [[ $MARRAY_VALID == "1" ]]; then
         _error "Couldn't get Ubuntu Image for $OS_RELEASE"
@@ -585,6 +630,8 @@ function _proxmox_createvm () {
     --ostype l26 \
     --onboot 1 \
     --cpu host \
+    --serial0 socket \
+    --vga serial0 \
     --agent enabled=1,fstrim_cloned_disks=1 \
     --cicustom "vendor=local:snippets/vendor.yaml"
     )

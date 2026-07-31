@@ -6,10 +6,17 @@
 help_software[gh-cli-curl]="Install github cli"
 software_gh-cli-curl () {
 	VERSION=`curl  "https://api.github.com/repos/cli/cli/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c2-`
-	curl -sSL https://github.com/cli/cli/releases/download/v${VERSION}/gh_${VERSION}_linux_amd64.tar.gz -o $HOME/tmp/gh_${VERSION}_linux_amd64.tar.gz
+	# -- Detect architecture for correct binary
+	if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+		local GH_ARCH="linux_arm64"
+	else
+		local GH_ARCH="linux_amd64"
+	fi
+	local GH_ARCHIVE="gh_${VERSION}_${GH_ARCH}.tar.gz"
+	curl -sSL https://github.com/cli/cli/releases/download/v${VERSION}/${GH_ARCHIVE} -o $HOME/tmp/${GH_ARCHIVE}
 	cd $HOME/tmp
-	tar xvf gh_${VERSION}_linux_amd64.tar.gz
-	cp $HOME/tmp/gh_${VERSION}_linux_amd64/bin/gh $ZSHBOP_SOFTWARE_PATH
+	tar xvf ${GH_ARCHIVE}
+	cp $HOME/tmp/gh_${VERSION}_${GH_ARCH}/bin/gh $ZSHBOP_SOFTWARE_PATH
 	_software_chmod $ZSHBOP_SOFTWARE_PATH/gh
 }
 
@@ -94,8 +101,15 @@ software_aws-cli () {
 		mkdir $HOME/downloads
 	fi
 	cd $HOME/downloads
-	curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscli-exe-linux-x86_64.zip
-	unzip awscli-exe-linux-x86_64.zip
+	# -- Detect architecture for correct binary
+	if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+		local AWS_ARCH="aarch64"
+	else
+		local AWS_ARCH="x86_64"
+	fi
+	local AWS_ZIP="awscli-exe-linux-${AWS_ARCH}.zip"
+	curl -s "https://awscli.amazonaws.com/${AWS_ZIP}" -o "${AWS_ZIP}"
+	unzip "${AWS_ZIP}"
 	cd $HOME/downloads/aws
 	./install -i $ZSHBOP_SOFTWARE_PATH/aws-cli -b $ZSHBOP_SOFTWARE_PATH --update
 }
@@ -121,7 +135,11 @@ function _detect_glint_os () {
 			alias glint=glint-linux			
 		else
 			_cmd_exists glint-linux        
-			_warning "glint-linux not found in $MACHINE_OS"			
+			if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+				_warning "glint-linux not found in $MACHINE_OS (no ARM64 binary available upstream)"
+			else
+				_warning "glint-linux not found in $MACHINE_OS"
+			fi			
 		fi
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		if [[ $MACHINE_OS2 == "mac-intel" ]]; then

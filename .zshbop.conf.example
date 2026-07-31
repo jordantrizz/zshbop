@@ -30,6 +30,23 @@
 #export ZSHBOP_IP_SCAM="" # API key for scamalytics.com
 
 # =================================================================================================
+# -- Cloudflare Radar Configuration
+# =================================================================================================
+# * Required for the cf-radar command. Use EITHER method below:
+#
+#   Method 1 — API Token (recommended, Bearer auth):
+#     Create a scoped API Token at https://dash.cloudflare.com/profile/api-tokens
+#     Permissions: Account > Radar > Read
+#     This is a long random string (40+ chars), NOT your Global API Key.
+#
+#   Method 2 — Global API Key (legacy, X-Auth-Key auth):
+#     Uses CLOUDFLARE_EMAIL + CLOUDFLARE_API_KEY from your profile page.
+#     May not work with all Radar endpoints — use Method 1 if possible.
+#export CLOUDFLARE_RADAR=""
+#export CLOUDFLARE_EMAIL=""
+#export CLOUDFLARE_API_KEY=""
+
+# =================================================================================================
 # -- Customizations - Add your customizations below
 # * It's suggested you create a custom directory using $ZBC
 # * If you create a kb dir in $ZBC it will be included in kb

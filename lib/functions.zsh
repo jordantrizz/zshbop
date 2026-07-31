@@ -649,9 +649,9 @@ function zshbop_check-system () {
 	# -- start
 	_debug_all
 
-    # -- CPU
+    # -- CPU (quiet mode, already shown by system() motd if called from there)
     _debugf "Checking CPU"
-    [[ $(cpu) == "0" ]] && echo "$(_loading3 $(cpu))"
+    _loading3 "$(cpu 0 1)"
 
     # -- MEM
     _debugf "Checking memory"

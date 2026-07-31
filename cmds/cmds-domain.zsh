@@ -394,33 +394,58 @@ function domain-info () {
         echo "\n"
     }
 
-    # -- get_apex
+    # -- get_record (formats as: - TYPE - VALUE)
     _domain_info_get_record () {
         local RECORD="$1"
-        local IPS=$(dig +short $RECORD)
-        local TEXT=""    
-        # Go through IPS which might contain a CNAME and IP's or just IP's
-        # We need to make sure the IP's have a comma after them if they have multiple
-        IPS_ARRAY=("${(f)IPS}")
-        LAST_INDEX=$(( ${#IPS_ARRAY[@]}))
-        for INDEX in {1..$#IPS_ARRAY}; do
-            IP=${IPS_ARRAY[$INDEX]}
-            # -- Check if first is an IP or CNAME
-            if $(echo $IP | grep -Eq "([0-9]{1,3}[\.]){3}[0-9]{1,3}"); then
-                if $(cf-ip -q $IP); then
-                    TEXT+="$IP = $bg[yellow]$fg[black]CF${reset_color} "
-                else
-                    TEXT+="$IP"
+        local RAW_OUTPUT RAW_ARRAY TYPE OUTPUT="" IP CNAME_TARGET RESOLVED_IPS IP_DISPLAY
+        
+        RAW_OUTPUT=$(dig +short $RECORD)
+        RAW_ARRAY=("${(f)RAW_OUTPUT}")
+        
+        if [[ ${#RAW_ARRAY[@]} -eq 0 ]]; then
+            echo "- (no records)"
+            return
+        fi
+        
+        # Check if first entry is an IP address (A record) or hostname (CNAME)
+        if [[ ${RAW_ARRAY[1]} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            # A record(s)
+            TYPE="A"
+            local A_VALUES=()
+            for IP in "${RAW_ARRAY[@]}"; do
+                if [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+                    IP_DISPLAY="$IP"
+                    if $(cf-ip -q $IP); then
+                        IP_DISPLAY="$IP = $bg[yellow]$fg[black]CF${reset_color}"
+                    fi
+                    A_VALUES+=("$IP_DISPLAY")
                 fi
-                # If this is not the last IP, append a comma
-                if [[ $INDEX -ne $LAST_INDEX ]]; then
-                    TEXT+=", "
+            done
+            OUTPUT="- $TYPE - ${(j:, :)A_VALUES}"
+        else
+            # CNAME record (first line is the target hostname, rest are resolved IPs)
+            TYPE="CNAME"
+            CNAME_TARGET="${RAW_ARRAY[1]%.}"
+            RESOLVED_IPS=()
+            local idx
+            for ((idx=2; idx<=$#RAW_ARRAY; idx++)); do
+                IP="${RAW_ARRAY[$idx]}"
+                if [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+                    IP_DISPLAY="$IP"
+                    if $(cf-ip -q $IP); then
+                        IP_DISPLAY="$IP = $bg[yellow]$fg[black]CF${reset_color}"
+                    fi
+                    RESOLVED_IPS+=("$IP_DISPLAY")
                 fi
+            done
+            if [[ ${#RESOLVED_IPS[@]} -gt 0 ]]; then
+                OUTPUT="- $TYPE - $CNAME_TARGET (${(j:, :)RESOLVED_IPS})"
             else
-                TEXT+="$RECORD = $bg[green]$fg[black]CNAME${reset_color} "                
+                OUTPUT="- $TYPE - $CNAME_TARGET"
             fi
-        done
-        echo $TEXT
+        fi
+        
+        echo "$OUTPUT"
     }
 
     _domain_info_get_mx () {
@@ -454,20 +479,57 @@ function domain-info () {
 
     if [[ $COMPACT ]]; then        
         echo "Nameservers: $(_domain_info_get_nameservers $DOMAIN)"                
-        echo -n " $bg[red]$fg[black]||||||${reset_color} APEX@: $APEX_TEXT"
-        echo -n " $bg[red]$fg[black]||||||${reset_color} WWW.: $WWW_TEXT"
+        echo -n " $bg[red]$fg[black]||||||${reset_color} APEX @: $APEX_TEXT"
+        echo -n " $bg[red]$fg[black]||||||${reset_color} WWW: $WWW_TEXT"
     else
         _loading2 "Domain: $DOMAIN"
         echo "Nameservers: $(_domain_info_get_nameservers $DOMAIN)"            
         echo ""
         _loading2 "DNS Records"
-        echo " APEX@: $APEX_TEXT"
-        echo " WWW.: $WWW_TEXT"
+        _loading3 "Web Records"
+        echo " APEX @ $APEX_TEXT"
+        echo " WWW $WWW_TEXT"
+        echo ""
+        _loading3 "Mail Records"
         echo " MX:"
         for item in $MX_TEXT; do
             echo "   - ${item}"
         done     
     fi
+
+    # -- Compare apex and www records (filter only valid IPv4 addresses)
+    local APEX_ALL_IPS WWW_ALL_IPS APEX_IPS WWW_IPS IP
+    APEX_ALL_IPS=($(dig +short A $DOMAIN))
+    WWW_ALL_IPS=($(dig +short A www.$DOMAIN))
+    APEX_IPS=()
+    WWW_IPS=()
+    for IP in "${APEX_ALL_IPS[@]}"; do
+        [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]] && APEX_IPS+=("$IP")
+    done
+    for IP in "${WWW_ALL_IPS[@]}"; do
+        [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]] && WWW_IPS+=("$IP")
+    done
+
+    if [[ ${#APEX_IPS[@]} -eq 0 && ${#WWW_IPS[@]} -eq 0 ]]; then
+        _debugf "No A records found for apex or www, skipping comparison"
+    elif [[ ${#APEX_IPS[@]} -gt 0 && ${#WWW_IPS[@]} -eq 0 ]]; then
+        _warning "www.$DOMAIN has no A record (apex has records)"
+    elif [[ ${#APEX_IPS[@]} -eq 0 && ${#WWW_IPS[@]} -gt 0 ]]; then
+        _warning "$DOMAIN has no A record (www has records)"
+    else
+        # Compare sorted lists (on = numeric sort ascending)
+        local APEX_SORTED WWW_SORTED
+        APEX_SORTED=(${(on)APEX_IPS})
+        WWW_SORTED=(${(on)WWW_IPS})
+        if [[ "${APEX_SORTED[*]}" == "${WWW_SORTED[*]}" ]]; then
+            _success "Apex and www A records match"
+        else
+            _warning "Apex and www A records do NOT match"
+            _loading2 "Apex ($DOMAIN): ${APEX_IPS[*]}"
+            _loading2 "www (www.$DOMAIN): ${WWW_IPS[*]}"
+        fi
+    fi
+
     echo ""
 }
 

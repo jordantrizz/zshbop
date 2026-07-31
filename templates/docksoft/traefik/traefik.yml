@@ -16,6 +16,8 @@ entryPoints:
     http:
       tls:
         certResolver: letsencrypt
+  traefik:
+    address: ":8080"
 
 providers:
   docker:

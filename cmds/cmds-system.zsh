@@ -34,26 +34,49 @@ function cpu () {
     if [[ $MACHINE_OS == "freebsd" ]]; then
         mhz=$(sysctl -n hw.cpufrequency | awk '{print $1/1000000}')
     elif [[ $MACHINE_OS == "linux" ]]; then
-        CPU_MHZ=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo | awk '{sum += $1} END {print sum/NR/1000}')
-
-        # -- Check if Mhz is higher than 3Ghz using bc
-        _cmd_exists bc
-        if [[ $? == "1" ]]; then
-            _error "Please install the bc command"
-        else
-            if (( $(echo "$CPU_MHZ < 3" | bc -l) )); then
-                CPU_CHECK=$(_error "CPU Mhz = $CPU_MHZ and is below 3Ghz" 0 )
-            elif (( $(echo "$CPU_MHZ < 3.5" | bc -l) )); then
-                CPU_CHECK=$(_warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz" 0)
-            else
-                CPU_CHECK=$(_success "CPU Mhz = $CPU_MHZ and is 3.5Ghz or above")
+        # -- Detect CPU MHz (arch-aware: works on x86_64 and ARM64)
+        # Try lscpu first (takes max value for big.LITTLE ARM64 with multiple lines)
+        CPU_MHZ=$(lscpu 2>/dev/null | awk '/^CPU max MHz:/ {val=$4/1000; if(val>max) max=val} END {if(max>0) printf "%.2f", max}')
+        # Fallback: try cpufreq scaling_max_freq (ARM64-friendly, values in kHz)
+        if [[ -z "$CPU_MHZ" ]]; then
+            local max_freq_khz=0 f_khz
+            for freq_file in /sys/devices/system/cpu/cpu*/cpufreq/scaling_max_freq(N); do
+                f_khz=$(cat "$freq_file" 2>/dev/null)
+                (( f_khz > max_freq_khz )) && max_freq_khz=$f_khz
+            done
+            if [[ $max_freq_khz -gt 0 ]]; then
+                CPU_MHZ=$(printf "%.2f" $((max_freq_khz / 1000000.0)))
             fi
         fi
+        # Fallback: x86-specific /proc/cpuinfo parsing (legacy)
+        if [[ -z "$CPU_MHZ" ]]; then
+            CPU_MHZ=$(awk '/^cpu MHz/ {print $4}' /proc/cpuinfo 2>/dev/null | awk '{sum += $1; n++} END {if (n>0) printf "%.2f", sum/n/1000}' 2>/dev/null)
+        fi
+        # If still empty, set to N/A
+        [[ -z "$CPU_MHZ" ]] && CPU_MHZ="N/A"
 
-        CPU_SOCKET=$(lscpu | awk '/^Socket/{print $2}')
-        CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket/{print $4}')
-        CPU_THREADS=$(lscpu | awk '/^CPU\(s\)/{print $2}')
-        CPU_MODEL=$(lscpu | awk '/Model name:/ { $1=""; print $0 }' | sed 's/^ name: *//')
+        # -- Check if Mhz is higher than 3Ghz using bc
+        if [[ "$CPU_MHZ" != "N/A" ]]; then
+            _cmd_exists bc
+            if [[ $? == "1" ]]; then
+                _error "Please install the bc command"
+            else
+                if (( $(echo "$CPU_MHZ < 3" | bc -l) )); then
+                    CPU_CHECK=$(_error "CPU Mhz = $CPU_MHZ and is below 3Ghz" 0 )
+                elif (( $(echo "$CPU_MHZ < 3.5" | bc -l) )); then
+                    CPU_CHECK=$(_warning "CPU Mhz = $CPU_MHZ and is between 3Ghz and 3.5Ghz" 0)
+                else
+                    CPU_CHECK=$(_success "CPU Mhz = $CPU_MHZ and is 3.5Ghz or above")
+                fi
+            fi
+        else
+            CPU_CHECK="$(_warning "CPU Mhz = N/A (unable to detect)" 0)"
+        fi
+
+        CPU_SOCKET=$(lscpu | awk '/^Socket\(s\):/{print $2; exit}')
+        CPU_CORES=$(lscpu | awk '/^Core\(s\) per socket:/{print $4; exit}')
+        CPU_THREADS=$(lscpu | awk '/^CPU\(s\):/{print $2; exit}')
+        CPU_MODEL=$(lscpu | awk '/^Model name:/ {sub(/^Model name:\s*/, ""); print; exit}')
         echo "CPU: $CPU_MODEL - ${CPU_SOCKET}S/${CPU_CORES}C/${CPU_THREADS}T @ ${CPU_MHZ} || $CPU_CHECK"
     elif [[ $MACHINE_OS == "mac" ]]; then
         CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || sysctl -n hw.model 2>/dev/null)

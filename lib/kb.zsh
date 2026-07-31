@@ -348,7 +348,7 @@ md-reader-text () {
 
     # -- alert to install mdv for better experience
     if [[ $MD_READER == cat ]]; then
-        _notice "mdv not avaialble failing back to cat, trying installing mdv by typing"
+        _notice "mdv not available — falling back to cat. Run 'software mdv' to install the markdown viewer."
     fi
 }
 

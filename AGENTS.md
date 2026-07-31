@@ -2,15 +2,29 @@
 
 ## Project Notes
 
-* Always generate and print out a git commit message for each change made, use the format feat, fix, docs, style, refactor, perf, test, chore at the end of a session to summarize the changes.
+* **Auto-commit and push after every change.** After completing any code changes (fixes, features, refactors, etc.), automatically create a git commit with a descriptive message using conventional commit format (`feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `chore:`). Do not wait for the user to ask — commit immediately after the changes are verified. Print the commit message when finishing the work.
 * Maintain a changelog for each release, documenting new features, bug fixes, and improvements.
 * For authoring docksoft container templates, follow: `templates/docksoft/AGENTS.md`
 
 ## ZSH Development Notes
 
-* Within ZSH using local within a loop will cause the variable to be echoed to stdout, so avoid using local in loops.
-* Always use zparseopts for parsing options in functions.
-* Always provide a one line git commit message when making a change, ensure you use feat:, fix:, docs:, style:, refactor:, perf:, test:, chore: as prefixes.
+* **Never use `local` inside a `for`/`while` loop body.** ZSH's `local` is a builtin that both declares *and* assigns — and when used inside a loop, every iteration echoes the assigned value to stdout. This corrupts command output and breaks callers that capture it. Same rule applies to `typeset`.
+  ```zsh
+  # BAD — leaks "v=..." to stdout on every iteration
+  for f in "${files[@]}"; do
+      local v=$(grep "pattern" "$f")   # ← echoes v=...
+      ...
+  done
+
+  # GOOD — declare local before the loop
+  local f v
+  for f in "${files[@]}"; do
+      v=$(grep "pattern" "$f")
+      ...
+  done
+  ```
+* Always use `zparseopts` for parsing options in functions.
+* Always provide a one line git commit message when making a change, ensure you use `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `chore:` as prefixes.
 
 ## File Naming Conventions
 

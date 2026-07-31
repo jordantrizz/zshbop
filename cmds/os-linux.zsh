@@ -2,29 +2,12 @@
 # -- Linux specific commands
 # ===================================
 
-# -- ls/exa
-unset LC_CHECK NULL
-EXA_LINUX="exa-linux_x86_64"
-_cmd_exists ${EXA_LINUX}
-if [[ $? == "0" ]]; then
-    NULL=$(exa-linux_x86_64 2>&1 >> /dev/null)
-	LC_CHECK="$?"
-    _debug "exa run - out: $NULL \$?:$LC_CHECK"
-	if [[ $LC_CHECK -ge "1" ]]; then
-		_warning "exa failed, using default ls alias"
-	else
-		_debug "Using exa"
-		alias ls="${EXA_LINUX} -agl"
-		alias exa="${EXA_LINUX} -agl"
-	fi
-fi
-
 # =====================================
 # -- linux aliases
 # =====================================
 alias ps="ps -auxwwf"
+# -- tran alias is set in os-common.zsh (arch-aware)
 # -- tran - https://github.com/abdfnx/tran/releases
-alias tran="tran_linux_amd64"
 
 # ===================================
 # -- _interfaces_linux

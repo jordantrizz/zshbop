@@ -100,9 +100,9 @@ software_atop () {
 }
 
 # --------------------------------------------------
-# -- mdv - Installs github.com CLI
+# -- mdv - Installs terminal markdown viewer
 # --------------------------------------------------
-help_software[mdv]='Installs github.com cli, aka gh'
+help_software[mdv]='Installs terminal markdown viewer (pip install mdv)'
 software_mdv () {
 	pip install mdv
 }
@@ -403,4 +403,120 @@ function software_docker () {
     fi
 
     unset -f _run_cmd
+}
+
+# ====================================================================================================
+# -- fail2ban - Install and configure fail2ban with SSH brute-force protection
+# ====================================================================================================
+help_software[fail2ban]='Install and configure fail2ban with SSH brute-force protection'
+
+# --------------------------------------------------
+# -- _software_fail2ban_usage () - Print usage
+# --------------------------------------------------
+function _software_fail2ban_usage () {
+    echo "Usage: software fail2ban [OPTIONS]"
+    echo ""
+    echo "Install and configure fail2ban with SSH jail protection (Debian/Ubuntu)."
+    echo ""
+    echo "Options:"
+    echo "  -h, --help      This message"
+    echo "  -f, --force     Overwrite existing /etc/fail2ban/jail.local"
+    echo ""
+    echo "What this does:"
+    echo "  1. Install fail2ban via apt"
+    echo "  2. Write hardened [sshd] jail config to /etc/fail2ban/jail.local"
+    echo "  3. Enable and start the fail2ban service"
+    echo "  4. Verify service is running"
+    echo "  5. Run 'hardcheck fail2ban' to confirm audit passes"
+    echo ""
+    return 0
+}
+
+# --------------------------------------------------
+# -- software_fail2ban () - Install and configure
+# --------------------------------------------------
+function software_fail2ban () {
+    local -a opts_help opts_force
+    zparseopts -D -E -- h=opts_help -help=opts_help f=opts_force -force=opts_force
+
+    # -- Help --
+    if [[ -n $opts_help ]]; then
+        _software_fail2ban_usage
+        return 0
+    fi
+
+    # -- OS guard: Debian/Ubuntu only --
+    if [[ "$MACHINE_OS" != "linux" || ( "$MACHINE_OS_FLAVOUR" != "ubuntu" && "$MACHINE_OS_FLAVOUR" != "debian" ) ]]; then
+        _error "fail2ban installer requires apt (Debian/Ubuntu) — detected: $MACHINE_OS / $MACHINE_OS_FLAVOUR"
+        return 1
+    fi
+
+    _loading "Installing and configuring fail2ban for SSH protection"
+
+    # -- Check if already installed --
+    if dpkg-query -l fail2ban &>/dev/null; then
+        _success "fail2ban is already installed"
+    else
+        _loading2 "Installing fail2ban package"
+        sudo apt-get update -qq && sudo apt-get install -y fail2ban
+        if ! dpkg-query -l fail2ban &>/dev/null; then
+            _error "fail2ban installation failed"
+            return 1
+        fi
+        _success "fail2ban installed successfully"
+    fi
+
+    # -- Configure SSH jail --
+    local jail_local="/etc/fail2ban/jail.local"
+    if [[ -f "$jail_local" && -z $opts_force ]]; then
+        _warning "$jail_local already exists — skipping config (use --force to overwrite)"
+    else
+        if [[ -f "$jail_local" && -n $opts_force ]]; then
+            local bak="${jail_local}.bak-$(date +%s)"
+            _loading3 "Backing up existing config to $bak"
+            sudo cp "$jail_local" "$bak"
+        fi
+
+        _loading2 "Writing SSH jail config to $jail_local"
+        sudo tee "$jail_local" > /dev/null <<'EOF'
+# fail2ban jail.local — managed by zshbop software fail2ban
+[DEFAULT]
+# Ban IP for 1 hour
+bantime = 3600
+# 10 minute window for finding failures
+findtime = 600
+# Ban after 3 failures
+maxretry = 3
+
+[sshd]
+enabled = true
+port    = ssh
+logpath = %(sshd_log)s
+EOF
+        _success "SSH jail configured (bantime=3600, maxretry=3)"
+    fi
+
+    # -- Enable and start service --
+    _loading2 "Enabling and starting fail2ban service"
+    sudo systemctl enable fail2ban --now
+
+    # -- Verify service is active --
+    if systemctl is-active --quiet fail2ban 2>/dev/null; then
+        _success "fail2ban service is running"
+    else
+        _warning "fail2ban service is NOT running — check 'systemctl status fail2ban'"
+    fi
+
+    # -- Auto-verify with hardcheck --
+    if typeset -f hardcheck &>/dev/null; then
+        _loading2 "Verifying with hardcheck fail2ban"
+        hardcheck fail2ban
+    else
+        _notice "hardcheck not available — skip auto-verification (run 'hardcheck fail2ban' manually to audit)"
+    fi
+
+    echo ""
+    _success "fail2ban setup complete — SSH is now protected against brute-force attacks"
+    echo "  Check status:  sudo fail2ban-client status sshd"
+    echo "  View bans:     sudo grep 'Ban' /var/log/fail2ban.log"
 }
