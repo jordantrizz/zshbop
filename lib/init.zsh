@@ -1217,7 +1217,7 @@ init_motd () {
 	init_check_services
     init_check_software
     init_check_oom
-    software-raid-check
+    software-raid-check --motd
     screen-sessions
     init_detect_install_type
     init_completion
