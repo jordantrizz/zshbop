@@ -1042,6 +1042,7 @@ function git-squash-release() {
     local FORCE=0
     local SQUASH_ONLY=0
     local INIT=0
+    local INITIAL_RELEASE=0
     if [[ -n $opts_detect ]]; then
         DETECT_ONLY=1
     fi
@@ -1087,9 +1088,20 @@ function git-squash-release() {
     else
         if [[ $DETECT_ONLY -eq 1 ]]; then
             _warning "[FAIL] Found latest tag"
+        elif [[ $INIT -eq 1 ]]; then
+            _warning "[SKIP] Found latest tag (init mode does not require tags)"
         else
-            _error "[FAIL] Found latest tag"
-            DETECTION_FAILED=1
+            _warning "[FAIL] Found latest tag"
+            read -q "REPLY?No tags found. Create initial release 0.0.1 and squash commit history? (y/n) "
+            echo ""
+
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                INITIAL_RELEASE=1
+                _success "Initial release mode enabled (will squash history and tag 0.0.1)"
+            else
+                _error "Initial tag required. Aborting."
+                DETECTION_FAILED=1
+            fi
         fi
     fi
 
@@ -1247,6 +1259,63 @@ function git-squash-release() {
             _error "Preflight checks failed. Run git-squash-release -d to inspect and fix failures."
             return 1
         fi
+    fi
+
+    if [[ $INITIAL_RELEASE -eq 1 ]]; then
+        _loading2 "Initial release mode: squashing commit history and tagging 0.0.1"
+
+        local ROOT_COMMIT
+        ROOT_COMMIT=$(git rev-list --max-parents=0 HEAD 2>/dev/null)
+
+        if [[ -z $ROOT_COMMIT ]]; then
+            _error "Could not find root commit"
+            return 1
+        fi
+
+        local RELEASE_TAG="0.0.1"
+        local ALL_COMMIT_MSGS
+        ALL_COMMIT_MSGS=$(git log --oneline HEAD | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
+
+        _loading "Root commit: $ROOT_COMMIT"
+        _loading2 "All commits:"
+        echo "$ALL_COMMIT_MSGS"
+        echo ""
+
+        _git_update_version_file "$RELEASE_TAG" || return 1
+        _git_update_wp_theme_version "$RELEASE_TAG" || return 1
+        _git_commit_release_version_bump "$RELEASE_TAG" || return 1
+
+        _loading "Squashing all commits into one..."
+        git reset --soft "$ROOT_COMMIT" || return 1
+
+        local FINAL_COMMIT_MSG="Release $RELEASE_TAG
+
+$ALL_COMMIT_MSGS"
+
+        git commit -m "$FINAL_COMMIT_MSG"
+        _success "Created squashed commit for initial release $RELEASE_TAG"
+
+        _loading "Tagging commit as $RELEASE_TAG"
+        git tag "$RELEASE_TAG"
+        _success "Tagged as $RELEASE_TAG"
+
+        echo ""
+
+        read -q "REPLY?Push tag and commit with --force? (y/n) "
+        echo ""
+
+        if [[ $REPLY == "y" ]]; then
+            _loading "Pushing with --force..."
+            git push --force
+            _loading "Pushing tags..."
+            git push --tags
+            _success "Initial release $RELEASE_TAG pushed successfully."
+        else
+            _warning "Not pushed. To push manually run:"
+            echo "  git push --force && git push --tags"
+        fi
+
+        return 0
     fi
 
     # -- Init mode: squash entire commit history from the first commit --
