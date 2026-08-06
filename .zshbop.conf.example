@@ -16,6 +16,7 @@
 # -- ZSHBOP Features Configuration
 #export ZSHBOP_GIT_CHECK="1" # -- zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code.
 #export ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
+#export ZSHBOP_DISABLE_AI_PAGER="1" # -- Keep paging disabled in VS Code AI/agent terminals (zshbop re-enables less by default)
 
 # -- ZSHBOP Exbin
 #export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting

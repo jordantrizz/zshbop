@@ -207,6 +207,7 @@ The function `os-binary` has a `_debugf "No binary specified"` which is printed 
 - If `AUTO_LS_CHPWD=false`, auto-listing happens on Enter (`accept-line`) rather than on directory change hooks.
 - To troubleshoot, check: `echo $TERM_PROGRAM`, `echo $VSCODE_IPC_HOOK_CLI`, `echo $ZSHBOP_RELOAD`, `echo $ZSHBOP_INITIALIZED`.
 - To opt out of VSCode shell-specific behavior, set `ZSHBOP_DISABLE_VSCODE_SHELL=1` in your config before initialization.
+- AI/agent terminals (VS Code Copilot agent-host terminals) are detected via `AI_AGENT`/`COPILOT_AGENT`. VS Code spawns them with paging disabled (`PAGER`/`GIT_PAGER`/`GH_PAGER` empty), so `git log` and similar dump everything instead of using `less`. zshbop re-enables `less` paging in these terminals by clearing `GIT_PAGER`/`GH_PAGER`. To keep paging disabled, set `ZSHBOP_DISABLE_AI_PAGER=1` in your config before initialization.
 
 # Installation
 

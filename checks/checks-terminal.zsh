@@ -10,6 +10,7 @@ _debug " -- Loading ${(%):-%N}"
 help_checks[terminal-checks]='Run all checks for terminal environment'
 function terminal-checks () {
     terminal-check-detect
+    terminal-check-ai-pager
     
     # Run IDE-specific integrations
     case "$ZSHBOP_TERMINAL" in
@@ -61,8 +62,44 @@ function terminal-check-detect () {
         # VSCode Remote-SSH detection (TERM_PROGRAM may not be set)
         ZSHBOP_TERMINAL="vscode"
     fi
-    
+
+    # Detect AI agent terminals (e.g. VS Code Copilot agent host / tool terminals).
+    # AI_AGENT is the cross-vendor standard env var; COPILOT_AGENT is VS Code's
+    # back-compat alias. VSCODE_PREVENT_SHELL_HISTORY / VSCODE_AGENT_ZSH_FIXUPS are
+    # consumed by the shell integration script before this file runs, so they are
+    # only checked as a fallback (e.g. when shell integration is not injected).
+    if [[ -n "${AI_AGENT:-}" || "${COPILOT_AGENT:-}" == "1" \
+        || "${VSCODE_PREVENT_SHELL_HISTORY:-}" == "1" \
+        || "${VSCODE_AGENT_ZSH_FIXUPS:-}" == "1" ]]; then
+        export ZSHBOP_AI_TERMINAL="1"
+        _debug "AI agent terminal detected (AI_AGENT=${AI_AGENT:-copilot})"
+    else
+        export ZSHBOP_AI_TERMINAL="0"
+    fi
+
     _debug "Terminal detected: $ZSHBOP_TERMINAL"
+}
+
+# ==================================================
+# -- terminal-check-ai-pager () - Re-enable less paging in AI agent terminals
+# -- VS Code agent-host terminals are spawned with paging disabled
+# -- (PAGER/GIT_PAGER/GH_PAGER set to an empty string) so tool output stays
+# -- machine-friendly. git/gh prefer GIT_PAGER/GH_PAGER over $PAGER, which
+# -- disables paging even when a user types commands interactively.
+# ==================================================
+help_checks[terminal-check-ai-pager]='Re-enable less paging in AI/agent terminals (VS Code Copilot)'
+function terminal-check-ai-pager () {
+    # Allow opting out (e.g. to keep agent tool output un-paged)
+    if [[ "${ZSHBOP_DISABLE_AI_PAGER:-0}" == "1" ]]; then
+        _debug "AI terminal pager restore disabled (ZSHBOP_DISABLE_AI_PAGER=1)"
+        return 0
+    fi
+
+    [[ "${ZSHBOP_AI_TERMINAL:-0}" == "1" ]] || return 0
+
+    # Unset so git/gh fall back to $PAGER (less -Q -j16) set by zshbop
+    unset GIT_PAGER GH_PAGER
+    _debug "AI agent terminal: cleared GIT_PAGER/GH_PAGER, paging via \$PAGER (${PAGER:-less})"
 }
 
 # ==================================================

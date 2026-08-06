@@ -560,8 +560,28 @@ function git-check-exit () {
 # =====================================
 help_git[git-squash-commits]="Squash commits"
 function git-squash-commits () {
+    local GIT_COUNT GIT_LOG CONFIRM
+    GIT_COUNT="$(git rev-list --count HEAD)"
     GIT_LOG="$(git log --oneline)"
+
+    _warning "*** WARNING: This will squash ALL $GIT_COUNT commits into one ***"
+    _warning "*** This rewrites git history and cannot be easily undone ***"
+    read -q "REPLY?Are you sure you want to continue? (y/n)"
+    echo ""
+    if [[ "$REPLY" != "y" ]]; then
+        _error "Aborted"
+        return 1
+    fi
+
+    _warning "*** LAST WARNING: This is destructive, type 'yes' to confirm ***"
+    read "CONFIRM?Type 'yes' to squash all commits: "
+    if [[ "$CONFIRM" != "yes" ]]; then
+        _error "Aborted"
+        return 1
+    fi
+
     git reset $(git commit-tree 'HEAD^{tree}' -m "$GIT_LOG")
+    _success "All $GIT_COUNT commits squashed into one"
 }
 
 # =====================================
