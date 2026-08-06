@@ -125,7 +125,8 @@ fatal: Not possible to fast-forward, aborting.
 * I trired to solve this before, but I don't remember when. So it's possible the reason it's not working in the above example is because the code is too old.
 
 ### Updater Check
-* I want the zshbop updater to add a powerlevel10k icon to the right prompt when there is an update available. This way users will know when there is an update available without having to run the updater command.
+* ✅ **DONE (2026-08-06):** Git-based branch-aware update check implemented — `zb check-updates` compares release tags on `main` and tracks commits on `origin/next-release`. Pure git, no GitHub API/`curl`/`jq`. Commits: `0e003c3` (lib), `4cc157a` (rewire), `a0adffb` (register+docs), `ee24df8` (exit-code fix).
+* Still open: I want the zshbop updater to add a powerlevel10k icon to the right prompt when there is an update available. This way users will know when there is an update available without having to run the updater command.
 * The icon should be a dragon or something cool like that. I can use the powerlevel10k icons for this. I can also use a different color for the icon when there is an update available. It should be a bright neon color like purple.
 * 
 

@@ -238,52 +238,17 @@ zshbop_branch  () {
 # =========================================================
 # -- zshbop_check-updates ()
 # --
-# -- Check for zshbop updates.
+# -- Check for zshbop updates (tags on main, commits on next-release)
+# -- Thin wrapper around lib/update-check.zsh
 # =========================================================
-help_zshbop[check-updates]='Check for zshbop update, not completed yet'
+help_zshbop[check-updates]='Check for zshbop updates (tags on main, commits on next-release)'
 zshbop_check-updates () {
+	_log "${funcstack[1]}:start"
 	_debug_all
-
-    # Sources for version check
-	local ZSHBOP_GH_COMMIT_URL="https://api.github.com/repos/jordantrizz/zshbop/commits/$ZSHBOP_BRANCH"
-    local ZSHBOP_GH_RELEASE_URL="https://api.github.com/repos/jordantrizz/zshbop/releases/latest"
-
-    # Check for updates
-    _loading "Checking for updates"
-    _notice "-- Running $ZSHBOP_VERSION/$ZSHBOP_BRANCH/$ZSHBOP_COMMIT checking $ZSHBOP_BRANCH for updates."
-    _loading3 "Checking for release update at $ZSHBOP_GH_RELEASE_URL"
-    _loading3 "Checking for new commits at $ZSHBOP_GH_COMMIT_URL"
-
-    # -- Get data
-    ZSHBOP_LATEST_RELEASE=$(curl -s $ZSHBOP_GH_RELEASE_URL | jq -r '.name')
-    typeset -A ZSHBOP_LATEST_DATA
-    ZSHBOP_LATEST_DATA[sha]=$(curl -s $ZSHBOP_GH_COMMIT_URL | jq -r '.sha')
-    ZSHBOP_LATEST_DATA[author_name]=$(curl -s $ZSHBOP_GH_COMMIT_URL | jq -r '.commit.author.name')
-    ZSHBOP_LATEST_DATA[commit_message]=$(curl -s $ZSHBOP_GH_COMMIT_URL | jq -r '.commit.message')
-
-    # Access and print elements from the associative array
-    _loading2 "Latest Release: $ZSHBOP_LATEST_RELEASE | Latest Commit: ${ZSHBOP_LATEST_DATA[sha]}"
-    _loading3 "Author Name: ${ZSHBOP_LATEST_DATA[author_name]}"
-    _loading3 "Commit Message: ${ZSHBOP_LATEST_DATA[commit_message]}"
-
-    # --  Compare releases
-    # If not equal update available, if greater than, update available, if less than, running current version
-    if [[ $ZSHBOP_VERSION > $ZSHBOP_LATEST_RELEASE ]]; then
-            _warning "Woops, we're ahead $ZSHBOP_LATEST_RELEASE is less than $ZSHBOP_VERSION"
-    elif [[ $ZSHBOP_VERSION < $ZSHBOP_LATEST_RELEASE ]]; then
-            _warning "Update available $ZSHBOP_LATEST_RELEASE"
-    elif [[ $ZSHBOP_VERSION != $ZSHBOP_LATEST_RELEASE ]]; then
-            _warning "Update available $ZSHBOP_LATEST_RELEASE"
-    else
-            _success "Running current version $ZSHBOP_LATEST_RELEASE"
-    fi
-
-	# -- Compare commits
-    if [[ $ZSHBOP_COMMIT != ${ZSHBOP_LATEST_DATA[sha]} ]]; then
-           	_warning "Update available ${ZSHBOP_LATEST_DATA[sha]} on $ZSHBOP_BRANCH"
-    else
-           	_success "No update, on latest ${ZSHBOP_LATEST_DATA[sha]}"
-    fi
+	zshbop-check-update "$@"
+	local rc=$?
+	_log "${funcstack[1]}:end"
+	return $rc
 }
 
 

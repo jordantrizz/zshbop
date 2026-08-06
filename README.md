@@ -130,7 +130,7 @@ These commands are shortened aliases for zshbop commands
 * `zb cache-clear-super` - Clear everything, including zsh autocompletion
 * `zb check` - Check environment for installed software and tools
 * `zb check-system` - Print out errors and warnings
-* `zb check-updates` - Check for zshbop update, not completed yet
+* `zb check-updates` - Check for zshbop updates (tags on main, commits on next-release)
 * `zb cleanup` - Cleanup old things
 * `zb custom` - Custom zshbop configuration
 * `zb custom-load` - Load zshbop custom config
@@ -148,6 +148,12 @@ Updater behavior notes:
 * `zb update`/`zbu` now runs Updater v2 force-sync flow (`fetch` + `reset --hard`) to avoid merge/rebase divergence prompts.
 * Updates are only allowed on `main` and `next-release`.
 * If uncommitted changes are present (tracked or untracked), update exits and asks you to commit or stash first.
+
+Update check behavior (`zb check-updates`):
+* On `main` the check compares release tags — the latest tag on `origin/main` can be ahead by one, two, or many releases (reported as "N release(s) behind").
+* On `next-release` the check tracks commits on `origin/next-release` — tags AND single commits in between are all detected ("N commit(s) behind").
+* The check is pure git — no GitHub API calls, so no `curl`/`jq` dependency or rate limits.
+* The MOTD runs the check in `--motd` mode at login: fully silent when up to date, and shows a single "run 'zbu' to update" warning when an update is available.
 
 ## Debugging
 You can use the function `zbdebug` on the CLI and `_debugf` within any function to print out debug information.

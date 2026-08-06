@@ -52,6 +52,7 @@ init_core
 # =========================================================
 init_include () {
     source ${ZSHBOP_ROOT}/lib/functions.zsh # -- zshbop functions
+    source ${ZSHBOP_ROOT}/lib/update-check.zsh # -- branch-aware update check
     source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include aliases
     init_log
 }
@@ -1218,6 +1219,7 @@ init_motd () {
     init_check_software
     init_check_oom
     software-raid-check --motd
+    zshbop-check-update --motd
     screen-sessions
     init_detect_install_type
     init_completion

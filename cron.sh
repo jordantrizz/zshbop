@@ -13,7 +13,7 @@ LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
 LOG_FILE="/home/app.goodmorningleland.com/wordpress-crons.log" # Location for wordpress cron.
-HEARTBEAT_URL="https://uptime.betterstack.com/api/v1/heartbeat/qemxv615Fi8DUjAhzakbdCnE" # - Heartbeat monitoring URL
+HEARTBEAT_URL="" # - Heartbeat monitoring URL, e.g. https://uptime.betterstack.com/api/v1/heartbeat/<your-token-here>
 POST_CRON_CMD="" # - Command to run after cron completes
 
 # Log the start time
