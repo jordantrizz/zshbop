@@ -1020,6 +1020,37 @@ function _git_update_wp_theme_version () {
 }
 
 # ==============================================
+# -- _git_update_wp_plugin_version
+# -- Update detected WordPress plugin Version: header to the selected release version
+# -- (preserves the leading docblock asterisk, e.g. " * Version: 1.0.0")
+# ==============================================
+function _git_update_wp_plugin_version () {
+    local RELEASE_TAG="$1"
+    local RELEASE_VERSION="${RELEASE_TAG#v}"
+    local WP_PLUGIN_FILE
+
+    WP_PLUGIN_FILE=$(_git_detect_wp_plugin)
+    if [[ -z $WP_PLUGIN_FILE ]]; then
+        _debug "No WordPress plugin detected. Skipping plugin version update."
+        return 0
+    fi
+
+    if ! grep -qi '^[[:space:]]*\*\{0,1\}[[:space:]]*Version[[:space:]]*:' "$WP_PLUGIN_FILE"; then
+        _warning "WordPress plugin detected but Version header not found in $WP_PLUGIN_FILE"
+        return 0
+    fi
+
+    if ! sed -i -E "s|^([[:space:]]*\*?[[:space:]]*)Version[[:space:]]*:.*$|\1Version: ${RELEASE_VERSION}|" "$WP_PLUGIN_FILE"; then
+        _error "Failed to update WordPress plugin version in $WP_PLUGIN_FILE"
+        return 1
+    fi
+
+    git add "$WP_PLUGIN_FILE"
+    _success "Updated WordPress plugin version to $RELEASE_VERSION in $WP_PLUGIN_FILE"
+    return 0
+}
+
+# ==============================================
 # -- _git_update_version_file
 # -- Update VERSION file to selected release version (without leading v)
 # ==============================================
@@ -1090,6 +1121,27 @@ function _git_commit_release_version_bump () {
     fi
 
     _success "Created temporary version bump commit: $BUMP_COMMIT_MSG"
+    return 0
+}
+
+# ==============================================
+# -- _git_update_all_versions
+# -- Dispatch to every registered version updater for the given release tag.
+# -- Each updater self-guards and no-ops when its project type is absent.
+# -- Add a new project type by appending its updater function to _GIT_VERSION_UPDATERS.
+# ==============================================
+_GIT_VERSION_UPDATERS=(_git_update_version_file _git_update_package_json_version _git_update_wp_plugin_version _git_update_wp_theme_version)
+
+function _git_update_all_versions () {
+    local RELEASE_TAG="$1"
+    local updater
+
+    for updater in "${_GIT_VERSION_UPDATERS[@]}"; do
+        if ! "$updater" "$RELEASE_TAG"; then
+            _error "Version updater failed: $updater"
+            return 1
+        fi
+    done
     return 0
 }
 
@@ -1378,9 +1430,7 @@ function git-squash-release() {
         echo "$ALL_COMMIT_MSGS"
         echo ""
 
-        _git_update_version_file "$RELEASE_TAG" || return 1
-        _git_update_package_json_version "$RELEASE_TAG" || return 1
-        _git_update_wp_theme_version "$RELEASE_TAG" || return 1
+        _git_update_all_versions "$RELEASE_TAG" || return 1
         _git_commit_release_version_bump "$RELEASE_TAG" || return 1
 
         _loading "Squashing all commits into one..."
@@ -1550,9 +1600,7 @@ $COMMIT_MSGS"
 
         echo ""
 
-        _git_update_version_file "$RELEASE_TAG" || return 1
-        _git_update_package_json_version "$RELEASE_TAG" || return 1
-        _git_update_wp_theme_version "$RELEASE_TAG" || return 1
+        _git_update_all_versions "$RELEASE_TAG" || return 1
         _git_commit_release_version_bump "$RELEASE_TAG" || return 1
 
         # Perform soft reset to last tag commit
@@ -1677,9 +1725,7 @@ function git-do-release() {
 
 $CURRENT_COMMIT_MSG"
 
-    _git_update_version_file "$RELEASE_TAG" || return 1
-    _git_update_package_json_version "$RELEASE_TAG" || return 1
-    _git_update_wp_theme_version "$RELEASE_TAG" || return 1
+    _git_update_all_versions "$RELEASE_TAG" || return 1
 
     _loading "Updating current commit message with release header..."
     git commit --amend -m "$FINAL_COMMIT_MSG"
