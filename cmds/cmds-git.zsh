@@ -957,7 +957,7 @@ function git-log-oneline() {
 # =====================================
 # -- git-squash-release
 # =====================================
-help_git[git-squash-release]="Squash all commits since the last tag, prompt for minor/major version bump, tag and push"
+help_git[git-squash-release]="Squash commits since last tag; detect version (package.json/VERSION/WordPress), bump as chore commit, tag and push"
 
 # ==============================================
 # -- _git_update_wp_theme_version
@@ -1013,6 +1013,34 @@ function _git_update_version_file () {
 }
 
 # ==============================================
+# -- _git_update_package_json_version
+# -- Update the version field in package.json to the selected release version (preserving formatting)
+# ==============================================
+function _git_update_package_json_version () {
+    local RELEASE_TAG="$1"
+    local RELEASE_VERSION="${RELEASE_TAG#v}"
+
+    if [[ ! -f package.json ]]; then
+        _debug "No package.json found. Skipping package.json version update."
+        return 0
+    fi
+
+    if ! grep -q -E '^[[:space:]]*"version"[[:space:]]*:' package.json; then
+        _warning "package.json found but no version field detected"
+        return 0
+    fi
+
+    if ! sed -i -E "0,/^[[:space:]]*\"version\"[[:space:]]*:[[:space:]]*\"[^\"]*\"/s//  \"version\": \"${RELEASE_VERSION}\"/" package.json; then
+        _error "Failed to update version field in package.json"
+        return 1
+    fi
+
+    git add package.json
+    _success "Updated package.json version to $RELEASE_VERSION"
+    return 0
+}
+
+# ==============================================
 # -- _git_commit_release_version_bump
 # -- Create a temporary version bump commit that will be folded into the final release commit
 # ==============================================
@@ -1053,8 +1081,14 @@ function git-squash-release() {
         echo "  -i, --init      Squash entire commit history from the first commit into one commit"
         echo "                  (no tag or version required)"
         echo ""
-        echo "Default mode prompts for minor or major version bump, tags the release,"
-        echo "and optionally pushes."
+        echo "Version is detected from package.json, WordPress plugin/theme headers, or a"
+        echo "VERSION file (package.json preferred). The git tag is the source of truth for"
+        echo "the release version; if the detected version differs from the last tag you"
+        echo "are prompted to tag using the detected version instead."
+        echo ""
+        echo "Default mode prompts for minor or major version bump, writes the version as a"
+        echo "chore: bump version commit, squashes commits since the last tag, tags the"
+        echo "release, and optionally pushes."
         return 0
     fi
 
@@ -1169,13 +1203,13 @@ function git-squash-release() {
         DETECTION_FAILED=1
     fi
 
-    if [[ -f VERSION ]]; then
-        _success "[PASS] VERSION file exists"
+    if [[ -f package.json || -f VERSION ]]; then
+        _success "[PASS] Version source exists (package.json or VERSION file)"
     else
         if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] VERSION file exists"
+            _warning "[FAIL] Version source exists (expected package.json or VERSION file)"
         else
-            _error "[FAIL] VERSION file exists"
+            _error "[FAIL] Version source exists (expected package.json or VERSION file)"
         fi
     fi
 
@@ -1183,8 +1217,8 @@ function git-squash-release() {
     local WP_PLUGIN_FALLBACK_FILE
     local REPO_BASENAME
 
-    # Tier 1: Detect a standard WordPress plugin header in any PHP file.
-    WP_PLUGIN_FILE=$(grep -RIl -i --include='*.php' '^[[:space:]]*\*?[[:space:]]*Plugin Name[[:space:]]*:' . 2>/dev/null | head -n 1)
+    # Tier 2: Detect a standard WordPress plugin header in any PHP file.
+    WP_PLUGIN_FILE=$(grep -RIl -i --include='*.php' '^[[:space:]]*\*\{0,1\}[[:space:]]*Plugin Name[[:space:]]*:' . 2>/dev/null | head -n 1)
 
     if [[ -n $WP_PLUGIN_FILE ]]; then
         _success "[PASS] WordPress plugin detected (header): $WP_PLUGIN_FILE"
@@ -1222,11 +1256,15 @@ function git-squash-release() {
     CURRENT_VERSION=""
     CURRENT_VERSION_SOURCE=""
 
-    # Tier 1: VERSION file (first non-empty line).
-    if [[ -f VERSION ]]; then
-        CURRENT_VERSION=$(grep -m 1 -E '[^[:space:]]' VERSION 2>/dev/null | tr -d '[:space:]')
+    # Tier 1: package.json version field (Node.js apps). Always preferred over VERSION file.
+    if [[ -f package.json ]]; then
+        if (( $+commands[node] )); then
+            CURRENT_VERSION=$(node -p "require('./package.json').version" 2>/dev/null | tr -d '[:space:]')
+        else
+            CURRENT_VERSION=$(grep -m 1 -E '^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"[^"]*"' package.json 2>/dev/null | sed -E 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"([^"]*)".*/\1/')
+        fi
         if [[ -n $CURRENT_VERSION ]]; then
-            CURRENT_VERSION_SOURCE="VERSION"
+            CURRENT_VERSION_SOURCE="package.json"
         fi
     fi
 
@@ -1253,13 +1291,21 @@ function git-squash-release() {
         fi
     fi
 
+    # Tier 4: VERSION file (last detection tier).
+    if [[ -z $CURRENT_VERSION && -f VERSION ]]; then
+        CURRENT_VERSION=$(grep -m 1 -E '[^[:space:]]' VERSION 2>/dev/null | tr -d '[:space:]')
+        if [[ -n $CURRENT_VERSION ]]; then
+            CURRENT_VERSION_SOURCE="VERSION"
+        fi
+    fi
+
     if [[ -n $CURRENT_VERSION ]]; then
         _success "[PASS] Current version detected from ${CURRENT_VERSION_SOURCE}: ${CURRENT_VERSION}"
     else
         if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] Current version not detected (checked VERSION file, plugin Version header, and theme Version header)"
+            _warning "[FAIL] Current version not detected (checked package.json, plugin Version header, theme Version header, and VERSION file)"
         else
-            _error "[FAIL] Current version not detected (checked VERSION file, plugin Version header, and theme Version header)"
+            _error "[FAIL] Current version not detected (checked package.json, plugin Version header, theme Version header, and VERSION file)"
         fi
     fi
 
@@ -1302,6 +1348,7 @@ function git-squash-release() {
         echo ""
 
         _git_update_version_file "$RELEASE_TAG" || return 1
+        _git_update_package_json_version "$RELEASE_TAG" || return 1
         _git_update_wp_theme_version "$RELEASE_TAG" || return 1
         _git_commit_release_version_bump "$RELEASE_TAG" || return 1
 
@@ -1390,6 +1437,24 @@ $ALL_COMMIT_MSGS"
     MINOR_TAG="${TAG_PREFIX}${MINOR_VERSION}"
     MAJOR_TAG="${TAG_PREFIX}${MAJOR_VERSION}"
 
+    # -- Version mismatch check: git tag is the source of truth, but offer to tag with the detected version --
+    local USE_DETECTED_VERSION=0
+    if [[ -n $CURRENT_VERSION && $CURRENT_VERSION != "$TAG_CLEAN" ]]; then
+        _warning "Version mismatch: detected version ($CURRENT_VERSION from ${CURRENT_VERSION_SOURCE}) differs from git tag ($LAST_TAG)"
+        _loading2 "Git tag is the source of truth, but you may tag using the detected version instead."
+        local REPLY
+        read -q "REPLY?Tag using the detected version ${TAG_PREFIX}${CURRENT_VERSION}? (y/n) "
+        echo ""
+        echo ""
+
+        if [[ $REPLY == "y" ]]; then
+            USE_DETECTED_VERSION=1
+            _success "Will tag using detected version: ${TAG_PREFIX}${CURRENT_VERSION}"
+        else
+            _loading2 "Proceeding with git tag derived version bump."
+        fi
+    fi
+
     # Get deduplicated commit messages since the last tag
     COMMIT_MSGS=$(git log --oneline "$LAST_TAG..HEAD" | awk '{msg=substr($0, index($0,$2)); if (!seen[msg]++) print "(" $1 ") " msg}' | paste -sd '\n' -)
 
@@ -1421,35 +1486,41 @@ $COMMIT_MSGS"
         _success "Created squashed commit (squash-only, no tag created)"
     else
         # -- Standard release flow: prompt for version, tag, and optionally push --
-        _loading "Select release type:"
-        echo "  (i) minor  ($MINOR_TAG)"
-        echo "  (a) major  ($MAJOR_TAG)"
-        echo "  (c) cancel"
-        echo ""
-
         local RELEASE_TAG
         local REPLY
-        read -k 1 "REPLY?Select [i/a/c]: "
-        echo ""
+        if [[ $USE_DETECTED_VERSION -eq 1 ]]; then
+            RELEASE_TAG="${TAG_PREFIX}${CURRENT_VERSION}"
+            _success "Selected release tag from detected version: $RELEASE_TAG"
+        else
+            _loading "Select release type:"
+            echo "  (i) minor  ($MINOR_TAG)"
+            echo "  (a) major  ($MAJOR_TAG)"
+            echo "  (c) cancel"
+            echo ""
 
-        case $REPLY in
-            i)
-                RELEASE_TAG="$MINOR_TAG"
-                _success "Selected minor release: $RELEASE_TAG"
-                ;;
-            a)
-                RELEASE_TAG="$MAJOR_TAG"
-                _success "Selected major release: $RELEASE_TAG"
-                ;;
-            *)
-                _warning "Cancelled."
-                return 0
-                ;;
-        esac
+            read -k 1 "REPLY?Select [i/a/c]: "
+            echo ""
+
+            case $REPLY in
+                i)
+                    RELEASE_TAG="$MINOR_TAG"
+                    _success "Selected minor release: $RELEASE_TAG"
+                    ;;
+                a)
+                    RELEASE_TAG="$MAJOR_TAG"
+                    _success "Selected major release: $RELEASE_TAG"
+                    ;;
+                *)
+                    _warning "Cancelled."
+                    return 0
+                    ;;
+            esac
+        fi
 
         echo ""
 
         _git_update_version_file "$RELEASE_TAG" || return 1
+        _git_update_package_json_version "$RELEASE_TAG" || return 1
         _git_update_wp_theme_version "$RELEASE_TAG" || return 1
         _git_commit_release_version_bump "$RELEASE_TAG" || return 1
 
@@ -1576,6 +1647,7 @@ function git-do-release() {
 $CURRENT_COMMIT_MSG"
 
     _git_update_version_file "$RELEASE_TAG" || return 1
+    _git_update_package_json_version "$RELEASE_TAG" || return 1
     _git_update_wp_theme_version "$RELEASE_TAG" || return 1
 
     _loading "Updating current commit message with release header..."

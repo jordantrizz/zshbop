@@ -301,7 +301,7 @@ function software_docker-ctop() {
 # ====================================================================================================
 # -- docker - Install Docker CE
 # ====================================================================================================
-help_software[docker]='Install Docker CE (Ubuntu 22/24)'
+help_software[docker]='Install Docker CE (Ubuntu 22/24/26)'
 function software_docker () {
     # -- Parse options
     local -a opts_help opts_dry_run
@@ -312,7 +312,7 @@ function software_docker () {
         echo "  --dry-run   Preview commands without executing them"
         echo ""
         echo "Install Docker CE via the official Docker apt repository."
-        echo "Currently supports Ubuntu 22.04 and 24.04."
+        echo "Currently supports Ubuntu 22.04, 24.04 and 26.04."
         return 0
     fi
 
@@ -339,8 +339,8 @@ function software_docker () {
 
     case "$MACHINE_OS_FLAVOUR" in
         ubuntu)
-            if [[ "$ver_major" != "22" && "$ver_major" != "24" ]]; then
-                _error "Docker CE install supports Ubuntu 22/24 (detected: $MACHINE_OS_VERSION)"
+            if [[ "$ver_major" != "22" && "$ver_major" != "24" && "$ver_major" != "26" ]]; then
+                _error "Docker CE install supports Ubuntu 22/24/26 (detected: $MACHINE_OS_VERSION)"
                 unset -f _run_cmd
                 return 1
             fi

@@ -1,5 +1,8 @@
 # TODO
 
+## gh-repos
+* For gh-repos add --json and --markdown
+
 ## Current
 * `hardcheck` command — login/SSH hardening audit (ssh, fail2ban, accounts, report)
 * mdv should be available when mdv isn't installed and a placeholder message to run software mdv should be displayed.
