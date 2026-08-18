@@ -985,8 +985,19 @@ function _git_detect_wp_plugin () {
 # ==============================================
 function _git_detect_wp_theme () {
     local REPO_BASENAME="${PWD:t}"
+    local THEME_FILE
 
-    grep -RIl --include='style.css' '^[[:space:]]*Theme Name:' "./${REPO_BASENAME}" 2>/dev/null | head -n 1
+    # Search the repo-named folder first (multi-theme/plugin repos).
+    THEME_FILE=$(grep -RIl --include='style.css' '^[[:space:]]*Theme Name:' "./${REPO_BASENAME}" 2>/dev/null | head -n 1)
+
+    # Fallback: style.css in the repository root (repo IS the theme).
+    if [[ -z $THEME_FILE && -f "./style.css" ]]; then
+        if grep -q '^[[:space:]]*Theme Name:' "./style.css" 2>/dev/null; then
+            THEME_FILE="./style.css"
+        fi
+    fi
+
+    echo "$THEME_FILE"
 }
 
 # ==============================================
@@ -1114,9 +1125,10 @@ function git-squash-release() {
         echo ""
         echo "Version is detected from package.json, WordPress plugin/theme headers, or a"
         echo "VERSION file (package.json preferred). WordPress plugin/theme detection is"
-        echo "scoped to the repo-named folder (./<repo-name>/). The git tag is the source"
-        echo "of truth for the release version; if the detected version differs from the"
-        echo "last tag you are prompted to tag using the detected version instead."
+        echo "scoped to the repo-named folder (./<repo-name>/), falling back to the repo"
+        echo "root (./style.css for themes, ./<repo-name>.php for plugins). The git tag is"
+        echo "the source of truth for the release version; if the detected version differs"
+        echo "from the last tag you are prompted to tag using the detected version instead."
         echo ""
         echo "Default mode prompts for minor or major version bump, writes the version as a"
         echo "chore: bump version commit, squashes commits since the last tag, tags the"
@@ -1242,16 +1254,6 @@ function git-squash-release() {
         DETECTION_FAILED=1
     fi
 
-    if [[ -f package.json || -f VERSION ]]; then
-        _success "[PASS] Version source exists (package.json or VERSION file)"
-    else
-        if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] Version source exists (expected package.json or VERSION file)"
-        else
-            _error "[FAIL] Version source exists (expected package.json or VERSION file)"
-        fi
-    fi
-
     local WP_PLUGIN_FILE
     local WP_PLUGIN_FALLBACK_FILE
     local REPO_BASENAME
@@ -1269,9 +1271,9 @@ function git-squash-release() {
         fi
     else
         if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] WordPress plugin not detected (no Plugin Name header in ./${REPO_BASENAME}/ and no ${REPO_BASENAME}.php in repo root)"
+            _warning "[FAIL] WordPress plugin not detected (no Plugin Name header in ./${REPO_BASENAME}/ or repo root)"
         else
-            _error "[FAIL] WordPress plugin not detected (no Plugin Name header in ./${REPO_BASENAME}/ and no ${REPO_BASENAME}.php in repo root)"
+            _error "[FAIL] WordPress plugin not detected (no Plugin Name header in ./${REPO_BASENAME}/ or repo root)"
         fi
     fi
 
@@ -1281,9 +1283,20 @@ function git-squash-release() {
         _success "[PASS] WordPress theme detected: $WP_THEME_FILE"
     else
         if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] WordPress theme not detected (no Theme Name style.css in ./${REPO_BASENAME}/)"
+            _warning "[FAIL] WordPress theme not detected (no Theme Name style.css in ./${REPO_BASENAME}/ or repo root)"
         else
-            _error "[FAIL] WordPress theme not detected (no Theme Name style.css in ./${REPO_BASENAME}/)"
+            _error "[FAIL] WordPress theme not detected (no Theme Name style.css in ./${REPO_BASENAME}/ or repo root)"
+        fi
+    fi
+
+    # Version source exists: package.json, VERSION file, or a detected WordPress plugin/theme.
+    if [[ -f package.json || -f VERSION || -n $WP_PLUGIN_FILE || -n $WP_THEME_FILE ]]; then
+        _success "[PASS] Version source exists (package.json, VERSION file, or WordPress plugin/theme)"
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] Version source exists (expected package.json, VERSION file, or WordPress plugin/theme)"
+        else
+            _error "[FAIL] Version source exists (expected package.json, VERSION file, or WordPress plugin/theme)"
         fi
     fi
 
