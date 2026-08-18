@@ -86,12 +86,13 @@ function terminal-check-detect () {
 # -- (PAGER/GIT_PAGER/GH_PAGER set to an empty string) so tool output stays
 # -- machine-friendly. git/gh prefer GIT_PAGER/GH_PAGER over $PAGER, which
 # -- disables paging even when a user types commands interactively.
+# -- Controlled by ZSHBOP_AI_PAGER=1 in .zshbop.conf (default: disabled).
 # ==================================================
-help_checks[terminal-check-ai-pager]='Re-enable less paging in AI/agent terminals (VS Code Copilot)'
+help_checks[terminal-check-ai-pager]='Re-enable less paging in AI/agent terminals (VS Code Copilot) when ZSHBOP_AI_PAGER=1'
 function terminal-check-ai-pager () {
-    # Allow opting out (e.g. to keep agent tool output un-paged)
-    if [[ "${ZSHBOP_DISABLE_AI_PAGER:-0}" == "1" ]]; then
-        _debug "AI terminal pager restore disabled (ZSHBOP_DISABLE_AI_PAGER=1)"
+    # Only run when explicitly enabled via ZSHBOP_AI_PAGER=1 (default: disabled)
+    if [[ "${ZSHBOP_AI_PAGER:-0}" != "1" ]]; then
+        _debug "AI terminal pager restore disabled (ZSHBOP_AI_PAGER not set to 1)"
         return 0
     fi
 

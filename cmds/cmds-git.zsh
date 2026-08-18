@@ -960,6 +960,36 @@ function git-log-oneline() {
 help_git[git-squash-release]="Squash commits since last tag; detect version (package.json/VERSION/WordPress), bump as chore commit, tag and push"
 
 # ==============================================
+# -- _git_detect_wp_plugin
+# -- Detect the WordPress plugin file for this repo, scoped to the repo-named folder
+# -- (searches ./<repo-basename>/ for a Plugin Name header, falls back to ./<repo-basename>.php)
+# ==============================================
+function _git_detect_wp_plugin () {
+    local REPO_BASENAME="${PWD:t}"
+    local PLUGIN_FILE
+
+    # Search only the repo-named folder (not the whole repo) for a Plugin Name header.
+    PLUGIN_FILE=$(grep -RIl -i --include='*.php' '^[[:space:]]*\*\{0,1\}[[:space:]]*Plugin Name[[:space:]]*:' "./${REPO_BASENAME}" 2>/dev/null | head -n 1)
+
+    # Fallback: <repo-basename>.php in the repository root.
+    if [[ -z $PLUGIN_FILE && -f "./${REPO_BASENAME}.php" ]]; then
+        PLUGIN_FILE="./${REPO_BASENAME}.php"
+    fi
+
+    echo "$PLUGIN_FILE"
+}
+
+# ==============================================
+# -- _git_detect_wp_theme
+# -- Detect the WordPress theme style.css for this repo, scoped to the repo-named folder
+# ==============================================
+function _git_detect_wp_theme () {
+    local REPO_BASENAME="${PWD:t}"
+
+    grep -RIl --include='style.css' '^[[:space:]]*Theme Name:' "./${REPO_BASENAME}" 2>/dev/null | head -n 1
+}
+
+# ==============================================
 # -- _git_update_wp_theme_version
 # -- Update detected WordPress theme style.css Version: header to the selected release version
 # ==============================================
@@ -968,7 +998,7 @@ function _git_update_wp_theme_version () {
     local RELEASE_VERSION="${RELEASE_TAG#v}"
     local WP_THEME_FILE
 
-    WP_THEME_FILE=$(grep -RIl --include='style.css' '^[[:space:]]*Theme Name:' . 2>/dev/null | head -n 1)
+    WP_THEME_FILE=$(_git_detect_wp_theme)
     if [[ -z $WP_THEME_FILE ]]; then
         _debug "No WordPress theme detected. Skipping style.css version update."
         return 0
@@ -1065,11 +1095,11 @@ function _git_commit_release_version_bump () {
 
 function git-squash-release() {
     # Parse options
-    local -a opts_help opts_detect opts_force opts_squash opts_init
-    zparseopts -D -E -- h=opts_help -help=opts_help d=opts_detect -detect=opts_detect f=opts_force -force=opts_force s=opts_squash -squash=opts_squash i=opts_init -init=opts_init
+    local -a opts_help opts_detect opts_force opts_squash opts_init opts_repo
+    zparseopts -D -E -- h=opts_help -help=opts_help d=opts_detect -detect=opts_detect f=opts_force -force=opts_force s=opts_squash -squash=opts_squash i=opts_init -init=opts_init r:=opts_repo -repo:=opts_repo
 
     if [[ -n $opts_help ]]; then
-        echo "Usage: git-squash-release [-h|--help] [-d|--detect] [-f|--force] [-s|--squash] [-i|--init]"
+        echo "Usage: git-squash-release [-h|--help] [-d|--detect] [-f|--force] [-s|--squash] [-i|--init] [-r|--repo <path>]"
         echo ""
         echo "Squash all commits since the last tag into a single release commit."
         echo ""
@@ -1080,16 +1110,25 @@ function git-squash-release() {
         echo "                  (uses first line + commit ID of each squashed commit)"
         echo "  -i, --init      Squash entire commit history from the first commit into one commit"
         echo "                  (no tag or version required)"
+        echo "  -r, --repo      Run against the repository at <path>"
         echo ""
         echo "Version is detected from package.json, WordPress plugin/theme headers, or a"
-        echo "VERSION file (package.json preferred). The git tag is the source of truth for"
-        echo "the release version; if the detected version differs from the last tag you"
-        echo "are prompted to tag using the detected version instead."
+        echo "VERSION file (package.json preferred). WordPress plugin/theme detection is"
+        echo "scoped to the repo-named folder (./<repo-name>/). The git tag is the source"
+        echo "of truth for the release version; if the detected version differs from the"
+        echo "last tag you are prompted to tag using the detected version instead."
         echo ""
         echo "Default mode prompts for minor or major version bump, writes the version as a"
         echo "chore: bump version commit, squashes commits since the last tag, tags the"
         echo "release, and optionally pushes."
         return 0
+    fi
+
+    if [[ -n $opts_repo ]]; then
+        if ! cd -- "$opts_repo[-1]"; then
+            _error "Could not enter repository directory: $opts_repo[-1]"
+            return 1
+        fi
     fi
 
     local DETECT_ONLY=0
@@ -1217,36 +1256,34 @@ function git-squash-release() {
     local WP_PLUGIN_FALLBACK_FILE
     local REPO_BASENAME
 
-    # Tier 2: Detect a standard WordPress plugin header in any PHP file.
-    WP_PLUGIN_FILE=$(grep -RIl -i --include='*.php' '^[[:space:]]*\*\{0,1\}[[:space:]]*Plugin Name[[:space:]]*:' . 2>/dev/null | head -n 1)
+    # Tier 2: Detect a standard WordPress plugin header, scoped to the repo-named folder.
+    REPO_BASENAME="${PWD:t}"
+    WP_PLUGIN_FALLBACK_FILE="./${REPO_BASENAME}.php"
+    WP_PLUGIN_FILE=$(_git_detect_wp_plugin)
 
     if [[ -n $WP_PLUGIN_FILE ]]; then
-        _success "[PASS] WordPress plugin detected (header): $WP_PLUGIN_FILE"
-    else
-        # Tier 2: Fallback to <repo-dir-name>.php in repository root.
-        REPO_BASENAME="${PWD:t}"
-        WP_PLUGIN_FALLBACK_FILE="./${REPO_BASENAME}.php"
-
-        if [[ -f $WP_PLUGIN_FALLBACK_FILE ]]; then
-            _success "[PASS] WordPress plugin detected (fallback filename): $WP_PLUGIN_FALLBACK_FILE"
+        if [[ $WP_PLUGIN_FILE == "$WP_PLUGIN_FALLBACK_FILE" ]]; then
+            _success "[PASS] WordPress plugin detected (fallback filename): $WP_PLUGIN_FILE"
         else
-            if [[ $DETECT_ONLY -eq 1 ]]; then
-                _warning "[FAIL] WordPress plugin not detected (no Plugin Name header and no ${REPO_BASENAME}.php in repo root)"
-            else
-                _error "[FAIL] WordPress plugin not detected (no Plugin Name header and no ${REPO_BASENAME}.php in repo root)"
-            fi
+            _success "[PASS] WordPress plugin detected (header): $WP_PLUGIN_FILE"
+        fi
+    else
+        if [[ $DETECT_ONLY -eq 1 ]]; then
+            _warning "[FAIL] WordPress plugin not detected (no Plugin Name header in ./${REPO_BASENAME}/ and no ${REPO_BASENAME}.php in repo root)"
+        else
+            _error "[FAIL] WordPress plugin not detected (no Plugin Name header in ./${REPO_BASENAME}/ and no ${REPO_BASENAME}.php in repo root)"
         fi
     fi
 
     local WP_THEME_FILE
-    WP_THEME_FILE=$(grep -RIl --include='style.css' '^[[:space:]]*Theme Name:' . 2>/dev/null | head -n 1)
+    WP_THEME_FILE=$(_git_detect_wp_theme)
     if [[ -n $WP_THEME_FILE ]]; then
         _success "[PASS] WordPress theme detected: $WP_THEME_FILE"
     else
         if [[ $DETECT_ONLY -eq 1 ]]; then
-            _warning "[FAIL] WordPress theme not detected"
+            _warning "[FAIL] WordPress theme not detected (no Theme Name style.css in ./${REPO_BASENAME}/)"
         else
-            _error "[FAIL] WordPress theme not detected"
+            _error "[FAIL] WordPress theme not detected (no Theme Name style.css in ./${REPO_BASENAME}/)"
         fi
     fi
 
@@ -1269,17 +1306,11 @@ function git-squash-release() {
     fi
 
     # Tier 2: WordPress plugin Version header.
-    if [[ -z $CURRENT_VERSION ]]; then
+    if [[ -z $CURRENT_VERSION && -n $WP_PLUGIN_FILE ]]; then
         VERSION_HEADER_FILE="$WP_PLUGIN_FILE"
-        if [[ -z $VERSION_HEADER_FILE && -n $WP_PLUGIN_FALLBACK_FILE && -f $WP_PLUGIN_FALLBACK_FILE ]]; then
-            VERSION_HEADER_FILE="$WP_PLUGIN_FALLBACK_FILE"
-        fi
-
-        if [[ -n $VERSION_HEADER_FILE ]]; then
-            CURRENT_VERSION=$(grep -i -m 1 '^[[:space:]]*\*\{0,1\}[[:space:]]*Version[[:space:]]*:' "$VERSION_HEADER_FILE" 2>/dev/null | sed -E 's/^[[:space:]]*\*?[[:space:]]*Version[[:space:]]*:[[:space:]]*//' | sed -E 's/[[:space:]]+$//')
-            if [[ -n $CURRENT_VERSION ]]; then
-                CURRENT_VERSION_SOURCE="plugin header ($VERSION_HEADER_FILE)"
-            fi
+        CURRENT_VERSION=$(grep -i -m 1 '^[[:space:]]*\*\{0,1\}[[:space:]]*Version[[:space:]]*:' "$VERSION_HEADER_FILE" 2>/dev/null | sed -E 's/^[[:space:]]*\*?[[:space:]]*Version[[:space:]]*:[[:space:]]*//' | sed -E 's/[[:space:]]+$//')
+        if [[ -n $CURRENT_VERSION ]]; then
+            CURRENT_VERSION_SOURCE="plugin header ($VERSION_HEADER_FILE)"
         fi
     fi
 

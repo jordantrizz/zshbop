@@ -207,7 +207,7 @@ The function `os-binary` has a `_debugf "No binary specified"` which is printed 
 - If `AUTO_LS_CHPWD=false`, auto-listing happens on Enter (`accept-line`) rather than on directory change hooks.
 - To troubleshoot, check: `echo $TERM_PROGRAM`, `echo $VSCODE_IPC_HOOK_CLI`, `echo $ZSHBOP_RELOAD`, `echo $ZSHBOP_INITIALIZED`.
 - To opt out of VSCode shell-specific behavior, set `ZSHBOP_DISABLE_VSCODE_SHELL=1` in your config before initialization.
-- AI/agent terminals (VS Code Copilot agent-host terminals) are detected via `AI_AGENT`/`COPILOT_AGENT`. VS Code spawns them with paging disabled (`PAGER`/`GIT_PAGER`/`GH_PAGER` empty), so `git log` and similar dump everything instead of using `less`. zshbop re-enables `less` paging in these terminals by clearing `GIT_PAGER`/`GH_PAGER`. To keep paging disabled, set `ZSHBOP_DISABLE_AI_PAGER=1` in your config before initialization.
+- AI/agent terminals (VS Code Copilot agent-host terminals) are detected via `AI_AGENT`/`COPILOT_AGENT`. VS Code spawns them with paging disabled (`PAGER`/`GIT_PAGER`/`GH_PAGER` empty), so `git log` and similar dump everything instead of using `less`. To re-enable `less` paging in these terminals (by clearing `GIT_PAGER`/`GH_PAGER`), set `ZSHBOP_AI_PAGER=1` in your config before initialization. This is disabled by default.
 
 # Installation
 
@@ -325,6 +325,7 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 | `ZSH_IP_API_KEY` | API Key for ip-info commmand | String | |
 | `ZSHBOP_TERMINAL` | Detected terminal environment (read-only) | String | vscode, iterm, wezterm, windows-terminal, unknown |
 | `ZSHBOP_DISABLE_VSCODE_SHELL` | Disable VSCode shell integration | 0 or 1 | Not set |
+| `ZSHBOP_AI_PAGER` | Re-enable less paging in VS Code AI/agent terminals | 0 or 1 | Not set (disabled) |
 | `ZSHBOP_NVM_ENABLE` | Enable NVM initialization (disabled by default) | 1 | Not set |
 | `ZSHBOP_NVM_LAZY` | Lazy load NVM on first use of nvm/node/npm/npx | 0 or 1 | 1 (when enabled) |
 | `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |
