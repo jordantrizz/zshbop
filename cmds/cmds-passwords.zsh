@@ -276,7 +276,9 @@ function genpass () {
     fi
 
     if [[ $# -eq 0 ]]; then
-        local label line
+        local label line pwd bits
+        local -a labels pws bts
+        local -i maxlen=0 i
         for label in alnum special apple monkey xkcd; do
             case $label in
                 alnum)   line=$(genpass-alnum) ;;
@@ -286,8 +288,16 @@ function genpass () {
                 xkcd)    line=$(genpass-xkcd) ;;
             esac
             if [[ -n $line ]]; then
-                print -r -- "$label: $line"
+                labels+=($label)
+                pws+=("${line%% \(*}")
+                bts+=("(${line##* \(}")
+                (( ${#pws[-1]} > maxlen )) && maxlen=${#pws[-1]}
             fi
+        done
+        printf '%-8s %-*s %s\n' "Type" "$maxlen" "Password" "Entropy"
+        print -r -- "$(printf '%.0s-' {1..$((maxlen + 21))})"
+        for i in {1..${#pws}}; do
+            printf '%-8s %-*s %s\n' "$labels[$i]:" "$maxlen" "$pws[$i]" "$bts[$i]"
         done
         return 0
     fi
