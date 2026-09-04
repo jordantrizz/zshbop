@@ -46,6 +46,16 @@ function zshbop-check-update () {
         return 1
     fi
 
+    # -- System installs are root-owned; git fetch needs write access to .git/FETCH_HEAD
+    if [[ ! -w "$root/.git" ]]; then
+        if [[ $motd_mode -eq 1 ]]; then
+            _debug "Update check skipped: $root/.git not writable by $(id -un)"
+            return 0
+        fi
+        _warning "zshbop repo at $root is not writable by $(id -un) - run 'sudo zshbop check-updates' or fix ownership"
+        return 0
+    fi
+
     branch=$(git --git-dir=$root/.git --work-tree=$root rev-parse --abbrev-ref HEAD)
     if [[ $? -ge 1 ]] || [[ -z "$branch" ]]; then
         _error "Failed to detect current branch"

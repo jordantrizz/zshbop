@@ -18,6 +18,15 @@
 #export ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
 #export ZSHBOP_AI_PAGER="1" # -- Enable less paging in VS Code AI/agent terminals (default: disabled)
 
+# -- ZSHBOP Quick Boot Configuration
+# * Fast terminal loads for agent/automation terminals (e.g. OpenChamber).
+# * Level 1 skips the MOTD banner and its system checks (services/software/OOM/RAID/update/screen-sessions).
+# * Level 2 also skips checks (mac/vm auto-run), plugins (omz/antidote/p10k prompt), ssh keys, and kb.
+# * Commands/checks are still sourced so they remain available on demand; only auto-run is skipped.
+#export ZSHBOP_BOOT_SKIP="2" # -- Quick boot level: 1 (skip MOTD + system checks) or 2 (also skip checks/plugins/ssh/kb)
+#ZSHBOP_BOOT_SKIP_ITEMS=(motd checks plugins ssh kb software) # -- Custom skip list, overrides ZSHBOP_BOOT_SKIP level
+#export ZSHBOP_BOOT_FULL="1" # -- Force the full boot regardless of ZSHBOP_BOOT_SKIP / ZSHBOP_BOOT_SKIP_ITEMS (e.g. when debugging zshbop)
+
 # -- ZSHBOP Exbin
 #export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting
 #export EXBIN_HOST="" # Exbin host, for netcat just the hostname and for api the full URL

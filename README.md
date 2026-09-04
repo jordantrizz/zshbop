@@ -326,6 +326,9 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 | `ZSHBOP_TERMINAL` | Detected terminal environment (read-only) | String | vscode, iterm, wezterm, windows-terminal, unknown |
 | `ZSHBOP_DISABLE_VSCODE_SHELL` | Disable VSCode shell integration | 0 or 1 | Not set |
 | `ZSHBOP_AI_PAGER` | Re-enable less paging in VS Code AI/agent terminals | 0 or 1 | Not set (disabled) |
+| `ZSHBOP_BOOT_SKIP` | Quick boot level for fast terminal loads (agent/automation terminals): `1` skips the MOTD + system checks, `2` also skips checks/plugins/ssh/kb | 1 or 2 | Not set (full boot) |
+| `ZSHBOP_BOOT_SKIP_ITEMS` | Custom list of boot items to skip (`motd checks plugins ssh kb software`); overrides the `ZSHBOP_BOOT_SKIP` level | Array | () |
+| `ZSHBOP_BOOT_FULL` | Force the full boot regardless of `ZSHBOP_BOOT_SKIP` / `ZSHBOP_BOOT_SKIP_ITEMS` | 0 or 1 | Not set |
 | `ZSHBOP_NVM_ENABLE` | Enable NVM initialization (disabled by default) | 1 | Not set |
 | `ZSHBOP_NVM_LAZY` | Lazy load NVM on first use of nvm/node/npm/npx | 0 or 1 | 1 (when enabled) |
 | `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |

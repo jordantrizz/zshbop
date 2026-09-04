@@ -692,9 +692,9 @@ init_check_software () {
 	# -- check if atop is installed
     if _cmd_exists atop; then 
         # -- check if atop is running using ps and pgrep
-        pgrep atop >> /dev/null && _success "atop installed and running" 0 || _warning "atop installed but not running, if this is a server install it" 0
+        pgrep atop >> /dev/null && _success "atop installed and running" || _warning "atop installed but not running, if this is a server install it"
     else
-        _warning "atop not installed, if this is a server install it" 0
+        _warning "atop not installed, if this is a server install it"
     fi
 
     # -- check if broot is installed
@@ -711,13 +711,19 @@ function init_check_oom () {
         _debug "Skipping OOM check on $MACHINE_OS"
         return 0
     fi
+
+    # -- journal access requires root (or adm/systemd-journal group)
+    if (( EUID != 0 )); then
+        _warning "Can't check for OOM killer events (requires root)"
+        return 0
+    fi
     
     # -- Check if OOM killer is running
     local OOM_COUNT
     	# Check if journalctl is installed
 	_cmd_exists journalctl
 	if [[ $? == 0 ]]; then		
-		OOM_COUNT=$(journalctl -k | grep -i 'Out of memory: Killed process' | wc -l)
+		OOM_COUNT=$(journalctl -k 2>/dev/null | grep -i 'Out of memory: Killed process' | wc -l)
 	elif [[ -f /var/log/syslog ]]; then		
 		OOM_COUNT=$(grep -i 'Out of memory: Killed process' /var/log/syslog | wc -l)
 		return 1
@@ -837,13 +843,15 @@ function init_checks () {
 	done
     
     # Detect OS and run checks.
-    if [[ $MACHINE_OS == "mac" ]]; then
-        _loading "Running Mac Checks"
-        mac-checks        
-    fi
+    if ! _zshbop_should_skip checks; then
+        if [[ $MACHINE_OS == "mac" ]]; then
+            _loading "Running Mac Checks"
+            mac-checks        
+        fi
 
-    # Detect if VM
-    vm-check-detect   
+        # Detect if VM
+        vm-check-detect   
+    fi
     init_log
 }
 
@@ -1221,8 +1229,6 @@ init_motd () {
     software-raid-check --motd
     zshbop-check-update --motd
     screen-sessions
-    init_detect_install_type
-    init_completion
     echo ""
 
     # -- Load motd
@@ -1239,6 +1245,35 @@ init_motd () {
 
 
 # ==============================================
+# -- _zshbop_resolve_boot_skip -- compute the effective boot-skip item set
+# -- from ZSHBOP_BOOT_FULL / ZSHBOP_BOOT_SKIP_ITEMS / ZSHBOP_BOOT_SKIP
+# ==============================================
+function _zshbop_resolve_boot_skip () {
+    _ZSHBOP_BOOT_SKIP_SET=()
+
+    # ZSHBOP_BOOT_FULL=1 forces the full boot regardless of skip settings
+    if [[ "$ZSHBOP_BOOT_FULL" == "1" ]]; then
+        return 0
+    fi
+
+    if (( ${#ZSHBOP_BOOT_SKIP_ITEMS[@]} > 0 )); then
+        _ZSHBOP_BOOT_SKIP_SET=("${ZSHBOP_BOOT_SKIP_ITEMS[@]}")
+    elif [[ "$ZSHBOP_BOOT_SKIP" == "1" ]]; then
+        _ZSHBOP_BOOT_SKIP_SET=(motd)
+    elif [[ "$ZSHBOP_BOOT_SKIP" == "2" ]]; then
+        _ZSHBOP_BOOT_SKIP_SET=(motd checks plugins ssh kb)
+    fi
+}
+
+# ==============================================
+# -- _zshbop_should_skip -- return 0 if a boot item is in the effective skip set
+# ==============================================
+function _zshbop_should_skip () {
+    local item="$1"
+    (( ${_ZSHBOP_BOOT_SKIP_SET[(Ie)$item]} ))
+}
+
+# ==============================================
 # -- init_zshbop -- initialize zshbop
 # ==============================================
 function init_zshbop () {
@@ -1250,6 +1285,9 @@ function init_zshbop () {
         export ZSHBOP_CONF_LOADED=1
         export ZSHBOP_CONF_LOADED_PID=$$
     fi
+
+    # Resolve the effective boot-skip set now that config flags are loaded
+    _zshbop_resolve_boot_skip
 
     # VS Code terminals can re-source startup files via shell integration.
     # Do not force reload here; allow full initialization unless reload was explicitly requested.
@@ -1296,7 +1334,11 @@ function init_zshbop () {
     _start_boot_timer "init_dirs"; init_dirs            # -- Set directories 
     _start_boot_timer "init_detectos"; init_detectos        # -- Detect operating system
     _start_boot_timer "init_zbr_cmds"; init_zbr_cmds        # -- Include commands
-    _start_boot_timer "init_software"; init_software        # -- Include software
+    _start_boot_timer "init_detect_install_type"; init_detect_install_type    # -- Detect install type
+    _start_boot_timer "init_completion"; init_completion    # -- Load completion
+    if ! _zshbop_should_skip software; then
+        _start_boot_timer "init_software"; init_software        # -- Include software
+    fi
     _start_boot_timer "init_help"; init_help            # -- Load help
     # --------------------------------------------------
     # -- Include Commands First as a dependency for all below commands.
@@ -1307,13 +1349,17 @@ function init_zshbop () {
     _start_boot_timer "init_pkg_manager"; init_pkg_manager     # -- Init package manager     
     _start_boot_timer "init-app-config"; init-app-config      # -- Common application configuration
     _start_boot_timer "zshbop_custom-load"; zshbop_custom-load   # -- Init custom zshbop  
-  	if [[ $IS_RELOAD == "0" ]]; then
+  	if [[ $IS_RELOAD == "0" ]] && ! _zshbop_should_skip plugins; then
         _start_boot_timer "init_omz_plugins"; init_omz_plugins     # -- Init OhMyZSH plugins
     fi
-    _start_boot_timer "init_plugins"; init_plugins         # -- Init plugins (needed for p10k prompt)
-    _start_boot_timer "init_zsh_ai_enter_behavior"; init_zsh_ai_enter_behavior
+    if ! _zshbop_should_skip plugins; then
+        _start_boot_timer "init_plugins"; init_plugins         # -- Init plugins (needed for p10k prompt)
+        _start_boot_timer "init_zsh_ai_enter_behavior"; init_zsh_ai_enter_behavior
+    fi
     _start_boot_timer "init_os"; init_os              # -- Init os defaults # TODO Needs to be refactored    
-    _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
+    if ! _zshbop_should_skip plugins; then
+        _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
+    fi
     _start_boot_timer "init_app_config"; init_app_config      # -- Init config
     _start_boot_timer "init_zsh_sweep"; init_zsh_sweep       # -- Init zsh-sweep if installed
 
@@ -1322,10 +1368,12 @@ function init_zshbop () {
     echo ""
      
     # -- Load custom then commands dependant on custom
-    if [[ $IS_RELOAD == "0" ]]; then
+    if [[ $IS_RELOAD == "0" ]] && ! _zshbop_should_skip ssh; then
         _start_boot_timer "init_sshkeys"; init_sshkeys         # -- Init ssh keys
     fi
-    _start_boot_timer "init_kb"; init_kb              # -- Init Knowledge Base
+    if ! _zshbop_should_skip kb; then
+        _start_boot_timer "init_kb"; init_kb              # -- Init Knowledge Base
+    fi
 
     # -- Check if init_custom_startup is defined as a function and then execute it    
     _debug "Checking if init_custom_startup is defined as a function"
@@ -1339,7 +1387,7 @@ function init_zshbop () {
     _debug "init_zshbop: \$funcstack = $funcstack"
     if [[ $IS_RELOAD == "1" ]]; then
         _loading2 "Not loading init_motd, init_sshkeys on Reload"
-    else
+    elif ! _zshbop_should_skip motd; then
         _start_boot_timer "init_motd"; init_motd           # -- Init motd
     fi
 

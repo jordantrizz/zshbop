@@ -276,23 +276,30 @@ zshbop_update () {
 
     _loading "Updater v2 - Pulling latest changes"
 
+    # -- System installs are root-owned; run git via sudo when the repo isn't writable
+    local GIT_CMD="git"
+    if [[ ! -w "$ZSHBOP_ROOT/.git" ]] && [[ $EUID -ne 0 ]]; then
+        _loading2 "Repository not writable, using sudo for git operations"
+        GIT_CMD="sudo git"
+    fi
+
     # -- Validate zshbop root and get branch state from git (not shell cache)
-    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --is-inside-work-tree > /dev/null 2>&1
+    $GIT_CMD --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --is-inside-work-tree > /dev/null 2>&1
     [[ $? -ge "1" ]] && { _error "Invalid zshbop repository at $ZSHBOP_ROOT"; return 1 }
 
-    CURRENT_BRANCH=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD)
+    CURRENT_BRANCH=$($GIT_CMD --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse --abbrev-ref HEAD)
     [[ $? -ge "1" ]] && { _error "Failed to detect current branch"; return 1 }
 
     # Keep runtime vars fresh for output and downstream commands.
     export ZSHBOP_BRANCH="$CURRENT_BRANCH"
-    CURRENT_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD)
+    CURRENT_COMMIT=$($GIT_CMD --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD)
     [[ $? -ge "1" ]] && { _error "Failed to detect current commit"; return 1 }
     export ZSHBOP_COMMIT="$CURRENT_COMMIT"
 
     _loading "Updating zshbop - $(zshbop_version)"
 
     # -- Safety check before any destructive action.
-    if [[ -n "$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT status --porcelain --untracked-files=all)" ]]; then
+    if [[ -n "$($GIT_CMD --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT status --porcelain --untracked-files=all)" ]]; then
         _error "You have uncommitted changes, please commit or stash them before updating"
         return 1
     fi
@@ -306,14 +313,14 @@ zshbop_update () {
     # -- Force-sync from origin to avoid merge/rebase divergence paths.
     _loading2 "Pulling zshbop updates"
     _loading3 "Fetching $CURRENT_BRANCH"
-    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch origin $CURRENT_BRANCH
+    $GIT_CMD --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT fetch origin $CURRENT_BRANCH
     [[ $? -ge "1" ]] && { _error "Failed to fetch latest changes"; return 1 }
 
     _loading3 "Resetting to origin/$CURRENT_BRANCH"
-    git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$CURRENT_BRANCH
+    $GIT_CMD --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT reset --hard origin/$CURRENT_BRANCH
     [[ $? -ge "1" ]] && { _error "Failed to reset to origin/$CURRENT_BRANCH"; return 1 }
 
-    CURRENT_COMMIT=$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD)
+    CURRENT_COMMIT=$($GIT_CMD --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT rev-parse HEAD)
     [[ $? -ge "1" ]] && { _error "Failed to detect updated commit"; return 1 }
     export ZSHBOP_COMMIT="$CURRENT_COMMIT"
 
