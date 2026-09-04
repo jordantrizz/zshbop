@@ -89,9 +89,9 @@ function dip () {
 }
 
 # ==================================================
-# -- docker-ports () - List used docker ports (compact table + summary)
+# -- docker-ports () - List used docker ports + free 8080s/9000s
 # ==================================================
-help_docker[docker-ports]='List used docker ports (compact table + summary)'
+help_docker[docker-ports]='List used docker ports + free 8080s/9000s'
 function docker-ports () {
     # Parse options with zparseopts
     local -a opts_help
@@ -101,11 +101,22 @@ function docker-ports () {
         echo "Usage: docker-ports [-h|--help]"
         echo ""
         echo "List host TCP ports published by running Docker containers."
-        echo "Shows a per-container table plus a sorted summary of all used ports."
+        echo "Shows a per-container table, a sorted summary of all used ports,"
+        echo "and the first free ports in the 8080+ and 9000+ groups."
         echo ""
         echo "Options:"
         echo "  -h, --help        Show this help message"
         return 0
+    fi
+
+    # Bail out early when docker is missing or the daemon is down
+    if (( ! $+commands[docker] )); then
+        _warning "Docker is not installed, skipping docker-ports"
+        return 1
+    fi
+    if ! docker info &>/dev/null; then
+        _warning "Docker daemon is not running. Please start Docker first."
+        return 1
     fi
 
     # Declare all state before any loop (never `local` inside a loop body)
@@ -119,8 +130,16 @@ function docker-ports () {
     # Find all currently running Docker containers and their ports
     containers=$(docker ps --format "{{.Names}}")
 
+    if [[ -z "${containers//[[:space:]]/}" ]]; then
+        _warning "No running Docker containers found."
+    fi
+
     # Extract and collect the TCP ports used by running Docker containers
     while IFS= read -r container; do
+        # Skip blank lines (e.g. empty `docker ps` output)
+        if [[ -z "$container" ]]; then
+            continue
+        fi
         row_ports=()
         # NOTE: `docker port` prints one line per mapping, e.g.
         #   80/tcp -> 0.0.0.0:8080
