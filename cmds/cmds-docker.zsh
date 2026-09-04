@@ -109,8 +109,8 @@ function docker-ports () {
     fi
 
     # Declare all state before any loop (never `local` inside a loop body)
-    local containers container line left right proto host_port ports_str next_tcp_port
-    local -a used_tcp_ports sorted_tcp_ports row_ports
+    local containers container line left right proto host_port ports_str scan_port
+    local -a used_tcp_ports sorted_tcp_ports row_ports free_8080 free_9000
     local -A seen_ports
 
     _loading "Docker published ports (TCP)"
@@ -181,10 +181,34 @@ function docker-ports () {
 
     _loading "Used (${#sorted_tcp_ports[@]}): ${sorted_tcp_ports[*]:-none}"
 
-    # Find the next available TCP port
-    next_tcp_port=$((sorted_tcp_ports[-1] + 1))
+    # Suggest the first 5 free ports in each preferred group (8080-8099, 9000-9019)
+    free_8080=()
+    free_9000=()
+    scan_port=8080
+    while (( scan_port < 8100 )) && (( ${#free_8080[@]} < 5 )); do
+        if [[ -z "${seen_ports[__all__:$scan_port]}" ]]; then
+            free_8080+=("$scan_port")
+        fi
+        (( scan_port++ ))
+    done
+    scan_port=9000
+    while (( scan_port < 9020 )) && (( ${#free_9000[@]} < 5 )); do
+        if [[ -z "${seen_ports[__all__:$scan_port]}" ]]; then
+            free_9000+=("$scan_port")
+        fi
+        (( scan_port++ ))
+    done
 
-    _loading2 "Next available TCP port: $next_tcp_port"
+    if (( ${#free_8080[@]} )); then
+        _loading "Available 8080+: ${free_8080[*]}"
+    else
+        _loading "Available 8080+: none free in range"
+    fi
+    if (( ${#free_9000[@]} )); then
+        _loading "Available 9000+: ${free_9000[*]}"
+    else
+        _loading "Available 9000+: none free in range"
+    fi
 }
 
 # ==================================================
