@@ -195,6 +195,36 @@ function genpass-monkey () {
     done
 }
 
+# ==============================================
+# -- _genpass_xkcd_pkg_hint
+# -- print distro-specific install hint when no system word list is found
+# ==============================================
+function _genpass_xkcd_pkg_hint () {
+    if [[ ! -e /etc/os-release ]]; then
+        return 0
+    fi
+    local distro pkg
+    distro=$(source /etc/os-release; print -r -- ${ID:-})
+    distro=${distro//\"/}
+    case $distro in
+        ubuntu|debian|linuxmint|pop|kali|raspbian|elementary) pkg=wamerican ;;
+        fedora|rhel|centos|rocky|almalinux|amzn|suse|opensuse*) pkg=words ;;
+        arch|manjaro|endeavouros|artix) pkg=words ;;
+        *) return 0 ;;
+    esac
+    if (( $+commands[apt-get] )); then
+        print -ru2 -- "Install a word list with: sudo apt install $pkg"
+    elif (( $+commands[dnf] )) || (( $+commands[yum] )); then
+        print -ru2 -- "Install a word list with: sudo dnf install $pkg"
+    elif (( $+commands[zypper] )); then
+        print -ru2 -- "Install a word list with: sudo zypper install $pkg"
+    elif (( $+commands[pacman] )); then
+        print -ru2 -- "Install a word list with: sudo pacman -S $pkg"
+    else
+        print -ru2 -- "Install the '$pkg' package to provide a system word list"
+    fi
+}
+
 # ==================================================
 # -- genpass-xkcd - word passphrase from /usr/share/dict/words
 # ==================================================
@@ -221,6 +251,7 @@ function genpass-xkcd () {
     fi
     if [[ ! -e $dict ]]; then
         _genpass_error "genpass-xkcd: no word list found (tried \$GENPASS_DICT, /usr/share/dict/words, /usr/share/dict/american-english, /usr/share/dict/linux.words)"
+        _genpass_xkcd_pkg_hint
         return 1
     fi
 
@@ -276,22 +307,21 @@ function genpass () {
     fi
 
     if [[ $# -eq 0 ]]; then
-        local label line pwd bits
-        local -a labels pws bts
+        local label line err errf
+        local -a labels pws bts errs
         local -i maxlen=0 i
         for label in alnum special apple monkey xkcd; do
-            case $label in
-                alnum)   line=$(genpass-alnum) ;;
-                special) line=$(genpass-special) ;;
-                apple)   line=$(genpass-apple) ;;
-                monkey)  line=$(genpass-monkey) ;;
-                xkcd)    line=$(genpass-xkcd) ;;
-            esac
+            errf=${TMPDIR:-/tmp}/genpass_err.$$
+            line=$(genpass-$label 2>$errf)
+            err=$(<$errf)
+            rm -f $errf
             if [[ -n $line ]]; then
                 labels+=($label)
                 pws+=("${line%% \(*}")
                 bts+=("(${line##* \(}")
                 (( ${#pws[-1]} > maxlen )) && maxlen=${#pws[-1]}
+            elif [[ -n $err ]]; then
+                errs+=("$label: $err")
             fi
         done
         printf '%-8s %-*s %s\n' "Type" "$maxlen" "Password" "Entropy"
@@ -299,6 +329,12 @@ function genpass () {
         for i in {1..${#pws}}; do
             printf '%-8s %-*s %s\n' "$labels[$i]:" "$maxlen" "$pws[$i]" "$bts[$i]"
         done
+        if (( $#errs )); then
+            print -r -- ""
+            for e in $errs; do
+                _genpass_error "$e"
+            done
+        fi
         return 0
     fi
 
