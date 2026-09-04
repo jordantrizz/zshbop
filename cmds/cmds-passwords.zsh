@@ -256,25 +256,43 @@ function genpass-xkcd () {
 # ==================================================
 # -- genpass - generate passwords of multiple types
 # ==================================================
-help_passwords[genpass]='Generate passwords (alnum|special|apple|monkey|xkcd)'
+help_passwords[genpass]='Generate passwords (alnum|special|apple|monkey|xkcd); no type generates all'
 function genpass () {
     local -a opts_help
     zparseopts -D -E -- h=opts_help -help=opts_help
     if [[ -n $opts_help ]]; then
-        echo "Usage: genpass <type> [args...]"
+        echo "Usage: genpass [type] [args...]"
         echo ""
         echo "Types:"
         echo "    alnum [length] [count]    Alphanumeric only (no special chars), default 32 chars"
         echo "    special [length] [count]  Printable ASCII incl. special chars, default 32 chars"
-        echo "    apple [count]             Pronounceable pseudowords (default type)"
+        echo "    apple [count]             Pronounceable pseudowords"
         echo "    monkey [count]            Unambiguous base32-style, 26 chars"
         echo "    xkcd [count]              Word passphrase from /usr/share/dict/words"
         echo ""
+        echo "With no type, all password types are generated (each labeled)."
         echo "Each password is printed with its entropy in bits."
         return 0
     fi
 
-    local type=${1:-apple}
+    if [[ $# -eq 0 ]]; then
+        local label line
+        for label in alnum special apple monkey xkcd; do
+            case $label in
+                alnum)   line=$(genpass-alnum) ;;
+                special) line=$(genpass-special) ;;
+                apple)   line=$(genpass-apple) ;;
+                monkey)  line=$(genpass-monkey) ;;
+                xkcd)    line=$(genpass-xkcd) ;;
+            esac
+            if [[ -n $line ]]; then
+                print -r -- "$label: $line"
+            fi
+        done
+        return 0
+    fi
+
+    local type=$1
     shift 2>/dev/null || true
     case $type in
         alnum)   genpass-alnum "$@" ;;
