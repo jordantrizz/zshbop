@@ -682,6 +682,12 @@ function zshbop_check () {
     fi
     done
     _loading "Run zshbop install-env to install above tools"
+
+    if whence -f zsh-check-history > /dev/null; then
+        _loading3 "Checking shell history"
+        zsh-check-history
+    fi
+
     _log "${funcstack[1]}:end"
 }
 

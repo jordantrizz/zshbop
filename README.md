@@ -334,6 +334,11 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 | `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |
 | `ZSHBOP_BASHER_DISABLE` | Disable Basher auto-initialization | 1 | Not set (auto-enabled if ~/.basher exists) |
 
+> **Note:** Shell history (`HISTFILE`, `HISTSIZE`, `SAVEHIST` and the history
+> options) is configured independently of the plugin manager, so history persists
+> at every `ZSHBOP_BOOT_SKIP` level — including level 2, which skips plugins. Run
+> `zsh-check-history` (also included in `zshbop check`) to inspect the settings.
+
 ### Exbin
 * Exbin https://exbin.call-cc.be
 

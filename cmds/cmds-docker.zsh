@@ -88,50 +88,146 @@ function dip () {
     done
 }
 
-help_docker[docker-ports]='List all docker ports'
+# ==================================================
+# -- docker-ports () - List used docker ports + free 8080s/9000s
+# ==================================================
+help_docker[docker-ports]='List used docker ports + free 8080s/9000s'
 function docker-ports () {
-    _loading "Going through all docker containers running and printing their ports"
+    # Parse options with zparseopts
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: docker-ports [-h|--help]"
+        echo ""
+        echo "List host TCP ports published by running Docker containers."
+        echo "Shows a per-container table, a sorted summary of all used ports,"
+        echo "and the first free ports in the 8080+ and 9000+ groups."
+        echo ""
+        echo "Options:"
+        echo "  -h, --help        Show this help message"
+        return 0
+    fi
+
+    # Bail out early when docker is missing or the daemon is down
+    if (( ! $+commands[docker] )); then
+        _warning "Docker is not installed, skipping docker-ports"
+        return 1
+    fi
+    if ! docker info &>/dev/null; then
+        _warning "Docker daemon is not running. Please start Docker first."
+        return 1
+    fi
+
+    # Declare all state before any loop (never `local` inside a loop body)
+    local containers container line left right proto host_port ports_str scan_port
+    local -a used_tcp_ports sorted_tcp_ports row_ports free_8080 free_9000
+    local -A seen_ports
+
+    _loading "Docker published ports (TCP)"
+    printf '%-25s %s\n' "CONTAINER" "HOST PORTS"
+
     # Find all currently running Docker containers and their ports
     containers=$(docker ps --format "{{.Names}}")
 
-    # Initialize an array to store all used TCP ports
-    used_tcp_ports=()
+    if [[ -z "${containers//[[:space:]]/}" ]]; then
+        _warning "No running Docker containers found."
+    fi
 
     # Extract and collect the TCP ports used by running Docker containers
     while IFS= read -r container; do
-    # Get the ports used by the container
-    ports=($(docker port $container 2>/dev/null | awk -F '->' '{print $2}' | tr -d ' ' | grep -v '\[::\]'))
+        # Skip blank lines (e.g. empty `docker ps` output)
+        if [[ -z "$container" ]]; then
+            continue
+        fi
+        row_ports=()
+        # NOTE: `docker port` prints one line per mapping, e.g.
+        #   80/tcp -> 0.0.0.0:8080
+        #   80/tcp -> [::]:8080
+        #   53/udp -> 0.0.0.0:5353
+        #   80/tcp                 (exposed but not published)
+        # The protocol lives on the LEFT of '->', so split there first.
+        while IFS= read -r line; do
+            # Skip exposed-but-unpublished ports (no host mapping)
+            if [[ "$line" != *"->"* ]]; then
+                continue
+            fi
+            left="${line%%->*}"
+            right="${line##*->}"
+            # Strip whitespace
+            left="${left//[[:space:]]/}"
+            right="${right//[[:space:]]/}"
+            # Protocol comes from the left side (e.g. 80/tcp, 53/udp)
+            proto="tcp"
+            if [[ "$left" == */* ]]; then
+                proto="${left##*/}"
+            fi
+            if [[ "$proto" != "tcp" ]]; then
+                continue
+            fi
+            # Host port is after the last colon (handles 0.0.0.0:8080 and [::]:8080)
+            host_port="${right##*:}"
+            if [[ "$host_port" != <-> ]]; then
+                continue
+            fi
+            # De-duplicate (IPv4 + IPv6 twins report the same host port)
+            if [[ -z "${seen_ports[$container:$host_port]}" ]]; then
+                seen_ports[$container:$host_port]=1
+                row_ports+=("$host_port")
+            fi
+            if [[ -z "${seen_ports[__all__:$host_port]}" ]]; then
+                seen_ports[__all__:$host_port]=1
+                used_tcp_ports+=("$host_port")
+            fi
+        done <<< "$(docker port $container 2>/dev/null)"
 
-    # Print the container name and its ports
-    _loading2 "Container '$container' is listening on TCP ports:"
-        if [[ -z $ports ]]; then
-            echo "- NONE"
+        # Print one compact row per container
+        if (( ${#row_ports[@]} == 0 )); then
+            printf '%-25s %s\n' "$container" "NONE"
         else
-            for cport in ${ports[@]}; do
-                echo " - $cport"
-            done
+            row_ports=($(printf "%s\n" "${row_ports[@]}" | sort -n))
+            ports_str="${(j: :)row_ports}"
+            printf '%-25s %s\n' "$container" "$ports_str"
         fi
-
-    # Split the ports by space and iterate over them
-    for port in "${ports[@]}"; do
-        # Check if the port is TCP (contains a dot) and not UDP (doesn't contain "/udp")
-        if [[ $port == *.* && $port != */udp ]]; then
-        port_number=$(echo "$port" | awk -F ':' '{print $2}')
-        used_tcp_ports+=("$port_number")
-        fi
-    done
     done <<< "$containers"
 
     # Sort the used TCP ports numerically
-    sorted_tcp_ports=($(printf "%s\n" "${used_tcp_ports[@]}" | sort -n))
+    if (( ${#used_tcp_ports[@]} )); then
+        sorted_tcp_ports=($(printf "%s\n" "${used_tcp_ports[@]}" | sort -n))
+    else
+        sorted_tcp_ports=()
+    fi
 
-    _loading "Sorted Ports:"
-    echo " - ${sorted_tcp_ports[@]}"
+    _loading "Used (${#sorted_tcp_ports[@]}): ${sorted_tcp_ports[*]:-none}"
 
-    # Find the next available TCP port
-    next_tcp_port=$((sorted_tcp_ports[-1] + 1))
+    # Suggest the first 5 free ports in each preferred group (8080-8099, 9000-9019)
+    free_8080=()
+    free_9000=()
+    scan_port=8080
+    while (( scan_port < 8100 )) && (( ${#free_8080[@]} < 5 )); do
+        if [[ -z "${seen_ports[__all__:$scan_port]}" ]]; then
+            free_8080+=("$scan_port")
+        fi
+        (( scan_port++ ))
+    done
+    scan_port=9000
+    while (( scan_port < 9020 )) && (( ${#free_9000[@]} < 5 )); do
+        if [[ -z "${seen_ports[__all__:$scan_port]}" ]]; then
+            free_9000+=("$scan_port")
+        fi
+        (( scan_port++ ))
+    done
 
-    _loading2 "Next available TCP port: $next_tcp_port"
+    if (( ${#free_8080[@]} )); then
+        _loading "Available 8080+: ${free_8080[*]}"
+    else
+        _loading "Available 8080+: none free in range"
+    fi
+    if (( ${#free_9000[@]} )); then
+        _loading "Available 9000+: ${free_9000[*]}"
+    else
+        _loading "Available 9000+: none free in range"
+    fi
 }
 
 # ==================================================

@@ -29,3 +29,22 @@ function zsh-check-version () {
     	_log "Running close to latest ZSH"
 	fi
 }
+
+# ==============================================
+# -- check zsh history configuration
+# ==============================================
+help_checks[zsh-check-history]='Check zsh history configuration'
+function zsh-check-history () {
+	_log "Checking zsh history configuration"
+	echo "  HISTFILE: ${HISTFILE:-(unset)}"
+	echo "  HISTSIZE: ${HISTSIZE:-(unset)}"
+	echo "  SAVEHIST: ${SAVEHIST:-(unset)}"
+
+	if [[ -n "$HISTFILE" && "$SAVEHIST" -gt 0 ]]; then
+		_success "History is enabled, persisting to $HISTFILE"
+		return 0
+	fi
+
+	_warning "History is disabled: HISTFILE is unset or SAVEHIST is 0"
+	return 1
+}

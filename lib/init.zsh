@@ -253,7 +253,6 @@ init_omz_plugins () {
 		dirhistory
 		docker
 		extract
-		genpass
 		git-auto-fetch
 		history
 		mosh
@@ -279,7 +278,6 @@ init_omz_plugins () {
 	export GIT_AUTO_FETCH_INTERVAL=1200
 	
 	# aliases
-	alias genpass="genpass-apple"
     init_log
 }
 
