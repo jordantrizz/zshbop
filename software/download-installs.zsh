@@ -118,6 +118,11 @@ software_aws-cli () {
 # -- glint
 # -- Upstream brigand/glint ships only x86_64/mac binaries (glint-linux, glint-macos, glint-windows).
 # -- There is no linux-arm64 asset, so arm64 is built from source via cargo.
+# --
+# -- KNOWN LIMITATION (WSL): on WSL, init.zsh overwrites MACHINE_OS2 to "wsl", so a WSL arm64 host
+# -- does NOT match the "linux-arm64" branch here and falls through to the x86_64 download path. The
+# -- x86_64 glint-linux binary then fails with "exec format error" on WSL arm64. A follow-up is tracked
+# -- in plans/20260911-glint-wsl-arm64-fallback.md.
 # ====================================================================================================
 help_software[glint]="Install glint - https://github.com/brigand/glint"
 function _detect_glint_os () {

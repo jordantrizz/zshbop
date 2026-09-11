@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `HISTSIZE`, `SAVEHIST` and the history options are now configured in
   `lib/history.zsh`, independently of oh-my-zsh/antidote loading.
 
+### Known Issues
+- **WSL arm64:** the glint arm64 fix does not apply inside WSL, because `init.zsh` overwrites
+  `MACHINE_OS2` to `wsl` (instead of `linux-arm64`), so a WSL arm64 host still downloads the x86_64
+  `glint-linux` binary and hits `exec format error`. Follow-up tracked in
+  `plans/20260911-glint-wsl-arm64-fallback.md`.
+
 ### Added
 - `zsh-check-history` diagnostic (also run by `zshbop check`) reporting
   `HISTFILE`/`HISTSIZE`/`SAVEHIST` and warning when history is disabled.

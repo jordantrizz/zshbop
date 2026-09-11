@@ -421,6 +421,9 @@ os-binary () {
         OS_GENERIC_BINARY="${BINARY}-${MACHINE_OS}"
         # On linux-arm64 a generic "-linux" binary is x86_64 only and would fail with
         # "exec format error"; never fall back to it for arm64 (e.g. glint).
+        # KNOWN LIMITATION (WSL): on WSL, MACHINE_OS2 is "wsl" (see init.zsh), not "linux-arm64",
+        # so this guard does not apply and WSL arm64 hosts can still hit the x86_64 fallback.
+        # Tracked in plans/20260911-glint-wsl-arm64-fallback.md.
         if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
             _debugf "Skipping generic $OS_GENERIC_BINARY fallback on linux-arm64 (x86_64 binary)"
             return 1
