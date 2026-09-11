@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Fixed
+- `software glint` now installs an arm64 build on linux-arm64 (via `cargo install glint`) instead of
+  downloading the x86_64 `glint-linux` binary, which failed with `exec format error` on arm64 hosts.
+  Glint binaries now use arch-suffixed `os-binary` naming (`glint-linux_x86_64`, `glint-mac_x86_64`),
+  and `os-binary` no longer falls back to a generic `-linux` binary on linux-arm64.
 - Preserve shell history when `ZSHBOP_BOOT_SKIP` skips plugins: `HISTFILE`,
   `HISTSIZE`, `SAVEHIST` and the history options are now configured in
   `lib/history.zsh`, independently of oh-my-zsh/antidote loading.

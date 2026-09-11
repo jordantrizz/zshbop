@@ -116,6 +116,8 @@ software_aws-cli () {
 
 # ====================================================================================================
 # -- glint
+# -- Upstream brigand/glint ships only x86_64/mac binaries (glint-linux, glint-macos, glint-windows).
+# -- There is no linux-arm64 asset, so arm64 is built from source via cargo.
 # ====================================================================================================
 help_software[glint]="Install glint - https://github.com/brigand/glint"
 function _detect_glint_os () {
@@ -128,31 +130,38 @@ function _detect_glint_os () {
 	
 	# Check for glint-linux
 	if [[ $MACHINE_OS == "linux" ]]; then
-		_debug "Check for glint-linux under $MACHINE_OS"    
-		if _cmd_exists glint-linux; then
-			_log "Found glint-linux, setting up alias"
-			GLINT_INSTALLED="1"
-			alias glint=glint-linux			
-		else
-			_cmd_exists glint-linux        
-			if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
-				_warning "glint-linux not found in $MACHINE_OS (no ARM64 binary available upstream)"
+		if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+			# No ARM64 binary upstream - only a cargo build is valid. Never alias the
+			# x86_64 glint-linux binary (it fails with "exec format error" on arm64).
+			_debug "Checking for glint under linux-arm64"
+			if _cmd_exists glint; then
+				_log "Found glint (cargo-built), setting up alias"
+				GLINT_INSTALLED="1"
 			else
-				_warning "glint-linux not found in $MACHINE_OS"
-			fi			
+				_warning "glint not found for linux-arm64 - no ARM64 binary upstream, run 'software glint' to build via cargo"
+			fi
+		else
+			_debug "Check for glint-linux_x86_64 under $MACHINE_OS"
+			if _cmd_exists glint-linux_x86_64; then
+				_log "Found glint-linux_x86_64, setting up alias"
+				GLINT_INSTALLED="1"
+				alias glint=glint-linux_x86_64
+			else
+				_warning "glint-linux_x86_64 not found in $MACHINE_OS"
+			fi
 		fi
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		if [[ $MACHINE_OS2 == "mac-intel" ]]; then
-			# Check if we have glint-macos
-			if _cmd_exists glint-macos; then
-				_log "Found glint-macos, setting up alias"
+			# Check if we have glint-mac_x86_64
+			if _cmd_exists glint-mac_x86_64; then
+				_log "Found glint-mac_x86_64, setting up alias"
 				GLINT_INSTALLED="1"
-				alias glint=glint-macos				
-			else				
-				_warning "glint-macos not found in $MACHINE_OS/$MACHINE_OS2"
-			fi			
+				alias glint=glint-mac_x86_64
+			else
+				_warning "glint-mac_x86_64 not found in $MACHINE_OS/$MACHINE_OS2"
+			fi
 		elif [[ $MACHINE_OS2 == "mac-arm" ]]; then
-			_warning "glint not found in $MACHINE_OS/$MACHINE_OS2"			
+			_warning "glint not found in $MACHINE_OS/$MACHINE_OS2"
 		fi
 	else
 		_debug "Couldn't detect OS for glint"
@@ -168,16 +177,26 @@ software_glint () {
 	fi
 
 	# Start install for glint.	
-	if [[ $MACHINE_OS == "linux" ]]; then		
-		_loading "Installing glint in $ZSHBOP_SOFTWARE_PATH"					
-		curl -L -o $ZSHBOP_SOFTWARE_PATH/glint-linux https://github.com/brigand/glint/releases/download/v6.3.4/glint-linux
-		_software_chmod $ZSHBOP_SOFTWARE_PATH/glint-linux
-		_loading3 "Reload shell"
+	if [[ $MACHINE_OS == "linux" ]]; then
+		if [[ $MACHINE_OS2 == "linux-arm64" ]]; then
+			# Ensure we have cargo in the path
+			if _cmd_exists cargo; then
+				_loading "Installing glint for linux-arm64 via cargo"
+				cargo install glint
+			else
+				_error "No glint ARM64 binary is available upstream, so glint must be built from source. Install cargo/rust first, then run 'software glint'"
+			fi
+		else
+			_loading "Installing glint in $ZSHBOP_SOFTWARE_PATH"
+			curl -L -o $ZSHBOP_SOFTWARE_PATH/glint-linux_x86_64 https://github.com/brigand/glint/releases/download/v6.3.4/glint-linux
+			_software_chmod $ZSHBOP_SOFTWARE_PATH/glint-linux_x86_64
+			_loading3 "Reload shell"
+		fi
 	elif [[ $MACHINE_OS == "mac" ]]; then
 		if [[ $MACHINE_OS2 == "mac-intel" ]]; then			
 			_loading "Installing glint for $MAC_OS2 in $ZSHBOP_SOFTWARE_PATH"
-			curl -L -o $ZSHBOP_SOFTWARE_PATH/glint-macos https://github.com/brigand/glint/releases/download/v6.3.4/glint-macos
-			_software_chmod $ZSHBOP_SOFTWARE_PATH/glint-macos
+			curl -L -o $ZSHBOP_SOFTWARE_PATH/glint-mac_x86_64 https://github.com/brigand/glint/releases/download/v6.3.4/glint-macos
+			_software_chmod $ZSHBOP_SOFTWARE_PATH/glint-mac_x86_64
 			_loading3 "Reload shell"
 		elif [[ $MACHINE_OS2 == "mac-arm" ]]; then
 			# Ensure we have cargo in the path
