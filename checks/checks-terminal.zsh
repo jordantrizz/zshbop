@@ -168,8 +168,8 @@ function terminal-disable-vscode-shell () {
     done
 
     # Restore p10k prompt if available
-    if (( ${+functions[prompt_powerlevel10k_setup]} )); then
-        prompt_powerlevel10k_setup
+    if (( ${+functions[prompt_powerlevel9k_setup]} )); then
+        prompt_powerlevel9k_setup
     elif (( ${+functions[p10k]} )); then
         p10k reload
     fi

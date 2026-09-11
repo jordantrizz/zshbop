@@ -76,6 +76,7 @@ export ZSHBOP_REPO="jordantrizz/zshbop" # -- Github repository
 typeset -a ZSHBOP_LOAD=()
 typeset -ga ZSHBOP_BOOT_SKIP_ITEMS=() # -- Custom boot-skip items, overrides ZSHBOP_BOOT_SKIP level
 typeset -ga _ZSHBOP_BOOT_SKIP_SET=() # -- Effective boot-skip item set (internal, resolved at boot)
+export ZSHBOP_P10K_QUICK_BOOT="${ZSHBOP_P10K_QUICK_BOOT:-1}" # -- Load the powerlevel10k prompt during quick boot (0 disables it)
 export ZSHBOP_TEMP="$HOME/tmp"
 export SSHK="${ZSHBOP_HOME}/.ssh"
 export TMP="${ZSHBOP_HOME}/tmp"

@@ -347,6 +347,15 @@ function _zshbop_load_p10k_standalone () {
 # -- powerlevel10k customizations
 # ==============================================
 function init_p10k () {
+    # When the plugin manager was skipped (quick boot), load powerlevel10k
+    # standalone so the p10k prompt is still available. Honor the opt-out flag.
+    if (( ! $+functions[p10k] )); then
+        if [[ "${ZSHBOP_P10K_QUICK_BOOT}" != "1" ]]; then
+            _debug "powerlevel10k prompt disabled via ZSHBOP_P10K_QUICK_BOOT=0; keeping plain prompt"
+            return 0
+        fi
+        _zshbop_load_p10k_standalone || return 1
+    fi
 	_log "Loading powerlevel10k configuration"
 	# shellcheck source=./.p10k.zsh
 	source $ZSH_ROOT/.p10k.zsh
@@ -1399,9 +1408,7 @@ function init_zshbop () {
         _start_boot_timer "init_zsh_ai_enter_behavior"; init_zsh_ai_enter_behavior
     fi
     _start_boot_timer "init_os"; init_os              # -- Init os defaults # TODO Needs to be refactored    
-    if ! _zshbop_should_skip plugins; then
-        _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
-    fi
+    _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k (always, so the prompt survives quick boot)
     _start_boot_timer "init_app_config"; init_app_config      # -- Init config
     _start_boot_timer "init_zsh_sweep"; init_zsh_sweep       # -- Init zsh-sweep if installed
 
