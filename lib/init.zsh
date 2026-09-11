@@ -300,6 +300,50 @@ function init_zsh_sweep () {
 
 
 # ==============================================
+# -- _zshbop_find_p10k
+# -- Locate the powerlevel10k theme file across the common install methods
+# -- (antidote/antigen/manual/omz) so the prompt can be loaded without the
+# -- plugin manager during quick boot.
+# ==============================================
+function _zshbop_find_p10k () {
+    local -a p10k_theme_paths=(
+        "${ZSHBOP_HOME}/antidote/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_HOME}/.antidote/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_HOME}/.antigen/bundles/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_HOME}/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_ROOT}/repos/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSH_CUSTOM}/themes/powerlevel10k.zsh-theme"
+    )
+
+    local p10k_theme_path
+    for p10k_theme_path in "${p10k_theme_paths[@]}"; do
+        if [[ -f "$p10k_theme_path" ]]; then
+            print -r -- "$p10k_theme_path"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# ==============================================
+# -- _zshbop_load_p10k_standalone
+# -- Source powerlevel10k directly (no plugin manager) so the p10k prompt is
+# -- available when the plugins component is skipped.
+# ==============================================
+function _zshbop_load_p10k_standalone () {
+    local p10k_theme_file
+    p10k_theme_file="$(_zshbop_find_p10k)" || {
+        _warning "powerlevel10k not found; falling back to plain prompt (install it or run a full boot once)"
+        return 1
+    }
+
+    _debug "Loading powerlevel10k standalone from $p10k_theme_file"
+    source "$p10k_theme_file"
+    return 0
+}
+
+# ==============================================
 # -- powerlevel10k customizations
 # ==============================================
 function init_p10k () {
