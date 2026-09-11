@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Fixed
+- `dom`/`domain-info` no longer print a blank `Nameservers:` line when a domain's
+  authoritative nameservers are down. They now fall back to the parent-zone registry
+  delegation (tagged `registry delegation; nameservers not responding`), warn on
+  `SERVFAIL`/`REFUSED`, and show `DNS UNAVAILABLE` instead of a spurious "No record
+  found" for SPF, DMARC and DKIM.
 - `software glint` now installs an arm64 build on linux-arm64 (via `cargo install glint`) instead of
   downloading the x86_64 `glint-linux` binary, which failed with `exec format error` on arm64 hosts.
   Glint binaries now use arch-suffixed `os-binary` naming (`glint-linux_x86_64`, `glint-mac_x86_64`),
