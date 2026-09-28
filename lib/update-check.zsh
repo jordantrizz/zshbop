@@ -87,6 +87,32 @@ function zshbop-check-update () {
 }
 
 # ==============================================
+# -- _zshbop_update_prompt_is_interactive () - Interactive TTY gate
+# -- Split out so tests can simulate an interactive terminal.
+# ==============================================
+function _zshbop_update_prompt_is_interactive () {
+    [[ -o interactive ]] || return 1
+    [[ -t 0 && -t 1 ]] || return 1
+    return 0
+}
+
+# ==============================================
+# -- _zshbop_update_prompt_repo_ready () - Repo writable and clean
+# -- Skips system installs (no sudo prompt mid-MOTD) and dirty trees.
+# ==============================================
+function _zshbop_update_prompt_repo_ready () {
+    # -- System installs are root-owned; skip to avoid a sudo password mid-MOTD
+    [[ -w "$ZSHBOP_ROOT/.git" ]] || return 1
+
+    # -- Dirty tree: zshbop_update would refuse, so leave the warning as-is
+    if [[ -n "$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT status --porcelain --untracked-files=all 2>/dev/null)" ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+# ==============================================
 # -- _zshbop_update_prompt_allowed () - Guards for the interactive update prompt
 # -- Returns 0 when the prompt may run, 1 when it must be skipped.
 # ==============================================
@@ -95,16 +121,10 @@ function _zshbop_update_prompt_allowed () {
     [[ "${ZSHBOP_UPDATE_PROMPT:-1}" == "0" ]] && return 1
 
     # -- Interactive TTY only (never block automation / non-interactive shells)
-    [[ -o interactive ]] || return 1
-    [[ -t 0 && -t 1 ]] || return 1
+    _zshbop_update_prompt_is_interactive || return 1
 
-    # -- System installs are root-owned; skip to avoid a sudo password mid-MOTD
-    [[ -w "$ZSHBOP_ROOT/.git" ]] || return 1
-
-    # -- Dirty tree: zshbop_update would refuse, so leave the warning as-is
-    if [[ -n "$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT status --porcelain --untracked-files=all 2>/dev/null)" ]]; then
-        return 1
-    fi
+    # -- Repo must be writable and clean
+    _zshbop_update_prompt_repo_ready || return 1
 
     return 0
 }
