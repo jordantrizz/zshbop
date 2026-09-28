@@ -7,6 +7,11 @@
 # =================================================================================================
 _debug_load
 
+# -- Update availability state, set by the check and read by zshbop_update_prompt
+typeset -g ZSHBOP_UPDATE_AVAILABLE=0   # -- 1 when an update is available
+typeset -g ZSHBOP_UPDATE_LATEST=""     # -- target description (release tag or origin/next-release)
+typeset -g ZSHBOP_UPDATE_BEHIND=0      # -- releases/commits behind the target
+
 # ==============================================
 # -- zshbop-check-update () - Check for zshbop updates
 # -- Tags on main, commits on next-release
@@ -37,6 +42,12 @@ function zshbop-check-update () {
     [[ -n $opts_verbose ]] && verbose=1
     [[ -n $opts_motd ]] && motd_mode=1
     root="${opts_root[2]:-$ZSHBOP_ROOT}"
+
+    # -- Reset availability state before detection so callers see fresh results
+    ZSHBOP_UPDATE_AVAILABLE=0
+    ZSHBOP_UPDATE_LATEST=""
+    ZSHBOP_UPDATE_BEHIND=0
+
     [[ -z "$root" ]] && { _error "No zshbop root found, use -r|--root <path>"; return 1 }
 
     # -- Validate the repo root
@@ -137,6 +148,9 @@ function _update_check_main () {
     if [[ $behind -eq 0 ]]; then
         [[ $motd_mode -eq 0 ]] && _success "On latest release $latest_tag"
     else
+        ZSHBOP_UPDATE_AVAILABLE=1
+        ZSHBOP_UPDATE_LATEST="$latest_tag"
+        ZSHBOP_UPDATE_BEHIND=$behind
         _warning "zshbop update available: $current_tag → $latest_tag ($behind release(s) behind) - run 'zbu' to update"
     fi
     return 0
@@ -171,6 +185,9 @@ function _update_check_next () {
     if [[ $behind -eq 0 ]]; then
         [[ $motd_mode -eq 0 ]] && _success "No update, on latest origin/next-release"
     else
+        ZSHBOP_UPDATE_AVAILABLE=1
+        ZSHBOP_UPDATE_LATEST="origin/next-release"
+        ZSHBOP_UPDATE_BEHIND=$behind
         _warning "zshbop update available: $behind commit(s) behind origin/next-release - run 'zbu' to update"
     fi
     return 0
