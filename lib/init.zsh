@@ -1278,7 +1278,7 @@ init_motd () {
     init_check_software
     init_check_oom
     software-raid-check --motd
-    zshbop-check-update --motd
+    zshbop_update_prompt
     screen-sessions
     echo ""
 

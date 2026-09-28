@@ -17,6 +17,7 @@
 #export ZSHBOP_GIT_CHECK="1" # -- zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code.
 #export ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
 #export ZSHBOP_AI_PAGER="1" # -- Enable less paging in VS Code AI/agent terminals (default: disabled)
+#export ZSHBOP_UPDATE_PROMPT="1" # -- Prompt to update zshbop in the MOTD when an update is available (default: enabled; 0 disables)
 
 # -- ZSHBOP Quick Boot Configuration
 # * Fast terminal loads for agent/automation terminals (e.g. OpenChamber).
