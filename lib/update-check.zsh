@@ -87,6 +87,75 @@ function zshbop-check-update () {
 }
 
 # ==============================================
+# -- _zshbop_update_prompt_allowed () - Guards for the interactive update prompt
+# -- Returns 0 when the prompt may run, 1 when it must be skipped.
+# ==============================================
+function _zshbop_update_prompt_allowed () {
+    # -- Opt-out via config
+    [[ "${ZSHBOP_UPDATE_PROMPT:-1}" == "0" ]] && return 1
+
+    # -- Interactive TTY only (never block automation / non-interactive shells)
+    [[ -o interactive ]] || return 1
+    [[ -t 0 && -t 1 ]] || return 1
+
+    # -- System installs are root-owned; skip to avoid a sudo password mid-MOTD
+    [[ -w "$ZSHBOP_ROOT/.git" ]] || return 1
+
+    # -- Dirty tree: zshbop_update would refuse, so leave the warning as-is
+    if [[ -n "$(git --git-dir=$ZSHBOP_ROOT/.git --work-tree=$ZSHBOP_ROOT status --porcelain --untracked-files=all 2>/dev/null)" ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+# ==============================================
+# -- zshbop_update_prompt () - Interactive MOTD update prompt
+# -- Checks for an update (printing the usual warning for non-interactive
+# -- terminals) and, when allowed, prompts to update and reload zshbop.
+# ==============================================
+help_checks[zshbop_update_prompt]='Interactive MOTD prompt to apply an available zshbop update'
+function zshbop_update_prompt () {
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+
+    if [[ -n $opts_help ]]; then
+        echo "Usage: zshbop_update_prompt [-h|--help]"
+        echo ""
+        echo "Check for a zshbop update and, on an interactive terminal, prompt to update."
+        echo "On confirmation runs 'zshbop_update' then reloads zshbop."
+        echo ""
+        echo "  Set ZSHBOP_UPDATE_PROMPT=0 to disable the prompt (warning only)."
+        return 0
+    fi
+
+    # -- Always run the check first so the availability warning prints
+    zshbop-check-update --motd
+    [[ "$ZSHBOP_UPDATE_AVAILABLE" == "1" ]] || return 0
+
+    # -- Skip when any guard denies (config, interactive, writable, clean tree)
+    _zshbop_update_prompt_allowed || return 0
+
+    local REPLY=""
+    print -rn -- "Apply zshbop update ($ZSHBOP_UPDATE_LATEST)? [y/N] "
+    read -r REPLY
+    echo ""
+
+    if [[ "$REPLY" == [yY]* ]]; then
+        if zshbop_update; then
+            _loading2 "Update complete - reloading zshbop"
+            zshbop_reload
+        else
+            _error "zshbop update failed; continuing without reload"
+            return 1
+        fi
+    else
+        _loading3 "Skipping zshbop update"
+    fi
+    return 0
+}
+
+# ==============================================
 # -- _update_check_main () - Compare release tags on main
 # -- The latest tag on origin/main can be ahead by one, two or many releases
 # ==============================================
