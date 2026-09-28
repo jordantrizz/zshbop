@@ -27,5 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `plans/20260911-glint-wsl-arm64-fallback.md`.
 
 ### Added
+- Interactive MOTD update prompt: on an interactive full boot, when an update is
+  available `zshbop_update_prompt` asks whether to update and, on confirmation, runs
+  the full update and reloads zshbop. It is skipped for non-interactive shells,
+  non-writable (system) installs, and repositories with uncommitted changes.
+  Disable with `ZSHBOP_UPDATE_PROMPT=0`.
 - `zsh-check-history` diagnostic (also run by `zshbop check`) reporting
   `HISTFILE`/`HISTSIZE`/`SAVEHIST` and warning when history is disabled.
