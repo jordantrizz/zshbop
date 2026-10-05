@@ -80,6 +80,47 @@ function genpass-alnum () {
 }
 
 # ==================================================
+# -- genpass-alnumnix - generate alphanumeric + shell-safe special chars
+# ==================================================
+help_passwords[genpass-alnumnix]='Generate alphanumeric + shell-safe special chars (safe unquoted)'
+function genpass-alnumnix () {
+    local -a opts_help
+    zparseopts -D -E -- h=opts_help -help=opts_help
+    if [[ -n $opts_help ]]; then
+        echo "Usage: genpass-alnumnix [length] [count]"
+        echo ""
+        echo "Alphanumeric plus special chars that are inert to POSIX shells even when"
+        echo "unquoted and without history expansion. Special chars used:"
+        echo "    % + , - . / : @ _"
+        echo "Excludes quotes, backslash, backtick, dollar, bang, hash, tilde, equals,"
+        echo "semicolon, ampersand, pipe, redirection, brackets, braces, parentheses,"
+        echo "glob and space."
+        return 0
+    fi
+
+    local length=${1:-32} count=${2:-1}
+    if [[ $length != <1-10000> ]]; then
+        _genpass_error "genpass-alnumnix: invalid length: $length (must be 1-10000)"
+        return 1
+    fi
+    if [[ $count != <1-1000> ]]; then
+        _genpass_error "genpass-alnumnix: invalid count: $count (must be 1-1000)"
+        return 1
+    fi
+
+    local -r chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%+,-./:@_'
+    local REPLY i j pwd
+    for (( i = 0; i < count; i++ )); do
+        pwd=''
+        for (( j = 0; j < length; j++ )); do
+            _genpass_rand $#chars || return 1
+            pwd+=$chars[REPLY]
+        done
+        print -r -- "$pwd $(_genpass_entropy $#chars $length)"
+    done
+}
+
+# ==================================================
 # -- genpass-special - generate password with special chars (printable ASCII)
 # ==================================================
 help_passwords[genpass-special]='Generate password with special chars (printable ASCII)'
@@ -287,7 +328,7 @@ function genpass-xkcd () {
 # ==================================================
 # -- genpass - generate passwords of multiple types
 # ==================================================
-help_passwords[genpass]='Generate passwords (alnum|special|apple|monkey|xkcd); no type generates all'
+help_passwords[genpass]='Generate passwords (alnum|alnumnix|special|apple|monkey|xkcd); no type generates all'
 function genpass () {
     local -a opts_help
     zparseopts -D -E -- h=opts_help -help=opts_help
@@ -296,6 +337,7 @@ function genpass () {
         echo ""
         echo "Types:"
         echo "    alnum [length] [count]    Alphanumeric only (no special chars), default 32 chars"
+        echo "    alnumnix [length] [count] Alphanumeric + shell-safe special chars, default 32 chars"
         echo "    special [length] [count]  Printable ASCII incl. special chars, default 32 chars"
         echo "    apple [count]             Pronounceable pseudowords"
         echo "    monkey [count]            Unambiguous base32-style, 26 chars"
@@ -310,7 +352,7 @@ function genpass () {
         local label line err errf
         local -a labels pws bts errs
         local -i maxlen=0 i
-        for label in alnum special apple monkey xkcd; do
+        for label in alnum alnumnix special apple monkey xkcd; do
             errf=${TMPDIR:-/tmp}/genpass_err.$$
             line=$(genpass-$label 2>$errf)
             err=$(<$errf)
@@ -324,10 +366,10 @@ function genpass () {
                 errs+=("$label: $err")
             fi
         done
-        printf '%-8s %-*s %s\n' "Type" "$maxlen" "Password" "Entropy"
-        print -r -- "$(printf '%.0s-' {1..$((maxlen + 21))})"
+        printf '%-10s %-*s %s\n' "Type" "$maxlen" "Password" "Entropy"
+        print -r -- "$(printf '%.0s-' {1..$((maxlen + 23))})"
         for i in {1..${#pws}}; do
-            printf '%-8s %-*s %s\n' "$labels[$i]:" "$maxlen" "$pws[$i]" "$bts[$i]"
+            printf '%-10s %-*s %s\n' "$labels[$i]:" "$maxlen" "$pws[$i]" "$bts[$i]"
         done
         if (( $#errs )); then
             print -r -- ""
@@ -341,14 +383,15 @@ function genpass () {
     local type=$1
     shift 2>/dev/null || true
     case $type in
-        alnum)   genpass-alnum "$@" ;;
-        special) genpass-special "$@" ;;
-        apple)   genpass-apple "$@" ;;
-        monkey)  genpass-monkey "$@" ;;
-        xkcd)    genpass-xkcd "$@" ;;
+        alnum)     genpass-alnum "$@" ;;
+        alnumnix)  genpass-alnumnix "$@" ;;
+        special)   genpass-special "$@" ;;
+        apple)     genpass-apple "$@" ;;
+        monkey)    genpass-monkey "$@" ;;
+        xkcd)      genpass-xkcd "$@" ;;
         *)
             _genpass_error "genpass: unknown type: $type"
-            echo "Usage: genpass <type> [args...] (alnum|special|apple|monkey|xkcd)"
+            echo "Usage: genpass <type> [args...] (alnum|alnumnix|special|apple|monkey|xkcd)"
             return 1
             ;;
     esac

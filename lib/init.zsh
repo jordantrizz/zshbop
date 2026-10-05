@@ -300,9 +300,62 @@ function init_zsh_sweep () {
 
 
 # ==============================================
+# -- _zshbop_find_p10k
+# -- Locate the powerlevel10k theme file across the common install methods
+# -- (antidote/antigen/manual/omz) so the prompt can be loaded without the
+# -- plugin manager during quick boot.
+# ==============================================
+function _zshbop_find_p10k () {
+    local -a p10k_theme_paths=(
+        "${ZSHBOP_HOME}/antidote/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_HOME}/.antidote/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_HOME}/.antigen/bundles/romkatv/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_HOME}/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSHBOP_ROOT}/repos/powerlevel10k/powerlevel10k.zsh-theme"
+        "${ZSH_CUSTOM}/themes/powerlevel10k.zsh-theme"
+    )
+
+    local p10k_theme_path
+    for p10k_theme_path in "${p10k_theme_paths[@]}"; do
+        if [[ -f "$p10k_theme_path" ]]; then
+            print -r -- "$p10k_theme_path"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# ==============================================
+# -- _zshbop_load_p10k_standalone
+# -- Source powerlevel10k directly (no plugin manager) so the p10k prompt is
+# -- available when the plugins component is skipped.
+# ==============================================
+function _zshbop_load_p10k_standalone () {
+    local p10k_theme_file
+    p10k_theme_file="$(_zshbop_find_p10k)" || {
+        _warning "powerlevel10k not found; falling back to plain prompt (install it or run a full boot once)"
+        return 1
+    }
+
+    _debug "Loading powerlevel10k standalone from $p10k_theme_file"
+    source "$p10k_theme_file"
+    return 0
+}
+
+# ==============================================
 # -- powerlevel10k customizations
 # ==============================================
 function init_p10k () {
+    # When the plugin manager was skipped (quick boot), load powerlevel10k
+    # standalone so the p10k prompt is still available. Honor the opt-out flag.
+    if (( ! $+functions[p10k] )); then
+        if [[ "${ZSHBOP_P10K_QUICK_BOOT}" != "1" ]]; then
+            _debug "powerlevel10k prompt disabled via ZSHBOP_P10K_QUICK_BOOT=0; keeping plain prompt"
+            return 0
+        fi
+        _zshbop_load_p10k_standalone || return 1
+    fi
 	_log "Loading powerlevel10k configuration"
 	# shellcheck source=./.p10k.zsh
 	source $ZSH_ROOT/.p10k.zsh
@@ -1225,7 +1278,7 @@ init_motd () {
     init_check_software
     init_check_oom
     software-raid-check --motd
-    zshbop-check-update --motd
+    zshbop_update_prompt
     screen-sessions
     echo ""
 
@@ -1355,9 +1408,7 @@ function init_zshbop () {
         _start_boot_timer "init_zsh_ai_enter_behavior"; init_zsh_ai_enter_behavior
     fi
     _start_boot_timer "init_os"; init_os              # -- Init os defaults # TODO Needs to be refactored    
-    if ! _zshbop_should_skip plugins; then
-        _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k
-    fi
+    _start_boot_timer "init_p10k"; init_p10k            # -- Init powerlevel10k (always, so the prompt survives quick boot)
     _start_boot_timer "init_app_config"; init_app_config      # -- Init config
     _start_boot_timer "init_zsh_sweep"; init_zsh_sweep       # -- Init zsh-sweep if installed
 

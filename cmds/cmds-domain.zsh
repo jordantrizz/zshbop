@@ -5,6 +5,39 @@ _debug " -- Loading ${(%):-%N}"
 typeset -gA help_domain
 help_files[domain]="Domain Name functions and commands."
 
+# ==============================================
+# -- _domain_dns_unavailable - return 0 if the resolver reports
+# -- SERVFAIL/REFUSED for the given name and record type
+# ==============================================
+function _domain_dns_unavailable () {
+    local QNAME="$1" QTYPE="${2:=A}"
+    dig +noall +comments "$QNAME" "$QTYPE" 2>/dev/null \
+        | grep -qE 'status: (SERVFAIL|REFUSED)'
+}
+
+# ==============================================
+# -- _domain_get_delegation_ns - fetch NS records from the parent-zone
+# -- referral when the recursive lookup fails (e.g. authoritative
+# -- nameservers are REFUSED/SERVFAIL)
+# ==============================================
+function _domain_get_delegation_ns () {
+    local DOMAIN="$1" PARENT PNS
+    local -a DELEG PNS_LIST
+
+    PARENT="${DOMAIN#*.}"
+    [[ "$PARENT" == "$DOMAIN" ]] && return 1
+
+    PNS_LIST=($(dig +short NS "$PARENT" 2>/dev/null))
+    for PNS in "${PNS_LIST[@]}"; do
+        DELEG=($(dig +noall +answer +authority NS "$DOMAIN" @"$PNS" 2>/dev/null | awk '$4=="NS"{print $5}'))
+        if [[ ${#DELEG[@]} -gt 0 ]]; then
+            print -l "${DELEG[@]}"
+            return 0
+        fi
+    done
+    return 1
+}
+
 # -- domaincheck
 help_domain[domaincheck]='Check if a domain name is available'
 alias domaincheck="domaincheck.sh"
@@ -86,7 +119,16 @@ function dom () {
         created=$(echo "$whois_out" | egrep -im1 'Creation Date:|Created On:' | sed -E 's/^[[:space:]]*(Creation Date:|Created On:)[[:space:]]*//I')
         expiry=$(echo "$whois_out" | egrep -im1 'Expiry Date:|Registry Expiry Date:|Expiration Date:' | sed -E 's/^[[:space:]]*(Expiry Date:|Registry Expiry Date:|Expiration Date:)[[:space:]]*//I')
 
+        local dns_down=0 ns_delegated=0
+        local apex_disp www_disp mx_disp spf_disp dmarc_disp dkim_disp
+
         ns_records=$(dig +short NS "$domain_name")
+        if [[ -z "$ns_records" ]]; then
+            ns_records=$(_domain_get_delegation_ns "$domain_name")
+            [[ -n "$ns_records" ]] && ns_delegated=1
+        fi
+        _domain_dns_unavailable "$domain_name" A && dns_down=1
+
         apex_records=$(dig +short "$domain_name")
         www_records=$(dig +short "www.$domain_name")
         mx_records=$(dig +short MX "$domain_name")
@@ -106,6 +148,21 @@ function dom () {
             fi
         done
 
+        apex_disp=$(_dom_join_lines_cf_tagged "$apex_records")
+        www_disp=$(_dom_join_lines_cf_tagged "$www_records")
+        mx_disp=$(_dom_join_lines "$mx_records")
+        spf_disp=$(_dom_join_lines "$spf_record")
+        dmarc_disp=$(_dom_join_lines "$dmarc_record")
+        dkim_disp=$(_dom_join_lines "$dkim_records")
+        if [[ $dns_down -eq 1 ]]; then
+            [[ -z "$apex_records" ]] && apex_disp="DNS UNAVAILABLE"
+            [[ -z "$www_records" ]] && www_disp="DNS UNAVAILABLE"
+            [[ -z "$mx_records" ]] && mx_disp="DNS UNAVAILABLE"
+            [[ -z "$spf_record" ]] && spf_disp="DNS UNAVAILABLE"
+            [[ -z "$dmarc_record" ]] && dmarc_disp="DNS UNAVAILABLE"
+            [[ -z "$dkim_records" ]] && dkim_disp="DNS UNAVAILABLE"
+        fi
+
         echo "+---------------------- WHOIS ---------------------+"
         _dom_compact_row "REGISTRAR" "$registrar"
         _dom_compact_row "REG-URL" "$registrar_url"
@@ -113,15 +170,16 @@ function dom () {
         _dom_compact_row "EXPIRY" "$expiry"
 
         echo "+----------------------- DNS ----------------------+"
-        _dom_compact_row "DNS NS" "$(_dom_join_lines "$ns_records")"
-        _dom_compact_row "DNS APEX" "$(_dom_join_lines_cf_tagged "$apex_records")"
-        _dom_compact_row "DNS WWW" "$(_dom_join_lines_cf_tagged "$www_records")"
-        _dom_compact_row "DNS MX" "$(_dom_join_lines "$mx_records")"
+        _dom_compact_row "DNS NS" "$(_dom_join_lines "$ns_records")$([[ $ns_delegated -eq 1 ]] && echo ' (registry delegation; nameservers not responding)')"
+        _dom_compact_row "DNS APEX" "$apex_disp"
+        _dom_compact_row "DNS WWW" "$www_disp"
+        _dom_compact_row "DNS MX" "$mx_disp"
+        [[ $dns_down -eq 1 ]] && _dom_compact_row "DNS WARN" "SERVFAIL — authoritative nameservers not answering"
 
         echo "+---------------------- AUTH ----------------------+"
-        _dom_compact_row "AUTH SPF" "$(_dom_join_lines "$spf_record")"
-        _dom_compact_row "AUTH DMARC" "$(_dom_join_lines "$dmarc_record")"
-        _dom_compact_row "AUTH DKIM" "$(_dom_join_lines "$dkim_records")"
+        _dom_compact_row "AUTH SPF" "$spf_disp"
+        _dom_compact_row "AUTH DMARC" "$dmarc_disp"
+        _dom_compact_row "AUTH DKIM" "$dkim_disp"
         echo "+--------------------------------------------------+"
         return 0
     }
@@ -382,15 +440,27 @@ function domain-info () {
 
     # -- get_nameservers
     _domain_info_get_nameservers () {
-        local NAMESERVERS DOMAIN="$1" NS
+        local DOMAIN="$1" NS DELEGATED=0
+        local -a NAMESERVERS
+
         NAMESERVERS=($(dig +short NS $DOMAIN))
-        for NS in "${NAMESERVERS[@]}"; do            
-            if $(echo $NS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)"); then
-                echo -n "$bg[yellow]$fg[black]CF${reset_color} - $NS "                
-            else
-                echo -n "$NS "
-            fi        
-        done
+        if [[ ${#NAMESERVERS[@]} -eq 0 ]]; then
+            NAMESERVERS=($(_domain_get_delegation_ns "$DOMAIN"))
+            [[ ${#NAMESERVERS[@]} -gt 0 ]] && DELEGATED=1
+        fi
+
+        if [[ ${#NAMESERVERS[@]} -eq 0 ]]; then
+            echo -n "(none / DNS query failed)"
+        else
+            for NS in "${NAMESERVERS[@]}"; do
+                if $(echo $NS | grep -Eq "([a-z]+\.ns\.cloudflare\.com)"); then
+                    echo -n "$bg[yellow]$fg[black]CF${reset_color} - $NS "
+                else
+                    echo -n "$NS "
+                fi
+            done
+            [[ $DELEGATED -eq 1 ]] && echo -n "${fg[yellow]}(registry delegation; nameservers not responding)${reset_color}"
+        fi
         echo "\n"
     }
 
@@ -476,6 +546,10 @@ function domain-info () {
     APEX_TEXT=$(_domain_info_get_record $DOMAIN)
     WWW_TEXT=$(_domain_info_get_record www.$DOMAIN)
     MX_TEXT=$(_domain_info_get_mx $DOMAIN)    
+
+    if _domain_dns_unavailable "$DOMAIN" A; then
+        _warning "DNS lookup failed for $DOMAIN — authoritative nameservers are not answering"
+    fi
 
     if [[ $COMPACT ]]; then        
         echo "Nameservers: $(_domain_info_get_nameservers $DOMAIN)"                
@@ -805,7 +879,11 @@ function domain-dmarc () {
     _loading "Checking $DOMAIN for DMARC record"
     DMARC_RECORD=$(dig +short TXT _dmarc.$DOMAIN | tr -d '"')
     if [[ -z $DMARC_RECORD ]]; then
-        _error "No DMARC record found for $DOMAIN"
+        if _domain_dns_unavailable "_dmarc.$DOMAIN" TXT; then
+            _error "DNS unavailable for $DOMAIN (authoritative nameservers not responding)"
+        else
+            _error "No DMARC record found for $DOMAIN"
+        fi
     else
         _success "DMARC record found for $DOMAIN"        
         echo "$DMARC_RECORD"    
@@ -853,7 +931,7 @@ function domain-dmarc () {
 help_domain[domain-dkim]='Check common DKIM selectors for a domain'
 function domain-dkim () {
     local DOMAIN="$1" DKIM_QUERY DKIM_RECORDS DKIM_SELECTOR
-    local FOUND_DKIM=0
+    local FOUND_DKIM=0 DNS_FAILED=0
     local -a DKIM_SELECTORS
 
     domain-strip "$DOMAIN" 1 >> /dev/null
@@ -878,13 +956,19 @@ function domain-dkim () {
                     echo "     -> $line"
                 fi
             done
+        elif _domain_dns_unavailable "$DKIM_QUERY" TXT; then
+            DNS_FAILED=1
         fi
     done
 
     if [[ $FOUND_DKIM -eq 0 ]]; then
-        _error "No DKIM records found for $DOMAIN"
-        _loading2 "Selectors checked: ${DKIM_SELECTORS[*]}"
-        _warning "DKIM selectors vary by provider; this check is not definitive and should not be fully trusted."
+        if [[ $DNS_FAILED -eq 1 ]]; then
+            _error "DNS unavailable for $DOMAIN (authoritative nameservers not responding)"
+        else
+            _error "No DKIM records found for $DOMAIN"
+            _loading2 "Selectors checked: ${DKIM_SELECTORS[*]}"
+            _warning "DKIM selectors vary by provider; this check is not definitive and should not be fully trusted."
+        fi
     else
         _warning "Only common selectors were checked; this DKIM output may be incomplete and should not be fully trusted."
     fi
@@ -900,7 +984,11 @@ function domain-spf () {
     _loading "Checking $DOMAIN for SPF record"
     SPF_RECORD=$(dig +short TXT $DOMAIN | grep 'v=spf1')
     if [[ -z $SPF_RECORD ]]; then
-        _error "No SPF record found for $DOMAIN"
+        if _domain_dns_unavailable "$DOMAIN" TXT; then
+            _error "DNS unavailable for $DOMAIN (authoritative nameservers not responding)"
+        else
+            _error "No SPF record found for $DOMAIN"
+        fi
     else
         _success "SPF record found for $DOMAIN"
         echo "$SPF_RECORD"

@@ -329,6 +329,7 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 | `ZSHBOP_BOOT_SKIP` | Quick boot level for fast terminal loads (agent/automation terminals): `1` skips the MOTD + system checks, `2` also skips checks/plugins/ssh/kb | 1 or 2 | Not set (full boot) |
 | `ZSHBOP_BOOT_SKIP_ITEMS` | Custom list of boot items to skip (`motd checks plugins ssh kb software`); overrides the `ZSHBOP_BOOT_SKIP` level | Array | () |
 | `ZSHBOP_BOOT_FULL` | Force the full boot regardless of `ZSHBOP_BOOT_SKIP` / `ZSHBOP_BOOT_SKIP_ITEMS` | 0 or 1 | Not set |
+| `ZSHBOP_P10K_QUICK_BOOT` | Load the powerlevel10k prompt during quick boot (loaded standalone, without the other plugins); `0` restores the plain prompt | 0 or 1 | 1 |
 | `ZSHBOP_NVM_ENABLE` | Enable NVM initialization (disabled by default) | 1 | Not set |
 | `ZSHBOP_NVM_LAZY` | Lazy load NVM on first use of nvm/node/npm/npx | 0 or 1 | 1 (when enabled) |
 | `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |
@@ -338,6 +339,11 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 > options) is configured independently of the plugin manager, so history persists
 > at every `ZSHBOP_BOOT_SKIP` level — including level 2, which skips plugins. Run
 > `zsh-check-history` (also included in `zshbop check`) to inspect the settings.
+>
+> **Note:** The powerlevel10k prompt stays active at every `ZSHBOP_BOOT_SKIP`
+> level. When the `plugins` component is skipped (level 2), p10k is loaded
+> standalone so the prompt is retained; set `ZSHBOP_P10K_QUICK_BOOT=0` to fall
+> back to the plain prompt.
 
 ### Exbin
 * Exbin https://exbin.call-cc.be
