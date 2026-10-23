@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Fixed
+- Full reloads (`zbr`/`zbur`) now re-read `.zshbop.conf` so additional packages
+  registered through `ZSHBOP_CUSTOM_SOURCES` keep their commands after the shell restarts.
 - `dom`/`domain-info` no longer print a blank `Nameservers:` line when a domain's
   authoritative nameservers are down. They now fall back to the parent-zone registry
   delegation (tagged `registry delegation; nameservers not responding`), warn on

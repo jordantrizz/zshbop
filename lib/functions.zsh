@@ -139,6 +139,9 @@ zshbop_reload () {
         # Create temp file flag to skip git-check-exit during reload
         touch "${TMPDIR:-/tmp}/.zshbop_reload_$$"
         zshbop_cache-clear
+        # exec preserves $$ and exported config markers, but not package arrays/functions.
+        # Let the replacement shell source .zshbop.conf again to restore custom packages.
+        unset ZSHBOP_CONF_LOADED ZSHBOP_CONF_LOADED_PID
         _log "Running exec zsh"
         exec zsh
     fi
