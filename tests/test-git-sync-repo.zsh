@@ -240,6 +240,20 @@ rc=$?
     && ok "the sync still happened" || fail "the sync did not happen"
 
 # ---------------------------------------------------------------
+echo "=== Scenario 9: ZSHBOP_UPDATE_VERBOSE=1 restores the raw git output ==="
+F="$TEST_TMP/s9"
+make_fixture "$F"
+git -C "$F/work" remote set-url origin "$F/does-not-exist.git"
+reset_out
+raw="$TEST_TMP/s9-raw.txt"
+ZSHBOP_UPDATE_VERBOSE=1 _git_sync_repo "$F/work" 2> "$raw"
+rc=$?
+[[ $rc -eq 1 ]] && ok "still returns 1" || fail "returned $rc"
+grep -q 'fatal:' "$raw" && ok "raw git output is shown on stderr" || fail "no raw git output: $(<"$raw")"
+has "fetch failed:" && ok "the one-line error is still emitted" || fail "missing the summary error: $(joined)"
+unset ZSHBOP_UPDATE_VERBOSE
+
+# ---------------------------------------------------------------
 echo ""
 echo "Passed: $PASS  Failed: $FAIL"
 [[ $FAIL -eq 0 ]] && exit 0 || exit 1
