@@ -18,13 +18,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `zb update-status` reports the background sync: running or idle state, per-repository
   results, counts, and — with `-l`/`--log` or `-j`/`--json` — the run log or a
   machine-readable document.
-- Quiet repo sync helper: every synced repository reports one line
-  (`up to date`, `updated (+N commits)`, `reset to origin/<branch>`) and never
-  streams git fetch progress or `hint:` advice; failures produce one error line.
-  Diverged mirrors are reset to their upstream, and a dirty worktree blocks the
-  reset instead of discarding work.
 
 ### Fixed
+- `zshbop update` and `repos update` now sync every repository through one quiet helper:
+  each repository reports a single line (`up to date`, `updated (+N commits)`,
+  `reset to origin/<branch>`) and never streams git fetch progress, `remote:` lines or
+  the multi-line `hint:` advice block. Failures produce one error line carrying the
+  reason, `repos update` returns non-zero when a repository failed, and a `$ZBC`
+  directory that is not a checkout is reported as skipped instead of
+  `fatal: not a git repository`. Diverged mirrors are reset to their upstream, a dirty
+  worktree blocks that reset instead of discarding work, and `ZSHBOP_UPDATE_VERBOSE=1`
+  restores the raw git output.
+- `$ZSHBOP_UPDATE_GIT` entries are resolved against both `$HOME` and `$GIT_HOME`; the old
+  probe tested `$GIT_HOME/$entry` but assigned the `$HOME` path, so a relative entry never
+  resolved correctly.
 - Full reloads (`zbr`/`zbur`) now re-read `.zshbop.conf` so additional packages
   registered through `ZSHBOP_CUSTOM_SOURCES` keep their commands after the shell restarts.
 - `dom`/`domain-info` no longer print a blank `Nameservers:` line when a domain's

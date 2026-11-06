@@ -325,6 +325,9 @@ For PATH changes in ```$HOME/.zshbop.conf```, use direct PATH edits (for example
 When ```ZBC``` is set in your config, zshbop will automatically:
 - Set ```ZBC_ROOT``` to the same value as ```$ZBC```
 - Add ```$ZBC/zbc.zsh``` to ```ZSHBOP_CUSTOM_SOURCES``` (deduplicated)
+- Sync it during `zb update` through the quiet repo sync helper: a git checkout reports one
+  line (`up to date`, `updated (+N commits)`, `reset to origin/<branch>`), and a plain
+  directory is reported as skipped instead of producing a `fatal: not a git repository`.
 
 ### Configuration Options
 | Variable        	| Description                                                | Values                     	| Default     	 |
