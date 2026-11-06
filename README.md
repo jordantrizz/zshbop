@@ -142,12 +142,30 @@ These commands are shortened aliases for zshbop commands
 * `zb reload` - Reload zshbop
 * `zb report` - Print out errors and warnings
 * `zb update` - Update zshbop
+* `zb update-status` - Show the status of the background extra-repository sync
 * `zb version` - Get version information
 
 Updater behavior notes:
 * `zb update`/`zbu` now runs Updater v2 force-sync flow (`fetch` + `reset --hard`) to avoid merge/rebase divergence prompts.
 * Updates are only allowed on `main` and `next-release`.
 * If uncommitted changes are present (tracked or untracked), update exits and asks you to commit or stash first.
+
+Extra repository sync (`$ZSHBOP_UPDATE_GIT`):
+* `zbu` starts a detached worker that syncs the configured mirrors one at a time, so the
+  shell (and the MOTD update prompt) is never blocked on a slow remote. The update
+  transcript shows one line: `Syncing N extra repositories in the background`.
+* A single summary appears at the next prompt, once — `Extra repositories: 2 updated · 3
+  current (12s)` — and nothing at all when every repository was already current. Failures
+  read `1 failed · 3 current - 'zb update-status' for details`.
+* `zb update-status` shows whether a run is in flight, what each repository did, and
+  `-l`/`--log` or `-j`/`--json` for the run log or machine-readable output. State lives in
+  `$ZSHBOP_CACHE_DIR/repo-update/`, so it survives `zbr`.
+* Each repository reports one line and never streams git progress, `remote:` or `hint:`
+  advice. A diverged mirror is reset to its upstream; a dirty worktree blocks that reset.
+  Set `ZSHBOP_UPDATE_VERBOSE=1` to see the raw git output.
+* `ZSHBOP_UPDATE_GIT_BACKGROUND=0` restores the blocking foreground loop (and its non-zero
+  exit on failure), `ZSHBOP_UPDATE_GIT_NOTIFY=0` silences the prompt summary, and
+  `ZSHBOP_UPDATE_GIT_TIMEOUT` (default `300`) decides when a stuck worker is treated as dead.
 
 Update check behavior (`zb check-updates`):
 * On `main` the check compares release tags — the latest tag on `origin/main` can be ahead by one, two, or many releases (reported as "N release(s) behind").
@@ -320,7 +338,10 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 | `ZSHBOP_ANTIDOTE_BUNDLES` | Additional antidote bundles (GitHub repos like `owner/repo`) appended to the plugin list | Array | () |
 | `ZSHBOP_GIT_CHECK` | zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code. | Number | 1 |
 | `GIT_HOME` | A location where you have all your git repositories. | String | $HOME/git |
-| `ZSHBOP_UPDATE_GIT` | Git Repositores to update when running zshbop update | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |
+| `ZSHBOP_UPDATE_GIT` | Git repositories to update when running zshbop update. Synced in a detached background worker by default; one summary line appears at the next prompt. | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |
+| `ZSHBOP_UPDATE_GIT_BACKGROUND` | Sync `$ZSHBOP_UPDATE_GIT` in the background; `0` restores the blocking foreground loop | 0 or 1 | 1 |
+| `ZSHBOP_UPDATE_GIT_NOTIFY` | Print one summary line at the next prompt when the background sync finishes; `0` silences it (`zb update-status` always reports) | 0 or 1 | 1 |
+| `ZSHBOP_UPDATE_GIT_TIMEOUT` | Seconds after which a background repo sync is treated as dead, so the next update starts a fresh run | Number | 300 |
 | `ZSH_IP_PROVIDER` | IP Provider for zshbop | String | eg. ipinfo.io |
 | `ZSH_IP_API_KEY` | API Key for ip-info commmand | String | |
 | `ZSHBOP_TERMINAL` | Detected terminal environment (read-only) | String | vscode, iterm, wezterm, windows-terminal, unknown |

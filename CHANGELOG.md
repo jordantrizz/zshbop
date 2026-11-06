@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `zshbop update`/`zbu` now sync `$ZSHBOP_UPDATE_GIT` repositories in a detached
+  background worker instead of blocking the update (and the MOTD update prompt) on
+  every mirror. The shell returns immediately with one line, and a single summary
+  appears at the next prompt — silent when every repository was already current.
+  `ZSHBOP_UPDATE_GIT_BACKGROUND=0` restores the blocking loop,
+  `ZSHBOP_UPDATE_GIT_NOTIFY=0` silences the summary, and
+  `ZSHBOP_UPDATE_GIT_TIMEOUT` (default 300s) decides when a stuck worker is
+  treated as dead.
+- `zb update-status` reports the background sync: running or idle state, per-repository
+  results, counts, and — with `-l`/`--log` or `-j`/`--json` — the run log or a
+  machine-readable document.
+- Quiet repo sync helper: every synced repository reports one line
+  (`up to date`, `updated (+N commits)`, `reset to origin/<branch>`) and never
+  streams git fetch progress or `hint:` advice; failures produce one error line.
+  Diverged mirrors are reset to their upstream, and a dirty worktree blocks the
+  reset instead of discarding work.
+
 ### Fixed
 - Full reloads (`zbr`/`zbur`) now re-read `.zshbop.conf` so additional packages
   registered through `ZSHBOP_CUSTOM_SOURCES` keep their commands after the shell restarts.
