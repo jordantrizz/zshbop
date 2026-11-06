@@ -512,26 +512,39 @@ zshbop_update () {
     echo ""
 
     # -- Update $ZSHBOP_UPDATE_GIT git repositories from custom config.
-    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
-    if [[ $ZSHBOP_UPDATE_GIT ]]; then
-        _debugf "Found \$ZSHBOP_UPDATE_GIT which continas $ZSH_UPDATE_GIT"
-        for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
-            _debugf "Checking $GIT"
-            [[ -d "$HOME/$GIT" ]] && ZUG="$HOME/$GIT"
-            [[ -d "$GIT_HOME/$GIT" ]] && ZUG="$HOME/$GIT"
-            [[ -d $GIT ]] && ZUG="$GIT"
-            if [[ -d ${ZUG} ]]; then
-                _loading2 "Updating ${ZUG}"
-                git --git-dir=${ZUG}/.git --work-tree=${ZUG} pull
-            else
-                _error "Couldn't find ${GIT}"
-            fi
+    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositories."
+    if [[ ${#ZSHBOP_UPDATE_GIT[@]} -eq 0 ]]; then
+        _loading2 "No extra repositories configured"
+    elif [[ "${ZSHBOP_UPDATE_GIT_BACKGROUND:-1}" == "0" ]]; then
+        # -- Foreground (blocking) sync: the historical behaviour, kept opt-in
+        local -a RU_TARGETS=()
+        local -a RU_MISSING=()
+        local RU_TARGET RU_FAILED=0
+        _repo_update_targets > /dev/null
+        RU_TARGETS=("${_REPO_UPDATE_TARGETS[@]}")
+        RU_MISSING=("${_REPO_UPDATE_MISSING[@]}")
+        for RU_TARGET in "${RU_TARGETS[@]}"; do
+            _git_sync_repo "$RU_TARGET" || RU_FAILED=$(( RU_FAILED + 1 ))
         done
+        for RU_TARGET in "${RU_MISSING[@]}"; do
+            _error "Couldn't find ${RU_TARGET}"
+            RU_FAILED=$(( RU_FAILED + 1 ))
+        done
+        (( RU_FAILED )) && _warning "${RU_FAILED} repository(ies) failed to update"
+        echo ""
+        # -- Foreground failures still mark the update as failed
+        [[ $RU_FAILED -gt 0 ]] && return 1
+    else
+        # -- Background sync: one line here, the summary arrives at the next prompt
+        _repo_update_start
     fi
     echo ""
 
-    # Reload scripts
-    _warning "Type zb reload to reload zshbop, or restart your shell."    
+    # -- Reload scripts
+    _warning "Type zb reload to reload zshbop, or restart your shell."
+    if [[ "${ZSHBOP_UPDATE_GIT_BACKGROUND:-1}" != "0" ]]; then
+        _loading3 "Extra repositories sync in the background - failures are reported by the prompt summary and 'zb update-status'"
+    fi
     echo ""
 }
 

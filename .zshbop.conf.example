@@ -18,6 +18,9 @@
 #export ZSHBOP_DISABLE_VSCODE_SHELL="1" # -- Disable VSCode Shell Integration
 #export ZSHBOP_AI_PAGER="1" # -- Enable less paging in VS Code AI/agent terminals (default: disabled)
 #export ZSHBOP_UPDATE_PROMPT="1" # -- Prompt to update zshbop in the MOTD when an update is available (default: enabled; 0 disables)
+#export ZSHBOP_UPDATE_GIT_BACKGROUND="1" # -- Sync $ZSHBOP_UPDATE_GIT repositories in a detached background worker (default: enabled; 0 = blocking foreground loop)
+#export ZSHBOP_UPDATE_GIT_NOTIFY="1" # -- Print one summary line at the next prompt when the background sync finishes (default: enabled; 0 disables; 'zb update-status' always reports)
+#export ZSHBOP_UPDATE_GIT_TIMEOUT="300" # -- Seconds after which a background repo sync is considered dead and the next update starts a fresh run
 
 # -- ZSHBOP Quick Boot Configuration
 # * Fast terminal loads for agent/automation terminals (e.g. OpenChamber).
