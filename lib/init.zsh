@@ -53,6 +53,7 @@ init_core
 init_include () {
     source ${ZSHBOP_ROOT}/lib/functions.zsh # -- zshbop functions
     source ${ZSHBOP_ROOT}/lib/update-check.zsh # -- branch-aware update check
+    source ${ZSHBOP_ROOT}/lib/repo-update.zsh # -- background extra-repository sync
     source ${ZSHBOP_ROOT}/lib/aliases.zsh # -- include aliases
     init_log
 }
@@ -1391,6 +1392,7 @@ function init_zshbop () {
         _start_boot_timer "init_software"; init_software        # -- Include software
     fi
     _start_boot_timer "init_help"; init_help            # -- Load help
+    _start_boot_timer "init_repo_update"; init_repo_update  # -- Register the repo-update prompt hook
     # --------------------------------------------------
     # -- Include Commands First as a dependency for all below commands.
     # --------------------------------------------------    
