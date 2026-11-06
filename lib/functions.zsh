@@ -504,8 +504,9 @@ zshbop_update () {
 	# Update $ZBC aka custom zshbop directory
 	_loading "Updating custom zshbop directory $ZBC"
 	if [[ $ZBC ]]; then
-		_loading2 "Found zshbop custom, running git pull if a git repostiory"
-		git --git-dir=${ZBC}/.git --work-tree=${ZBC} pull
+		_loading2 "Found zshbop custom, syncing if a git repository"
+		# -- $ZBC is often a plain directory, so a non-repository is a skip, not a failure
+		_git_sync_repo --optional "$ZBC"
 	else
 		_loading2 "No zshbop-custom to update"
 	fi
