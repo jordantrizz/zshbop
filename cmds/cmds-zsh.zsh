@@ -46,17 +46,53 @@ function zsh-list-comps() {
 }
 
 # ==============================================
-# -- _zshbop_bind_menu_complete_tab
-# -- Bind Tab late so autosuggestions wraps the final widget once
+# -- _zshbop_tab_complete_widget
+# -- Widget name for $ZSHBOP_TAB_COMPLETE_MODE (cycle keeps the old behaviour)
 # ==============================================
-function _zshbop_bind_menu_complete_tab () {
+function _zshbop_tab_complete_widget () {
+  case "${ZSHBOP_TAB_COMPLETE_MODE:-select}" in
+    cycle) print -r -- menu-complete ;;
+    *)     print -r -- expand-or-complete ;;
+  esac
+}
+
+# ==============================================
+# -- _zshbop_bind_tab_completion
+# -- Bind Tab late so autosuggestions wraps the final widget once
+# -- select/expand complete to the common prefix and list; select then opens a
+# -- menu where Tab/Down move the highlight and Enter accepts
+# ==============================================
+function _zshbop_bind_tab_completion () {
   [[ $- != *i* ]] && return 0
 
   export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
+  local tab_mode="${ZSHBOP_TAB_COMPLETE_MODE:-select}"
+  case "$tab_mode" in
+    select|cycle|expand) ;;
+    *)
+      _warning "ZSHBOP_TAB_COMPLETE_MODE='$tab_mode' is not select|cycle|expand, using select"
+      tab_mode="select"
+      export ZSHBOP_TAB_COMPLETE_MODE="select"
+      ;;
+  esac
+
+  # -- Menu selection needs zsh/complist; without it the mode degrades to a listing.
+  # -- AUTO_MENU is required for `menu select` to engage at all: it drives the
+  # -- sequence - complete as far as possible, list, then start menu selection.
+  if [[ "$tab_mode" == "select" ]] && zmodload zsh/complist 2>/dev/null; then
+    setopt auto_menu
+    # -- Never override a menu zstyle the user set in .zshbop.conf
+    if [[ -z "$(zstyle -L ':completion:*' menu 2>/dev/null)" ]]; then
+      zstyle ':completion:*' menu select
+    fi
+  fi
+
+  local tab_widget="$(_zshbop_tab_complete_widget)"
+
   if (( $+commands[opencode] )) && whence -f _zshbop_opencode_query >/dev/null 2>&1; then
     # Integrate opencode AI: handle # lines with shared query function,
-    # fall through to menu-complete for normal completion.
+    # fall through to the configured completion widget for normal completion.
     function _zshbop_tab_handler() {
       if [[ "$BUFFER" == \#* ]]; then
         local prompt="${BUFFER#\#}"
@@ -71,17 +107,17 @@ function _zshbop_bind_menu_complete_tab () {
         fi
         zle reset-prompt
       else
-        zle menu-complete
+        zle "$(_zshbop_tab_complete_widget)"
       fi
     }
     zle -N _zshbop_tab_handler
     bindkey '^I' _zshbop_tab_handler
   else
-    bindkey '^I' menu-complete
+    bindkey '^I' "$tab_widget"
   fi
 
   if whence -f _zsh_autosuggest_bind_widgets >/dev/null 2>&1; then
     _zsh_autosuggest_bind_widgets
   fi
 }
-INIT_LAST_CORE+=("_zshbop_bind_menu_complete_tab")
+INIT_LAST_CORE+=("_zshbop_bind_tab_completion")

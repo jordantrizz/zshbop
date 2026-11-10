@@ -32,6 +32,7 @@
 #ZSHBOP_BOOT_SKIP_ITEMS=(motd checks plugins ssh kb software) # -- Custom skip list, overrides ZSHBOP_BOOT_SKIP level
 #export ZSHBOP_BOOT_FULL="1" # -- Force the full boot regardless of ZSHBOP_BOOT_SKIP / ZSHBOP_BOOT_SKIP_ITEMS (e.g. when debugging zshbop)
 #export ZSHBOP_P10K_QUICK_BOOT="0" # -- Load the powerlevel10k prompt during quick boot (default 1); set 0 to keep the plain prompt
+#export ZSHBOP_TAB_COMPLETE_MODE="select" # -- Tab completion: select (common prefix, list, then a selectable menu - default), cycle (insert the first match, Tab again to cycle), expand (common prefix + list only, no menu)
 
 # -- ZSHBOP Exbin
 #export EXBIN_TYPE="" # Choose either `netcat` or `api` for exbin posting
