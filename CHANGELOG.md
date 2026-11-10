@@ -19,6 +19,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   results, counts, and — with `-l`/`--log` or `-j`/`--json` — the run log or a
   machine-readable document.
 
+### Changed
+- Tab completion now lets you pick a candidate instead of inserting the first one. Tab completes as
+  far as possible, the next Tab lists the matches, and the next opens a menu where Tab or the arrows
+  move the highlight and Enter accepts it; `Ctrl-G` cancels back to what you typed. The old
+  `menu-complete` behaviour is one setting away with `ZSHBOP_TAB_COMPLETE_MODE=cycle` (`expand` gives
+  the plain complete-and-list flow). This loads `zsh/complist` and sets the `menu select` completion
+  style, and enables `AUTO_MENU` because menu selection does not engage without it. The `#`-line
+  opencode query is unchanged.
+
 ### Fixed
 - `zshbop update` and `repos update` now sync every repository through one quiet helper:
   each repository reports a single line (`up to date`, `updated (+N commits)`,

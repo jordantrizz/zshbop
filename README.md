@@ -77,6 +77,7 @@ zshbop is a frankenstien project to improve my own workflow. It utilizes a numbe
 * A knowledge base of common topics
 * Boot time tracking with microsecond precision (see [doc/BOOT_TIMING.md](doc/BOOT_TIMING.md))
 * Terminal environment detection (VSCode, iTerm2, WezTerm, Windows Terminal)
+* Selectable Tab completion — Tab completes as far as possible, the next Tab lists the candidates, and the next opens a menu where Tab/Down moves the highlight and Enter accepts it (see [Tab Completion](#tab-completion))
 * A library of alises, functions for common tasks for various workflows around the following.
     * Cloudflare
     * Docker
@@ -90,7 +91,24 @@ zshbop is a frankenstien project to improve my own workflow. It utilizes a numbe
   ## Docksoft Templates
 
   The `docksoft` scaffolding includes container templates such as `traefik`, `uptime-kuma`, `n8n`, `dozzle`, `prunemate`, and `dashy`.
-    
+
+### Tab Completion
+
+Tab is bound to a completion flow that lets you pick a candidate instead of silently taking the
+first one:
+
+1. The first Tab completes the word as far as it is unambiguous (`vm2` becomes `vm2-`).
+2. The next Tab lists the candidates.
+3. The next Tab opens a menu: Tab or the down/up arrows move the highlight, Enter accepts it, and
+   `Ctrl-G` cancels back to what you typed.
+
+This needs `zsh/complist` (loaded for you) and the `menu select` completion style; `AUTO_MENU` is
+turned on because menu selection does not engage without it. Set `ZSHBOP_TAB_COMPLETE_MODE=cycle` to
+restore the old behaviour (each Tab inserts the next candidate), or `expand` for the plain zsh
+behaviour (complete and list, never insert from a menu).
+
+Lines starting with `#` still hand the line to the opencode query instead of completing.
+
 ## Branches
 
 * main - production releases, fully functional.
@@ -354,6 +372,7 @@ When ```ZBC``` is set in your config, zshbop will automatically:
 | `ZSHBOP_BOOT_SKIP_ITEMS` | Custom list of boot items to skip (`motd checks plugins ssh kb software`); overrides the `ZSHBOP_BOOT_SKIP` level | Array | () |
 | `ZSHBOP_BOOT_FULL` | Force the full boot regardless of `ZSHBOP_BOOT_SKIP` / `ZSHBOP_BOOT_SKIP_ITEMS` | 0 or 1 | Not set |
 | `ZSHBOP_P10K_QUICK_BOOT` | Load the powerlevel10k prompt during quick boot (loaded standalone, without the other plugins); `0` restores the plain prompt | 0 or 1 | 1 |
+| `ZSHBOP_TAB_COMPLETE_MODE` | How Tab picks a completion: `select` completes, lists, then opens a selectable menu; `cycle` inserts the first candidate and Tab again cycles; `expand` completes and lists without a menu | select, cycle, expand | select |
 | `ZSHBOP_NVM_ENABLE` | Enable NVM initialization (disabled by default) | 1 | Not set |
 | `ZSHBOP_NVM_LAZY` | Lazy load NVM on first use of nvm/node/npm/npx | 0 or 1 | 1 (when enabled) |
 | `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |
