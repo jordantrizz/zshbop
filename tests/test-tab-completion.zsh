@@ -41,6 +41,12 @@ fi
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/zshbop-tab.XXXXXX")"
 trap 'zpty -d pty 2>/dev/null; rm -rf "$WORK"' EXIT
 
+AUTOSUGGEST_LIB=""
+for candidate in "$HOME/antidote/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+                 "$HOME/.antidote/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh"; do
+    [[ -r "$candidate" ]] && AUTOSUGGEST_LIB="$candidate" && break
+done
+
 ZDOTDIR="$WORK/zdotdir"
 BINDIR="$WORK/bin"
 LOG="$WORK/buffer.log"
@@ -69,6 +75,7 @@ _warning () { print -r -- "[warning] $*" >> "$DUMP_LOG" }
 _fake () { compadd vm2-small.runlocalsrv.com vm2-vh1-sydseast-large.ebundanthost.com vm2-vh1-uswest-large.optikhosting.com }
 compdef _fake probe
 _zshbop_opencode_query () { print -r -- 'echo stubbed-ai' }
+[[ -n "$ZSH_AUTOSUGGEST_LIB" && -r "$ZSH_AUTOSUGGEST_LIB" ]] && source "$ZSH_AUTOSUGGEST_LIB"
 _dump_buffer () { print -r -- "$BUFFER" >> "$DUMP_LOG" }
 zle -N _dump_buffer
 bindkey '^X^B' _dump_buffer
@@ -88,7 +95,7 @@ _start () {
     fi
     : > "$LOG"
     zpty -d pty 2>/dev/null
-    zpty -b pty "env -i HOME='$WORK' TERM=xterm PATH='$child_path' ZDOTDIR='$ZDOTDIR' DUMP_LOG='$LOG' ZSHBOP_TAB_COMPLETE_MODE='$mode' zsh -i"
+    zpty -b pty "env -i HOME='$WORK' TERM=xterm PATH='$child_path' ZDOTDIR='$ZDOTDIR' DUMP_LOG='$LOG' ZSH_AUTOSUGGEST_LIB='$AUTOSUGGEST_LIB' ZSHBOP_TAB_COMPLETE_MODE='$mode' zsh -i"
     _boot
 }
 
@@ -249,6 +256,19 @@ _zshbop_bind_tab_completion" 2>/dev/null; then
     ok "non-interactive call returns 0"
 else
     fail "non-interactive call returned non-zero"
+fi
+
+# ---------------------------------------------------------------
+echo "=== Scenario 10: zsh-autosuggestions does not break the menu ==="
+if [[ -n "$AUTOSUGGEST_LIB" ]]; then
+    _start select 1
+    _send 'probe vm2'
+    _send $'\t\t\t'
+    buf="$(_buffer)"
+    [[ "$buf" == 'probe vm2-small.runlocalsrv.com '* ]] && ok "menu still selects with autosuggestions loaded" || fail "autosuggestions buffer: '$buf'"
+    _stop
+else
+    echo "  [SKIP] zsh-autosuggestions not found"
 fi
 
 # ---------------------------------------------------------------
