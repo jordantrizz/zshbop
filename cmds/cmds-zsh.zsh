@@ -80,12 +80,15 @@ function _zshbop_bind_tab_completion () {
   # -- Menu selection needs zsh/complist; without it the mode degrades to a listing.
   # -- AUTO_MENU is required for `menu select` to engage at all: it drives the
   # -- sequence - complete as far as possible, list, then start menu selection.
+  # -- expand turns it off so a repeated Tab only lists, never inserts a candidate.
   if [[ "$tab_mode" == "select" ]] && zmodload zsh/complist 2>/dev/null; then
     setopt auto_menu
     # -- Never override a menu zstyle the user set in .zshbop.conf
     if [[ -z "$(zstyle -L ':completion:*' menu 2>/dev/null)" ]]; then
       zstyle ':completion:*' menu select
     fi
+  elif [[ "$tab_mode" == "expand" ]]; then
+    unsetopt auto_menu
   fi
 
   local tab_widget="$(_zshbop_tab_complete_widget)"
