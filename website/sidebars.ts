@@ -264,6 +264,7 @@ const sidebars: SidebarsConfig = {
       label: 'History',
       collapsed: false,
       items: [
+        'history/changelog',
         'history/commands-reference-2020',
       ],
     },

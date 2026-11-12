@@ -1,0 +1,94 @@
+name: docs
+
+# The documentation site: gate every change, publish from main.
+# The generated pages depend on kb/, cmds/, checks/, lib/, and CHANGELOG.md, so those paths trigger a
+# rebuild as well as website/ itself.
+
+on:
+  push:
+    branches: [main, next-release]
+    paths:
+      - 'website/**'
+      - 'kb/**'
+      - 'cmds/**'
+      - 'checks/**'
+      - 'lib/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'scripts/docs/**'
+      - 'scripts/check-docs-site.sh'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'website/**'
+      - 'kb/**'
+      - 'cmds/**'
+      - 'checks/**'
+      - 'lib/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'scripts/docs/**'
+      - 'scripts/check-docs-site.sh'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Build and check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install
+        working-directory: website
+        run: npm ci
+
+      - name: Regenerate and fail on drift
+        run: |
+          cd website
+          npm run gen
+          cd ..
+          git diff --exit-code -- website/docs website/sidebars.ts README.md
+
+      - name: Build
+        working-directory: website
+        run: npm run build
+
+      - name: Typecheck
+        working-directory: website
+        run: npm run typecheck
+
+      - name: Docs gate
+        run: bash scripts/check-docs-site.sh --site website --repo-root .
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/build
+
+  deploy:
+    name: Deploy
+    needs: gate
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

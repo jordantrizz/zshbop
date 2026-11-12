@@ -17,7 +17,8 @@
     "gen:kb": "zsh ../scripts/docs/gen-kb.sh",
     "gen:changelog": "zsh ../scripts/docs/gen-changelog.sh",
     "gen:readme": "zsh ../scripts/docs/gen-readme.sh",
-    "gen": "npm run gen:commands && npm run gen:kb && npm run gen:changelog && npm run gen:readme"
+    "gen": "npm run gen:commands && npm run gen:kb && npm run gen:changelog && npm run gen:readme",
+    "check": "bash ../scripts/check-docs-site.sh --site . --repo-root .."
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
