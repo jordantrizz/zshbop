@@ -23,4 +23,5 @@ A modern replacement for `ls`, with icons, colours, and tree output.
 
 ## Related
 
+- [Knowledge base](../kb/index.md) — short articles on many of these tools and services.
 - [Boot timing](./boot-timing.md) — measure what a tool costs at shell startup.

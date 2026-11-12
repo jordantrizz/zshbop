@@ -36,6 +36,10 @@ const config: Config = {
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',
   markdown: {
+    // .md is parsed as CommonMark, .mdx as MDX. The knowledge base is written
+    // for GitHub (braces, tags, inline triple-backtick code), so MDX parsing
+    // would reject it; curated pages here use no JSX either.
+    format: 'detect',
     hooks: {
       onBrokenMarkdownLinks: 'throw',
     },

@@ -6,6 +6,20 @@ This is my custom ZSH configuration. It uses antidote to install ZSH plugins.
 <a href="https://jordantrask.com/coffee" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 <!-- Top Image -->
 
+**Documentation:** https://jordantrizz.github.io/zshbop/
+
+<!-- BEGIN docs-index -->
+| Section | Start here |
+|---------|------------|
+| Getting started | [What zshbop is](https://jordantrizz.github.io/zshbop/getting-started/what-is-zshbop) |
+| Guides | [Tab completion](https://jordantrizz.github.io/zshbop/guides/tab-completion) |
+| Command reference | [All commands](https://jordantrizz.github.io/zshbop/commands) |
+| Configuration | [Options and variables](https://jordantrizz.github.io/zshbop/reference/configuration) |
+| Contributing | [Development](https://jordantrizz.github.io/zshbop/contributing/development) |
+| Knowledge base | [Articles](https://jordantrizz.github.io/zshbop/kb) |
+| Changelog | [Release history](https://jordantrizz.github.io/zshbop/history/changelog) |
+<!-- END docs-index -->
+
 
 <!--ts-->
 Table of Contents

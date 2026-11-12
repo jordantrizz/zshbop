@@ -17,9 +17,11 @@ It is built on:
 ## What it adds
 
 - **A knowledge base.** The `kb` command opens short articles on topics such as Docker, CSF, SSL,
-  WordPress, Proxmox, and GridPane. The same articles are published on this site.
+  WordPress, Proxmox, and GridPane. The same articles are published in the
+  [knowledge base](../kb/index.md).
 - **Commands and aliases.** Cloudflare, Docker, Git, WordPress, Linux, AWS, curl, and PHP workflows,
-  each registered in a help array so `help <category>` lists them.
+  each registered in a help array so `help <category>` lists them. They are all listed in the
+  [command reference](../commands/index.md).
 - **Checks.** Environment checks for Docker, terminal, security, updates, VMs, and Zsh, run from
   `zb check`.
 - **Boot timing.** Optional tracking of how long the shell takes to start, with microsecond

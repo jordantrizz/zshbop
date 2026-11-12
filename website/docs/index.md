@@ -25,6 +25,8 @@ shell into a working one on Linux, macOS, and WSL hosts.
 
 ## Reference and contributing
 
+- [Command reference](./commands/index.md) — every command, generated from the help arrays.
+- [Knowledge base](./kb/index.md) — the articles the `kb` command reads.
 - [Configuration](./reference/configuration.md) — every documented `ZSHBOP_*` option.
 - [Development](./contributing/development.md) — the Zsh conventions this repository follows.
 - [Testing](./contributing/testing.md) — the test scripts and how to run them.

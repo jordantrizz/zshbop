@@ -12,7 +12,12 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "gen:commands": "zsh ../scripts/docs/gen-commands.sh",
+    "gen:kb": "zsh ../scripts/docs/gen-kb.sh",
+    "gen:changelog": "zsh ../scripts/docs/gen-changelog.sh",
+    "gen:readme": "zsh ../scripts/docs/gen-readme.sh",
+    "gen": "npm run gen:commands && npm run gen:kb && npm run gen:changelog && npm run gen:readme"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
