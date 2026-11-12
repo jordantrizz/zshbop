@@ -75,7 +75,7 @@ zshbop is a frankenstien project to improve my own workflow. It utilizes a numbe
 
 * Customized Powerlevel10k prompt
 * A knowledge base of common topics
-* Boot time tracking with microsecond precision (see [doc/BOOT_TIMING.md](doc/BOOT_TIMING.md))
+* Boot time tracking with microsecond precision (see [the boot timing guide](https://jordantrizz.github.io/zshbop/guides/boot-timing))
 * Terminal environment detection (VSCode, iTerm2, WezTerm, Windows Terminal)
 * Selectable Tab completion — Tab completes as far as possible, the next Tab lists the candidates, and the next opens a menu where Tab/Down moves the highlight and Enter accepts it (see [Tab Completion](#tab-completion))
 * A library of alises, functions for common tasks for various workflows around the following.

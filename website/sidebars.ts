@@ -19,6 +19,9 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'getting-started/what-is-zshbop',
+        'getting-started/installation',
+        'getting-started/first-run',
+        'getting-started/platforms',
       ],
     },
     {
@@ -27,6 +30,39 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'guides/tab-completion',
+        'guides/updating',
+        'guides/debugging',
+        'guides/boot-timing',
+        'guides/zshbop-cli',
+        'guides/recommended-tools',
+        'guides/test-containers',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Reference',
+      collapsed: false,
+      items: [
+        'reference/configuration',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Contributing',
+      collapsed: false,
+      items: [
+        'contributing/development',
+        'contributing/testing',
+        'contributing/release',
+        'contributing/roadmap',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'History',
+      collapsed: false,
+      items: [
+        'history/commands-reference-2020',
       ],
     },
   ],

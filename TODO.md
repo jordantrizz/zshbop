@@ -162,3 +162,14 @@ help_files[aws]="AWS Commands and scripts"
 typeset -gA help_aws
 ```
 
+### Shell and tool ideas (merged from doc/todo.md)
+* Add https://github.com/rusty-ferris-club/shellclear
+* Add in autojump detection.
+* Alias `gc` overlaps with the zsh plugin `git`.
+* Look at adding https://httpie.io/ and the Oh My Zsh `httpie` plugin.
+* Look at adding https://github.com/tmuxinator/tmuxinator and the Oh My Zsh `tmuxinator` and `tmux`
+  plugins.
+* Look at adding https://github.com/nvbn/thefuck and the Oh My Zsh `thefuck` plugin.
+* Look at adding https://github.com/ajeetdsouza/zoxide
+* Broken and needs to be fixed: https://github.com/marlonrichert/zsh-autocomplete
+
