@@ -20,6 +20,7 @@ shell into a working one on Linux, macOS, and WSL hosts.
 - [Updating](./guides/updating.md) — `zbu`, the update check, and background repository sync.
 - [Debugging](./guides/debugging.md) — `zbdebug`, the debug files, and `antidote-debug`.
 - [Boot timing](./guides/boot-timing.md) — measure where startup time goes.
+- [Docksoft](./guides/docksoft.md) — container templates and how they are deployed.
 - [zshbop-cli](./guides/zshbop-cli.md) — run zshbop commands from bash.
 - [Test containers](./guides/test-containers.md) — throwaway hosts for testing the installer.
 

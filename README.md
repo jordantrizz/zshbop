@@ -20,500 +20,56 @@ This is my custom ZSH configuration. It uses antidote to install ZSH plugins.
 | Changelog | [Release history](https://jordantrizz.github.io/zshbop/history/changelog) |
 <!-- END docs-index -->
 
+## Quick start
 
-<!--ts-->
-Table of Contents
-=================
+```bash
+bash <(curl -sL https://zshrc.pl)
+```
 
-- [Table of Contents](#table-of-contents)
-- [zshbop](#zshbop)
-  - [Features](#features)
-  - [Branches](#branches)
-  - [Commands](#commands)
-    - [Core Commands](#core-commands)
-    - [zshbop Quick Commands](#zshbop-quick-commands)
-    - [zshbop Commands](#zshbop-commands)
-  - [Debugging](#debugging)
-    - [Antidote Debug Report](#antidote-debug-report)
-  - [Terminal Initialization Behavior](#terminal-initialization-behavior)
-- [Installation](#installation)
-  - [Install Guided](#install-guided)
-  - [Install Usage](#install-usage)
-  - [Install Examples](#install-examples)
-    - [Install main branc into home directory](#install-main-branc-into-home-directory)
-    - [Install next-release branch into system directory /usr/local/sbin](#install-next-release-branch-into-system-directory-usrlocalsbin)
-    - [Install main branch into git directory ~/git](#install-main-branch-into-git-directory-git)
-    - [Install next-release branch into system and skip optional software check](#install-next-release-branch-into-system-and-skip-optional-software-check)
-- [Font Installation Notes](#font-installation-notes)
-  - [Automatic Font Install](#automatic-font-install)
-  - [Manual Font Install](#manual-font-install)
-    - [macOS](#macos)
-    - [Windows](#windows)
-      - [Windows Terminal](#windows-terminal)
-      - [WSL Script Install - Broken](#wsl-script-install---broken)
-- [Configuration and Customization](#configuration-and-customization)
-  - [Using zshbop Configuration File](#using-zshbop-configuration-file)
-    - [Configuration Options](#configuration-options)
-    - [Exbin](#exbin)
-    - [Internal Variables](#internal-variables)
-  - [Custom Startup Scripts](#custom-startup-scripts)
-- [Installation Notes](#installation-notes)
-  - [Operating System Installation Notes](#operating-system-installation-notes)
-    - [macOS Installation Notes](#macos-installation-notes)
-    - [Windows Installation Notes](#windows-installation-notes)
-      - [Windows Terminal](#windows-terminal-1)
-      - [WSL Subsystem](#wsl-subsystem)
-      - [WSL 1 vs WSL 2](#wsl-1-vs-wsl-2)
-      - [Upgrade WSL 1 to WSL 2](#upgrade-wsl-1-to-wsl-2)
-      - [VcXsrv (WSL Gui)](#vcxsrv-wsl-gui)
-- [ZSH Installation Issues](#zsh-installation-issues)
-  - [CentOS 7 + zsh 5.1.1](#centos-7--zsh-511)
-- [Issues](#issues)
-- [ToDo](#todo)
+The guided installer asks its questions, installs zsh and the required packages, and lays out the
+configuration. For a development checkout instead:
 
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+```bash
+bash <(curl -sL https://zshrc.pl) custom main git
+```
 
-<!-- Added by: jtrask, at: Thu 06 Oct 2022 11:54:52 AM EDT -->
+Then reload the shell and look around:
 
-<!--te-->
+```bash
+zbr        # reload zshbop
+zb check   # environment check
+help       # the zshbop help screen
+kb docker  # a knowledge base article
+```
 
-# zshbop
-zshbop is a frankenstien project to improve my own workflow. It utilizes a number of third party software an scripts. At the core the following are used.
+## What it adds
 
-* Oh My ZSH
-* Antidote
-* Antigen
-* Powerlevel10k
-
-## Features
-
-* Customized Powerlevel10k prompt
-* A knowledge base of common topics
-* Boot time tracking with microsecond precision (see [the boot timing guide](https://jordantrizz.github.io/zshbop/guides/boot-timing))
-* Terminal environment detection (VSCode, iTerm2, WezTerm, Windows Terminal)
-* Selectable Tab completion — Tab completes as far as possible, the next Tab lists the candidates, and the next opens a menu where Tab/Down moves the highlight and Enter accepts it (see [Tab Completion](#tab-completion))
-* A library of alises, functions for common tasks for various workflows around the following.
-    * Cloudflare
-    * Docker
-    * Git
-    * WordPress
-    * Linux
-    * AWS
-    * curl
-    * php
-
-  ## Docksoft Templates
-
-  The `docksoft` scaffolding includes container templates such as `traefik`, `uptime-kuma`, `n8n`, `dozzle`, `prunemate`, and `dashy`.
-
-### Tab Completion
-
-Tab is bound to a completion flow that lets you pick a candidate instead of silently taking the
-first one:
-
-1. The first Tab completes the word as far as it is unambiguous (`vm2` becomes `vm2-`).
-2. The next Tab lists the candidates.
-3. The next Tab opens a menu: Tab or the down/up arrows move the highlight, Enter accepts it, and
-   `Ctrl-G` cancels back to what you typed.
-
-This needs `zsh/complist` (loaded for you) and the `menu select` completion style; `AUTO_MENU` is
-turned on because menu selection does not engage without it. Set `ZSHBOP_TAB_COMPLETE_MODE=cycle` to
-restore the old behaviour (each Tab inserts the next candidate), or `expand` for the plain zsh
-behaviour (complete and list, never insert from a menu).
-
-Lines starting with `#` still hand the line to the opencode query instead of completing.
+- A customized Powerlevel10k prompt (it needs a patched font; see the installation page).
+- Selectable Tab completion: Tab completes, lists, then opens a menu you move through.
+- A knowledge base of short articles, readable with `kb <article>` and published on the site.
+- Commands and aliases for Cloudflare, Docker, Git, WordPress, Linux, AWS, curl, and PHP.
+- Environment checks, boot-time tracking, and terminal detection (VSCode, iTerm2, WezTerm, Windows
+  Terminal).
+- Docksoft container templates deployed from `templates/docksoft/`.
 
 ## Branches
 
-* main - production releases, fully functional.
-* next-release - Next release branch, may be broken.
-
-## Commands
-Ive designed zshbop to have a number of commands
-### Core Commands
-These commands are available as just commands in the shell
-
-* `help` - zshbop help screen
-* `init` - Initialize zshbop
-* `kb` - Knowledge Base
-* `motd` - Print out motd
-* `mise-uvx-check` - Check `mise`/`uvx` symlink health for `~/bin/uvx`
-* `os` - Return OS
-* `report` - Print out errors and warnings
-* `repos` - Install popular github.com repositories.
-* `traefik-status` - Show Traefik routers, services, and certificate status
-
-### zshbop Quick Commands
-These commands are shortened aliases for zshbop commands
-
-* `zb` - zshbop main command and list of commands
-* `zbd` - Change directory to $ZBR
-* `zbqr` - Quick reload zshbop
-* `zbr` - Reload zshbop
-* `zbu` - Update zshbop
-* `zbuf` - Update and reset zshbop
-* `zbuqr` - Update and quick reload zshbop
-* `zbur` - Update and reload zshbop
-
-### zshbop Commands
-* `zb` - zshbop main command and list of commands
-* `zb branch` - Switch between main and next-release branch
-* `zb cache-clear` - Clear cache for antigen + more
-* `zb cache-clear-super` - Clear everything, including zsh autocompletion
-* `zb check` - Check environment for installed software and tools
-* `zb check-system` - Print out errors and warnings
-* `zb check-updates` - Check for zshbop updates (tags on main, commits on next-release)
-* `zb cleanup` - Cleanup old things
-* `zb custom` - Custom zshbop configuration
-* `zb custom-load` - Load zshbop custom config
-* `zb debug` - Turn debug on and off
-* `zb formatting` - List variables for using color
-* `zb help` - zshbop help screen
-* `zb install-env` - Install environment tools
-* `zb issue` - Create zshbop issue on Github
-* `zb reload` - Reload zshbop
-* `zb report` - Print out errors and warnings
-* `zb update` - Update zshbop
-* `zb update-status` - Show the status of the background extra-repository sync
-* `zb version` - Get version information
-
-Updater behavior notes:
-* `zb update`/`zbu` now runs Updater v2 force-sync flow (`fetch` + `reset --hard`) to avoid merge/rebase divergence prompts.
-* Updates are only allowed on `main` and `next-release`.
-* If uncommitted changes are present (tracked or untracked), update exits and asks you to commit or stash first.
-
-Extra repository sync (`$ZSHBOP_UPDATE_GIT`):
-* `zbu` starts a detached worker that syncs the configured mirrors one at a time, so the
-  shell (and the MOTD update prompt) is never blocked on a slow remote. The update
-  transcript shows one line: `Syncing N extra repositories in the background`.
-* A single summary appears at the next prompt, once — `Extra repositories: 2 updated · 3
-  current (12s)` — and nothing at all when every repository was already current. Failures
-  read `1 failed · 3 current - 'zb update-status' for details`.
-* `zb update-status` shows whether a run is in flight, what each repository did, and
-  `-l`/`--log` or `-j`/`--json` for the run log or machine-readable output. State lives in
-  `$ZSHBOP_CACHE_DIR/repo-update/`, so it survives `zbr`.
-* Each repository reports one line and never streams git progress, `remote:` or `hint:`
-  advice. A diverged mirror is reset to its upstream; a dirty worktree blocks that reset.
-  Set `ZSHBOP_UPDATE_VERBOSE=1` to see the raw git output.
-* `ZSHBOP_UPDATE_GIT_BACKGROUND=0` restores the blocking foreground loop (and its non-zero
-  exit on failure), `ZSHBOP_UPDATE_GIT_NOTIFY=0` silences the prompt summary, and
-  `ZSHBOP_UPDATE_GIT_TIMEOUT` (default `300`) decides when a stuck worker is treated as dead.
-
-Update check behavior (`zb check-updates`):
-* On `main` the check compares release tags — the latest tag on `origin/main` can be ahead by one, two, or many releases (reported as "N release(s) behind").
-* On `next-release` the check tracks commits on `origin/next-release` — tags AND single commits in between are all detected ("N commit(s) behind").
-* The check is pure git — no GitHub API calls, so no `curl`/`jq` dependency or rate limits.
-* The MOTD runs the check in `--motd` mode at login: fully silent when up to date, and shows a single "run 'zbu' to update" warning when an update is available.
-
-## Debugging
-You can use the function `zbdebug` on the CLI and `_debugf` within any function to print out debug information.
-
-### Antidote Debug Report
-Use `antidote-debug` to generate a full runtime report for antidote, auto-ls, widget bindings, and shell init state.
-
-```bash
-antidote-debug
-```
-
-Default output path:
-
-```bash
-$ZSHBOP_ROOT/debug/antidote-debug-YYYYmmdd-HHMMSS.log
-```
-
-Optional custom output path:
-
-```bash
-antidote-debug -o /tmp/antidote-debug.log
-```
-
-Help:
-
-```bash
-antidote-debug -h
-```
-
-### mise / uvx troubleshooting
-If `mise list` shows `uv` but `uvx` is not found by other tools, run:
-
-```bash
-mise-uvx-check
-```
-
-This validates that `uvx` is active in `mise`, `~/bin/uvx` is symlinked correctly, and `uvx` executes.
-
-```
-zbdebug os-binary
-** [DEBUG]: No binary specified
-```
-
-The function `os-binary` has a `_debugf "No binary specified"` which is printed out when `zbdebug` is called with the argument `os-binary`.
-
-## Terminal Initialization Behavior
-- VSCode shells are detected when `TERM_PROGRAM=vscode` or `VSCODE_IPC_HOOK_CLI` is set.
-- In VSCode, zshbop does not force reload; full initialization runs unless reload is explicitly requested.
-- Reload sessions skip `init_motd` and `init_sshkeys`.
-- In normal shells, initialization runs once per shell and later re-sources are skipped unless reload is explicitly requested.
-- If `AUTO_LS_CHPWD=false`, auto-listing happens on Enter (`accept-line`) rather than on directory change hooks.
-- To troubleshoot, check: `echo $TERM_PROGRAM`, `echo $VSCODE_IPC_HOOK_CLI`, `echo $ZSHBOP_RELOAD`, `echo $ZSHBOP_INITIALIZED`.
-- To opt out of VSCode shell-specific behavior, set `ZSHBOP_DISABLE_VSCODE_SHELL=1` in your config before initialization.
-- AI/agent terminals (VS Code Copilot agent-host terminals) are detected via `AI_AGENT`/`COPILOT_AGENT`. VS Code spawns them with paging disabled (`PAGER`/`GIT_PAGER`/`GH_PAGER` empty), so `git log` and similar dump everything instead of using `less`. To re-enable `less` paging in these terminals (by clearing `GIT_PAGER`/`GH_PAGER`), set `ZSHBOP_AI_PAGER=1` in your config before initialization. This is disabled by default.
-
-# Installation
-
-## Install Guided
-
- There is an included install.sh bash script that will guide you through the installation process. It will ask you questions and install the required packages, such as zsh which is a requirement.
-
-| Install Method      | Command       |
-|---------------------|---------------|
-| Quick Install       | ```bash <(curl -sL https://zshrc.pl)``` |
-| Fallback Install    | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/master/install.sh)```  |
-| Next Release Install | ```bash <(curl -sL https://raw.githubusercontent.com/jordantrizz/zshbop/next-release/install.sh)``` |
-
-## Install Usage
-```
-Usage: install -h|-s (clean|skipdeps|default|home|git|)|(custom <branch> <location>)
-
-  Options
-    -h          - This help screen
-    -s          - Skip all dependencies
-    -o          - Skip optional software check
-    -d          - Debug mode
-
-  Commands
-
-    clean                         - Remove zshbop
-    default                       - Default install
-    home                          - Install in home directory
-    git                           - Install in ~/git with dev branch
-    custom <branch> <location>    - Custom install
-    
-  Custom Install: * Note: Custom install skips optional software check
-    branch (main|next-release)
-    location (home|system|git) 
-        - home = $HOME/zshbop
-        - systen = /usr/local/sbin/zshbop
-        - git = $HOME/git/zshbop
-```
-## Install Examples
-### Install main branc into home directory
-```
-bash <(curl -sL https://zshrc.pl) custom main home
-```
-### Install next-release branch into system directory /usr/local/sbin
-```
-bash <(curl -sL https://zshrc.pl) custom next-release system
-```
-### Install main branch into git directory ~/git
-```
-bash <(curl -sL https://zshrc.pl) custom main git
-```
-### Install next-release branch into system and skip optional software check
-```
-bash <(curl -sL https://zshrc.pl) -o custom next-release system
-```
-
-# Font Installation Notes
-The most important part of zshbop is the powerlevel10k prompt, which requires a specific font. With Powerline10k you need patched font files. The patch font files are "MesloLGS NF" and are located on the following Github repository.
-
-* https://github.com/romkatv/powerlevel10k/blob/master/font.md
-
-## Automatic Font Install
-As per the font.md file above.
-
->Automatic font installation
->If you are using iTerm2 or Termux, `p10k configure` can install the recommended font for you. Simply answer Yes when asked whether to install Meslo Nerd Font.
-
-## Manual Font Install
-
-### macOS
-```
-cp fonts/* ~/Library/fonts
-```
-
-### Windows
-N/A
-
-#### Windows Terminal
-Then use the ```windows_terminal.json``` in this repository.
-
-#### WSL Script Install - Broken
-There is an issue with some of the Powerline fonts I downloaded and installed in windows. So I opted for this set of fonts using a script in a GIST https://gist.github.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b
-
-You can simply run this command within WSL
-
-```
-bash -c "$(curl -fsSL https://gist.githubusercontent.com/romkatv/aa7a70fe656d8b655e3c324eb10f6a8b/raw/install_meslo_wsl.sh)"
-```
-
-# Configuration and Customization
-You can create a custom configuration file to override zshbop settings and variables. This is useful if you want to use a different plugin manager or override zshbop settings.
-## Using zshbop Configuration File
-Copy ```.zshbop.conf.example``` to ```$HOME/.zshbop.conf``` and modify as needed.
-
-For PATH changes in ```$HOME/.zshbop.conf```, use direct PATH edits (for example: ```PATH="$PATH:$HOME/my/bin"```) because this file is loaded before helper commands are available. Use ```add-path``` interactively after startup.
-
-When ```ZBC``` is set in your config, zshbop will automatically:
-- Set ```ZBC_ROOT``` to the same value as ```$ZBC```
-- Add ```$ZBC/zbc.zsh``` to ```ZSHBOP_CUSTOM_SOURCES``` (deduplicated)
-- Sync it during `zb update` through the quiet repo sync helper: a git checkout reports one
-  line (`up to date`, `updated (+N commits)`, `reset to origin/<branch>`), and a plain
-  directory is reported as skipped instead of producing a `fatal: not a git repository`.
-
-### Configuration Options
-| Variable        	| Description                                                | Values                     	| Default     	 |
-|----------------	|------------------------------------------------------------|-------	|---------------|
-| `ZSHBOP_ROOT`| Location of zshbop installation                            | String | Detected      |
-| `ZSHBOP_CUSTOM_SSHKEY` | Set a custom SSH key to be loaded | String | Detected |
-| `ZSHBOP_PLUGIN_MANAGER` | Override plugin manager, can be init_antidote or init_anitgen | String | init_antidote |
-| `ZSHBOP_PLUGIN_ZSH_AI_ENABLE` | Enable matheusml/zsh-ai plugin | 0 or 1 | 0 |
-| `ZSHBOP_PLUGIN_ZSH_AI_ACCEPT_LINE_ENABLE` | Allow zsh-ai to own Enter (`accept-line`) for `# query` mode; when 0, `zsh-ai "query"` still works without Enter hook override | 0 or 1 | 0 |
-| `ZSHBOP_PLUGIN_ZSH_AUTOCOMPLETE_ENABLE` | Enable marlonrichert/zsh-autocomplete plugin | 0 or 1 | 0 |
-| `ZSHBOP_ANTIDOTE_BUNDLES` | Additional antidote bundles (GitHub repos like `owner/repo`) appended to the plugin list | Array | () |
-| `ZSHBOP_GIT_CHECK` | zshbop git check on logout, this will run and will $GIT_HOME for any repositories that have uncommited code. | Number | 1 |
-| `GIT_HOME` | A location where you have all your git repositories. | String | $HOME/git |
-| `ZSHBOP_UPDATE_GIT` | Git repositories to update when running zshbop update. Synced in a detached background worker by default; one summary line appears at the next prompt. | Array | ${HOME}/git/cloudflare-cli ${GIT_HOME}/plik |
-| `ZSHBOP_UPDATE_GIT_BACKGROUND` | Sync `$ZSHBOP_UPDATE_GIT` in the background; `0` restores the blocking foreground loop | 0 or 1 | 1 |
-| `ZSHBOP_UPDATE_GIT_NOTIFY` | Print one summary line at the next prompt when the background sync finishes; `0` silences it (`zb update-status` always reports) | 0 or 1 | 1 |
-| `ZSHBOP_UPDATE_GIT_TIMEOUT` | Seconds after which a background repo sync is treated as dead, so the next update starts a fresh run | Number | 300 |
-| `ZSH_IP_PROVIDER` | IP Provider for zshbop | String | eg. ipinfo.io |
-| `ZSH_IP_API_KEY` | API Key for ip-info commmand | String | |
-| `ZSHBOP_TERMINAL` | Detected terminal environment (read-only) | String | vscode, iterm, wezterm, windows-terminal, unknown |
-| `ZSHBOP_DISABLE_VSCODE_SHELL` | Disable VSCode shell integration | 0 or 1 | Not set |
-| `ZSHBOP_AI_PAGER` | Re-enable less paging in VS Code AI/agent terminals | 0 or 1 | Not set (disabled) |
-| `ZSHBOP_BOOT_SKIP` | Quick boot level for fast terminal loads (agent/automation terminals): `1` skips the MOTD + system checks, `2` also skips checks/plugins/ssh/kb | 1 or 2 | Not set (full boot) |
-| `ZSHBOP_BOOT_SKIP_ITEMS` | Custom list of boot items to skip (`motd checks plugins ssh kb software`); overrides the `ZSHBOP_BOOT_SKIP` level | Array | () |
-| `ZSHBOP_BOOT_FULL` | Force the full boot regardless of `ZSHBOP_BOOT_SKIP` / `ZSHBOP_BOOT_SKIP_ITEMS` | 0 or 1 | Not set |
-| `ZSHBOP_P10K_QUICK_BOOT` | Load the powerlevel10k prompt during quick boot (loaded standalone, without the other plugins); `0` restores the plain prompt | 0 or 1 | 1 |
-| `ZSHBOP_TAB_COMPLETE_MODE` | How Tab picks a completion: `select` completes, lists, then opens a selectable menu; `cycle` inserts the first candidate and Tab again cycles; `expand` completes and lists without a menu | select, cycle, expand | select |
-| `ZSHBOP_NVM_ENABLE` | Enable NVM initialization (disabled by default) | 1 | Not set |
-| `ZSHBOP_NVM_LAZY` | Lazy load NVM on first use of nvm/node/npm/npx | 0 or 1 | 1 (when enabled) |
-| `NVM_DIR` | Override NVM directory location | String | $HOME/.nvm |
-| `ZSHBOP_BASHER_DISABLE` | Disable Basher auto-initialization | 1 | Not set (auto-enabled if ~/.basher exists) |
-
-> **Note:** Shell history (`HISTFILE`, `HISTSIZE`, `SAVEHIST` and the history
-> options) is configured independently of the plugin manager, so history persists
-> at every `ZSHBOP_BOOT_SKIP` level — including level 2, which skips plugins. Run
-> `zsh-check-history` (also included in `zshbop check`) to inspect the settings.
->
-> **Note:** The powerlevel10k prompt stays active at every `ZSHBOP_BOOT_SKIP`
-> level. When the `plugins` component is skipped (level 2), p10k is loaded
-> standalone so the prompt is retained; set `ZSHBOP_P10K_QUICK_BOOT=0` to fall
-> back to the plain prompt.
-
-### Exbin
-* Exbin https://exbin.call-cc.be
-
-| Variable | Description                                                      | Values                     	| Default     	|
-|-----------------	|------------------------------------------------------------------|---------------------	|---------	|
-| `EXBIN_TYPE`| Choose either `netcat` or `api` for exbin posting.| String | `netcat`|
-| `EXBIN_HOST`| Exbin host, for netcat just the hostname and for api the full URL.| String| `exbin.call-cc.be`|
-| `EXBIN_PORT`|  If you don't use the standard 9999 port for exbin.| Number| `9999`|
-
-### Internal Variables
-These variables are set internally by zshbop and are available for use in scripts and functions.
-
-| Variable | Description | Set By |
-|----------|-------------|--------|
-| `WINDOWS_USER` | Windows username detected via `cmd.exe` or `powershell.exe` (WSL only) | `_wsl_get_windows_user` |
-
-##  Custom Startup Scripts
-You can create a custom startup script to run when zshbop starts. This is useful if you want to run a script that's not included in zshbop.
-
-Uncomment the following in ```$HOME/.zshbop.conf```
-
-```
-function init_custom_startup () {
-
-}
-```
-
-# Installation Notes
-## Operating System Installation Notes
-### macOS Installation Notes
-Nothing at this time!
-
-### Windows Installation Notes
-#### Windows Terminal
-Windows Terminal is a means to manage the various terminals installed in Windows.
-
-* WSL
-* Command Prompt
-* Powershell
-* Custom Powershell (Azure + Exchange)
-
-#### WSL Subsystem
-You'll need the WSL Subsystem installed.
-* Open PowerShell as Administrator and run
-```
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
-```
-
-#### WSL 1 vs WSL 2
-Open a command prompt on Windows 10 and run the following command to confirm what version of WSL you're running.
-```
-wsl --list --verbose
-```
-#### Upgrade WSL 1 to WSL 2
-I used this guide https://www.tenforums.com/tutorials/164301-how-update-wsl-wsl-2-windows-10-a.html
-
-1.  Upgrade WSL via elevated PowerShell 
-    ```dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart```
-2. Install VMP via elevated PowerShell. The following enables the Virtual Machine Platform. This is important for WSL 2 for some reason. https://docs.microsoft.com/en-us/windows/wsl/faq#does-wsl-2-use-hyper-v--will-it-be-available-on-windows-10-home-
-    ```dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart```
-3. Restart your Computer
-4. Set WSL to version 2
-    ```wsl --set-default-version 2```
-5. Convert your existing linux distro from WSL 1 to 2
-    ``` wsl --set-version <distro_name> 2```
-Note: If you have an error converting your distro, look at this thread https://github.com/microsoft/WSL/issues/4929
-
-#### VcXsrv (WSL Gui)
-If you want to run Xserver for a GUI under WSL, this guide will help.
-
-* https://medium.com/@dhanar.santika/installing-wsl-with-gui-using-vcxsrv-6f307e96fac0
-
-# ZSH Installation Issues
-## CentOS 7 + zsh 5.1.1
-```
-sudo yum update -y
-sudo yum install -y git make ncurses-devel gcc autoconf man yodl
-git clone -b zsh-5.7.1 https://github.com/zsh-users/zsh.git /tmp/zsh
-cd /tmp/zsh
-./Util/preconfig
-./configure
-sudo make -j 20 install
-```
-
-# Issues
-All issues are makred with ```@@ISSUE``` and need to be addressed.
-
-# ToDo
-
-* Place all included files into directory inc
-* Check for ssh-key id_rsa if chmod 600 and if not ask to do it.
-* If any packages aren't installed ask to install them.
-* Flight check command to confirm what's setup and isn't, check packacges installed.
-* Borrow or steal https://github.com/ohmyzsh/ohmyzsh/blob/master/tools/upgrade.sh
-* Install jq and md5sum via brew for macos
-* Figure out FZF wget https://github.com/junegunn/fzf-bin/releases/download/0.17.4/fzf-0.17.4-linux_amd64.tgz
-* Look into diff so fancy wget https://raw.githubusercontent.com/so-fancy/diff-so-fancy/master/third_party/build_fatpack/diff-so-fancy
-* Add https://github.com/skx/sysadmin-util.git
-* Devise method to override antidote and antigen plugins.
-* Look into these plugins
-```
-antigen bundle wfxr/forgit
-antigen bundle djui/alias-tips
-antigen bundle desyncr/auto-ls
-antigen bundle MikeDacre/careful_rm
-antigen bundle viasite-ansible/zsh-ansible-server
-antigen bundle micha/resty
-https://github.com/horosgrisa/mysql-colorize
-https://github.com/thetic/extract.git
-https://github.com/picatz/hunter
-https://github.com/ExplainDev/kmdr-cli
-https://github.com/daveearley/cli.fyi
-https://github.com/tldr-pages/tldr
-https://github.com/isacikgoz/tldr
-```
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production releases, fully functional |
+| `next-release` | Next release, may be broken |
+
+## Contributing
+
+- Conventions — file naming, help arrays, output functions, and the function template — are in
+  `AGENTS.md` and on the site's development page.
+- Tests: `zsh tests/test-*.zsh`, each printing a `N passed, N failed` summary.
+- The documentation lives in `website/docs`. Before committing a change that touches it:
+
+  ```bash
+  cd website && npm run gen && npm run build
+  cd .. && bash scripts/check-docs-site.sh --site website --repo-root .
+  ```
+
+- Bugs and requests: https://github.com/jordantrizz/zshbop/issues, or `zb issue` from the shell.
+- Backlog: `TODO.md`.

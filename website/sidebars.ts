@@ -33,6 +33,7 @@ const sidebars: SidebarsConfig = {
         'guides/updating',
         'guides/debugging',
         'guides/boot-timing',
+        'guides/docksoft',
         'guides/zshbop-cli',
         'guides/recommended-tools',
         'guides/test-containers',
