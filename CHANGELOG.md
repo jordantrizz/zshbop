@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- A documentation site at https://jordantrizz.github.io/zshbop/, built with Docusaurus 3 in `website/`:
+  getting started, guides, a generated command reference, a configuration reference, contributing,
+  a generated knowledge-base mirror, and history — with client-side search and a GitHub Pages workflow
+  that publishes from `main`.
+- `npm run gen` and `scripts/docs/` generate the command reference (from the `help_*` arrays in
+  `cmds/`, `checks/`, and `lib/`), the knowledge-base pages (from `kb/`), the changelog page, and the
+  README's docs index. `scripts/check-docs-site.sh` gates every documentation change, and CI fails when
+  a generator's committed output differs from a fresh run.
+- `AGENTS.md` documents the contract — what is generated, what to update for a given change, and the
+  gate to run — with the full version on the site at `contributing/documentation`.
 - `zshbop update`/`zbu` now sync `$ZSHBOP_UPDATE_GIT` repositories in a detached
   background worker instead of blocking the update (and the MOTD update prompt) on
   every mirror. The shell returns immediately with one line, and a single summary
@@ -20,6 +30,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   machine-readable document.
 
 ### Changed
+- `README.md` is a 75-line doorway to the site (was 505 lines): command tables, install variants,
+  configuration, platform notes, and debugging detail now live there.
+- `doc/`, `help/commands.md`, `help/ls.md`, `README-zshbop-cli.md`, and `TESTING.md` were retired —
+  their content moved to the site, `doc/todo.md` merged into `TODO.md`, and `temp.md` was removed as a
+  stale copy of an older `AGENTS.md`.
 - Tab completion now lets you pick a candidate instead of inserting the first one. Tab completes as
   far as possible, the next Tab lists the matches, and the next opens a menu where Tab or the arrows
   move the highlight and Enter accepts it; `Ctrl-G` cancels back to what you typed. The old
@@ -29,6 +44,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   opencode query is unchanged.
 
 ### Fixed
+- `kb/azure.kb` is now `kb/azure.md`, so `kb azure` finds the article and the site includes it.
+- Removed dead table-of-contents links in `kb/enhance.md` and `kb/gridpane.md`, and backticked four
+  placeholder lines (`<antidote>`, `<profile_name>`, `<patch_file>`, `<title> <data>`) that rendered as
+  invisible HTML tags.
+- The README's boot-timing link pointed at `doc/BOOT_TIMING.md`, which never existed; it now points at
+  the published guide.
 - `zshbop update` and `repos update` now sync every repository through one quiet helper:
   each repository reports a single line (`up to date`, `updated (+N commits)`,
   `reset to origin/<branch>`) and never streams git fetch progress, `remote:` lines or

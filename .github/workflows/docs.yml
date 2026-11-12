@@ -54,6 +54,9 @@ jobs:
           cache: npm
           cache-dependency-path: website/package-lock.json
 
+      - name: Install zsh for the generators
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends zsh
+
       - name: Install
         working-directory: website
         run: npm ci

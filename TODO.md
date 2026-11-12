@@ -138,13 +138,10 @@ fatal: Not possible to fast-forward, aborting.
 * For the BASE_URL= it should be the containers address and port https://127.0.0.1:4096
 
 ### README.md revamp and Documentation
-Option B (best “real docs site”): GitHub Pages + MkDocs (Material) or Docusaurus
-Best when: docs are sizable and you want search, sidebar nav, great UX.
-MkDocs + Material is the quickest path to “pleasant” (clean theme, strong navigation, search).
-Docusaurus is great if you want a more “product docs” feel (versioned docs, blog, etc.).
-Workflow:
-Docs live in repo (often /docs), build via CI, publish to GitHub Pages.
-README links to the hosted docs site + the /docs folder for source.
+* ✅ **DONE (2026-11-12):** Documentation site implemented — Docusaurus 3 in `website/`, published to
+  https://jordantrizz.github.io/zshbop/ from `main`. The command reference and the knowledge base are
+  generated from `cmds/`, `checks/`, `lib/`, and `kb/`; the README is a 75-line doorway; and
+  `scripts/check-docs-site.sh` gates every docs change. Plan: `20261112-zshbop-docs-site`.
 
 ## Testing
 * whmcs commands
@@ -162,7 +159,7 @@ help_files[aws]="AWS Commands and scripts"
 typeset -gA help_aws
 ```
 
-### Shell and tool ideas (merged from doc/todo.md)
+### Shell and tool ideas (merged from the retired doc backlog)
 * Add https://github.com/rusty-ferris-club/shellclear
 * Add in autojump detection.
 * Alias `gc` overlaps with the zsh plugin `git`.
