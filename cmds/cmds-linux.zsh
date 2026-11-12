@@ -56,81 +56,149 @@ dir-dircount () {
 }
 
 # ===============================================
-# -- backup
+# -- _backup-usage - print backup usage
 # ===============================================
-help_linux[backup]='Backup a folder in a tar file'
+_backup-usage () {
+	print -r -- "Usage: backup [-p <size> | -g <size>] <folder>"
+	print -r -- ""
+	print -r -- "Options:"
+	print -r -- "  -p, --part <size>   Split into parts of <size>, megabytes by default"
+	print -r -- "                      (<size> may carry a k, m, g or t suffix)"
+	print -r -- "  -g, --gb <size>     Split into parts of <size> gigabytes"
+	print -r -- "  -h, --help          Show this help"
+	print -r -- ""
+	print -r -- "Examples:"
+	print -r -- "  backup /home/user/folder"
+	print -r -- "  backup -p 500 /home/user/folder"
+	print -r -- "  backup -g 2 /home/user/folder"
+	print -r -- "  backup -p 1536m /home/user/folder"
+}
+
+# ===============================================
+# -- backup - tar a folder, optionally split into parts
+# ===============================================
+help_linux[backup]='Backup a folder in a tar file, optionally split into parts'
 backup () {
-	if [[ -z $1 ]]; then
-		echo "Usage: backup <folder>"
-		echo
-		echo "Options:"
-		echo "  -p <size>        - Split into multiple files of <count> MB each"
-		echo
-		echo "Examples:"
-		echo "  backup /home/user/folder"
-		echo "  backup -p 500 /home/user/folder"
-		return
+	local -a opts_help
+	local -A opts
+	zparseopts -D -E -A opts -- h=opts_help -help=opts_help \
+		p: -part: -part-size: g: -gb: -gigabytes: || {
+		_error "Invalid option, see: backup --help"
+		return 1
+	}
+
+	if [[ -n $opts_help ]]; then
+		_backup-usage
+		return 0
 	fi
-	
-	# Parse options first
-	zparseopts -D -E p:=PART_SIZE
-	_debugf "PART_SIZE: $PART_SIZE"
-	
+
 	# Get the folder argument after parsing options
 	local BACKUP_DIR=$1
-	
-	[[ ! -d $BACKUP_DIR ]] && { _error "Folder $BACKUP_DIR doesn't exist...exiting"; return 1 }
-	
-	if [[ -z $PART_SIZE ]]; then
-		TAR_BACKUP_DATE=`date +%m-%d-%Y`
-		_loading "Backing up folder $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar"
-		echo ""
-		tar -cf $BACKUP_DIR-${TAR_BACKUP_DATE}.tar $BACKUP_DIR
-		if [[ $? != 0 ]]; then
-			_error "Error creating tar file"
-			return 1
-		else
-			_success "Completed backup of $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar"
-		fi
-	else
-		# Extract the size value from the array
-		local SIZE_VALUE=${PART_SIZE[2]}
-		TAR_BACKUP_DATE=`date +%m-%d-%Y`
-		_loading "Backing up folder $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar and splitting into ${SIZE_VALUE} MB parts"
-		echo ""
-		_loading2 "Creating tar archive and splitting into parts..."
-		
-		# Use split with verbose output and monitor parts being created
-		tar -cf - $BACKUP_DIR | split -b ${SIZE_VALUE}M - $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part- &
-		TAR_PID=$!
-		
-		# Monitor the split process
-		sleep 2
-		while kill -0 $TAR_PID 2>/dev/null; do
-			part_count=$(ls $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-* 2>/dev/null | wc -l)
-			if [[ $part_count -gt 0 ]]; then
-				latest_part=$(ls -t $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-* 2>/dev/null | head -1)
-				if [[ -n $latest_part ]]; then
-					part_size=$(du -h "$latest_part" 2>/dev/null | cut -f1)
-					_loading3 "Created $part_count parts so far... Latest: $(basename "$latest_part") ($part_size)"
-				fi
-			fi
-			sleep 3
-		done
-		
-		wait $TAR_PID
-		tar_exit_code=$?
-		
-		if [[ $tar_exit_code != 0 ]]; then
-			_error "Error creating tar file"
-			return 1
-		else
-			final_part_count=$(ls $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-* 2>/dev/null | wc -l)
-			_success "Completed backup of $BACKUP_DIR to $BACKUP_DIR-${TAR_BACKUP_DATE}.tar in $final_part_count parts of ${SIZE_VALUE} MB each"
-			_loading2 "Part files created:"
-			ls -lh $BACKUP_DIR-${TAR_BACKUP_DATE}.tar.part-*
-		fi
+	if [[ -z $BACKUP_DIR ]]; then
+		_backup-usage
+		return 1
 	fi
+
+	if [[ ! -d $BACKUP_DIR ]]; then
+		_error "Folder $BACKUP_DIR doesn't exist...exiting"
+		return 1
+	fi
+	BACKUP_DIR=${BACKUP_DIR%/}
+
+	# -p/--part (megabytes unless suffixed) and -g/--gb (gigabytes) are mutually exclusive
+	local size_raw=$opts[-p]
+	size_raw=${size_raw:-$opts[--part]}
+	size_raw=${size_raw:-$opts[--part-size]}
+	local size_gb=$opts[-g]
+	size_gb=${size_gb:-$opts[--gb]}
+	size_gb=${size_gb:-$opts[--gigabytes]}
+
+	if [[ -n $size_raw && -n $size_gb ]]; then
+		_error "Use either -p/--part or -g/--gb, not both"
+		return 1
+	fi
+
+	# Resolve the part size to a split(1) size: a bare number is MB with -p and GB with -g
+	local split_size=""
+	local default_unit="M"
+	if [[ -n $size_gb ]]; then
+		size_raw=$size_gb
+		default_unit="G"
+	fi
+
+	if [[ -n $size_raw ]]; then
+		local size_digits="${size_raw%[kKmMgGtT]}"
+		local size_suffix=""
+		if [[ $size_digits != $size_raw ]]; then
+			local size_last="${size_raw[-1]}"
+			size_suffix="${size_last:u}"
+		else
+			size_suffix=$default_unit
+		fi
+		if [[ -z $size_digits ]] || [[ $size_digits != <-> ]] || (( size_digits < 1 )); then
+			_error "Invalid size '$size_raw': use a whole number, optionally with a k, m, g or t suffix"
+			return 1
+		fi
+		split_size="${size_digits}${size_suffix}"
+	fi
+
+	local TAR_BACKUP_DATE=$(date +%m-%d-%Y)
+	local TAR_PREFIX="${BACKUP_DIR}-${TAR_BACKUP_DATE}.tar"
+
+	if [[ -z $split_size ]]; then
+		_loading "Backing up folder $BACKUP_DIR to ${TAR_PREFIX}"
+		echo ""
+		if ! tar -cf "$TAR_PREFIX" "$BACKUP_DIR"; then
+			_error "Error creating tar file"
+			return 1
+		fi
+		_success "Completed backup of $BACKUP_DIR to ${TAR_PREFIX}"
+		return 0
+	fi
+
+	local PART_PREFIX="${TAR_PREFIX}.part-"
+	local -a existing_parts=( ${PART_PREFIX}*(N) )
+	if (( ${#existing_parts} )); then
+		_warning "Overwriting ${#existing_parts} existing part file(s) matching ${PART_PREFIX}*"
+	fi
+
+	_loading "Backing up folder $BACKUP_DIR to ${TAR_PREFIX} and splitting into ${split_size} parts"
+	echo ""
+	_loading2 "Creating tar archive and splitting into parts..."
+
+	# pipefail so a failing tar aborts the pipeline instead of leaving valid-looking parts
+	( set -o pipefail; tar -cf - "$BACKUP_DIR" | split -b "$split_size" - "$PART_PREFIX" ) &
+	local tar_pid=$!
+
+	# Monitor the split process
+	local part_count=0
+	local latest_part=""
+	local latest_size=""
+	sleep 2
+	while kill -0 "$tar_pid" 2>/dev/null; do
+		part_count=$( ls -1 ${PART_PREFIX}*(N) 2>/dev/null | wc -l )
+		if (( part_count > 0 )); then
+			latest_part=$( ls -1t ${PART_PREFIX}*(N) 2>/dev/null | head -1 )
+			if [[ -n $latest_part ]]; then
+				latest_size=$( du -h "$latest_part" 2>/dev/null | cut -f1 )
+				_loading3 "Created ${part_count} parts so far... Latest: ${latest_part:t} ($latest_size)"
+			fi
+		fi
+		sleep 3
+	done
+
+	wait "$tar_pid"
+	local tar_exit_code=$?
+
+	if (( tar_exit_code != 0 )); then
+		_error "Error creating tar file (tar/split exited ${tar_exit_code})"
+		return 1
+	fi
+
+	local -a created_parts=( ${PART_PREFIX}*(N) )
+	_success "Completed backup of $BACKUP_DIR to ${TAR_PREFIX} in ${#created_parts} parts of ${split_size} each"
+	_loading2 "Part files created:"
+	ls -lh ${PART_PREFIX}*(N)
 }
 
 # ===============================================

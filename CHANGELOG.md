@@ -84,6 +84,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `plans/20260911-glint-wsl-arm64-fallback.md`.
 
 ### Added
+- `backup` takes `-g`/`--gb <size>` to split the archive into parts of that many gigabytes, and
+  `-p`/`--part <size>` now sizes its parts the same way: a bare number is megabytes (unchanged
+  default), while a `k`, `m`, `g` or `t` suffix sets the unit explicitly (`backup -p 1536m`,
+  `backup -g 2`). Also adds `-h`/`--help`, rejects a missing folder or a non-numeric size before
+  touching the disk, warns before overwriting parts from an earlier run of the same day, and fails
+  the run when `tar` fails mid-pipeline instead of leaving a partial set of parts.
 - `genpass alnumnix` (alias `genpass-alnumnix`): generates passwords from alphanumerics
   plus special characters that are inert to POSIX shells even when unquoted and without
   history expansion (`% + , - . / : @ _`). Quotes, backslash, backtick, `$`, `!`, `#`,

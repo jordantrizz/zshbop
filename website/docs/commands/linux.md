@@ -13,7 +13,7 @@ the `help_*` entries in the source file, not this page.
 |---------|-------------|
 | `'date-more'` | Show current date and C.UTF-8 date |
 | `add-path` | Add to $PATH |
-| `backup` | Backup a folder in a tar file |
+| `backup` | Backup a folder in a tar file, optionally split into parts |
 | `catvet` | Print out special formatting characters in a file or via pipe |
 | `check-diskspace` | Check diskspace based on OS |
 | `check_diskspace2` | Check diskspace2 |
