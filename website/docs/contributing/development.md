@@ -131,6 +131,7 @@ Add a second line when the name alone does not explain it:
 
 ## See also
 
+- [Documentation](./documentation.md) — the docs contract: generated pages, front matter, and the gate.
 - [Testing](./testing.md) — the test scripts and how to run them.
 - [Boot timing](../guides/boot-timing.md) — the timing wrapper for new initialization code.
 - [Debugging](../guides/debugging.md) — `_debugf`, `zbdebug`, and the debug files.

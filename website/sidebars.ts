@@ -254,6 +254,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'contributing/development',
+        'contributing/documentation',
         'contributing/testing',
         'contributing/release',
         'contributing/roadmap',
