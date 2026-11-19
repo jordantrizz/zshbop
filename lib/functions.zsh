@@ -139,6 +139,9 @@ zshbop_reload () {
         # Create temp file flag to skip git-check-exit during reload
         touch "${TMPDIR:-/tmp}/.zshbop_reload_$$"
         zshbop_cache-clear
+        # exec preserves $$ and exported config markers, but not package arrays/functions.
+        # Let the replacement shell source .zshbop.conf again to restore custom packages.
+        unset ZSHBOP_CONF_LOADED ZSHBOP_CONF_LOADED_PID
         _log "Running exec zsh"
         exec zsh
     fi
@@ -251,6 +254,174 @@ zshbop_check-updates () {
 	return $rc
 }
 
+# =========================================================
+# -- _git_sync_repo ()
+# --
+# -- Quietly sync one repository to its upstream.
+# -- Never streams git progress, remote: or hint: output.
+# -- One line per repository, one error line on failure.
+# --
+# -- Usage: _git_sync_repo [-o|--optional] [-q|--quiet] <path>
+# --
+# -- Sets after every call:
+# --   _GIT_SYNC_STATUS  current|updated|reset|skipped|failed
+# --   _GIT_SYNC_DETAIL  short detail ("+2 commits", upstream ref)
+# --   _GIT_SYNC_REASON  first fatal/error line from captured git output
+# =========================================================
+typeset -g _GIT_SYNC_STATUS=""
+typeset -g _GIT_SYNC_DETAIL=""
+typeset -g _GIT_SYNC_REASON=""
+
+function _git_sync_repo () {
+    local -a opts_optional opts_quiet
+    zparseopts -D -E -- o=opts_optional -optional=opts_optional q=opts_quiet -quiet=opts_quiet
+
+    local repo="$1"
+    local label out upstream branch head_sha ahead behind
+    local verbose="${ZSHBOP_UPDATE_VERBOSE:-0}"
+    local quiet=0
+    [[ -n $opts_quiet ]] && quiet=1
+
+    _GIT_SYNC_STATUS=""
+    _GIT_SYNC_DETAIL=""
+    _GIT_SYNC_REASON=""
+
+    if [[ -z $repo ]]; then
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="no repository path given"
+        [[ $quiet -eq 1 ]] || _error "_git_sync_repo: no repository path given"
+        return 1
+    fi
+
+    label="${repo/#$HOME/~}"
+
+    # -- Repository check (works for worktrees, where .git is a file)
+    if ! git -C "$repo" rev-parse --git-dir > /dev/null 2>&1; then
+        if [[ -n $opts_optional ]]; then
+            _GIT_SYNC_STATUS="skipped"
+            _GIT_SYNC_DETAIL="not a git repository"
+            [[ $quiet -eq 1 ]] || _loading3 "${label}: not a git repository, skipped"
+            return 0
+        fi
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="not a git repository"
+        [[ $quiet -eq 1 ]] || _error "${label}: not a git repository"
+        return 1
+    fi
+
+    branch=$(git -C "$repo" rev-parse --abbrev-ref HEAD 2>/dev/null)
+    if [[ -z $branch ]]; then
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="cannot determine the current branch"
+        [[ $quiet -eq 1 ]] || _error "${label}: cannot determine the current branch"
+        return 1
+    fi
+
+    # -- Upstream: configured tracking branch, else origin/<branch>
+    upstream=$(git -C "$repo" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)
+    if [[ -z $upstream ]] && git -C "$repo" rev-parse --verify --quiet "refs/remotes/origin/${branch}" > /dev/null 2>&1; then
+        upstream="origin/${branch}"
+    fi
+    if [[ -z $upstream ]]; then
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="no upstream branch configured"
+        [[ $quiet -eq 1 ]] || _error "${label}: no upstream branch configured"
+        return 1
+    fi
+
+    # -- Never discard work: hard reset is destructive
+    if [[ -n "$(git -C "$repo" status --porcelain 2>/dev/null)" ]]; then
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="local changes present, not updating"
+        [[ $quiet -eq 1 ]] || _error "${label}: local changes present, not updating"
+        return 1
+    fi
+
+    # -- Quiet fetch (captured, never echoed)
+    out=$(GIT_TERMINAL_PROMPT=0 git -C "$repo" fetch --quiet --prune --tags 2>&1)
+    if [[ $? -ge 1 ]]; then
+        _git_sync_repo_reason "$out"
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="fetch failed: $_GIT_SYNC_REASON"
+        [[ $quiet -eq 1 ]] || _error "${label}: $_GIT_SYNC_REASON"
+        [[ $verbose -eq 1 ]] && print -ru2 -- "$out"
+        return 1
+    fi
+    [[ $verbose -eq 1 ]] && [[ -n $out ]] && print -ru2 -- "$out"
+
+    ahead=$(git -C "$repo" rev-list --count "${upstream}..HEAD" 2>/dev/null)
+    behind=$(git -C "$repo" rev-list --count "HEAD..${upstream}" 2>/dev/null)
+    if [[ $ahead != <-> ]] || [[ $behind != <-> ]]; then
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="cannot compare ${branch} with ${upstream}"
+        [[ $quiet -eq 1 ]] || _error "${label}: cannot compare ${branch} with ${upstream}"
+        return 1
+    fi
+
+    if [[ $ahead -eq 0 ]] && [[ $behind -eq 0 ]]; then
+        _GIT_SYNC_STATUS="current"
+        _GIT_SYNC_DETAIL="up to date"
+        [[ $quiet -eq 1 ]] || _success "${label}: up to date"
+        return 0
+    fi
+
+    if [[ $ahead -eq 0 ]]; then
+        out=$(git -C "$repo" merge --ff-only --quiet "$upstream" 2>&1)
+        if [[ $? -ge 1 ]]; then
+            _git_sync_repo_reason "$out"
+            _GIT_SYNC_STATUS="failed"
+            _GIT_SYNC_REASON="fast-forward failed: $_GIT_SYNC_REASON"
+            [[ $quiet -eq 1 ]] || _error "${label}: $_GIT_SYNC_REASON"
+            [[ $verbose -eq 1 ]] && print -ru2 -- "$out"
+            return 1
+        fi
+        _GIT_SYNC_STATUS="updated"
+        _GIT_SYNC_DETAIL="+${behind} commit(s)"
+        [[ $quiet -eq 1 ]] || _success "${label}: updated (+${behind} commits)"
+        return 0
+    fi
+
+    # -- Diverged: reset to upstream (dirty trees were refused above)
+    [[ $quiet -eq 1 ]] || _warning "${label}: diverged (${ahead} local, ${behind} remote) - resetting to ${upstream}"
+    head_sha=$(git -C "$repo" rev-parse --short HEAD 2>/dev/null)
+    out=$(git -C "$repo" reset --hard --quiet "$upstream" 2>&1)
+    if [[ $? -ge 1 ]]; then
+        _git_sync_repo_reason "$out"
+        _GIT_SYNC_STATUS="failed"
+        _GIT_SYNC_REASON="reset failed: $_GIT_SYNC_REASON"
+        [[ $quiet -eq 1 ]] || _error "${label}: $_GIT_SYNC_REASON"
+        [[ $verbose -eq 1 ]] && print -ru2 -- "$out"
+        return 1
+    fi
+    _GIT_SYNC_STATUS="reset"
+    _GIT_SYNC_DETAIL="${upstream} (was ${head_sha})"
+    [[ $quiet -eq 1 ]] || _success "${label}: reset to ${upstream}"
+    return 0
+}
+
+# =========================================================
+# -- _git_sync_repo_reason ()
+# -- First fatal:/error: line from captured git output, prefix stripped.
+# -- Never returns hint:/progress lines.
+# =========================================================
+function _git_sync_repo_reason () {
+    local captured="$1" line
+
+    for line in ${(f)captured}; do
+        case "$line" in
+            fatal:*|error:*)
+                line="${line#fatal: }"
+                line="${line#error: }"
+                _GIT_SYNC_REASON="${line} (set ZSHBOP_UPDATE_VERBOSE=1 for full output)"
+                return 0
+                ;;
+        esac
+    done
+
+    _GIT_SYNC_REASON="git failed (set ZSHBOP_UPDATE_VERBOSE=1 for full output)"
+    return 0
+}
+
 
 help_zshbop_quick[zbu]='Update zshbop'
 function zbu () { zshbop_update }
@@ -333,34 +504,48 @@ zshbop_update () {
 	# Update $ZBC aka custom zshbop directory
 	_loading "Updating custom zshbop directory $ZBC"
 	if [[ $ZBC ]]; then
-		_loading2 "Found zshbop custom, running git pull if a git repostiory"
-		git --git-dir=${ZBC}/.git --work-tree=${ZBC} pull
+		_loading2 "Found zshbop custom, syncing if a git repository"
+		# -- $ZBC is often a plain directory, so a non-repository is a skip, not a failure
+		_git_sync_repo --optional "$ZBC"
 	else
 		_loading2 "No zshbop-custom to update"
 	fi
     echo ""
 
     # -- Update $ZSHBOP_UPDATE_GIT git repositories from custom config.
-    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositores."
-    if [[ $ZSHBOP_UPDATE_GIT ]]; then
-        _debugf "Found \$ZSHBOP_UPDATE_GIT which continas $ZSH_UPDATE_GIT"
-        for GIT in ${ZSHBOP_UPDATE_GIT[@]}; do
-            _debugf "Checking $GIT"
-            [[ -d "$HOME/$GIT" ]] && ZUG="$HOME/$GIT"
-            [[ -d "$GIT_HOME/$GIT" ]] && ZUG="$HOME/$GIT"
-            [[ -d $GIT ]] && ZUG="$GIT"
-            if [[ -d ${ZUG} ]]; then
-                _loading2 "Updating ${ZUG}"
-                git --git-dir=${ZUG}/.git --work-tree=${ZUG} pull
-            else
-                _error "Couldn't find ${GIT}"
-            fi
+    _loading "Updating \$ZSHBOP_UPDATE_GIT git repositories."
+    if [[ ${#ZSHBOP_UPDATE_GIT[@]} -eq 0 ]]; then
+        _loading2 "No extra repositories configured"
+    elif [[ "${ZSHBOP_UPDATE_GIT_BACKGROUND:-1}" == "0" ]]; then
+        # -- Foreground (blocking) sync: the historical behaviour, kept opt-in
+        local -a RU_TARGETS=()
+        local -a RU_MISSING=()
+        local RU_TARGET RU_FAILED=0
+        _repo_update_targets > /dev/null
+        RU_TARGETS=("${_REPO_UPDATE_TARGETS[@]}")
+        RU_MISSING=("${_REPO_UPDATE_MISSING[@]}")
+        for RU_TARGET in "${RU_TARGETS[@]}"; do
+            _git_sync_repo "$RU_TARGET" || RU_FAILED=$(( RU_FAILED + 1 ))
         done
+        for RU_TARGET in "${RU_MISSING[@]}"; do
+            _error "Couldn't find ${RU_TARGET}"
+            RU_FAILED=$(( RU_FAILED + 1 ))
+        done
+        (( RU_FAILED )) && _warning "${RU_FAILED} repository(ies) failed to update"
+        echo ""
+        # -- Foreground failures still mark the update as failed
+        [[ $RU_FAILED -gt 0 ]] && return 1
+    else
+        # -- Background sync: one line here, the summary arrives at the next prompt
+        _repo_update_start
     fi
     echo ""
 
-    # Reload scripts
-    _warning "Type zb reload to reload zshbop, or restart your shell."    
+    # -- Reload scripts
+    _warning "Type zb reload to reload zshbop, or restart your shell."
+    if [[ "${ZSHBOP_UPDATE_GIT_BACKGROUND:-1}" != "0" ]]; then
+        _loading3 "Extra repositories sync in the background - failures are reported by the prompt summary and 'zb update-status'"
+    fi
     echo ""
 }
 

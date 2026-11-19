@@ -77,7 +77,11 @@ typeset -a ZSHBOP_LOAD=()
 typeset -ga ZSHBOP_BOOT_SKIP_ITEMS=() # -- Custom boot-skip items, overrides ZSHBOP_BOOT_SKIP level
 typeset -ga _ZSHBOP_BOOT_SKIP_SET=() # -- Effective boot-skip item set (internal, resolved at boot)
 export ZSHBOP_P10K_QUICK_BOOT="${ZSHBOP_P10K_QUICK_BOOT:-1}" # -- Load the powerlevel10k prompt during quick boot (0 disables it)
+export ZSHBOP_TAB_COMPLETE_MODE="${ZSHBOP_TAB_COMPLETE_MODE:-select}" # -- Tab completion mode: select (common prefix, list, then a selectable menu), cycle (old menu-complete), expand (prefix + list only)
 export ZSHBOP_UPDATE_PROMPT="${ZSHBOP_UPDATE_PROMPT:-1}" # -- Prompt to update zshbop in the MOTD when an update is available (0 disables)
+export ZSHBOP_UPDATE_GIT_BACKGROUND="${ZSHBOP_UPDATE_GIT_BACKGROUND:-1}" # -- Sync $ZSHBOP_UPDATE_GIT repositories in a detached worker (0 = blocking foreground loop)
+export ZSHBOP_UPDATE_GIT_NOTIFY="${ZSHBOP_UPDATE_GIT_NOTIFY:-1}" # -- Print one summary line at the next prompt when the background sync finishes (0 disables)
+export ZSHBOP_UPDATE_GIT_TIMEOUT="${ZSHBOP_UPDATE_GIT_TIMEOUT:-300}" # -- Seconds after which a background repo sync is treated as dead
 export ZSHBOP_TEMP="$HOME/tmp"
 export SSHK="${ZSHBOP_HOME}/.ssh"
 export TMP="${ZSHBOP_HOME}/tmp"

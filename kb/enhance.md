@@ -1,4 +1,3 @@
-- [Enhance](#enhance)
   - [Common File Locations](#common-file-locations)
 - [Common CLI Commands](#common-cli-commands)
   - [Control Panel](#control-panel)

@@ -128,13 +128,14 @@ function repos () {
     # =========================
 	elif [[ $1 == 'update' ]]; then
         _loading "Updating repos"
+        local REPO_UPDATE_FAILED=0
 		if [ "$(find "$REPOS_DIR" -mindepth 1 -maxdepth 1 -not -name '.*')" ]; then
 			_debug "Found repositories"
 			for REPO in $REPOS_DIR/*; do
 		    	_debug "Found $REPO"
 	        	if [[ -d $REPO ]]; then
-	        		_loading2 "Updating repo $REPO"
-	                git --git-dir=$REPO/.git --work-tree=$REPO pull
+	        		# -- Quiet sync: one line per repository, a plain directory is a skip
+	        		_git_sync_repo --optional "$REPO" || REPO_UPDATE_FAILED=$(( REPO_UPDATE_FAILED + 1 ))
 		        else
 		        	_loading2 "No repos to update"
 	       		fi
@@ -142,6 +143,12 @@ function repos () {
 		else
 			_loading2 "No repos to update"
 		fi
+		# -- A failing repository must be visible to the caller, not just the transcript
+		if (( REPO_UPDATE_FAILED )); then
+			_warning "${REPO_UPDATE_FAILED} repository(ies) failed to update"
+			return 1
+		fi
+		return 0
 	# =========================
 	# -- repos dir
 	# =========================
@@ -174,7 +181,7 @@ function repos () {
 		echo "    pull <repo> (branch)     - Pull  repository"
 		echo "    list                     - List pulled repositories"
 		echo "    branch <repo> <branch>   - Change branch for repository"
-		echo "    update                   - Update repositories"
+		echo "    update                   - Update repositories (quiet; resets diverged repos to upstream)"
 		echo "    dir  				       - Change directory to repos directory"
         echo ""
         echo "Available Repositories"

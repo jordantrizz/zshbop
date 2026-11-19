@@ -1,5 +1,4 @@
 # Table of Contents
-- [Table of Contents](#table-of-contents)
 - [Popular Links](#popular-links)
 - [GridPane CLI Commands](#gridpane-cli-commands)
   - [Set Default Site](#set-default-site)
@@ -313,7 +312,7 @@ gp stack redis -max-memory 300
 * /var/www/{site.url}/logs/7g.log
 
 # Post to Slack
-* /usr/local/bin/gpmonitor <title> <data>
+* /usr/local/bin/gpmonitor `<title> <data>`
 * 'gp monitor SYS_SWAP_MEM 75 warning'
 
 # Nginx

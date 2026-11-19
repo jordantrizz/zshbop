@@ -26,7 +26,7 @@ $ git commit --amend
 
 ## Create and apply GIT patch
 * git format-patch -1 87c800f87c09c395237afdb45c98c20259c20152 -o patches
-* git am <patch_file>
+* git am `<patch_file>`
 
 ## Squash History on git merge
 ```
