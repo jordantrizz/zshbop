@@ -150,6 +150,23 @@ EMPTY_DOCKER=0
     || fail "empty docker output gave rc=$empty_rc: '$empty_out'"
 
 # ---------------------------------------------------------------
+echo "=== Scenario 10: default view and -s ==="
+default_out=$(traefik-status 2>&1)
+if print -r -- "$default_out" | grep -q '^CONTAINER  *ROUTER'; then
+    ok "bare traefik-status prints the label table"
+else
+    fail "bare traefik-status dropped the label table"
+fi
+status_out=$(traefik-status -s 2>&1)
+if print -r -- "$status_out" | grep -q '^CONTAINER  *ROUTER'; then
+    fail "-s still printed the label table"
+else
+    ok "-s skips the label table"
+fi
+traefik-status -l -s >/dev/null 2>&1
+[[ $? -eq 1 ]] && ok "-l -s exits 1" || fail "-l -s did not exit 1"
+
+# ---------------------------------------------------------------
 rm -rf "$FIXTURE_DIR"
 
 echo ""

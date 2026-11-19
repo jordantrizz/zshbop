@@ -255,29 +255,33 @@ function _traefik_status_labels_view () {
 # ==============================================================================
 help_traefik[traefik-status]='Show Traefik routers, services, certificates, and container labels'
 function traefik-status () {
-    local -a opts_help opts_raw opts_labels opts_all
+    local -a opts_help opts_raw opts_labels opts_all opts_status
     local TRAEFIK_API overview routers services
     local router_total router_errors router_warnings svc_total svc_errors svc_warnings
     local container_status container_uptime container_image error_logs host_api traefik_image
     local ep_names ep ep_addr cert_count
     local has_jq=0
     local has_python=0
+    local want_labels=0
 
     zparseopts -D -E -- \
         h=opts_help -help=opts_help \
         r=opts_raw -raw=opts_raw \
         l=opts_labels -labels=opts_labels \
-        a=opts_all -all=opts_all
+        a=opts_all -all=opts_all \
+        s=opts_status -status=opts_status
 
     if [[ -n $opts_help ]]; then
-        echo "Usage: traefik-status [-h|--help] [-l|--labels] [-a|--all] [-r|--raw]"
-        echo "  -l, --labels   Show the Traefik labels declared by running containers"
-        echo "  -a, --all      With --labels, include containers with no traefik.* labels"
-        echo "  -r, --raw      Show raw JSON output"
+        echo "Usage: traefik-status [-h|--help] [-l|--labels] [-a|--all] [-s|--status] [-r|--raw]"
+        echo "  -l, --labels   Show only the Traefik labels declared by running containers"
+        echo "  -a, --all      Include containers with no traefik.* labels in the table"
+        echo "  -s, --status   Show only the Traefik API status (skip the label table)"
+        echo "  -r, --raw      Show raw JSON output from the Traefik API"
         echo ""
         echo "Examples:"
-        echo "  traefik-status -l"
+        echo "  traefik-status"
         echo "  traefik-status -l -a"
+        echo "  traefik-status -s"
         return 0
     fi
 
@@ -286,9 +290,26 @@ function traefik-status () {
         return 1
     fi
 
+    if [[ -n $opts_labels && -n $opts_status ]]; then
+        _error "-l|--labels cannot be combined with -s|--status"
+        return 1
+    fi
+
     if [[ -n $opts_labels ]]; then
-        _traefik_status_labels_view "${opts_all:+1}" || return 1
-        return 0
+        want_labels=1
+    elif [[ -z $opts_status && -z $opts_raw ]]; then
+        want_labels=1
+    fi
+
+    if (( want_labels )); then
+        if [[ -n $opts_labels ]]; then
+            _traefik_status_labels_view "${opts_all:+1}" || return 1
+            return 0
+        fi
+
+        _loading "Container Labels"
+        _traefik_status_labels_view "${opts_all:+1}" || :
+        echo ""
     fi
 
     [[ -z "${DOCKSOFT_CONTAINERS:-}" ]] && DOCKSOFT_CONTAINERS="/root/containers"

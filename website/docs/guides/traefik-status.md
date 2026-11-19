@@ -8,12 +8,26 @@ description: Read the Traefik labels declared by running containers — containe
 - **What did Traefik load?** Routers, services, entrypoints, ACME certificates, the `traefik`
   container's own health. This comes from the Traefik API and is what the command prints by default.
 - **What did each container declare?** The `traefik.*` labels on every running container. This comes
-  from Docker, is shown by `traefik-status -l`, and needs neither the Traefik API nor a running
-  `traefik` container.
+  from Docker, is shown first by default and on its own with `traefik-status -l`, and needs neither
+  the Traefik API nor a running `traefik` container.
 
 The second question is the pre-flight view of a deployment: a 404 or an unreachable service is
 usually a label that is missing, misspelled or pointing at the wrong port, and the API cannot tell
 you that because a router that was never parsed does not exist there.
+
+## What runs by default
+
+Bare `traefik-status` prints the label table first, under a `Container Labels` heading, then the API
+status. That order is deliberate: the labels are what you declared, the API status is what Traefik
+loaded, and reading them top to bottom is the shortest path from "what should be routed" to "what is
+routed". `-s|--status` skips the table and reproduces the previous output exactly.
+
+```bash
+traefik-status -l        # the table only
+traefik-status -s        # the API status only
+traefik-status -r        # raw JSON, table skipped
+traefik-status -l -a     # the table, including containers with no traefik.* labels
+```
 
 ## `traefik-status -l`
 
@@ -49,8 +63,10 @@ set to `-`, so `traefik.enable=false` and network-only declarations stay visible
 
 | Flag | Effect |
 |------|--------|
+| *(none)* | The label table, then the Traefik API status |
 | `-l`, `--labels` | Print the label table and nothing else |
-| `-a`, `--all` | With `-l`, also list containers that declare no `traefik.*` label — the way to find a service nobody labeled |
+| `-a`, `--all` | Widen the table to containers that declare no `traefik.*` label — the way to find a service nobody labeled |
+| `-s`, `--status` | Print only the API status, skipping the label table |
 | `-r`, `--raw` | Print raw JSON from the Traefik API; refused together with `-l` |
 | `-h`, `--help` | Usage |
 

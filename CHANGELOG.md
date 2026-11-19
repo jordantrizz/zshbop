@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- `traefik-status` with no arguments now prints the container label table before the API status;
+  `-s|--status` restores the previous output on its own.
+
 ### Added
 - `traefik-status -l|--labels` prints the Traefik labels every running container declares —
   container, router, enabled, network, host, TLS, certresolver and port — from one `docker ps` and
