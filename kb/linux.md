@@ -6,7 +6,7 @@
 * Use the command hostnamectl
 * You might need to update /etc/cloud/cloud.cfg and change "preserve_hostname" from "false" to "true".
 ```
-hostnamectl set-hostname srv01.prod.bluinf.com
+hostnamectl set-hostname srv01.example.com
 ```
 
 # Commands
