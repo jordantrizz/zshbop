@@ -29,7 +29,7 @@ $ sudo apt-get install goaccess
         set $maintenance on;
     }
 
-    if ($remote_addr ~ (127.0.0.1|76.70.117.218)) {
+    if ($remote_addr ~ (127.0.0.1|203.0.113.10)) {
       set $maintenance off;
     }
 
@@ -46,6 +46,7 @@ $ sudo apt-get install goaccess
         rewrite ^(.*)$ /maintenance.html break;
     }
 ```
+`203.0.113.0/24` is the RFC 5737 documentation range — substitute your own address. Note that a residential or otherwise dynamic address is not a stable allowlist: if the address can change, allow a DNS name or reach the page over a VPN instead.
 ## HTML Page
 ```
 <html>
