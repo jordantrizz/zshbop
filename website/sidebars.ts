@@ -34,6 +34,7 @@ const sidebars: SidebarsConfig = {
         'guides/debugging',
         'guides/boot-timing',
         'guides/docksoft',
+        'guides/traefik-status',
         'guides/zshbop-cli',
         'guides/recommended-tools',
         'guides/test-containers',
