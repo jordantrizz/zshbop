@@ -11,6 +11,6 @@ the `help_*` entries in the source file, not this page.
 
 | Command | Description |
 |---------|-------------|
-| `traefik-status` | Show Traefik routers, services, and certificate status |
+| `traefik-status` | Show Traefik routers, services, certificates, and container labels |
 
 <!-- END GENERATED: commands-traefik -->

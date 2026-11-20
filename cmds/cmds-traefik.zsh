@@ -35,24 +35,281 @@ function _traefik_status_api_get () {
 }
 
 # ==============================================================================
+# -- _traefik_status_container_label_source () - Dump every running container's
+# -- name, networks and labels as one JSON line, in two constant Docker calls
+# ==============================================================================
+function _traefik_status_container_label_source () {
+    local ids
+
+    ids=$(docker ps -q 2>/dev/null) || return 1
+    [[ -z "$ids" ]] && return 0
+
+    docker inspect --format '{"name":{{json .Name}},"networks":{{json .NetworkSettings.Networks}},"labels":{{json .Config.Labels}}}' ${(f)ids} 2>/dev/null
+}
+
+# ==============================================================================
+# -- _traefik_status_label_rows () - Turn the container dump into tab-separated
+# -- label rows: container, router, enabled, network, host, tls, certresolver, port
+# ==============================================================================
+function _traefik_status_label_rows () {
+    local raw="$1"
+    local all_flag="${2:-0}"
+
+    [[ "$all_flag" == "1" ]] && all_flag=true || all_flag=false
+
+    if _traefik_status_has_command jq; then
+        print -r -- "$raw" | jq -R -r -s --argjson all "$all_flag" '
+def e($v): if $v == "true" then "yes" elif $v == "false" then "no" else $v end;
+
+def firstport($l):
+  ([ $l | keys[] | select(test("\\.loadbalancer\\.server\\.port$")) | $l[.] ] | .[0] // "-");
+
+def hosts:
+  [ scan("Host\\(([^)]*)\\)") ]
+  | map(if type == "array" then .[0] else . end)
+  | map(split(",")[] | gsub("`"; "") | gsub("\""; "") | gsub("^\\s+|\\s+$"; ""))
+  | map(select(length > 0))
+  | join(",");
+
+def tls_of($l; $b):
+  if ($l | has($b + ".tls")) or ([ $l | keys[] | select(startswith($b + ".tls.")) ] | length > 0)
+  then "yes" else "-" end;
+
+split("\n")[] | select(length > 0) | fromjson
+| (.name | sub("^/"; "")) as $name
+| (.labels // {}) as $l
+| ([ (.networks // {}) | keys[] ] | join(",")) as $attached
+| ([ $l | keys[] | select(startswith("traefik.http.routers."))
+     | capture("^traefik\\.http\\.routers\\.(?<r>[^.]+)\\.") | .r ] | unique) as $routers
+| if ($routers | length) == 0 then
+    (if $all or ([ $l | keys[] | select(startswith("traefik")) ] | length > 0) then
+       [ $name, "-", e($l["traefik.enable"] // "-"),
+         ($l["traefik.docker.network"] // (if $attached == "" then "-" else $attached end)),
+         "-", "-", "-", firstport($l) ]
+     else empty end)
+  else
+    $routers[] as $r
+    | ("traefik.http.routers." + $r) as $b
+    | ($l[$b + ".service"] // $r) as $svc
+    | [ $name,
+        $r,
+        e($l["traefik.enable"] // "-"),
+        ($l["traefik.docker.network"] // (if $attached == "" then "-" else $attached end)),
+        (($l[$b + ".rule"] // "") | hosts | if . == "" then "-" else . end),
+        tls_of($l; $b),
+        ($l[$b + ".tls.certresolver"] // "-"),
+        ($l["traefik.http.services." + $svc + ".loadbalancer.server.port"] // firstport($l)) ]
+  end
+| @tsv
+' 2>/dev/null
+        return $?
+    elif _traefik_status_has_command python3; then
+        print -r -- "$raw" | python3 -c '
+import json
+import re
+import sys
+
+show_all = sys.argv[1] == "1"
+
+
+def enabled(value):
+    if value == "true":
+        return "yes"
+    if value == "false":
+        return "no"
+    return value
+
+
+def hosts(rule):
+    names = []
+    for group in re.findall(r"Host\(([^)]*)\)", rule or ""):
+        for part in group.split(","):
+            part = part.strip().strip("`\"")
+            if part:
+                names.append(part)
+    return ",".join(names)
+
+
+def first_port(labels):
+    for key in sorted(labels):
+        if key.endswith(".loadbalancer.server.port"):
+            return labels[key]
+    return "-"
+
+
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        container = json.loads(line)
+    except ValueError:
+        continue
+    name = (container.get("name") or "").lstrip("/")
+    labels = container.get("labels") or {}
+    networks = container.get("networks") or {}
+    attached = ",".join(sorted(networks.keys()))
+    network = labels.get("traefik.docker.network") or attached or "-"
+    routers = sorted({
+        match.group(1)
+        for key in labels
+        for match in [re.match(r"^traefik\.http\.routers\.([^.]+)\.", key)]
+        if match
+    })
+    if not routers:
+        if show_all or any(key.startswith("traefik") for key in labels):
+            print("\t".join([
+                name,
+                "-",
+                enabled(labels.get("traefik.enable", "-")),
+                network,
+                "-",
+                "-",
+                "-",
+                first_port(labels),
+            ]))
+        continue
+    for router in routers:
+        base = "traefik.http.routers." + router
+        service = labels.get(base + ".service") or router
+        tls = "-"
+        if base + ".tls" in labels or any(key.startswith(base + ".tls.") for key in labels):
+            tls = "yes"
+        port = labels.get("traefik.http.services." + service + ".loadbalancer.server.port")
+        if not port:
+            port = first_port(labels)
+        print("\t".join([
+            name,
+            router,
+            enabled(labels.get("traefik.enable", "-")),
+            network,
+            hosts(labels.get(base + ".rule", "")) or "-",
+            tls,
+            labels.get(base + ".tls.certresolver", "-"),
+            port,
+        ]))
+' "$all_flag"
+        return $?
+    fi
+
+    return 3
+}
+
+# ==============================================================================
+# -- _traefik_status_labels_view () - Print the container label table
+# ==============================================================================
+function _traefik_status_labels_view () {
+    local all_flag="${1:-0}"
+    local raw rows rc header row_count container_count enabled_count
+
+    if ! _traefik_status_has_command docker; then
+        _error "docker is not installed or not in PATH"
+        return 1
+    fi
+
+    raw=$(_traefik_status_container_label_source)
+    rc=$?
+    if (( rc != 0 )); then
+        _error "Unable to query Docker for running containers"
+        return 1
+    fi
+
+    if [[ -z "$raw" ]]; then
+        _warning "No running containers found"
+        return 0
+    fi
+
+    rows=$(_traefik_status_label_rows "$raw" "$all_flag" | sort -t $'\t' -k1,1 -k2,2)
+    rc=$?
+    if (( rc == 3 )); then
+        _warning "Neither jq nor python3 is available — showing raw container labels"
+        print -r -- "$raw"
+        return 0
+    fi
+    if (( rc != 0 )); then
+        _error "Failed to parse container labels"
+        return 1
+    fi
+
+    if [[ -z "$rows" ]]; then
+        _warning "No container declares traefik.* labels (use -a to include every container)"
+        return 0
+    fi
+
+    header=$'CONTAINER\tROUTER\tENABLED\tNETWORK\tHOST\tTLS\tCERTRESOLVER\tPORT'
+    if (( $+commands[column] )); then
+        print -r -- "${header}"$'\n'"${rows}" | column -t -s $'\t'
+    else
+        print -r -- "$header"
+        print -r -- "$rows"
+    fi
+
+    row_count=$(print -r -- "$rows" | grep -c .)
+    container_count=$(print -r -- "$rows" | cut -f1 | sort -u | grep -c .)
+    enabled_count=$(print -r -- "$rows" | awk -F'\t' '$3 == "yes" {n++} END {print n+0}')
+    _loading3 "$container_count container(s), $row_count router row(s), $enabled_count enabled"
+}
+
+# ==============================================================================
 # -- traefik-status () - Show Traefik status from the API
 # ==============================================================================
-help_traefik[traefik-status]='Show Traefik routers, services, and certificate status'
+help_traefik[traefik-status]='Show Traefik routers, services, certificates, and container labels'
 function traefik-status () {
-    local -a opts_help opts_raw
+    local -a opts_help opts_raw opts_labels opts_all opts_status
     local TRAEFIK_API overview routers services
     local router_total router_errors router_warnings svc_total svc_errors svc_warnings
     local container_status container_uptime container_image error_logs host_api traefik_image
     local ep_names ep ep_addr cert_count
     local has_jq=0
     local has_python=0
+    local want_labels=0
 
-    zparseopts -D -E -- h=opts_help -help=opts_help r=opts_raw -raw=opts_raw
+    zparseopts -D -E -- \
+        h=opts_help -help=opts_help \
+        r=opts_raw -raw=opts_raw \
+        l=opts_labels -labels=opts_labels \
+        a=opts_all -all=opts_all \
+        s=opts_status -status=opts_status
 
     if [[ -n $opts_help ]]; then
-        echo "Usage: traefik-status [-h|--help] [-r|--raw]"
-        echo "  -r, --raw    Show raw JSON output"
+        echo "Usage: traefik-status [-h|--help] [-l|--labels] [-a|--all] [-s|--status] [-r|--raw]"
+        echo "  -l, --labels   Show only the Traefik labels declared by running containers"
+        echo "  -a, --all      Include containers with no traefik.* labels in the table"
+        echo "  -s, --status   Show only the Traefik API status (skip the label table)"
+        echo "  -r, --raw      Show raw JSON output from the Traefik API"
+        echo ""
+        echo "Examples:"
+        echo "  traefik-status"
+        echo "  traefik-status -l -a"
+        echo "  traefik-status -s"
         return 0
+    fi
+
+    if [[ -n $opts_labels && -n $opts_raw ]]; then
+        _error "-l|--labels cannot be combined with -r|--raw"
+        return 1
+    fi
+
+    if [[ -n $opts_labels && -n $opts_status ]]; then
+        _error "-l|--labels cannot be combined with -s|--status"
+        return 1
+    fi
+
+    if [[ -n $opts_labels ]]; then
+        want_labels=1
+    elif [[ -z $opts_status && -z $opts_raw ]]; then
+        want_labels=1
+    fi
+
+    if (( want_labels )); then
+        if [[ -n $opts_labels ]]; then
+            _traefik_status_labels_view "${opts_all:+1}" || return 1
+            return 0
+        fi
+
+        _loading "Container Labels"
+        _traefik_status_labels_view "${opts_all:+1}" || :
+        echo ""
     fi
 
     [[ -z "${DOCKSOFT_CONTAINERS:-}" ]] && DOCKSOFT_CONTAINERS="/root/containers"
