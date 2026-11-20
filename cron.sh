@@ -12,7 +12,7 @@ CRON_CMD=""
 LOG_TO_STDOUT="1" # - Log to stdout? 0 = no, 1 = yes
 LOG_TO_SYSLOG="1" # - Log to syslog? 0 = no, 1 = yes
 LOG_TO_FILE="0" # - Log to file? 0 = no, 1 = yes
-LOG_FILE="/home/app.goodmorningleland.com/wordpress-crons.log" # Location for wordpress cron.
+LOG_FILE="" # - Log to file? Set a full path, e.g. /home/systemuser/wordpress-crons.log. Empty with LOG_TO_FILE=1 writes nothing.
 HEARTBEAT_URL="" # - Heartbeat monitoring URL, e.g. https://uptime.betterstack.com/api/v1/heartbeat/<your-token-here>
 POST_CRON_CMD="" # - Command to run after cron completes
 
@@ -53,7 +53,7 @@ if [[ $LOG_TO_STDOUT == "1" ]]; then
     echo -e "Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT"
 elif [[ $LOG_TO_SYSLOG == "1" ]]; then
     echo -e "Cron job completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT" | logger -t "cron-script"
-elif [[ $LOG_TO_FILE == "1" ]]; then
-    # Log to file in the WordPress install directory
-    echo "$(date +"%Y-%m-%d %H:%M:%S") - Cron completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT" >> $LOG_FILE
+elif [[ $LOG_TO_FILE == "1" && -n $LOG_FILE ]]; then
+    # Log to file, when a path is configured
+    echo "$(date +"%Y-%m-%d %H:%M:%S") - Cron completed in $TIME_SPENT seconds with $CPU_USAGE% CPU usage. \nOutput: $CRON_OUTPUT" >> "$LOG_FILE"
 fi

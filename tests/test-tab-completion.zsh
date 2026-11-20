@@ -72,7 +72,7 @@ precmd () { print -r -- '@@READY@@' }
 autoload -Uz compinit && compinit
 _debug () { : }
 _warning () { print -r -- "[warning] $*" >> "$DUMP_LOG" }
-_fake () { compadd vm2-small.runlocalsrv.com vm2-vh1-sydseast-large.ebundanthost.com vm2-vh1-uswest-large.optikhosting.com }
+_fake () { compadd vm2-small.example.com vm2-vh1-sydseast.example.com vm2-vh1-uswest.example.com }
 compdef _fake probe
 _zshbop_opencode_query () { print -r -- 'echo stubbed-ai' }
 [[ -n "$ZSH_AUTOSUGGEST_LIB" && -r "$ZSH_AUTOSUGGEST_LIB" ]] && source "$ZSH_AUTOSUGGEST_LIB"
@@ -160,7 +160,7 @@ _send 'probe vm2'
 OUT=''
 zpty -w -n pty $'probe vm2\t\t'
 _settle 20
-[[ "$OUT" == *'vm2-vh1-uswest-large.optikhosting.com'* ]] && ok "2 Tabs list the candidates" || fail "candidates not listed"
+[[ "$OUT" == *'vm2-vh1-uswest.example.com'* ]] && ok "2 Tabs list the candidates" || fail "candidates not listed"
 _stop
 
 # ---------------------------------------------------------------
@@ -169,17 +169,17 @@ _start select 1
 _send 'probe vm2'
 _send $'\t\t\t'
 buf="$(_buffer)"
-[[ "$buf" == 'probe vm2-small.runlocalsrv.com '* ]] && ok "3 Tabs highlight the first candidate" || fail "3 Tabs buffer: '$buf'"
+[[ "$buf" == 'probe vm2-small.example.com '* ]] && ok "3 Tabs highlight the first candidate" || fail "3 Tabs buffer: '$buf'"
 _send 'probe vm2'
 _send $'\t\t\t'
 _send $'\x1b[B' 12
 buf="$(_buffer)"
-[[ "$buf" == 'probe vm2-vh1-sydseast-large.ebundanthost.com '* ]] && ok "Down moves the highlight to the second" || fail "Down buffer: '$buf'"
+[[ "$buf" == 'probe vm2-vh1-sydseast.example.com '* ]] && ok "Down moves the highlight to the second" || fail "Down buffer: '$buf'"
 _send 'probe vm2'
 _send $'\t\t\t'
 _send $'\x1b[B\x1b[B' 12
 buf="$(_buffer)"
-[[ "$buf" == 'probe vm2-vh1-uswest-large.optikhosting.com '* ]] && ok "Down twice moves to the third" || fail "Down x2 buffer: '$buf'"
+[[ "$buf" == 'probe vm2-vh1-uswest.example.com '* ]] && ok "Down twice moves to the third" || fail "Down x2 buffer: '$buf'"
 _stop
 
 # ---------------------------------------------------------------
@@ -198,11 +198,11 @@ _start cycle 1
 _send 'probe vm2'
 _send $'\t'
 buf="$(_buffer)"
-[[ "$buf" == 'probe vm2-small.runlocalsrv.com' ]] && ok "1 Tab inserts the first candidate" || fail "cycle 1 Tab buffer: '$buf'"
+[[ "$buf" == 'probe vm2-small.example.com' ]] && ok "1 Tab inserts the first candidate" || fail "cycle 1 Tab buffer: '$buf'"
 _send 'probe vm2'
 _send $'\t\t'
 buf="$(_buffer)"
-[[ "$buf" == 'probe vm2-vh1-sydseast-large.ebundanthost.com' ]] && ok "2 Tabs cycle to the second" || fail "cycle 2 Tabs buffer: '$buf'"
+[[ "$buf" == 'probe vm2-vh1-sydseast.example.com' ]] && ok "2 Tabs cycle to the second" || fail "cycle 2 Tabs buffer: '$buf'"
 _stop
 
 # ---------------------------------------------------------------
@@ -265,7 +265,7 @@ if [[ -n "$AUTOSUGGEST_LIB" ]]; then
     _send 'probe vm2'
     _send $'\t\t\t'
     buf="$(_buffer)"
-    [[ "$buf" == 'probe vm2-small.runlocalsrv.com '* ]] && ok "menu still selects with autosuggestions loaded" || fail "autosuggestions buffer: '$buf'"
+    [[ "$buf" == 'probe vm2-small.example.com '* ]] && ok "menu still selects with autosuggestions loaded" || fail "autosuggestions buffer: '$buf'"
     _stop
 else
     echo "  [SKIP] zsh-autosuggestions not found"

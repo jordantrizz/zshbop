@@ -1,0 +1,46 @@
+# gitleaks configuration — the allowlist for the secret gate.
+#
+# Every entry is a reviewed false positive or a vendored artifact, never a
+# finding that was "accepted" for convenience. Nothing here may hide a real
+# credential:
+#
+#   * paths   — third-party release binaries in bin/ (the scanner reads their
+#               embedded strings as secrets), plus the docs build output and
+#               installed dependencies. Every one of them is downloaded, not
+#               authored here. Our own scripts in bin/ stay scanned.
+#   * regexes — literal placeholder Slack webhooks, `hooks.slack.com/services/
+#               XXXX/XXXX/XXXX`. A real webhook still fails.
+#
+# The one source-level false positive is the marker `cmds/cmds-ssh.zsh` prints
+# around a keypair it generates and deletes. It is allowlisted by that literal
+# header rather than by an inline comment, because an inline comment only
+# applies to the working tree: the same string in an earlier commit still fails
+# the history scan. The marker is synthetic ("TEMPORARY OPENSSH PRIVATE KEY") —
+# a real key says "OPENSSH PRIVATE KEY" — so no genuine key can match it.
+
+title = "zshbop"
+
+# Extend the bundled rule set. Without this, a config file with no [[rules]]
+# would replace the default rules instead of adding to them, and the scan
+# would report nothing at all.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Vendored third-party binaries, build output, and placeholder-only matches"
+
+paths = [
+  '''^bin/[^/]+\.phar$''',
+  '''^bin/wp$''',
+  '''^bin/wp-cli-.*$''',
+  '''^bin/(dops|eza|glow|plik|vt|tran|fastfetch|flashfetch|macchina)[-_].*$''',
+  '''^bin/(check_if_email_exists|grepcidr|grepcidr3_linux|mc|set_rlimit|set_rlimit_mac|wpress-extractor|lazyjournal)$''',
+  '''^website/node_modules/''',
+  '''^website/build/''',
+  '''^website/\.docusaurus/''',
+]
+
+regexes = [
+  '''hooks\.slack\.com/services/X{8,}/X{8,}/X{20,}''',
+  '''-----BEGIN TEMPORARY OPENSSH PRIVATE KEY-----''',
+]

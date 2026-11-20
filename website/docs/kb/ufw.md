@@ -8,7 +8,8 @@ description: "Allow a single IP into anything."
 * ufw status numbered
 ## Quick Commands
 Allow a single IP into anything.
-* ufw allow in from 76.70.117.11 to any
+* ufw allow in from 203.0.113.10 to any
+`203.0.113.0/24` is the RFC 5737 documentation range — substitute your own address. A residential or otherwise dynamic address is not a stable allowlist: use a VPN or a DNS name if the address can change.
 ## Rule Syntax
 ```
 ufw [rule]

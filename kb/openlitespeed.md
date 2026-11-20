@@ -7,7 +7,7 @@
 * Edit vhost conf and add
 ```
 phpIniOverride  {
- php_value error_log /home/dev.goodmorningleland.com/logs/dev.goodmorningleland.com.error_log
+ php_value error_log /home/dev.example.com/logs/dev.example.com.error_log
  php_flag display_startup_errors on
  php_flag display_errors on
 }

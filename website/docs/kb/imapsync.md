@@ -64,7 +64,7 @@ Install-Module MSAL.PS -MaximumVersion 4.36.1.2 -AcceptLicense
 Import-Module MSAL.PS -MaximumVersion 4.36.1.2
 Clear-MsalTokenCache
 $clientID = "08162f7c-0fd2-4200-a84a-f25a4db0b584" #thunderbird, see https://hg.mozilla.org/comm-central/file/tip/mailnews/base/src/OAuth2Providers.jsm
-$secret = ConvertTo-SecureString 'TxRBilcHdC6WGBee]fs?QR:SJ8nI[g82' -AsPlainText -Force
+$secret = ConvertTo-SecureString '<thunderbird-client-secret>' -AsPlainText -Force
 $TenantId = "TENANTNAME.onmicrosoft.com"
 $scope = "https://graph.microsoft.com/.default"
 $myAccessToken = Get-MsalToken -ClientId $clientID `
@@ -73,6 +73,8 @@ $myAccessToken = Get-MsalToken -ClientId $clientID `
          -clientsecret $secret
 $myAccessToken.AccessToken
 ```
+
+`<thunderbird-client-secret>` is the secret that pairs with that client ID. Both values live in Mozilla's `OAuth2Providers.jsm` (linked above) and are shared by every Thunderbird install, so read them from there rather than pasting the literal into a script — Mozilla can rotate the pair at any time.
 
 ### OAUTH2 Microsoft 365 with Python
 #### Step 1 - Download muttoauth2
@@ -94,7 +96,7 @@ DECRYPTION_PIPE = ['tee']
         'client_secret': '',
 ->
         'client_id': '08162f7c-0fd2-4200-a84a-f25a4db0b584',
-        'client_secret': 'TxRBilcHdC6WGBee]fs?QR:SJ8nI[g82',
+        'client_secret': '<thunderbird-client-secret>',
 ```
 
 #### Step 3 - Run mutt_oauth2.py
