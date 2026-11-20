@@ -6,6 +6,11 @@ zsh-personal
 .debug
 .development
 .zshbop
+.zshbop.conf
+.env
+*.pem
+*.key
+id_rsa*
 repos/*
 zshbop.code-workspace
 .idea
