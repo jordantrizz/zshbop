@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- A standing secret gate: `.github/workflows/secrets.yml` scans the working tree and the full
+  history with `gitleaks` on every push and pull request. `.gitleaks.toml` allowlists only vendored
+  third-party binaries, build output, and two literal placeholders — never a baseline.
+
+### Fixed
+- The knowledge base no longer publishes a residential IP address. The maintenance-page bypass and
+  the `ufw` example use the RFC 5737 documentation range, and both say why a dynamic address is not
+  a stable allowlist.
+- The imapsync article no longer pastes the Thunderbird OAuth client secret. It points at Mozilla's
+  `OAuth2Providers.jsm`, where the client ID and secret are published and can be rotated.
+- Customer and host identifiers are gone from the knowledge base, the Tab-completion test, and
+  `cron.sh` — whose `LOG_FILE` default is now empty, and whose file log is skipped when it is.
+- `.gitignore` covers `.zshbop.conf`, `.env` and key material, so a user's own credentials file
+  cannot be committed from a checkout.
+
 ## [4.5.0] - 2026-11-19
 
 ### Added

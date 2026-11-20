@@ -25,6 +25,8 @@ $ sudo apt-get install goaccess
 ## Nginx Configuration Option #2 - File Exists + IP
 ```
     # -- Maintenance page
+    # 203.0.113.0/24 is the RFC 5737 documentation range; substitute your own address.
+    # A residential or dynamic address is not a stable allowlist — allow a DNS name or use a VPN.
     if (-f $document_root/maintenance.html) {
         set $maintenance on;
     }
@@ -46,7 +48,6 @@ $ sudo apt-get install goaccess
         rewrite ^(.*)$ /maintenance.html break;
     }
 ```
-`203.0.113.0/24` is the RFC 5737 documentation range — substitute your own address. Note that a residential or otherwise dynamic address is not a stable allowlist: if the address can change, allow a DNS name or reach the page over a VPN instead.
 ## HTML Page
 ```
 <html>
