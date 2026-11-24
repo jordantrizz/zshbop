@@ -30,11 +30,13 @@ $ sudo apt-get install goaccess
 ### Nginx Configuration Option #2 - File Exists + IP
 ```
     # -- Maintenance page
+    # 203.0.113.0/24 is the RFC 5737 documentation range; substitute your own address.
+    # A residential or dynamic address is not a stable allowlist — allow a DNS name or use a VPN.
     if (-f $document_root/maintenance.html) {
         set $maintenance on;
     }
 
-    if ($remote_addr ~ (127.0.0.1|76.70.117.218)) {
+    if ($remote_addr ~ (127.0.0.1|203.0.113.10)) {
       set $maintenance off;
     }
 

@@ -320,7 +320,7 @@ gp stack redis -max-memory 300
 * gp site domain.com -regenerate-nginx-configs --force
 
 # Enable Debug Mode
-* /usr/local/bin/gp site store.vitalbody.ca wp-debug-on
+* /usr/local/bin/gp site store.example.com wp-debug-on
 
 # Create Vanilla Nginx Config
 * gp conf nginx generate https-vanilla site.com

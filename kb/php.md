@@ -96,7 +96,7 @@ realpath_cache_ttl = 300
 ./phpcs.phar --config-set installed_paths /root/bin/PHPCompatibility-9.3.5
 ```
 3. Run PHP Code Sniffer skip warnings
-./phpcs.phar -p /var/www/vitalbody.ca/htdocs/wp-content/plugins/fluent-smtp --standard=PHPCompatibility --runtime-set testVersion 8.0 -n
+./phpcs.phar -p /var/www/example.com/htdocs/wp-content/plugins/fluent-smtp --standard=PHPCompatibility --runtime-set testVersion 8.0 -n
 
 # Run PHP Code via CLI
 ```
