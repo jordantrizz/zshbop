@@ -8,6 +8,8 @@ This is my custom ZSH configuration. It uses antidote to install ZSH plugins.
 
 **Documentation:** https://jordantrizz.github.io/zshbop/
 
+[![docs](https://github.com/jordantrizz/zshbop/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/jordantrizz/zshbop/actions/workflows/docs.yml)
+
 <!-- BEGIN docs-index -->
 | Section | Start here |
 |---------|------------|

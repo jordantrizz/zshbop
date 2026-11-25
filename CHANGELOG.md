@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.6.2] - 2026-11-25
+
+### Added
+- A docs build badge in the README reports the documentation workflow's status and links to its
+  runs. It tracks `main`, the only branch that builds and deploys the site.
+
 ## [4.6.1] - 2026-11-24
 
 ### Added
